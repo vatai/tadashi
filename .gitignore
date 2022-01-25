@@ -1,0 +1,5 @@
+*.tex
+*~
+_minted-presentation/
+ltximg/
+*.pdf
