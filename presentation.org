@@ -255,7 +255,7 @@
     \end{align*}
     #+end_export
 
-** Towards an optimal schedule
+** Edge $1 \to 2$
    #+begin_export latex
    \begin{gather*}
    \label{eq:farkase}
@@ -265,11 +265,10 @@
    \end{gather*}
    #+end_export
 *** Dataflow analysis:
-    - $\pD_1 = \{ i : 0 \le i \le n \}$, $\pD_2 = \{ (i, j) : 0 \le i,
-      j \le n \}$
-    - $\pP_1 = \pD_2 \cap \{ (i, j) : j \le 0 \}$ and $h_1(i, j) = i$,
-      $\pP_2 = \pD_2 \cap \{ (i, j) : j \ge 1 \}$ and $h_2(i, j) =
-      \langle i, j - 1 \rangle$
+    - $\pD_1 = \{ i : 0 \le i \land 0 \le n - i \}$, $\pD_2 = \{ (i,
+      j) : 0 \le i \land 0 \le n - i \land 0 \le j \land 0 \le n - j
+      \}$
+    - $\pP_1 = \pD_2 \cap \{ (i, j) : j \le 0 \}$ and $h_1(i, j) = i$
     #+begin_export latex
     \begin{align*}
       &\mu_{2, 0} + \mu_{2, 1} i + \mu_{2, 2} (n - i) + \mu_{2, 3} j + \mu_{2, 4} (n - j) \\
@@ -294,6 +293,39 @@
    \end{align*}
    #+end_export
 
+** Edge $2 \to 2$
+   $\pP_2 = \pD_2 \cap \{ (i, j) : j \ge 1 \}$ and $h_2(i, j) =
+   \langle i, j - 1 \rangle$. Edge $e : 2 \to 2$ is uniform, which
+   means there is a vector $d = \langle 0, 1 \rangle$ such that $x =
+   h_e(y) = y - d$.
+   #+begin_export latex
+   \begin{equation*}
+   \label{eq:farkas1}
+   \theta(S, x) \equiv \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k}
+   \Bigl( a_{S_k} \begin{pmatrix} x \\ n \end{pmatrix} + b_{S_k} \Bigr)
+   \end{equation*}
+   #+end_export
+   We need $\theta(\delta(e), y) - \theta(\sigma(e), h_e(y)) - 1$!
+
+   $\mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k} \bigl( a_{S_k}
+   (\begin{smallmatrix} {\color{blue} y} \\ n \end{smallmatrix}) +
+   b_{S_k} \bigr) - \bigl[ \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k}
+   \bigl( a_{S_k} (\begin{smallmatrix} {\color{blue} h(y)} \\ n
+   \end{smallmatrix}) + b_{S_k} \bigr) \bigr]$
+
+   $\mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k} \bigl( a_{S_k}
+   \Bigl(\begin{smallmatrix} i \\ j \\ n \end{smallmatrix}\Bigr) +
+   b_{S_k} \bigr) - \bigl[ \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k}
+   \bigl( a_{S_k} \Bigl(\begin{smallmatrix} i \\ j {\color{blue} -1}
+   \\ n \end{smallmatrix}\Bigr) + b_{S_k} \bigr) \bigr]$
+
+   Most of the terms cancel each other out: $- \sum_{k=1}^{m_S}
+   \mu_{S_k} a_{S_k} \Bigl( \begin{smallmatrix} 0 \\ -1 \\ 0
+   \end{smallmatrix} \Bigr)$ Concretely: $\theta(2, i, j) = \cdots
+   \mu_{2, 3} j + \mu_{2, 4} (n - j)$ implies $\theta(2, y) -
+   \theta(2, h(y)) = \theta(2, i, j) - \theta(2, i, j - 1) = \mu_{2,
+   3} - \mu_{2, 4}$
+
 ** ILP calculcations
    $2 \to 2$ edge is uniform, the delay doesn't depend on the
    iteration vector: $\mu_{2, 3} - \mu_{2, 4} - 1 \ge 0$. One possible
@@ -307,38 +339,6 @@
      & \mu_{2, 3} - \mu_{2, 4} - 1 \ge 0
    \end{align}
    #+end_export
-
-** Uniform edge explanation
-   Edge $e : 2 \to 2$ is uniform, which means there is a vector $d =
-   \langle 0, 1 \rangle$ such that $x = h_e(y) = y - d$, \ie $h(i, j)
-   = \langle i, j - 1 \rangle$.
-   #+begin_export latex
-   \begin{equation*}
-   \label{eq:farkas1}
-   \theta(S, x) \equiv \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k}
-   \Bigl( a_{S_k} \begin{pmatrix} x \\ n \end{pmatrix} + b_{S_k} \Bigr)
-   \end{equation*}
-   #+end_export
-   So $\theta(\delta(e), y) - \theta(\sigma(e), h_e(y))$ is:
-
-   $\mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k} \bigl( a_{S_k}
-   (\begin{smallmatrix} y \\ n \end{smallmatrix}) + b_{S_k} \bigr) -
-   \bigl[ \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k} \bigl( a_{S_k}
-   (\begin{smallmatrix} h(y) \\ n \end{smallmatrix}) + b_{S_k} \bigr)
-   \bigr]$
-
-   $\mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k} \bigl( a_{S_k}
-   \Bigl(\begin{smallmatrix} i \\ j \\ n \end{smallmatrix}\Bigr) +
-   b_{S_k} \bigr) - \bigl[ \mu_{S_0} + \sum_{k=1}^{m_S} \mu_{S_k}
-   \bigl( a_{S_k} \Bigl(\begin{smallmatrix} i \\ j-1 \\ n
-   \end{smallmatrix}\Bigr) + b_{S_k} \bigr) \bigr]$
-
-   Most of the terms cancel each other out: $- \sum_{k=1}^{m_S}
-   \mu_{S_k} a_{S_k} \Bigl( \begin{smallmatrix} 0 \\ -1 \\ 0
-   \end{smallmatrix} \Bigr)$, so from $\theta(2, i, j) = \cdots
-   \mu_{2, 3} j + \mu_{2, 4} (n - j)$ we have: $\theta(2, y) -
-   \theta(2, h(y)) = \theta(2, i, j) - \theta(2, i, j - 1) = \mu_{2,
-   3} - \mu_{2, 4}$
 
 ** ILP solution
 *** SRight column
