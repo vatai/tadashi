@@ -33,7 +33,7 @@
        auto-detect)
     2. Problem 1: Find "nice" loops: PET *extracts* ISL named tuple
        sets/relations (and a trivial schedule)
-    3. Problem 2: Find the *true dependencies*
+    3. Problem 2: Find/approximate the *true dependencies*
     4. *PROBLEM 3*: Find a (transform the trivial schedule) to a
        better *(optimal) schedule* (using ILP)
     5. Problem 4: Based on the optimal schedule (and domain) *generate
@@ -42,51 +42,52 @@
 
 ** Statements vs statement instances
    #+begin_src fortran
-           do i = 1,n
+           do i = 0,n
       1       y(i) = 0.0
-              do j = 1,n
+              do j = 0,n
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
            end do
    #+end_src
    - Every command (in the source code) which reads/writes the memory
-     is a *statement*, \eg ~1: y(i) = 0~
+     is a *statement*, \eg ~1: y(i) = 0.0~
    - Each statement has multiple *instances*:
-     - ~y(0)=0~ for ~i=0~, ~y(1)=0~ for ~i=1~ etc.
+     - Statement 1 is ~y(0) = 0.0~ for ~i=0~, ~y(1) = 0.0~ for ~i=1~ etc.
    - $n$ is a *parameter*, treated as a constant, can be ignored
    - The set of instances of "nice" loops have affine description:
-     - $n \mapsto \{ s_1 : 1 \le 0 \le n \}$, $n \mapsto \{ s_2 : 1
+     - $n \mapsto \{ i : 0 \le i \le n \}$, $n \mapsto \{ (i, j) : 0
        \le i, j \le n \}$
 ** Literature
 *** Problem 3
     - This is the central idea of polyhedral compilation
     - Other problems are also important (maybe more important, \eg
-      dependency analysis)
-    - Described by: Some Efficient Solutions to the Affine Scheduling
-      Problem. I. One-Dimensional Time -- Paul Feautrier
+      dependency analysis), but this is the "skeleton" of the approach
+      (everything else connects to it).
+    - Described by: /Some Efficient Solutions to the Affine Scheduling
+      Problem. I. One-Dimensional Time/ by Paul Feautrier
 * Discussion of the paper
 ** Dependence graph
 *** Generalised Dependence Graph (GDG)
-    - *Vertex*: $\forall$ statement $S$ is the *polyhedron*
-      $\pD_S \subset \mathbb{Q}^{P_S}$, $P_S \in \mathbb{N}$
-      is the dimension of the iteration space, \ie the number of loops
-      enclosing $S$. Every instance of every statement can be
-      described by $(S, x)$ for $x \in \pD_S$.
+    - *Vertex*: $\forall$ statement $S$ is the (family of)
+      *polyhedron(s)* $\pD_S \subset \mathbb{Q}^{P_S}$, $P_S \in
+      \mathbb{N}$ is the dimension of the iteration space, \ie the
+      number of loops enclosing $S$. Every instance $x$ of every
+      statement $S$ is described by $(S, x)$ where $x \in \pD_S$.
     - *Edge*: $\forall$ edge $e$ from (statement) $R$ to (statement)
       $S$ is the *polyhedron* $\pR_e \subset \mathbb{Q}^{P_R + P_S}$
 *** Detailed Dependence Graph (DDG)
     Vertices: $\Omega = \cup_{S \in V} \{ (S, x) : x \in
     \pD_S \}$
 
-    Edges: $$\Gamma = \cup_{e \in E} \{ \langle (\sigma(e), x),
+    Edges ($\sigma(e)$ is the start, $\delta(e)$ is the end of edge
+    $e$): $$\Gamma = \cup_{e \in E} \{ \langle (\sigma(e), x),
     (\delta(e), y) \rangle : x \in \pD_{\sigma(e)}, y \in
-    \pD_{\delta(e)}, \langle x, y \rangle \in \mathfrak{R}_e
-    \}$$
+    \pD_{\delta(e)}, \langle x, y \rangle \in \pR_e \}$$
 ** Vertex polyhedron example
    #+begin_src fortran
-           do i = 1,n
+           do i = 0,n
       1       y(i) = 0.0
-              do j = 1,n
+              do j = 0,n
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
            end do
@@ -116,9 +117,11 @@
     - The consistency problem for an infinite family of nonuniform GDG
       with finite domains is undecidable.
 *** Proposed solution
-    Look for an affine schedule only:
-    $$\theta(S, x) = \tau_S x + \sigma_S n + \alpha_S$$
+    Look for an affine schedule only: $\theta(S, x) = \tau_S x +
+    \sigma_S n + \alpha_S$
     - Note: we can drop the integer constraints
+    - $\theta(S, \cdot)$ is described by $(\tau_S, \sigma_S,
+      \alpha_S)$
 ** First steps towards parallel programs
 *** Depth etc.
     - *Depth* of edge $e$: $p_e \in \mathbb{N}$ such that $\langle x,
@@ -132,13 +135,13 @@
       $\pP_e$ and an affine transformation $h_e$ such that:
       - $\langle x, y \rangle \in \pR_e \iff (x = h_e(y)
         \land y \in \pP_e$
-      - then $y \in \pP_e \implies y \in \mathfrak{D}_{\delta(e)}
-        \land h_e(y) \in \pD_{\sigma(e)}$
+      - then $y \in \pP_e \implies y \in \pD_{\delta(e)} \land h_e(y)
+        \in \pD_{\sigma(e)}$
 ** Dependency analysis example
    #+begin_src fortran
-           do i = 1,n
+           do i = 0,n
       1       y(i) = 0.0
-              do j = 1,n
+              do j = 0,n
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
            end do
@@ -154,28 +157,31 @@
    :BEAMER_ENV: fullframe
    :END:
    #+begin_src fortran
-           do i = 1,n
+           do i = 0,n
       1       y(i) = 0.0
-              do j = 1,n
+              do j = 0,n
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
            end do
    #+end_src
    - $\pD_1 = \{ i : 0 \le i \le n \}$, $\pD_2 = \{ (i, j) : 0 \le i, j \le n \}$
    - Dataflow:
-     - $\langle i', i, j \rangle \in \pR_{1,2} \iff i' = i \land j = 1$
+     - $\langle i', i, j \rangle \in \pR_{1,2} \iff i' = i \land j =
+       0$ (typo $j = 1$ in paper?)
      - $\pP_1 = \pD_2 \cap \{ (i, j) : j \le 0 \}$ and $h_1(i, j) =
        i$
      - $\langle i', j', i, j \rangle \in \pR_{2,2} \iff i' = i \land
-       j' = j - 1 \land j \ge 2$
+       j' = j - 1 \land j \ge 1$ (typo $j \ge 2$ in paper?)
      - $\pP_2 = \pD_2 \cap \{ (i, j) : j \ge 1 \}$ and $h_2(i, j) =
        \langle i, j - 1 \rangle$
 ** Notation
-   $\pD_S$ is defined by: $$a_{S_k} \begin{pmatrix} x \\ n
-   \end{pmatrix} + b_{S_k} \ge 0 \quad (\forall k=1, \ldots m_S)$$
+   $\pD_S$ is defined by $(a_S, b_S)$ such that:
+   $$a_{S_k} \begin{pmatrix} x \\ n \end{pmatrix} + b_{S_k} \ge 0
+   \quad (\forall k=1, \ldots m_S)$$
 
-   $\pR_e$ is defined by: $$c_{e_k} \begin{pmatrix} x \\ y \\ n
-   \end{pmatrix} + d_{e_k} \ge 0 \quad (\forall k=1, \ldots m_e)$$
+   $\pR_e$ is defined by $(c_e, d_e)$ such that:
+   $$c_{e_k} \begin{pmatrix} x \\ y \\ n \end{pmatrix} + d_{e_k} \ge 0
+   \quad (\forall k=1, \ldots m_e)$$
    #
    or for a restricted schedule ($y = h_e(x)$)
    $$c_{e_k} \begin{pmatrix} x \\ n \end{pmatrix} + d_{e_k} \ge 0
@@ -205,9 +211,9 @@
 
 ** Farkas algorithm example
    #+begin_src fortran
-           do i = 1,n
+           do i = 0,n
       1       y(i) = 0.0
-              do j = 1,n
+              do j = 0,n
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
            end do
@@ -289,7 +295,7 @@
    #+end_export
 
 ** ILP calculcations
-   $1 \to 2$ edge is uniform, the delay doesn't depend on the
+   $2 \to 2$ edge is uniform, the delay doesn't depend on the
    iteration vector: $\mu_{2, 3} - \mu_{2, 4} - 1 \ge 0$. One possible
    solution:
    #+begin_export latex
@@ -339,7 +345,7 @@
            doall (i = 1,n)
       1       y(i) = 0.0
            end do
-           do j = 1,n
+           do j = 0,n
               doall (i = 1,n)
       2          y(i) = y(i) + a(i,j)*x(j)
               end do
