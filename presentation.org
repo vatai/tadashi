@@ -100,7 +100,7 @@
 ** Schedule
 *** The map from statements instances to dates
     - A *schedule* describes when an instance of a statement will be
-      described: $\theta(S, x) = t$ is the /date/ of the instance.
+      executed: $\theta(S, x) = t$ is the /date/ of the instance.
     - Trivial schedule: $u, v \in \Omega, u \Gamma v \implies
       \theta(u) + 1 \ge \theta(v)$
 *** Simplified "code generation"
@@ -133,7 +133,7 @@
       *dependency cone*.
     - Reduce $\pR_e$ to a minimal form: polyhedron
       $\pP_e$ and an affine transformation $h_e$ such that:
-      - $\langle x, y \rangle \in \pR_e \iff (x = h_e(y)
+      - $\langle x, y \rangle \in \pR_e \iff x = h_e(y)
         \land y \in \pP_e$
       - then $y \in \pP_e \implies y \in \pD_{\delta(e)} \land h_e(y)
         \in \pD_{\sigma(e)}$
@@ -149,8 +149,8 @@
    - $\pD_1 = \{ i : 0 \le i \le n \}$, $\pD_2 = \{ (i, j) : 0 \le i, j \le n \}$
    - Standard analysis (depth $1$ because of $i' = i$, \(i\)-loop can
      be parallel)
-     - $\langle i', i, j \rangle \in \pR_{1,2} \iff i' = i$
-     - $\langle i', j', i, j \rangle \in \pR_{2,2} \iff i' = i \land
+     - $\langle (i'), (i, j) \rangle \in \pR_{1,2} \iff i' = i$
+     - $\langle (i', j'), (i, j) \rangle \in \pR_{2,2} \iff i' = i \land
        j' < j$
 ** Dependency analysis example
    :PROPERTIES:
@@ -187,7 +187,8 @@
    $$c_{e_k} \begin{pmatrix} x \\ n \end{pmatrix} + d_{e_k} \ge 0
    \quad (\forall k=1, \ldots m_S)$$
 ** Farkas algorithm
-   Existance of a schedule:
+   New representation of the $\theta(S, x) = \tau_S x + \sigma_S n +
+   \alpha_S$ schedule:
    #+begin_export latex
    \begin{equation*}
    \label{eq:farkas1}
@@ -195,7 +196,7 @@
    \Bigl( a_{S_k} \begin{pmatrix} x \\ n \end{pmatrix} + b_{S_k} \Bigr)
    \end{equation*}
    #+end_export
-   Optimal schedule:
+   The delay associated to edges $e$ in the GDG (and DFG):
    #+begin_export latex
    \begin{gather*}
    \label{eq:farkas2}
@@ -208,6 +209,7 @@
    \lambda_{e_k} \Bigl( c_{e_k} \begin{pmatrix} x \\ n \end{pmatrix} + d_{e_k} \Bigr)
    \end{gather*}
    #+end_export
+   Farkas multiliers $\mu_{S_k}$ and $\lambda_{S_k}$ (the solution is finding $\mu_{S_k}$).
 
 ** Farkas algorithm example
    #+begin_src fortran
@@ -234,7 +236,7 @@
       - $\pP_2 = \pD_2 \cap \{ (i, j) : j \ge 1 \}$ and $h_2(i, j) =
         \langle i, j - 1 \rangle$
 
-** Existence of a schedule
+** ILP formulas
 *** The formula:
     #+begin_export latex
     \begin{equation*}
@@ -326,7 +328,7 @@
    \theta(2, h(y)) = \theta(2, i, j) - \theta(2, i, j - 1) = \mu_{2,
    3} - \mu_{2, 4}$
 
-** ILP calculcations
+** ILP problem
    $2 \to 2$ edge is uniform, the delay doesn't depend on the
    iteration vector: $\mu_{2, 3} - \mu_{2, 4} - 1 \ge 0$. One possible
    solution:
@@ -340,7 +342,7 @@
    \end{align}
    #+end_export
 
-** ILP solution
+** ILP solutions
 *** SRight column
     :PROPERTIES:
     :BEAMER_col: 0.45
@@ -365,7 +367,7 @@
       &\mu_{2, 3} \ge 1 + \mu_{2, 4}
     \end{align*}
     #+end_export
-*** Solution:
+*** One possible (non-optimal) solution:
     - $\mu_{1, 0} = \mu_{2, 1} = \mu_{2, 2} = \mu_{2, 4} = \mu_{1, 1} = \mu_{1, 2} = 0$
     - $\mu_{2, 0} = \mu_{2, 3} = 1$
     - $\theta(1, i) = 0$
@@ -383,3 +385,8 @@
               end do
            end do
    #+end_src
+** Things not discussed
+   - What to optimise for: the paper says minimise $\theta$, but that
+     was in 1992
+   - Some recursion stuff (it sounds like it was a thing back then)
+   - Cardinality of solution

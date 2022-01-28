@@ -1,0 +1,3 @@
+* Vertex-Edge in GDG - definition of relations doesn't really make sense
+* Schedule slide: trivial schedule formula might be wrong
+* Parenthesis vs angle brackets inconsistent
