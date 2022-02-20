@@ -1,0 +1,3 @@
+[submodule "src/pet"]
+	path = src/pet
+	url = git://repo.or.cz/pet.git

@@ -3,3 +3,6 @@
 _minted-presentation/
 ltximg/
 *.pdf
+.ccls-cache
+_minted*
+build
