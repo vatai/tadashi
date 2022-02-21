@@ -36,7 +36,6 @@ int main(int argc, char *argv[]) {
   struct options *options;
   isl_ctx *ctx;
   pet_scop *scop;
-  isl_printer *p;
 
   options = options_new_with_defaults();
   ctx = isl_ctx_alloc_with_options(&options_args, options);
@@ -45,37 +44,54 @@ int main(int argc, char *argv[]) {
   scop = pet_scop_extract_from_C_source(ctx, filename, NULL);
   assert(scop != NULL);
 
-  p = isl_printer_to_str(ctx);
-  assert(p != NULL);
-  printf("%s\n", isl_printer_get_str(p));
-
   printf("n_arrays: %d\n", scop->n_array);
   for (int i = 0; i < scop->n_array; ++i) {
-    p = isl_printer_print_set(p, scop->arrays[i]->context);
-    printf("arrays[%d]->context: %s\n\n", i, isl_printer_get_str(p));
-    p = isl_printer_print_set(p, scop->arrays[i]->extent);
-    printf("arrays[%d]->extent: %s\n\n", i, isl_printer_get_str(p));
+    printf("arrays[%d]->context: %s\n", i,
+           isl_set_to_str(scop->arrays[i]->context));
+    printf("arrays[%d]->extent: %s\n", i,
+           isl_set_to_str(scop->arrays[i]->extent));
   }
+
+  printf("context: %s\n", isl_set_to_str(scop->context));
+
+  printf("context_value: %s\n", isl_set_to_str(scop->context_value));
 
   printf("n_implication: %d\n", scop->n_implication);
   for (int i = 0; i < scop->n_implication; ++i) {
-    p = isl_printer_print_map(p, scop->implications[i]->extension);
-    printf("implications[i]->extension: %s\n", isl_printer_get_str(p));
-    printf("satisfied: %d\n", scop->implications[i]->satisfied);
+    printf("implications[%d]->extension: %s\n", i,
+           isl_map_to_str(scop->implications[i]->extension));
+    printf("implications[%d]->satisfied: %d\n", i,
+           scop->implications[i]->satisfied);
   }
 
   printf("n_independence: %d\n", scop->n_independence);
   for (int i = 0; i < scop->n_independence; ++i) {
-    p = isl_printer_print_union_map(p, scop->independences[i]->filter);
-    printf("independences[i]->filter: %s\n", isl_printer_get_str(p));
-    p = isl_printer_print_union_set(p, scop->independences[i]->local);
-    printf("independences[i]->local: %s\n", isl_printer_get_str(p));
+    printf("independences[%d]->filter: %s\n", i,
+           isl_union_map_to_str(scop->independences[i]->filter));
+    printf("independences[%d]->local: %s\n", i,
+           isl_union_set_to_str(scop->independences[i]->local));
   }
 
-  // std::cout << output << std::endl;
-  // isl_printer_free(isl_prn);
+  printf("n_stmt: %d\n", scop->n_stmt);
+  for (int i = 0; i < scop->n_stmt; ++i) {
+    struct pet_stmt *stmt = scop->stmts[i];
+    /* printf("stmt[%d]->n_args: %d\n", i, stmt->n_arg); */
+    /* for (int j = 0; j < stmt->n_arg; ++j) */
+    /*   printf("stmt[%d]->args[%d]: %s\n", i, j, stmt->args[j]); */
+    printf("stmt[%d]->domain: %s\n", i, isl_set_to_str(stmt->domain));
+    printf("stmt[%d]->loc: %d\n", i, pet_loc_get_line(stmt->loc));
+  }
 
-  // isl_ctx_free(ctx);
+  printf("n_type: %d\n", scop->n_type);
+  for (int i = 0; i < scop->n_type; ++i) {
+    printf("types[%d]->definition/name: %s/%s\n", i, //
+           scop->types[i]->definition, scop->types[i]->name);
+  }
+
+  printf("schedule: %s\n", isl_schedule_to_str(scop->schedule));
+
+  pet_scop_free(scop);
+  isl_ctx_free(ctx);
 
   return 0;
 }
