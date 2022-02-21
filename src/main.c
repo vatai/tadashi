@@ -34,7 +34,6 @@ ISL_ARG_DEF(options, struct options, options_args)
 
 int main(int argc, char *argv[]) {
   struct options *options;
-  char *output;
   isl_ctx *ctx;
   pet_scop *scop;
   isl_printer *p;
@@ -48,36 +47,29 @@ int main(int argc, char *argv[]) {
 
   p = isl_printer_to_str(ctx);
   assert(p != NULL);
-  output = isl_printer_get_str(p);
-  printf("%s\n", output);
+  printf("%s\n", isl_printer_get_str(p));
 
   printf("n_arrays: %d\n", scop->n_array);
   for (int i = 0; i < scop->n_array; ++i) {
-    struct pet_array *array = scop->arrays[i];
-    p = isl_printer_print_set(p, array->context);
-    output = isl_printer_get_str(p);
-    printf("arrays[i]->context: %s\n", output);
-    p = isl_printer_print_set(p, array->extent);
-    output = isl_printer_get_str(p);
-    printf("arrays[i]->extent: %s\n", output);
+    p = isl_printer_print_set(p, scop->arrays[i]->context);
+    printf("arrays[%d]->context: %s\n\n", i, isl_printer_get_str(p));
+    p = isl_printer_print_set(p, scop->arrays[i]->extent);
+    printf("arrays[%d]->extent: %s\n\n", i, isl_printer_get_str(p));
   }
 
   printf("n_implication: %d\n", scop->n_implication);
   for (int i = 0; i < scop->n_implication; ++i) {
     p = isl_printer_print_map(p, scop->implications[i]->extension);
-    output = isl_printer_get_str(p);
-    printf("implications[i]->extension: %s\n", output);
+    printf("implications[i]->extension: %s\n", isl_printer_get_str(p));
     printf("satisfied: %d\n", scop->implications[i]->satisfied);
   }
 
   printf("n_independence: %d\n", scop->n_independence);
   for (int i = 0; i < scop->n_independence; ++i) {
     p = isl_printer_print_union_map(p, scop->independences[i]->filter);
-    output = isl_printer_get_str(p);
-    printf("independences[i]->filter: %s\n", output);
+    printf("independences[i]->filter: %s\n", isl_printer_get_str(p));
     p = isl_printer_print_union_set(p, scop->independences[i]->local);
-    output = isl_printer_get_str(p);
-    printf("independences[i]->local: %s\n", output);
+    printf("independences[i]->local: %s\n", isl_printer_get_str(p));
   }
 
   // std::cout << output << std::endl;
