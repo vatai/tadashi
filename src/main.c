@@ -32,18 +32,7 @@ ISL_ARGS_END
 
 ISL_ARG_DEF(options, struct options, options_args)
 
-int main(int argc, char *argv[]) {
-  struct options *options;
-  isl_ctx *ctx;
-  pet_scop *scop;
-
-  options = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, options);
-  assert(ctx != NULL);
-
-  scop = pet_scop_extract_from_C_source(ctx, filename, NULL);
-  assert(scop != NULL);
-
+void print_scop(pet_scop *scop) {
   printf("n_arrays: %d\n", scop->n_array);
   for (int i = 0; i < scop->n_array; ++i) {
     printf("arrays[%d]->context: %s\n", i,
@@ -89,6 +78,41 @@ int main(int argc, char *argv[]) {
   }
 
   printf("schedule: %s\n", isl_schedule_to_str(scop->schedule));
+}
+
+void traverse_schedule(isl_schedule *schedule) {
+  isl_union_set *domain;
+  isl_schedule_node *node;
+  enum isl_schedule_node_type type;
+  const char msg[] = "domain: %s\n\n\n\n";
+
+  domain = isl_schedule_get_domain(schedule);
+  node = isl_schedule_get_root(schedule);
+  printf(msg, isl_schedule_node_to_str(node));
+  while (isl_schedule_node_has_children(node)) {
+    node = isl_schedule_node_child(node, 0);
+    printf(msg, isl_schedule_node_to_str(node));
+  }
+
+  isl_union_set_free(domain);
+  isl_schedule_node_free(node);
+}
+
+int main(int argc, char *argv[]) {
+  struct options *options;
+  isl_ctx *ctx;
+  pet_scop *scop;
+
+  options = options_new_with_defaults();
+  ctx = isl_ctx_alloc_with_options(&options_args, options);
+  assert(ctx != NULL);
+
+  scop = pet_scop_extract_from_C_source(ctx, filename, NULL);
+  assert(scop != NULL);
+
+  // print_scop(scop);
+
+  traverse_schedule(scop->schedule);
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
