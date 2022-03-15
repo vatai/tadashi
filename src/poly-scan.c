@@ -22,5 +22,5 @@ int main(int argc, char *argv[]) {
     isl_space_free(spaces[i]);
   isl_id_free(id1);
   isl_ctx_free(ctx);
-  return 0;
+  return 0;
 }
