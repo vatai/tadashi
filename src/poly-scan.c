@@ -71,8 +71,7 @@ __isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
 
 __isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
                                       __isl_keep isl_id *N_id, //
-                                      __isl_keep isl_id *i_id, //
-                                      __isl_keep isl_id *j_id) {
+                                      __isl_keep isl_id *M_id) {
   isl_space *space;
   isl_constraint *c;
   isl_multi_aff *ma;
@@ -114,6 +113,7 @@ int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
 
   isl_id *N_id = isl_id_alloc(ctx, "N", NULL);
+  isl_id *M_id = isl_id_alloc(ctx, "M", NULL);
   isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
   isl_id *j_id = isl_id_alloc(ctx, "j", NULL);
 
@@ -138,13 +138,14 @@ int main(int argc, char *argv[]) {
   printf("bset: %s\n", isl_basic_set_to_str(bset));
   isl_basic_set_free(bset);
 
-  bset = build_bset1(ctx, N_id, i_id, j_id);
+  bset = build_bset1(ctx, N_id, i_id);
   printf("bset: %s\n", isl_basic_set_to_str(bset));
   isl_basic_set_free(bset);
 
   // bset = isl_basic_set_project_out(bset, isl_dim_set, 1, 1);
 
   isl_id_free(N_id);
+  isl_id_free(M_id);
   isl_id_free(i_id);
   isl_id_free(j_id);
   isl_ctx_free(ctx);
