@@ -142,6 +142,11 @@ int main(int argc, char *argv[]) {
   printf("bset: %s\n", isl_basic_set_to_str(bset));
   isl_basic_set_free(bset);
 
+  bset = isl_basic_set_read_from_str(
+      ctx, "[N] -> { [i, j] : j = i and 0 < i <= N }");
+  printf("bset: %s\n", isl_basic_set_to_str(bset));
+  isl_basic_set_free(bset);
+
   // bset = isl_basic_set_project_out(bset, isl_dim_set, 1, 1);
 
   isl_id_free(N_id);
