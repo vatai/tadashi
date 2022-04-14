@@ -94,13 +94,13 @@ __isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
 
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(N_id));
-  bset = isl_basic_set_intersect(
-      bset, isl_aff_le_basic_set(isl_aff_copy(var), isl_aff_copy(cst)));
+  bset = isl_basic_set_intersect(bset, isl_aff_le_basic_set(var, cst));
 
-  /* var = isl_multi_aff_get_at(ma, 1); */
-  /* cst = isl_aff_param_on_domain_space_id(space, isl_id_copy(N_id)); */
-  /* bset = isl_basic_set_intersect( */
-  /*     bset, isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst))) */
+  var = isl_multi_aff_get_at(ma, 1);
+  cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
+                                         isl_id_copy(N_id));
+  bset = isl_basic_set_intersect(
+      bset, isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst)));
 
   isl_aff_free(var);
   isl_multi_aff_free(ma);
