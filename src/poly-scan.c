@@ -9,36 +9,26 @@
 #include <isl/set_type.h>
 #include <isl/space.h>
 
-__isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
-                                      __isl_keep isl_id *N_id, //
-                                      __isl_keep isl_id *i_id, //
-                                      __isl_keep isl_id *j_id) {
+__isl_give isl_space *create_isl_space(__isl_keep isl_ctx *ctx, //
+                                       __isl_keep isl_id *N_id, //
+                                       __isl_keep isl_id *M_id,
+                                       __isl_keep isl_id *i_id,
+                                       __isl_keep isl_id *j_id) {
   isl_space *space;
+  space = isl_space_unit(ctx);
+  space = isl_space_add_param_id(space, isl_id_copy(N_id));
+  space = isl_space_add_param_id(space, isl_id_copy(M_id));
+  // add two vars
+  space = isl_space_add_dims(space, isl_dim_set, 2);
+  space = isl_space_set_dim_id(space, isl_dim_set, 0, isl_id_copy(i_id));
+  space = isl_space_set_dim_id(space, isl_dim_set, 1, isl_id_copy(j_id));
+  return space;
+}
+__isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
+                                      __isl_keep isl_space *space) {
   isl_local_space *ls;
   isl_constraint *c;
   isl_basic_set *bset;
-  const unsigned ndim = 2;
-
-  space = isl_space_unit(ctx);
-  space = isl_space_add_param_id(space, isl_id_copy(N_id));
-  space = isl_space_add_dims(space, isl_dim_set, ndim);
-  space = isl_space_set_dim_id(space, isl_dim_set, 0, isl_id_copy(i_id));
-  space = isl_space_set_dim_id(space, isl_dim_set, 1, isl_id_copy(j_id));
-
-  // Describe dims
-  /* enum isl_dim_type type = isl_dim_all; */
-  /* printf("type: %d\n", type); */
-  /* printf("space dim: %d\n", isl_space_dim(space, type)); */
-
-  // Print id names
-  /* for (int pos = 0; pos < ndim; ++pos) { */
-  /*   isl_id *tmp_id = isl_space_get_dim_id(space, isl_dim_set, pos); */
-  /*   printf("id[%d]: %s\n", pos, isl_id_get_name(tmp_id)); */
-  /*   isl_id_free(tmp_id); */
-  /*   // Alternative: */
-  /*   printf("dim_name[%d]: %s\n", pos, */
-  /*          isl_space_get_dim_name(space, isl_dim_set, pos)); */
-  /* } */
 
   bset = isl_basic_set_universe(isl_space_copy(space));
   ls = isl_local_space_from_space(isl_space_copy(space));
@@ -69,21 +59,25 @@ __isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
   return bset;
 }
 
-__isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
-                                      __isl_keep isl_id *N_id, //
-                                      __isl_keep isl_id *M_id) {
-  isl_space *space;
+__isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx,
+                                      __isl_keep isl_space *space) {
   isl_constraint *c;
   isl_multi_aff *ma;
   isl_val *v;
   isl_aff *var;
   isl_aff *cst;
   isl_basic_set *bset;
-  space = isl_space_unit(ctx);
-  space = isl_space_add_param_id(space, N_id);
-  space = isl_space_add_param_id(space, M_id);
-  space = isl_space_add_unnamed_tuple_ui(space, 2);
+  isl_id *id;
+
   ma = isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
+  printf("space:: %s\n", isl_space_to_str(space));
+  isl_space *tmp_space = isl_space_params(space);
+  printf("tmp space: %s\n", isl_space_to_str(tmp_space));
+
+  id = isl_space_get_dim_id(space, isl_dim_set, 1);
+  printf("id:: %s\n", isl_id_to_str(id));
+  isl_space_dim(space, isl_dim_set);
+
   ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 0, "i");
   ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 1, "j");
   var = isl_multi_aff_get_at(ma, 0);
@@ -92,13 +86,16 @@ __isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
   cst = isl_aff_val_on_domain_space(isl_space_copy(space), v);
   bset = isl_aff_ge_basic_set(isl_aff_copy(var), cst);
 
-  cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
-                                         isl_id_copy(M_id));
+  cst = isl_aff_param_on_domain_space_id(
+      isl_space_copy(space),
+      isl_space_get_domain_tuple_id(isl_space_copy(space)));
+
   bset = isl_basic_set_intersect(bset, isl_aff_le_basic_set(var, cst));
 
   var = isl_multi_aff_get_at(ma, 1);
-  cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
-                                         isl_id_copy(N_id));
+  cst = isl_aff_param_on_domain_space_id(
+      isl_space_copy(space),
+      isl_space_get_domain_tuple_id(isl_space_copy(space)));
   bset = isl_basic_set_intersect(
       bset, isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst)));
 
@@ -136,12 +133,17 @@ int main(int argc, char *argv[]) {
 
   isl_basic_set *bsets[3];
   isl_basic_set *bset;
-  bsets[0] = build_bset0(ctx, N_id, i_id, j_id);
-  bsets[1] = build_bset1(ctx, N_id, M_id);
+  isl_space *space;
+
+  space = create_isl_space(ctx, N_id, M_id, i_id, j_id);
+  bsets[0] = build_bset0(ctx, space);
+  bsets[1] = build_bset1(ctx, space);
   bsets[2] = isl_basic_set_read_from_str(
       ctx, "[N] -> { [i, j] : j = i and 0 < i <= N }");
+  isl_space_free(space);
+
   for (int i = 0; i < 3; i++)
-    printf("bset: %s\n", isl_basic_set_to_str(bsets[i]));
+    printf("bset[%d]: %s\n", i, isl_basic_set_to_str(bsets[i]));
 
   for (int first = 0; first < 2; first++) {
     for (int n = 0; n <= 2 - first; n++) {
@@ -160,9 +162,9 @@ int main(int argc, char *argv[]) {
   bset2 = isl_basic_set_project_out( //
       isl_basic_set_copy(bsets[1]), isl_dim_set, 0, 1);
   printf("bset2: %s\n", isl_basic_set_to_str(bset2));
-  /* bset = isl_basic_set_intersect(isl_basic_set_copy(bset1), */
-  /*                                isl_basic_set_copy(bset2)); */
-  /* printf("intersection: %s\n", isl_basic_set_to_str(bset)); */
+  bset = isl_basic_set_intersect(isl_basic_set_copy(bset1),
+                                 isl_basic_set_copy(bset2));
+  printf("intersection: %s\n", isl_basic_set_to_str(bset));
   isl_basic_set_free(bset1);
   isl_basic_set_free(bset2);
   /* isl_basic_set_free(bset); */
