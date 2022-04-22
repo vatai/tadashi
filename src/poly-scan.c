@@ -125,11 +125,13 @@ int main(int argc, char *argv[]) {
                          isl_space_set_alloc(ctx, 3, 2), // 0 1 0
                          isl_space_unit(ctx)};           // 1 1 0
   const int num_spaces = sizeof(spaces) / sizeof(*spaces);
-  for (int i = 0; i < num_spaces; ++i)
-    printf("%d %d %d\n", //
+  for (int i = 0; i < num_spaces; ++i) {
+    printf("params: %d, set: %d, map: %d\n", //
            isl_space_is_params(spaces[i]),
            isl_space_is_set(spaces[i]), //
            isl_space_is_map(spaces[i]));
+    printf("%s\n", isl_space_to_str(spaces[i]));
+  }
   for (int i = 0; i < num_spaces; ++i)
     isl_space_free(spaces[i]);
   // Spaces end
