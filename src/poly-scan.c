@@ -25,21 +25,6 @@ __isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
   space = isl_space_set_dim_id(space, isl_dim_set, 0, isl_id_copy(i_id));
   space = isl_space_set_dim_id(space, isl_dim_set, 1, isl_id_copy(j_id));
 
-  // Describe dims
-  /* enum isl_dim_type type = isl_dim_all; */
-  /* printf("type: %d\n", type); */
-  /* printf("space dim: %d\n", isl_space_dim(space, type)); */
-
-  // Print id names
-  /* for (int pos = 0; pos < ndim; ++pos) { */
-  /*   isl_id *tmp_id = isl_space_get_dim_id(space, isl_dim_set, pos); */
-  /*   printf("id[%d]: %s\n", pos, isl_id_get_name(tmp_id)); */
-  /*   isl_id_free(tmp_id); */
-  /*   // Alternative: */
-  /*   printf("dim_name[%d]: %s\n", pos, */
-  /*          isl_space_get_dim_name(space, isl_dim_set, pos)); */
-  /* } */
-
   bset = isl_basic_set_universe(isl_space_copy(space));
   ls = isl_local_space_from_space(isl_space_copy(space));
 
