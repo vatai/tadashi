@@ -161,10 +161,12 @@ int main(int argc, char *argv[]) {
   printf("bset1: %s\n", isl_basic_set_to_str(bset1));
   bset2 = isl_basic_set_project_out( //
       isl_basic_set_copy(bsets[1]), isl_dim_set, 0, 1);
+  bset1 = isl_basic_set_align_params(bset1, isl_basic_set_get_space(bset2));
+
   printf("bset2: %s\n", isl_basic_set_to_str(bset2));
-  /* bset = isl_basic_set_intersect(isl_basic_set_copy(bset1), */
-  /*                                isl_basic_set_copy(bset2)); */
-  /* printf("intersection: %s\n", isl_basic_set_to_str(bset)); */
+  bset = isl_basic_set_intersect(isl_basic_set_copy(bset1),
+                                 isl_basic_set_copy(bset2));
+  printf("intersection: %s\n", isl_basic_set_to_str(bset));
   isl_basic_set_free(bset1);
   isl_basic_set_free(bset2);
   /* isl_basic_set_free(bset); */
