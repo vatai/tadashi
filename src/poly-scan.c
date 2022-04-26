@@ -27,10 +27,10 @@ void inspect_spaces(__isl_keep isl_ctx *ctx) {
     isl_space_free(spaces[i]);
 }
 
-__isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
-                                      __isl_keep isl_id *N_id, //
-                                      __isl_keep isl_id *i_id, //
-                                      __isl_keep isl_id *j_id) {
+__isl_give isl_set *build_set0(__isl_keep isl_ctx *ctx,
+                               __isl_keep isl_id *N_id, //
+                               __isl_keep isl_id *i_id, //
+                               __isl_keep isl_id *j_id) {
   isl_space *space;
   isl_local_space *ls;
   isl_constraint *c;
@@ -69,12 +69,12 @@ __isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
   isl_space_free(space);
   isl_local_space_free(ls);
 
-  return bset;
+  return isl_basic_set_to_set(bset);
 }
 
-__isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
-                                      __isl_keep isl_id *N_id, //
-                                      __isl_keep isl_id *M_id) {
+__isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
+                               __isl_keep isl_id *N_id, //
+                               __isl_keep isl_id *M_id) {
   isl_space *space;
   isl_constraint *c;
   isl_multi_aff *ma;
@@ -109,7 +109,7 @@ __isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
   isl_aff_free(cst);
   isl_multi_aff_free(ma);
   isl_space_free(space);
-  return bset;
+  return isl_basic_set_to_set(bset);
 }
 
 void print_basic_sets_and_projections(isl_basic_set *bsets[3]) {
@@ -181,32 +181,23 @@ int main(int argc, char *argv[]) {
   isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
   isl_id *j_id = isl_id_alloc(ctx, "j", NULL);
 
-  isl_basic_set *bsets[3];
-  isl_basic_set *bset;
-  bsets[0] = build_bset0(ctx, N_id, i_id, j_id);
-  bsets[1] = build_bset1(ctx, N_id, M_id);
-  bsets[2] = isl_basic_set_read_from_str(
-      ctx, "[N] -> { [i, j] : j = i and 0 < i <= N }");
+  isl_set_list *slist;
+  isl_set *set;
+  slist = isl_set_list_alloc(ctx, 3);
+  set = build_set0(ctx, N_id, i_id, j_id);
+  slist = isl_set_list_add(slist, set);
+  set = build_set1(ctx, N_id, M_id);
+  slist = isl_set_list_add(slist, set);
 
-  isl_set_list *sl;
-  sl = isl_set_list_alloc(ctx, 3);
-  for (int i = 0; i < 3; ++i)
-    sl = isl_set_list_add(sl,
-                          isl_basic_set_to_set(isl_basic_set_copy(bsets[i])));
-  printf("sl: %s\n", isl_set_list_to_str(sl));
-  print_basic_sets_and_projections(bsets);
+  set = isl_set_read_from_str(ctx, "[N] -> { [i, j] : j = i and 0 < i <= N} ");
+  slist = isl_set_list_add(slist, set);
 
-  create_intersections(bsets[0], bsets[1]);
-
-  // Free stuff
-  for (int i = 0; i < 3; i++)
-    isl_basic_set_free(bsets[i]);
-
-  isl_set_list_free(sl);
+  isl_set_list_free(slist);
   isl_id_free(N_id);
   isl_id_free(M_id);
   isl_id_free(i_id);
   isl_id_free(j_id);
   isl_ctx_free(ctx);
+  printf("DONE!\n");
   return 0;
 }
