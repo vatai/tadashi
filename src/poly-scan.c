@@ -9,6 +9,24 @@
 #include <isl/set_type.h>
 #include <isl/space.h>
 
+void inspect_spaces(__isl_keep isl_ctx *ctx) {
+  // params, set, map
+  isl_space *spaces[] = {isl_space_alloc(ctx, 3, 2, 1),  // 0 0 1
+                         isl_space_params_alloc(ctx, 3), // 1 1 0
+                         isl_space_set_alloc(ctx, 3, 2), // 0 1 0
+                         isl_space_unit(ctx)};           // 1 1 0
+  const int num_spaces = sizeof(spaces) / sizeof(*spaces);
+  for (int i = 0; i < num_spaces; ++i) {
+    printf("params: %d, set: %d, map: %d\n", //
+           isl_space_is_params(spaces[i]),
+           isl_space_is_set(spaces[i]), //
+           isl_space_is_map(spaces[i]));
+    printf("%s\n", isl_space_to_str(spaces[i]));
+  }
+  for (int i = 0; i < num_spaces; ++i)
+    isl_space_free(spaces[i]);
+}
+
 __isl_give isl_basic_set *build_bset0(__isl_keep isl_ctx *ctx,
                                       __isl_keep isl_id *N_id, //
                                       __isl_keep isl_id *i_id, //
@@ -94,39 +112,8 @@ __isl_give isl_basic_set *build_bset1(__isl_keep isl_ctx *ctx, //
   return bset;
 }
 
-int main(int argc, char *argv[]) {
-  printf("Hello world!\n");
-  isl_ctx *ctx = isl_ctx_alloc();
-
-  isl_id *N_id = isl_id_alloc(ctx, "N", NULL);
-  isl_id *M_id = isl_id_alloc(ctx, "M", NULL);
-  isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
-  isl_id *j_id = isl_id_alloc(ctx, "j", NULL);
-
-  // Spaces begin
-  // params, set, map
-  isl_space *spaces[] = {isl_space_alloc(ctx, 3, 2, 1),  // 0 0 1
-                         isl_space_params_alloc(ctx, 3), // 1 1 0
-                         isl_space_set_alloc(ctx, 3, 2), // 0 1 0
-                         isl_space_unit(ctx)};           // 1 1 0
-  const int num_spaces = sizeof(spaces) / sizeof(*spaces);
-  for (int i = 0; i < num_spaces; ++i) {
-    printf("params: %d, set: %d, map: %d\n", //
-           isl_space_is_params(spaces[i]),
-           isl_space_is_set(spaces[i]), //
-           isl_space_is_map(spaces[i]));
-    printf("%s\n", isl_space_to_str(spaces[i]));
-  }
-  for (int i = 0; i < num_spaces; ++i)
-    isl_space_free(spaces[i]);
-  // Spaces end
-
-  isl_basic_set *bsets[3];
+void print_basic_sets_and_projections(isl_basic_set *bsets[3]) {
   isl_basic_set *bset;
-  bsets[0] = build_bset0(ctx, N_id, i_id, j_id);
-  bsets[1] = build_bset1(ctx, N_id, M_id);
-  bsets[2] = isl_basic_set_read_from_str(
-      ctx, "[N] -> { [i, j] : j = i and 0 < i <= N }");
   for (int i = 0; i < 3; i++)
     printf("bset: %s\n", isl_basic_set_to_str(bsets[i]));
 
@@ -139,28 +126,83 @@ int main(int argc, char *argv[]) {
       isl_basic_set_free(bset);
     }
   }
+}
 
-  isl_basic_set *bset1, *bset2;
-  bset1 = isl_basic_set_project_out( //
-      isl_basic_set_copy(bsets[0]), isl_dim_set, 0, 1);
-  printf("bset1: %s\n", isl_basic_set_to_str(bset1));
-  bset2 = isl_basic_set_project_out( //
-      isl_basic_set_copy(bsets[1]), isl_dim_set, 0, 1);
-  bset1 = isl_basic_set_align_params(bset1, isl_basic_set_get_space(bset2));
-  printf("bset1: %s\n", isl_basic_set_to_str(bset1));
+void create_intersections(isl_basic_set *bsetl, isl_basic_set *bsetr) {
+  isl_basic_set *bset;
+  isl_set *set, *setl, *setr;
+  bsetl = isl_basic_set_project_out( //
+      isl_basic_set_copy(bsetl), isl_dim_set, 1, 1);
+  printf("bset left: %s\n", isl_basic_set_to_str(bsetl));
+  bsetr = isl_basic_set_project_out( //
+      isl_basic_set_copy(bsetr), isl_dim_set, 1, 1);
   // @todo(vatai) add constraint N < M
-  printf("bset2: %s\n", isl_basic_set_to_str(bset2));
-  bset = isl_basic_set_intersect(isl_basic_set_copy(bset1),
-                                 isl_basic_set_copy(bset2));
+  printf("bset right (mod): %s\n", isl_basic_set_to_str(bsetr));
+
+  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetl),
+                                 isl_basic_set_copy(bsetr));
   printf("intersection: %s\n", isl_basic_set_to_str(bset));
-  isl_basic_set_free(bset1);
-  isl_basic_set_free(bset2);
-  /* isl_basic_set_free(bset); */
+  isl_basic_set_free(bset);
+
+  setl = isl_basic_set_to_set(isl_basic_set_copy(bsetl));
+  setr = isl_basic_set_to_set(isl_basic_set_copy(bsetr));
+  set = isl_set_subtract(isl_set_copy(setl), isl_set_copy(setr));
+  printf("%s \\ %s = %s\n", isl_set_to_str(setl), isl_set_to_str(setr),
+         isl_set_to_str(set));
+  isl_set_free(setl);
+  isl_set_free(setr);
+  isl_set_free(set);
+
+  bsetl = isl_basic_set_align_params(bsetl, isl_basic_set_get_space(bsetr));
+  printf("bset right: %s\n", isl_basic_set_to_str(bsetl));
+
+  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetl),
+                                 isl_basic_set_neg(isl_basic_set_copy(bsetr)));
+  printf("lrdiff: %s\n", isl_basic_set_to_str(bset));
+  isl_basic_set_free(bset);
+
+  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetr),
+                                 isl_basic_set_neg(isl_basic_set_copy(bsetl)));
+  printf("rldiff: %s\n", isl_basic_set_to_str(bset));
+  isl_basic_set_free(bset);
+
+  isl_basic_set_free(bsetl);
+  isl_basic_set_free(bsetr);
+}
+
+int main(int argc, char *argv[]) {
+  printf("Hello world!\n");
+  isl_ctx *ctx = isl_ctx_alloc();
+
+  inspect_spaces(ctx);
+
+  isl_id *N_id = isl_id_alloc(ctx, "N", NULL);
+  isl_id *M_id = isl_id_alloc(ctx, "M", NULL);
+  isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
+  isl_id *j_id = isl_id_alloc(ctx, "j", NULL);
+
+  isl_basic_set *bsets[3];
+  isl_basic_set *bset;
+  bsets[0] = build_bset0(ctx, N_id, i_id, j_id);
+  bsets[1] = build_bset1(ctx, N_id, M_id);
+  bsets[2] = isl_basic_set_read_from_str(
+      ctx, "[N] -> { [i, j] : j = i and 0 < i <= N }");
+
+  isl_set_list *sl;
+  sl = isl_set_list_alloc(ctx, 3);
+  for (int i = 0; i < 3; ++i)
+    sl = isl_set_list_add(sl,
+                          isl_basic_set_to_set(isl_basic_set_copy(bsets[i])));
+  printf("sl: %s\n", isl_set_list_to_str(sl));
+  print_basic_sets_and_projections(bsets);
+
+  create_intersections(bsets[0], bsets[1]);
 
   // Free stuff
   for (int i = 0; i < 3; i++)
     isl_basic_set_free(bsets[i]);
 
+  isl_set_list_free(sl);
   isl_id_free(N_id);
   isl_id_free(M_id);
   isl_id_free(i_id);
