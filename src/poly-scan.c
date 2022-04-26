@@ -188,11 +188,21 @@ int main(int argc, char *argv[]) {
   slist = isl_set_list_add(slist, set);
   set = build_set1(ctx, N_id, M_id);
   slist = isl_set_list_add(slist, set);
-
   set = isl_set_read_from_str(ctx, "[N] -> { [i, j] : j = i and 0 < i <= N} ");
   slist = isl_set_list_add(slist, set);
+  set = isl_set_list_get_at(slist, 0);
+  printf("set0: %s\n", isl_set_to_str(set));
+  isl_set_free(set);
+  set = isl_set_list_get_at(slist, 1);
+  printf("set1: %s\n", isl_set_to_str(set));
+  isl_set_free(set);
+
+  set = isl_set_intersect(isl_set_list_get_at(slist, 1),
+                          isl_set_list_get_at(slist, 0));
+  printf("intersection: %s\n", isl_set_to_str(set));
 
   isl_set_list_free(slist);
+  isl_set_free(set);
   isl_id_free(N_id);
   isl_id_free(M_id);
   isl_id_free(i_id);
