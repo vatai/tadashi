@@ -5,6 +5,7 @@
 #include <isl/aff.h>
 #include <isl/constraint.h>
 #include <isl/id.h>
+#include <isl/map.h>
 #include <isl/set.h>
 #include <isl/set_type.h>
 #include <isl/space.h>
@@ -81,34 +82,43 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   isl_val *v;
   isl_aff *var;
   isl_aff *cst;
-  isl_basic_set *bset;
+  isl_basic_set *bset, *tmp_bset;
   space = isl_space_unit(ctx);
   space = isl_space_add_param_id(space, N_id);
   space = isl_space_add_param_id(space, M_id);
   space = isl_space_add_unnamed_tuple_ui(space, 2);
+  space = isl_space_set_dim_name(space, isl_dim_set, 0, "i");
+  space = isl_space_set_dim_name(space, isl_dim_set, 1, "j");
+  // space: [N, M] -> { [i, j] }
+
   ma = isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
-  printf("ma identity: %s\n", isl_multi_aff_to_str(ma));
-  ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 0, "i");
-  printf("ma set dim name('i'): %s\n", isl_multi_aff_to_str(ma));
-  ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 1, "j");
-  printf("ma set dim name('j'): %s\n", isl_multi_aff_to_str(ma));
+  // ma: [N, M] -> { [i, j] -> [(i), (j)] }
+  // identity/unit
 
   var = isl_multi_aff_get_at(ma, 0);
-  v = isl_val_int_from_si(ctx, 1);
+  // var: [N, M] -> { [i, j] -> [(i)] }
+  v = isl_val_int_from_si(ctx, 1); // v: 1
   cst = isl_aff_val_on_domain_space(isl_space_copy(space), v);
-  printf("cst: %s\n", isl_aff_to_str(cst));
+  // cst: [N, M] -> { [i, j] -> [(1)] }
   bset = isl_aff_ge_basic_set(isl_aff_copy(var), cst);
-
+  // bset: [N, M] -> { [i, j] : i > 0 }
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(M_id));
-  printf("cst: %s\n", isl_aff_to_str(cst));
-  bset = isl_basic_set_intersect(bset, isl_aff_le_basic_set(var, cst));
+  // cst: [N, M] -> { [i, j] -> [(M)] }
+  tmp_bset = isl_aff_le_basic_set(var, cst);
+  // tmp_bset: [N, M] -> { [i, j] : i <= M }
+  bset = isl_basic_set_intersect(bset, tmp_bset);
+  // bset: [N, M] -> { [i, j] : 0 < i <= M }
 
   var = isl_multi_aff_get_at(ma, 1);
+  // var: [N, M] -> { [i, j] -> [(j)] }
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(N_id));
-  bset = isl_basic_set_intersect(
-      bset, isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst)));
+  // cst: [N, M] -> { [i, j] -> [(N)] }
+  tmp_bset = isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst));
+  // tmp_bset: [N, M] -> { [i, j] : j = N }
+  bset = isl_basic_set_intersect(bset, tmp_bset);
+  // bset: [N, M] -> { [i, j] : j = N and 0 < i <= M }
 
   isl_aff_free(var);
   isl_aff_free(cst);
@@ -130,19 +140,32 @@ int main(int argc, char *argv[]) {
 
   isl_set_list *slist;
   isl_set *set;
+
   slist = isl_set_list_alloc(ctx, 3);
+
   set = build_set0(ctx, N_id, i_id, j_id);
   slist = isl_set_list_add(slist, set);
+
   set = build_set1(ctx, N_id, M_id);
   slist = isl_set_list_add(slist, set);
+
   set = isl_set_read_from_str(ctx, "[N] -> { [i, j] : j = i and 0 < i <= N} ");
   slist = isl_set_list_add(slist, set);
+
   set = isl_set_list_get_at(slist, 0);
   printf("set0: %s\n", isl_set_to_str(set));
   isl_set_free(set);
+
   set = isl_set_list_get_at(slist, 1);
   printf("set1: %s\n", isl_set_to_str(set));
   isl_set_free(set);
+
+  set = isl_set_list_get_at(slist, 0);
+  printf("set: %s\n", isl_set_to_str(set));
+  isl_map *map;
+  map = isl_set_project_onto_map(set, isl_dim_set, 0, 1);
+  printf("map: %s\n", isl_map_to_str(map));
+  isl_map_free(map);
 
   set = isl_set_intersect(isl_set_list_get_at(slist, 1),
                           isl_set_list_get_at(slist, 0));
