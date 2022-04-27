@@ -134,7 +134,9 @@ void project_and_intersect(__isl_keep isl_ctx *ctx) {
   isl_id *j_id = isl_id_alloc(ctx, "j", NULL);
 
   isl_set_list *slist;
+  isl_map_list *mlist;
   isl_set *set;
+  isl_map *map;
 
   slist = isl_set_list_alloc(ctx, 3);
 
@@ -147,27 +149,31 @@ void project_and_intersect(__isl_keep isl_ctx *ctx) {
   set = isl_set_read_from_str(ctx, "[N] -> { [i, j] : j = i and 0 < i <= N} ");
   slist = isl_set_list_add(slist, set);
 
-  set = isl_set_list_get_at(slist, 0);
-  printf("set0: %s\n", isl_set_to_str(set));
-  isl_set_free(set);
+  isl_size size = isl_set_list_size(slist);
+  mlist = isl_map_list_alloc(ctx, size);
+  for (int i = 0; i < size; i++) {
+    set = isl_set_list_get_at(slist, i);
+    // set: [N] -> { [i, j] : 0 < i <= N and i <= j <= N }
+    // set: [N, M] -> { [i, j = N] : 0 < i <= M }
+    // set: [N] -> { [i, j = i] : 0 < i <= N }
+    map = isl_set_project_onto_map(set, isl_dim_set, 0, 1);
+    // map: [N] -> { [i, j] -> [i] : 0 < i <= N and i <= j <= N }
+    // map: [N, M] -> { [i, j = N] -> [i] : 0 < i <= M }
+    // map: [N] -> { [i, j = i] -> [i] : 0 < i <= N }
+    mlist = isl_map_list_add(mlist, map);
+  }
 
-  set = isl_set_list_get_at(slist, 1);
-  printf("set1: %s\n", isl_set_to_str(set));
+  set = isl_set_intersect(isl_set_list_get_at(slist, 0),
+                          isl_set_list_get_at(slist, 1));
+  printf("set intersection: %s\n", isl_set_to_str(set));
   isl_set_free(set);
-
-  set = isl_set_list_get_at(slist, 0);
-  printf("set: %s\n", isl_set_to_str(set));
-  isl_map *map;
-  map = isl_set_project_onto_map(set, isl_dim_set, 0, 1);
-  printf("map: %s\n", isl_map_to_str(map));
+  map = isl_map_intersect(isl_map_list_get_at(mlist, 0),
+                          isl_map_list_get_at(mlist, 1));
+  printf("map intersection: %s\n", isl_map_to_str(map));
   isl_map_free(map);
 
-  set = isl_set_intersect(isl_set_list_get_at(slist, 1),
-                          isl_set_list_get_at(slist, 0));
-  printf("intersection: %s\n", isl_set_to_str(set));
-
   isl_set_list_free(slist);
-  isl_set_free(set);
+  isl_map_list_free(mlist);
   isl_id_free(N_id);
   isl_id_free(M_id);
   isl_id_free(i_id);
