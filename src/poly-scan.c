@@ -127,12 +127,7 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   return isl_basic_set_to_set(bset);
 }
 
-int main(int argc, char *argv[]) {
-  printf("Hello world!\n");
-  isl_ctx *ctx = isl_ctx_alloc();
-
-  inspect_spaces(ctx);
-
+void project_and_intersect(__isl_keep isl_ctx *ctx) {
   isl_id *N_id = isl_id_alloc(ctx, "N", NULL);
   isl_id *M_id = isl_id_alloc(ctx, "M", NULL);
   isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
@@ -177,6 +172,17 @@ int main(int argc, char *argv[]) {
   isl_id_free(M_id);
   isl_id_free(i_id);
   isl_id_free(j_id);
+}
+
+int main(int argc, char *argv[]) {
+  printf("Hello world!\n");
+  isl_ctx *ctx = isl_ctx_alloc();
+
+  inspect_spaces(ctx);
+  printf("-------\n");
+  project_and_intersect(ctx);
+  printf("-------\n");
+
   isl_ctx_free(ctx);
   printf("DONE!\n");
   return 0;
