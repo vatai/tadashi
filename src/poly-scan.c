@@ -87,16 +87,21 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   space = isl_space_add_param_id(space, M_id);
   space = isl_space_add_unnamed_tuple_ui(space, 2);
   ma = isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
+  printf("ma identity: %s\n", isl_multi_aff_to_str(ma));
   ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 0, "i");
+  printf("ma set dim name('i'): %s\n", isl_multi_aff_to_str(ma));
   ma = isl_multi_aff_set_dim_name(ma, isl_dim_in, 1, "j");
-  var = isl_multi_aff_get_at(ma, 0);
+  printf("ma set dim name('j'): %s\n", isl_multi_aff_to_str(ma));
 
+  var = isl_multi_aff_get_at(ma, 0);
   v = isl_val_int_from_si(ctx, 1);
   cst = isl_aff_val_on_domain_space(isl_space_copy(space), v);
+  printf("cst: %s\n", isl_aff_to_str(cst));
   bset = isl_aff_ge_basic_set(isl_aff_copy(var), cst);
 
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(M_id));
+  printf("cst: %s\n", isl_aff_to_str(cst));
   bset = isl_basic_set_intersect(bset, isl_aff_le_basic_set(var, cst));
 
   var = isl_multi_aff_get_at(ma, 1);
@@ -110,64 +115,6 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   isl_multi_aff_free(ma);
   isl_space_free(space);
   return isl_basic_set_to_set(bset);
-}
-
-void print_basic_sets_and_projections(isl_basic_set *bsets[3]) {
-  isl_basic_set *bset;
-  for (int i = 0; i < 3; i++)
-    printf("bset: %s\n", isl_basic_set_to_str(bsets[i]));
-
-  for (int first = 0; first < 2; first++) {
-    for (int n = 0; n <= 2 - first; n++) {
-      bset = isl_basic_set_project_out(isl_basic_set_copy(bsets[1]),
-                                       isl_dim_set, first, n);
-      printf("bset proj (first=%d, n=%d): %s\n", first, n,
-             isl_basic_set_to_str(bset));
-      isl_basic_set_free(bset);
-    }
-  }
-}
-
-void create_intersections(isl_basic_set *bsetl, isl_basic_set *bsetr) {
-  isl_basic_set *bset;
-  isl_set *set, *setl, *setr;
-  bsetl = isl_basic_set_project_out( //
-      isl_basic_set_copy(bsetl), isl_dim_set, 1, 1);
-  printf("bset left: %s\n", isl_basic_set_to_str(bsetl));
-  bsetr = isl_basic_set_project_out( //
-      isl_basic_set_copy(bsetr), isl_dim_set, 1, 1);
-  // @todo(vatai) add constraint N < M
-  printf("bset right (mod): %s\n", isl_basic_set_to_str(bsetr));
-
-  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetl),
-                                 isl_basic_set_copy(bsetr));
-  printf("intersection: %s\n", isl_basic_set_to_str(bset));
-  isl_basic_set_free(bset);
-
-  setl = isl_basic_set_to_set(isl_basic_set_copy(bsetl));
-  setr = isl_basic_set_to_set(isl_basic_set_copy(bsetr));
-  set = isl_set_subtract(isl_set_copy(setl), isl_set_copy(setr));
-  printf("%s \\ %s = %s\n", isl_set_to_str(setl), isl_set_to_str(setr),
-         isl_set_to_str(set));
-  isl_set_free(setl);
-  isl_set_free(setr);
-  isl_set_free(set);
-
-  bsetl = isl_basic_set_align_params(bsetl, isl_basic_set_get_space(bsetr));
-  printf("bset right: %s\n", isl_basic_set_to_str(bsetl));
-
-  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetl),
-                                 isl_basic_set_neg(isl_basic_set_copy(bsetr)));
-  printf("lrdiff: %s\n", isl_basic_set_to_str(bset));
-  isl_basic_set_free(bset);
-
-  bset = isl_basic_set_intersect(isl_basic_set_copy(bsetr),
-                                 isl_basic_set_neg(isl_basic_set_copy(bsetl)));
-  printf("rldiff: %s\n", isl_basic_set_to_str(bset));
-  isl_basic_set_free(bset);
-
-  isl_basic_set_free(bsetl);
-  isl_basic_set_free(bsetr);
 }
 
 int main(int argc, char *argv[]) {
