@@ -11,6 +11,7 @@
 #include <isl/space.h>
 
 void inspect_spaces(__isl_keep isl_ctx *ctx) {
+  printf("--- inspect_spaces(ctx) ---\n\n");
   // params, set, map
   isl_space *spaces[] = {isl_space_alloc(ctx, 3, 2, 1),  // 0 0 1
                          isl_space_params_alloc(ctx, 3), // 1 1 0
@@ -22,7 +23,7 @@ void inspect_spaces(__isl_keep isl_ctx *ctx) {
            isl_space_is_params(spaces[i]),
            isl_space_is_set(spaces[i]), //
            isl_space_is_map(spaces[i]));
-    printf("%s\n", isl_space_to_str(spaces[i]));
+    printf("%s\n\n", isl_space_to_str(spaces[i]));
   }
   for (int i = 0; i < num_spaces; ++i)
     isl_space_free(spaces[i]);
@@ -43,14 +44,17 @@ __isl_give isl_set *build_set0(__isl_keep isl_ctx *ctx,
   space = isl_space_add_dims(space, isl_dim_set, ndim);
   space = isl_space_set_dim_id(space, isl_dim_set, 0, isl_id_copy(i_id));
   space = isl_space_set_dim_id(space, isl_dim_set, 1, isl_id_copy(j_id));
+  printf("x space: %s\n", isl_space_to_str(space));
 
   bset = isl_basic_set_universe(isl_space_copy(space));
+  printf("stage0 bset: %s\n", isl_basic_set_to_str(bset));
   ls = isl_local_space_from_space(isl_space_copy(space));
 
   c = isl_constraint_alloc_inequality(isl_local_space_copy(ls));
   c = isl_constraint_set_coefficient_si(c, isl_dim_set, 0, -1);
   c = isl_constraint_set_coefficient_si(c, isl_dim_param, 0, 1);
   bset = isl_basic_set_add_constraint(bset, c);
+  printf("stage1 bset: %s\n", isl_basic_set_to_str(bset));
 
   c = isl_constraint_alloc_inequality(isl_local_space_copy(ls));
   c = isl_constraint_set_constant_si(c, -1);
@@ -66,6 +70,8 @@ __isl_give isl_set *build_set0(__isl_keep isl_ctx *ctx,
   c = isl_constraint_set_coefficient_si(c, isl_dim_set, 0, -1);
   c = isl_constraint_set_coefficient_si(c, isl_dim_set, 1, 1);
   bset = isl_basic_set_add_constraint(bset, c);
+
+  printf("final bset: %s\n", isl_basic_set_to_str(bset));
 
   isl_space_free(space);
   isl_local_space_free(ls);
@@ -101,7 +107,7 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   cst = isl_aff_val_on_domain_space(isl_space_copy(space), v);
   // cst: [N, M] -> { [i, j] -> [(1)] }
   bset = isl_aff_ge_basic_set(isl_aff_copy(var), cst);
-  // bset: [N, M] -> { [i, j] : i > 0 }
+  // bset: [N, M] -> { [i, j] : i > 0 } i >= 1
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(M_id));
   // cst: [N, M] -> { [i, j] -> [(M)] }
@@ -127,7 +133,22 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   return isl_basic_set_to_set(bset);
 }
 
+void print_intersection(__isl_keep isl_set_list *slist,
+                        __isl_keep isl_map_list *mlist, int idx0, int idx1) {
+  isl_set *set;
+  isl_map *map;
+  set = isl_set_intersect(isl_set_list_get_at(slist, idx0),
+                          isl_set_list_get_at(slist, idx1));
+  printf("set intersection: %s\n", isl_set_to_str(set));
+  isl_set_free(set);
+  map = isl_map_intersect(isl_map_list_get_at(mlist, idx0),
+                          isl_map_list_get_at(mlist, idx1));
+  printf("map intersection: %s\n", isl_map_to_str(map));
+  isl_map_free(map);
+}
+
 void project_and_intersect(__isl_keep isl_ctx *ctx) {
+  printf("--- project_and_intersect(ctx) ---\n\n");
   isl_id *N_id = isl_id_alloc(ctx, "N", NULL);
   isl_id *M_id = isl_id_alloc(ctx, "M", NULL);
   isl_id *i_id = isl_id_alloc(ctx, "i", NULL);
@@ -163,14 +184,9 @@ void project_and_intersect(__isl_keep isl_ctx *ctx) {
     mlist = isl_map_list_add(mlist, map);
   }
 
-  set = isl_set_intersect(isl_set_list_get_at(slist, 0),
-                          isl_set_list_get_at(slist, 1));
-  printf("set intersection: %s\n", isl_set_to_str(set));
-  isl_set_free(set);
-  map = isl_map_intersect(isl_map_list_get_at(mlist, 0),
-                          isl_map_list_get_at(mlist, 1));
-  printf("map intersection: %s\n", isl_map_to_str(map));
-  isl_map_free(map);
+  print_intersection(slist, mlist, 0, 1);
+  print_intersection(slist, mlist, 1, 2);
+  print_intersection(slist, mlist, 2, 0);
 
   isl_set_list_free(slist);
   isl_map_list_free(mlist);
@@ -181,15 +197,14 @@ void project_and_intersect(__isl_keep isl_ctx *ctx) {
 }
 
 int main(int argc, char *argv[]) {
-  printf("Hello world!\n");
+
   isl_ctx *ctx = isl_ctx_alloc();
 
   inspect_spaces(ctx);
-  printf("-------\n");
   project_and_intersect(ctx);
-  printf("-------\n");
 
   isl_ctx_free(ctx);
+
   printf("DONE!\n");
   return 0;
 }
