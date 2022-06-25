@@ -111,6 +111,7 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   // cst: [N, M] -> { [i, j] -> [(1)] }
   bset = isl_aff_ge_basic_set(isl_aff_copy(var), cst);
   // bset: [N, M] -> { [i, j] : i > 0 } i >= 1
+
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(M_id));
   // cst: [N, M] -> { [i, j] -> [(M)] }
@@ -124,14 +125,12 @@ __isl_give isl_set *build_set1(__isl_keep isl_ctx *ctx, //
   cst = isl_aff_param_on_domain_space_id(isl_space_copy(space),
                                          isl_id_copy(N_id));
   // cst: [N, M] -> { [i, j] -> [(N)] }
-  tmp_bset = isl_aff_eq_basic_set(isl_aff_copy(var), isl_aff_copy(cst));
+  tmp_bset = isl_aff_eq_basic_set(var, cst);
   // tmp_bset: [N, M] -> { [i, j] : j = N }
   bset = isl_basic_set_intersect(bset, tmp_bset);
   // bset: [N, M] -> { [i, j] : j = N and 0 < i <= M }
 
-  isl_aff_free(var);
-  isl_aff_free(cst);
-  isl_multi_aff_free(ma);
+  isl_multi_aff_free(ma); // this is causing the error
   isl_space_free(space);
   return isl_basic_set_to_set(bset);
 }
