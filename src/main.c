@@ -3,6 +3,8 @@
 
 #include <isl/aff.h>
 #include <isl/arg.h>
+#include <isl/ast.h>
+#include <isl/ast_build.h>
 #include <isl/id_to_pw_aff.h>
 #include <isl/options.h>
 #include <isl/schedule_node.h>
@@ -98,6 +100,19 @@ void traverse_schedule(isl_schedule *schedule) {
   isl_schedule_node_free(node);
 }
 
+void codegen(isl_ctx *ctx, isl_schedule *schedule) {
+  isl_ast_build *build;
+  isl_ast_node *ast;
+  build = isl_ast_build_alloc(ctx);
+  assert(build != NULL);
+  printf("int main() {}\n");
+  fflush(stdout);
+  assert(schedule != NULL);
+  ast = isl_ast_build_node_from_schedule(build, schedule);
+  isl_ast_node_free(ast);
+  isl_ast_build_free(build);
+}
+
 int main(int argc, char *argv[]) {
   struct options *options;
   isl_ctx *ctx;
@@ -107,12 +122,12 @@ int main(int argc, char *argv[]) {
   ctx = isl_ctx_alloc_with_options(&options_args, options);
   assert(ctx != NULL);
 
-  scop = pet_scop_extract_from_C_source(ctx, filename, NULL);
+  scop = pet_scop_extract_from_C_source(ctx, filename, "g");
   assert(scop != NULL);
 
-  // print_scop(scop);
-
+  print_scop(scop);
   traverse_schedule(scop->schedule);
+  codegen(ctx, scop->schedule);
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);

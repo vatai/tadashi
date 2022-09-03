@@ -9,3 +9,12 @@ void f(int n) {
   }
 #pragma endscop
 }
+
+void g(int n) {
+  double a[n];
+#pragma scop
+  for (int i = 0; i <= n; i++) {
+    a[i] = 0.0;
+  }
+#pragma endscop
+}
