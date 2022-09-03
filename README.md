@@ -1,5 +1,14 @@
 # polyhedral-tutor
 
-Okay, let's try to `type` some real text.
+Build instructions:
 
-$x$ \(y\)
+```
+git clone --recursive https://github.com/vatai/polyhedral-tutor.git
+cd polyhedral-tutor/src/pet
+./autogen.sh && ./configure && make -j
+cd ../..
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
