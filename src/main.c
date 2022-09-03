@@ -105,10 +105,10 @@ void codegen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_node *ast;
   build = isl_ast_build_alloc(ctx);
   assert(build != NULL);
-  printf("int main() {}\n");
   fflush(stdout);
   assert(schedule != NULL);
-  ast = isl_ast_build_node_from_schedule(build, schedule);
+  ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
+  printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
   isl_ast_node_free(ast);
   isl_ast_build_free(build);
 }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
   ctx = isl_ctx_alloc_with_options(&options_args, options);
   assert(ctx != NULL);
 
-  scop = pet_scop_extract_from_C_source(ctx, filename, "g");
+  scop = pet_scop_extract_from_C_source(ctx, filename, "f");
   assert(scop != NULL);
 
   print_scop(scop);
