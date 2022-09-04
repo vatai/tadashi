@@ -13,7 +13,7 @@ void f(int n) {
 void g(int n) {
 #pragma scop
   double a[n];
-  for (int i = 0; i <= n; i++) {
+  for (int i = 0; i < n; i++) {
     a[i] = 0.0;
   }
 #pragma endscop

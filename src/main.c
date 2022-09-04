@@ -48,20 +48,15 @@ void codegen(isl_ctx *ctx, isl_schedule *schedule) {
 isl_bool proc_node(__isl_keep isl_schedule_node *node, void *user) {
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return isl_bool_true;
-
-  printf(">>> %s\n", isl_schedule_node_to_str(node));
+  struct user_t *data = (struct user_t *)user;
 
   isl_multi_union_pw_aff *mupa =
       isl_schedule_node_band_get_partial_schedule(node);
   isl_ctx *ctx = isl_multi_union_pw_aff_get_ctx(mupa);
   isl_multi_aff *ma = isl_multi_aff_read_from_str( //
-      ctx, "[n] -> { L_0[i0] -> [(n - i0)] }");
+      ctx, "[n] -> { L_0[i0] -> [( n-i0 )] }");
 
   mupa = isl_multi_union_pw_aff_apply_multi_aff(mupa, isl_multi_aff_copy(ma));
-  printf(">>mupa+: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  struct user_t *data = (struct user_t *)user;
-
   node = isl_schedule_node_delete(node);
   node = isl_schedule_node_insert_partial_schedule(
       node, isl_multi_union_pw_aff_copy(mupa));
@@ -80,12 +75,11 @@ int main(int argc, char *argv[]) {
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, filename, "g");
+  codegen(ctx, scop->schedule);
 
   struct user_t *user = (struct user_t *)malloc(sizeof(struct user_t));
   isl_schedule_foreach_schedule_node_top_down(scop->schedule, proc_node, user);
-
   codegen(ctx, user->schedule);
-
   isl_schedule_free(user->schedule);
   pet_scop_free(scop);
   isl_ctx_free(ctx);
