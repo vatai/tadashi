@@ -1,7 +1,7 @@
 
 void f(int n) {
-  double a[n], b[n], M[n][n];
 #pragma scop
+  double a[n], b[n], M[n][n];
   for (int i = 0; i <= n; i++) {
     a[i] = 0.0;
     for (int j = 0; j <= n; j++)
@@ -11,8 +11,8 @@ void f(int n) {
 }
 
 void g(int n) {
-  double a[n];
 #pragma scop
+  double a[n];
   for (int i = 0; i <= n; i++) {
     a[i] = 0.0;
   }

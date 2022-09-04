@@ -1,16 +1,12 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include <isl/aff.h>
-#include <isl/arg.h>
-#include <isl/ast.h>
-#include <isl/ast_build.h>
-#include <isl/id_to_pw_aff.h>
 #include <isl/options.h>
 #include <isl/schedule_node.h>
-#include <isl/set.h>
-#include <isl/union_map.h>
+#include <isl/space.h>
 #include <isl/union_set.h>
+
 #include <pet.h>
 
 const char filename[] = "../src/hello.c";
@@ -33,6 +29,11 @@ ISL_ARG_BOOL(struct options, tree, 0, "tree", 0,
 ISL_ARGS_END
 
 ISL_ARG_DEF(options, struct options, options_args)
+
+struct user_t {
+  isl_schedule_node *node;
+  isl_multi_union_pw_aff *mupa;
+};
 
 void print_scop(pet_scop *scop) {
   printf("n_arrays: %d\n", scop->n_array);
@@ -82,55 +83,70 @@ void print_scop(pet_scop *scop) {
   printf("schedule: %s\n", isl_schedule_to_str(scop->schedule));
 }
 
-void traverse_schedule(isl_schedule *schedule) {
-  isl_union_set *domain;
-  isl_schedule_node *node;
-  enum isl_schedule_node_type type;
-  const char msg[] = "domain: %s\n\n\n\n";
-
-  domain = isl_schedule_get_domain(schedule);
-  node = isl_schedule_get_root(schedule);
-  printf(msg, isl_schedule_node_to_str(node));
-  while (isl_schedule_node_has_children(node)) {
-    node = isl_schedule_node_child(node, 0);
-    printf(msg, isl_schedule_node_to_str(node));
-  }
-
-  isl_union_set_free(domain);
-  isl_schedule_node_free(node);
-}
-
 void codegen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
   isl_ast_node *ast;
   build = isl_ast_build_alloc(ctx);
   assert(build != NULL);
-  fflush(stdout);
-  assert(schedule != NULL);
   ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
   printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
   isl_ast_node_free(ast);
   isl_ast_build_free(build);
 }
 
+isl_bool proc_node(__isl_keep isl_schedule_node *node, void *user) {
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+    return isl_bool_true;
+
+  printf(">>> %s\n", isl_schedule_node_to_str(node));
+
+  isl_multi_union_pw_aff *mupa =
+      isl_schedule_node_band_get_partial_schedule(node);
+  isl_ctx *ctx = isl_multi_union_pw_aff_get_ctx(mupa);
+  isl_multi_aff *ma = isl_multi_aff_read_from_str( //
+      ctx, "[n] -> { L_0[i0] -> [(n - i0)] }");
+
+  mupa = isl_multi_union_pw_aff_apply_multi_aff(mupa, isl_multi_aff_copy(ma));
+  printf(">>mupa+: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+
+  struct user_t *data = (struct user_t *)user;
+
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_insert_partial_schedule(
+      node, isl_multi_union_pw_aff_copy(mupa));
+
+  data->mupa = isl_multi_union_pw_aff_copy(mupa);
+  data->node = isl_schedule_node_copy(node);
+
+  isl_multi_aff_free(ma);
+  isl_multi_union_pw_aff_free(mupa);
+  return isl_bool_false;
+}
+
+isl_schedule *mod_schedule(struct user_t *data) {
+  isl_schedule_node *node = isl_schedule_node_delete(data->node);
+  node = isl_schedule_node_insert_partial_schedule(
+      node, isl_multi_union_pw_aff_copy(data->mupa));
+  return isl_schedule_node_get_schedule(node);
+}
+
 int main(int argc, char *argv[]) {
-  struct options *options;
-  isl_ctx *ctx;
-  pet_scop *scop;
+  struct options *options = options_new_with_defaults();
+  isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
+  pet_scop *scop = pet_scop_extract_from_C_source(ctx, filename, "g");
 
-  options = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, options);
-  assert(ctx != NULL);
+  struct user_t *user = (struct user_t *)malloc(sizeof(struct user_t));
+  // print_scop(scop);
+  isl_schedule_foreach_schedule_node_top_down(scop->schedule, proc_node, user);
 
-  scop = pet_scop_extract_from_C_source(ctx, filename, "f");
-  assert(scop != NULL);
+  isl_schedule *schedule = mod_schedule(user);
+  codegen(ctx, schedule);
 
-  print_scop(scop);
-  traverse_schedule(scop->schedule);
-  codegen(ctx, scop->schedule);
-
+  isl_multi_union_pw_aff_free(user->mupa);
+  isl_schedule_node_free(user->node);
+  isl_schedule_free(schedule);
   pet_scop_free(scop);
   isl_ctx_free(ctx);
-
+  printf("DONE!\n");
   return 0;
 }
