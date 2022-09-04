@@ -31,57 +31,8 @@ ISL_ARGS_END
 ISL_ARG_DEF(options, struct options, options_args)
 
 struct user_t {
-  isl_schedule_node *node;
-  isl_multi_union_pw_aff *mupa;
+  isl_schedule *schedule;
 };
-
-void print_scop(pet_scop *scop) {
-  printf("n_arrays: %d\n", scop->n_array);
-  for (int i = 0; i < scop->n_array; ++i) {
-    printf("arrays[%d]->context: %s\n", i,
-           isl_set_to_str(scop->arrays[i]->context));
-    printf("arrays[%d]->extent: %s\n", i,
-           isl_set_to_str(scop->arrays[i]->extent));
-  }
-
-  printf("context: %s\n", isl_set_to_str(scop->context));
-
-  printf("context_value: %s\n", isl_set_to_str(scop->context_value));
-
-  printf("n_implication: %d\n", scop->n_implication);
-  for (int i = 0; i < scop->n_implication; ++i) {
-    printf("implications[%d]->extension: %s\n", i,
-           isl_map_to_str(scop->implications[i]->extension));
-    printf("implications[%d]->satisfied: %d\n", i,
-           scop->implications[i]->satisfied);
-  }
-
-  printf("n_independence: %d\n", scop->n_independence);
-  for (int i = 0; i < scop->n_independence; ++i) {
-    printf("independences[%d]->filter: %s\n", i,
-           isl_union_map_to_str(scop->independences[i]->filter));
-    printf("independences[%d]->local: %s\n", i,
-           isl_union_set_to_str(scop->independences[i]->local));
-  }
-
-  printf("n_stmt: %d\n", scop->n_stmt);
-  for (int i = 0; i < scop->n_stmt; ++i) {
-    struct pet_stmt *stmt = scop->stmts[i];
-    /* printf("stmt[%d]->n_args: %d\n", i, stmt->n_arg); */
-    /* for (int j = 0; j < stmt->n_arg; ++j) */
-    /*   printf("stmt[%d]->args[%d]: %s\n", i, j, stmt->args[j]); */
-    printf("stmt[%d]->domain: %s\n", i, isl_set_to_str(stmt->domain));
-    printf("stmt[%d]->loc: %d\n", i, pet_loc_get_line(stmt->loc));
-  }
-
-  printf("n_type: %d\n", scop->n_type);
-  for (int i = 0; i < scop->n_type; ++i) {
-    printf("types[%d]->definition/name: %s/%s\n", i, //
-           scop->types[i]->definition, scop->types[i]->name);
-  }
-
-  printf("schedule: %s\n", isl_schedule_to_str(scop->schedule));
-}
 
 void codegen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
@@ -114,20 +65,15 @@ isl_bool proc_node(__isl_keep isl_schedule_node *node, void *user) {
   node = isl_schedule_node_delete(node);
   node = isl_schedule_node_insert_partial_schedule(
       node, isl_multi_union_pw_aff_copy(mupa));
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_insert_partial_schedule(
+      node, isl_multi_union_pw_aff_copy(mupa));
 
-  data->mupa = isl_multi_union_pw_aff_copy(mupa);
-  data->node = isl_schedule_node_copy(node);
+  data->schedule = isl_schedule_node_get_schedule(node);
 
   isl_multi_aff_free(ma);
   isl_multi_union_pw_aff_free(mupa);
-  return isl_bool_false;
-}
-
-isl_schedule *mod_schedule(struct user_t *data) {
-  isl_schedule_node *node = isl_schedule_node_delete(data->node);
-  node = isl_schedule_node_insert_partial_schedule(
-      node, isl_multi_union_pw_aff_copy(data->mupa));
-  return isl_schedule_node_get_schedule(node);
+  return isl_bool_true;
 }
 
 int main(int argc, char *argv[]) {
@@ -136,15 +82,11 @@ int main(int argc, char *argv[]) {
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, filename, "g");
 
   struct user_t *user = (struct user_t *)malloc(sizeof(struct user_t));
-  // print_scop(scop);
   isl_schedule_foreach_schedule_node_top_down(scop->schedule, proc_node, user);
 
-  isl_schedule *schedule = mod_schedule(user);
-  codegen(ctx, schedule);
+  codegen(ctx, user->schedule);
 
-  isl_multi_union_pw_aff_free(user->mupa);
-  isl_schedule_node_free(user->node);
-  isl_schedule_free(schedule);
+  isl_schedule_free(user->schedule);
   pet_scop_free(scop);
   isl_ctx_free(ctx);
   printf("DONE!\n");
