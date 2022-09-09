@@ -25,3 +25,6 @@ target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(poly-scan src/poly-scan.c)
 target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(functions src/functions.c)
+target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
