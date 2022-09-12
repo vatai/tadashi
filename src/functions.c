@@ -3,6 +3,7 @@
 #include <isl/ctx.h>
 #include <isl/set.h>
 #include <isl/space.h>
+#include <isl/union_set.h>
 
 void param_space(isl_ctx *ctx) {
   unsigned int nparam = 3, n_in = 0, n_out = 0;
@@ -38,10 +39,10 @@ void param_space(isl_ctx *ctx) {
   isl_space_free(uspace);
 }
 
-void sets(isl_ctx *ctx) {
+void universe_and_empty_sets(isl_ctx *ctx) {
   isl_space *space = isl_space_unit(ctx);
   isl_space_add_dims(space, isl_dim_param, 1);
-  isl_space_add_dims(space, isl_dim_out, 2);
+  isl_space_add_dims(space, isl_dim_out, 2); // isl_dim_out = isl_dim_set
   // isl_space_add_dims(space, isl_dim_in, 2); // all return `(null)`
   printf("space: %s\n", isl_space_to_str(space));
 
@@ -65,6 +66,15 @@ void sets(isl_ctx *ctx) {
   fflush(stdout);
   isl_set_free(empty);
 
+  isl_union_set *uempty = isl_union_set_empty(isl_space_copy(space));
+  isl_union_set *uset = isl_union_set_universe(isl_union_set_copy(uempty));
+  printf("uset_empty: %s\n", isl_union_set_to_str(uempty));
+  fflush(stdout);
+  printf("uset_universe: %s\n", isl_union_set_to_str(uset));
+  fflush(stdout);
+  isl_union_set_free(uset);
+  isl_union_set_free(uempty);
+
   isl_space_free(space);
 }
 
@@ -72,7 +82,7 @@ int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
 
   // param_space(ctx);
-  sets(ctx);
+  universe_and_empty_sets(ctx);
 
   isl_ctx_free(ctx);
 }
