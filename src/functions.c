@@ -1,8 +1,10 @@
 #include <stdio.h>
 
 #include <isl/ctx.h>
+#include <isl/map.h>
 #include <isl/set.h>
 #include <isl/space.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 
 void param_space(isl_ctx *ctx) {
@@ -40,33 +42,33 @@ void param_space(isl_ctx *ctx) {
 }
 
 void universe_and_empty_sets(isl_ctx *ctx) {
-  isl_space *space = isl_space_unit(ctx);
-  isl_space_add_dims(space, isl_dim_param, 1);
-  isl_space_add_dims(space, isl_dim_out, 2); // isl_dim_out = isl_dim_set
+  isl_space *set_space = isl_space_unit(ctx);
+  isl_space_add_dims(set_space, isl_dim_param, 1);
+  isl_space_add_dims(set_space, isl_dim_out, 2); // isl_dim_out = isl_dim_set
   // isl_space_add_dims(space, isl_dim_in, 2); // all return `(null)`
-  printf("space: %s\n", isl_space_to_str(space));
+  printf("set_space: %s\n", isl_space_to_str(set_space));
 
-  isl_basic_set *bset = isl_basic_set_universe(isl_space_copy(space));
+  isl_basic_set *bset = isl_basic_set_universe(isl_space_copy(set_space));
   printf("bset_universe: %s\n", isl_basic_set_to_str(bset));
   fflush(stdout);
   isl_basic_set_free(bset);
 
-  isl_basic_set *bempty = isl_basic_set_empty(isl_space_copy(space));
+  isl_basic_set *bempty = isl_basic_set_empty(isl_space_copy(set_space));
   printf("bset_empty: %s\n", isl_basic_set_to_str(bempty));
   fflush(stdout);
   isl_basic_set_free(bempty);
 
-  isl_set *set = isl_set_universe(isl_space_copy(space));
+  isl_set *set = isl_set_universe(isl_space_copy(set_space));
   printf("set_universe: %s\n", isl_set_to_str(set));
   fflush(stdout);
   isl_set_free(set);
 
-  isl_set *empty = isl_set_empty(isl_space_copy(space));
+  isl_set *empty = isl_set_empty(isl_space_copy(set_space));
   printf("set_empty: %s\n", isl_set_to_str(empty));
   fflush(stdout);
   isl_set_free(empty);
 
-  isl_union_set *uempty = isl_union_set_empty(isl_space_copy(space));
+  isl_union_set *uempty = isl_union_set_empty(isl_space_copy(set_space));
   isl_union_set *uset = isl_union_set_universe(isl_union_set_copy(uempty));
   printf("uset_empty: %s\n", isl_union_set_to_str(uempty));
   fflush(stdout);
@@ -75,7 +77,52 @@ void universe_and_empty_sets(isl_ctx *ctx) {
   isl_union_set_free(uset);
   isl_union_set_free(uempty);
 
-  isl_space_free(space);
+  puts("");
+
+  isl_map *lexmap = isl_map_lex_lt(isl_space_copy(set_space));
+  printf("map_lex_lt: %s\n", isl_map_to_str(lexmap));
+  fflush(stdout);
+  isl_map_free(lexmap);
+
+  puts("");
+
+  isl_space *map_space = isl_space_unit(ctx);
+  isl_space_add_dims(map_space, isl_dim_param, 1);
+  isl_space_add_dims(map_space, isl_dim_in, 3);
+  isl_space_add_dims(map_space, isl_dim_out, 2);
+  printf("map_space: %s\n", isl_space_to_str(map_space));
+
+  isl_basic_map *bmap = isl_basic_map_universe(isl_space_copy(map_space));
+  printf("bmap_universe: %s\n", isl_basic_map_to_str(bmap));
+  fflush(stdout);
+  isl_basic_map_free(bmap);
+
+  isl_basic_map *bempty_map = isl_basic_map_empty(isl_space_copy(map_space));
+  printf("bempty_map_empty: %s\n", isl_basic_map_to_str(bempty_map));
+  fflush(stdout);
+  isl_basic_map_free(bempty_map);
+
+  isl_map *pmap = isl_map_universe(isl_space_copy(map_space));
+  printf("pmap_universe: %s\n", isl_map_to_str(pmap));
+  fflush(stdout);
+  isl_map_free(pmap);
+
+  isl_map *pempty_map = isl_map_empty(isl_space_copy(map_space));
+  printf("pempty_map_empty: %s\n", isl_map_to_str(pempty_map));
+  fflush(stdout);
+  isl_map_free(pempty_map);
+
+  isl_union_map *uempty_map = isl_union_map_empty(isl_space_copy(map_space));
+  printf("pempty_map_empty: %s\n", isl_union_map_to_str(uempty_map));
+  fflush(stdout);
+  isl_union_map *umap = isl_union_map_universe(uempty_map);
+  printf("umap_universe: %s\n", isl_union_map_to_str(umap));
+  fflush(stdout);
+  isl_union_map_free(umap);
+  isl_union_map_free(uempty_map);
+
+  isl_space_free(set_space);
+  isl_space_free(map_space);
 }
 
 int main(int argc, char *argv[]) {
