@@ -87,9 +87,9 @@ void universe_and_empty_sets(isl_ctx *ctx) {
   puts("");
 
   isl_space *map_space = isl_space_unit(ctx);
-  isl_space_add_dims(map_space, isl_dim_param, 1);
-  isl_space_add_dims(map_space, isl_dim_in, 3);
-  isl_space_add_dims(map_space, isl_dim_out, 2);
+  map_space = isl_space_add_dims(map_space, isl_dim_param, 1);
+  map_space = isl_space_add_dims(map_space, isl_dim_in, 3);
+  map_space = isl_space_add_dims(map_space, isl_dim_out, 2);
   printf("map_space: %s\n", isl_space_to_str(map_space));
 
   isl_basic_map *bmap = isl_basic_map_universe(isl_space_copy(map_space));
@@ -121,15 +121,45 @@ void universe_and_empty_sets(isl_ctx *ctx) {
   isl_union_map_free(umap);
   isl_union_map_free(uempty_map);
 
+  puts("");
+
+  map_space = isl_space_add_dims(map_space, isl_dim_out, 1);
+  printf("map_space: %s\n", isl_space_to_str(map_space));
+
+  isl_map *pmap_id = isl_map_identity(isl_space_copy(map_space));
+  printf("pmap_id: %s", isl_map_to_str(pmap_id));
+  fflush(stdout);
+  isl_map_free(pmap_id);
+
   isl_space_free(set_space);
   isl_space_free(map_space);
 }
 
+void points(isl_ctx *ctx) {
+  isl_space *space = isl_space_unit(ctx);
+  space = isl_space_add_dims(space, isl_dim_set, 2);
+
+  isl_point *pt = isl_point_zero(space);
+
+  printf("pt: %s\n", isl_point_to_str(pt));
+  fflush(stdout);
+  pt = isl_point_add_ui(pt, isl_dim_set, 1, 42);
+  printf("pt: %s\n", isl_point_to_str(pt));
+  fflush(stdout);
+  pt = isl_point_add_ui(pt, isl_dim_set, 0, 10);
+  printf("pt: %s\n", isl_point_to_str(pt));
+  fflush(stdout);
+
+  isl_point_free(pt);
+  isl_space_free(space);
+}
 int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
 
   // param_space(ctx);
-  universe_and_empty_sets(ctx);
+  // universe_and_empty_sets(ctx);
+  points(ctx);
 
   isl_ctx_free(ctx);
+  printf("Done!\n");
 }
