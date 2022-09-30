@@ -28,3 +28,9 @@ target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(functions src/functions.c)
 target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(divs src/divs.c)
+target_link_libraries(divs PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(pet_codegen_skimo src/pet_codegen_skimo.c)
+target_link_libraries(pet_codegen_skimo PUBLIC PkgConfig::ISL PkgConfig::PET)
