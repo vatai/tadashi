@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include <isl/aff.h>
 #include <isl/ctx.h>
 #include <isl/map.h>
 #include <isl/set.h>
@@ -153,12 +154,82 @@ void points(isl_ctx *ctx) {
   isl_point_free(pt);
   isl_space_free(space);
 }
+
+void aff_set(isl_ctx *ctx) {
+  isl_space *space = isl_space_unit(ctx);
+  space = isl_space_add_unnamed_tuple_ui(space, 2);
+
+  printf("space: %s (is map %d)\n", isl_space_to_str(space),
+         isl_space_is_set(space));
+
+  isl_multi_aff *ma =
+      isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
+  isl_aff *var = isl_multi_aff_get_at(ma, 0);
+  isl_aff *cst = isl_aff_val_on_domain_space(isl_space_copy(space),
+                                             isl_val_int_from_si(ctx, 42));
+  isl_set *set = isl_aff_gt_set(isl_aff_copy(var), isl_aff_copy(cst));
+
+  printf("ma: %s\n", isl_multi_aff_to_str(ma));
+  printf("var: %s\n", isl_aff_to_str(var));
+  printf("cst: %s\n", isl_aff_to_str(cst));
+  printf("set: %s\n", isl_set_to_str(set));
+
+  isl_set_free(set);
+  isl_aff_free(cst);
+  isl_aff_free(var);
+  isl_multi_aff_free(ma);
+
+  isl_multi_pw_aff *multi =
+      isl_multi_pw_aff_identity_on_domain_space(isl_space_copy(space));
+  printf("multi: %s\n", isl_multi_pw_aff_to_str(multi));
+  isl_multi_pw_aff_free(multi);
+
+  isl_space_free(space);
+}
+
+void pw_aff_map(isl_ctx *ctx) {
+  isl_space *space = isl_space_unit(ctx);
+  space = isl_space_add_unnamed_tuple_ui(space, 2);
+
+  printf("space: %s (is map %d)\n", isl_space_to_str(space),
+         isl_space_is_set(space));
+
+  isl_multi_aff *ma =
+      isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
+  /* isl_aff *var = isl_multi_aff_get_at(ma, 0); */
+  /* isl_aff *cst = isl_aff_val_on_domain_space(isl_space_copy(space), */
+  /*                                            isl_val_int_from_si(ctx, 42));
+   */
+  /* isl_set *set = isl_aff_gt_set(isl_aff_copy(var), isl_aff_copy(cst)); */
+
+  /* TARGET: isl_pw_aff_gt_map(isl_pw_aff * pa1, isl_pw_aff * pa2) */
+
+  /* printf("ma: %s\n", isl_multi_aff_to_str(ma)); */
+  /* printf("var: %s\n", isl_aff_to_str(var)); */
+  /* printf("cst: %s\n", isl_aff_to_str(cst)); */
+  /* printf("set: %s\n", isl_set_to_str(set)); */
+
+  /* isl_set_free(set); */
+  /* isl_aff_free(cst); */
+  /* isl_aff_free(var); */
+  isl_multi_aff_free(ma);
+
+  isl_multi_pw_aff *multi =
+      isl_multi_pw_aff_identity_on_domain_space(isl_space_copy(space));
+  printf("multi: %s\n", isl_multi_pw_aff_to_str(multi));
+  isl_multi_pw_aff_free(multi);
+
+  isl_space_free(space);
+}
+
 int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
 
   // param_space(ctx);
   // universe_and_empty_sets(ctx);
-  points(ctx);
+  // points(ctx);
+  // aff_set(ctx);
+  pw_aff_map(ctx);
 
   isl_ctx_free(ctx);
   printf("Done!\n");

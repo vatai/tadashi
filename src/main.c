@@ -54,7 +54,7 @@ isl_bool proc_node(__isl_keep isl_schedule_node *node, void *user) {
       isl_schedule_node_band_get_partial_schedule(node);
   isl_ctx *ctx = isl_multi_union_pw_aff_get_ctx(mupa);
   isl_multi_aff *ma = isl_multi_aff_read_from_str( //
-      ctx, "[n] -> { L_0[i0] -> [( n-i0 )] }");
+      ctx, "[n] -> { L_0[i0] -> [( -i0 )] }");
 
   mupa = isl_multi_union_pw_aff_apply_multi_aff(mupa, isl_multi_aff_copy(ma));
   node = isl_schedule_node_delete(node);
