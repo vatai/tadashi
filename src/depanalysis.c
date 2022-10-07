@@ -5,6 +5,7 @@
 #include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/map.h>
+#include <isl/mat.h>
 #include <isl/options.h>
 #include <isl/set.h>
 #include <isl/space.h>
@@ -46,6 +47,9 @@ void depanalysis(pet_scop *scop) {
   isl_union_flow *flow;
   isl_union_map *schedule_map, *may_dep;
   isl_union_set *domain;
+  isl_map *map;
+  isl_basic_map_list *bml;
+  isl_mat *mat;
 
   set = pet_scop_get_context(scop);
   ctx = isl_set_get_ctx(set);
@@ -89,6 +93,20 @@ void depanalysis(pet_scop *scop) {
   may_dep = isl_union_flow_get_may_dependence(flow);
   printf("may_dep: %s\n", isl_union_map_to_str(may_dep));
 
+  map = isl_union_map_as_map(isl_union_map_copy(schedule_map));
+  bml = isl_map_get_basic_map_list(map);
+  mat = isl_basic_map_equalities_matrix(isl_basic_map_list_get_at(bml, 0),
+                                        isl_dim_in, isl_dim_out, isl_dim_cst,
+                                        isl_dim_div, isl_dim_param);
+
+  printf("MAT:\n");
+  for (int i = 0; i < isl_mat_rows(mat); ++i) {
+    for (int j = 0; j < isl_mat_cols(mat); ++j) {
+      printf("%s ", isl_val_to_str(isl_mat_get_element_val(mat, i, j)));
+    }
+    printf("\n");
+  }
+  isl_map_free(map);
   isl_map_free(reads);
   isl_map_free(writes);
   isl_map_free(one);
