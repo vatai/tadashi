@@ -3,6 +3,7 @@
 #include <isl/aff.h>
 #include <isl/ctx.h>
 #include <isl/flow.h>
+#include <isl/id.h>
 #include <isl/map.h>
 #include <isl/options.h>
 #include <isl/set.h>
@@ -35,42 +36,67 @@ ISL_ARG_DEF(options, struct options, options_args)
 
 void depanalysis(pet_scop *scop) {
   printf("--- depanalysis() ---\n");
-  isl_set *set = pet_scop_get_context(scop);
-  isl_ctx *ctx = isl_set_get_ctx(set);
-  isl_space *space = isl_space_unit(ctx);
-  space = isl_space_add_dims(space, isl_dim_in, 1);
-  space = isl_space_add_dims(space, isl_dim_out, 1);
-
-  isl_union_map *sch_map = isl_schedule_get_map(scop->schedule);
-
-  isl_map *identity = isl_map_identity(isl_space_copy(space));
-  isl_map *one = isl_map_universe(isl_space_copy(space));
-  one = isl_map_fix_si(one, isl_dim_out, 0, -1);
-  isl_map *im1 = isl_map_sum(isl_map_copy(identity), isl_map_copy(one));
   printf("\n");
-  printf("im1: %s\n", isl_map_to_str(im1));
-  printf("sch map: %s\n", isl_union_map_to_str(sch_map));
+  isl_ctx *ctx;
+  isl_id *id;
+  isl_map *reads, *writes, *one;
+  isl_set *set;
+  isl_space *space;
+  isl_union_access_info *access;
+  isl_union_flow *flow;
+  isl_union_map *schedule_map, *may_dep;
+  isl_union_set *domain;
 
-  isl_union_map *sink = isl_union_map_from_map(isl_map_copy(identity));
-  isl_union_access_info *access = isl_union_access_info_from_sink(
-      isl_union_map_from_map(isl_map_copy(im1)));
+  set = pet_scop_get_context(scop);
+  ctx = isl_set_get_ctx(set);
+  printf("set: %s\n", isl_set_to_str(set));
+
+  schedule_map = isl_schedule_get_map(scop->schedule);
+  printf("schedule_map: %s\n", isl_union_map_to_str(schedule_map));
+
+  domain = isl_union_map_domain(isl_union_map_copy(schedule_map));
+  printf("domain: %s\n", isl_union_set_to_str(domain));
+
+  space = isl_union_set_get_space(domain);
+  id = isl_id_alloc(ctx, "S_0", NULL);
+  space = isl_space_add_named_tuple_id_ui(space, id, 1);
+  id = isl_id_alloc(ctx, "A", NULL);
+  space = isl_space_add_named_tuple_id_ui(space, id, 1);
+  printf("space: %s\n", isl_space_to_str(space));
+
+  reads = isl_map_identity(isl_space_copy(space));
+  printf("reads: %s\n", isl_map_to_str(reads));
+
+  writes = isl_map_identity(isl_space_copy(space));
+  one = isl_map_universe(isl_space_copy(space));
+  one = isl_map_fix_si(one, isl_dim_out, 0, 1);
+  writes = isl_map_sum(writes, isl_map_copy(one));
+  printf("writes: %s\n", isl_map_to_str(writes));
+
+  access = isl_union_access_info_from_sink(
+      isl_union_map_from_map(isl_map_copy(reads)));
+  access = isl_union_access_info_set_must_source(
+      access, isl_union_map_from_map(isl_map_copy(writes)));
   access = isl_union_access_info_set_schedule(
       access, isl_schedule_copy(scop->schedule));
-  isl_union_flow *flow =
-      isl_union_access_info_compute_flow(isl_union_access_info_copy(access));
+  flow = isl_union_access_info_compute_flow(isl_union_access_info_copy(access));
 
   printf("\n");
   printf("access: %s\n", isl_union_access_info_to_str(access));
   printf("\n");
   printf("flow: %s\n", isl_union_flow_to_str(flow));
 
-  isl_map_free(im1);
-  isl_union_map_free(sch_map);
-  isl_map_free(identity);
+  may_dep = isl_union_flow_get_may_dependence(flow);
+  printf("may_dep: %s\n", isl_union_map_to_str(may_dep));
+
+  isl_map_free(reads);
+  isl_map_free(writes);
   isl_map_free(one);
+  isl_union_set_free(domain);
+  isl_union_map_free(schedule_map);
+  isl_union_map_free(may_dep);
   isl_union_flow_free(flow);
   isl_union_access_info_free(access);
-  isl_union_map_free(sink);
   isl_space_free(space);
   isl_set_free(set);
   return;
