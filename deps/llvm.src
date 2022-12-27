@@ -1,0 +1,38 @@
+#! /usr/bin/bash
+
+set -x
+set -e
+
+mkdir_ok_if_exists ()
+{
+    [ -e "$1" ] || mkdir -p "$1"
+}
+
+ROOT=$(pwd)
+DOWNLOAD="${ROOT}/downloads"
+OPT="${ROOT}/opt"
+SRC="${ROOT}/src"
+PATCH="${ROOT}/patches"
+BUILD="${ROOT}/build"
+mkdir_ok_if_exists "$DOWNLOAD"
+mkdir_ok_if_exists "${OPT}"
+mkdir_ok_if_exists "${SRC}"
+mkdir_ok_if_exists "${PATCH}"
+mkdir_ok_if_exists "${BUILD}"
+
+LLVM_BRANCH="9.0.1"
+LLVM_EXT="tar.xz"
+LLVM_FILE="llvm-project-${LLVM_BRANCH}"
+LLVM_URL_DIR="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_BRANCH}"
+LLVM_URL="${LLVM_URL_DIR}/${LLVM_FILE}.${LLVM_EXT}"
+LLVM_PREFIX="${OPT}/${LLVM_FILE}"
+LLVM_EXTRACTED="llvm-project-${LLVM_BRANCH}"
+
+LLVM_CMAKE_ARGS=(
+    -G Ninja
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=${LLVM_PREFIX}
+    -DLLVM_PARALLEL_LINK_JOBS=1
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
+    -DLLVM_BUILD_LLVM_DYLIB=ON
+)
