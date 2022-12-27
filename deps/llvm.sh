@@ -2,6 +2,20 @@
 
 source ./llvm.src
 
+LLVM_EXT="tar.xz"
+LLVM_URL_DIR="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_BRANCH}"
+LLVM_URL="${LLVM_URL_DIR}/${LLVM_FILE}.${LLVM_EXT}"
+LLVM_EXTRACTED="llvm-project-${LLVM_BRANCH}"
+
+LLVM_CMAKE_ARGS=(
+    -G Ninja
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=${LLVM_PREFIX}
+    -DLLVM_PARALLEL_LINK_JOBS=1
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
+    -DLLVM_BUILD_LLVM_DYLIB=ON
+)
+
 pushd "${DOWNLOAD}"
 wget -nc "${LLVM_URL}"
 popd

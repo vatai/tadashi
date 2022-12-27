@@ -8,13 +8,12 @@ PLUTO_CONFIGURE_ARGS=(
     --prefix=${PLUTO_PREFIX}
     --enable-debug
     --with-clang-prefix=${LLVM_PREFIX}
-    --with-pet=bundled
-    --with-isl=bundled
-    --enable-shared-barvinok
+    # --with-pet=bundled
+    # --with-isl=bundled
 )
 
 pushd "${DOWNLOAD}"
-wget https://github.com/bondhugula/pluto/archive/refs/tags/0.11.4.tar.gz
+wget -nc https://github.com/bondhugula/pluto/archive/refs/tags/0.11.4.tar.gz
 popd
 
 pushd ${BUILD}
@@ -23,9 +22,10 @@ rm -fr pluto
 pushd pluto
 
 ./autogen.sh
-# ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
-# make -j
-# make -j test
+./configure "${PLUTO_CONFIGURE_ARGS[@]}"
+make -j
+make -j test
+make install
 
 popd
 popd
