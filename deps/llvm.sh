@@ -12,17 +12,14 @@ LLVM_CMAKE_ARGS=(
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=${LLVM_PREFIX}
     -DLLVM_PARALLEL_LINK_JOBS=1
-    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
+    # -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
+    -DLLVM_ENABLE_PROJECTS="clang;libcxxabi;libcxx"
     -DLLVM_BUILD_LLVM_DYLIB=ON
 )
 
-pushd "${DOWNLOAD}"
-wget -nc "${LLVM_URL}"
-popd
+wget -nc "${LLVM_URL}" -O "${DOWNLOAD}/${LLVM_FILE}"
 
-pushd "${PATCH}"
-wget -nc https://raw.githubusercontent.com/archlinux/svntogit-packages/packages/llvm11/trunk/utils-benchmark-fix-missing-include.patch
-popd
+wget -nc "https://raw.githubusercontent.com/archlinux/svntogit-packages/packages/llvm11/trunk/utils-benchmark-fix-missing-include.patch" -O "${DOWNLOAD}/utils-benchmark-fix-missing-include.patch"
 
 pushd "${BUILD}"
 [ -e "${LLVM_EXTRACTED}" ] || tar xvf "${DOWNLOAD}/${LLVM_FILE}.${LLVM_EXT}"

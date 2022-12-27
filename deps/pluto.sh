@@ -2,6 +2,11 @@
 
 source llvm.src
 
+PLUTO_EXT="tar.gz"
+PLUTO_VERSION="0.11.4"
+PLUTO_URL_DIR="https://github.com/bondhugula/pluto/archive/refs/tags"
+PLUTO_URL_FILE="${PLUTO_VERSION}.${PLUTO_EXT}"
+PLUTO_URL="${PLUTO_URL_DIR}/${PLUTO_URL_FILE}"
 PLUTO_PREFIX="${OPT}"
 
 PLUTO_CONFIGURE_ARGS=(
@@ -12,9 +17,7 @@ PLUTO_CONFIGURE_ARGS=(
     # --with-isl=bundled
 )
 
-pushd "${DOWNLOAD}"
-wget -nc https://github.com/bondhugula/pluto/archive/refs/tags/0.11.4.tar.gz
-popd
+# wget -nc "${PLUTO_URL}" -O "${DOWNLOAD}/${PLUTO_FILE}.${PLUTO_EXT}"
 
 pushd ${BUILD}
 rm -fr pluto
