@@ -18,7 +18,7 @@ mkdir_ok_if_exists "${OPT}"
 mkdir_ok_if_exists "${PATCH}"
 mkdir_ok_if_exists "${BUILD}"
 
-LLVM_BRANCH="9.0.1"
+LLVM_BRANCH="10.0.0"
 LLVM_FILE="llvm-project-${LLVM_BRANCH}"
 LLVM_PREFIX="${OPT}/${LLVM_FILE}"
 
