@@ -1,3 +1,6 @@
+deps/downloads
+deps/opt
+deps/patches
 *.tex
 *~
 _minted-presentation/

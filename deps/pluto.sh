@@ -1,18 +1,21 @@
 #! /usr/bin/bash
 
+source set_env.src
 source llvm.src
+
+set_env "${LLVM_PREFIX}"
 
 PLUTO_EXT="tar.gz"
 PLUTO_VERSION="0.11.4"
 PLUTO_URL_DIR="https://github.com/bondhugula/pluto/archive/refs/tags"
 PLUTO_URL_FILE="${PLUTO_VERSION}.${PLUTO_EXT}"
 PLUTO_URL="${PLUTO_URL_DIR}/${PLUTO_URL_FILE}"
-PLUTO_PREFIX="${OPT}"
+PLUTO_PREFIX="${OPT}/pluto-${PLUTO_VERSION}"
 
 PLUTO_CONFIGURE_ARGS=(
     --prefix=${PLUTO_PREFIX}
-    --enable-debug
     --with-clang-prefix=${LLVM_PREFIX}
+    # --enable-debug
     # --with-pet=bundled
     # --with-isl=bundled
 )
@@ -28,6 +31,8 @@ pushd pluto
 ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
 make -j
 make -j test
+
+rm -rf "${PLUTO_PREFIX}"
 make install
 
 popd

@@ -10,10 +10,12 @@ LLVM_CMAKE_ARGS=(
     -G Ninja
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=${LLVM_PREFIX}
-    -DLLVM_PARALLEL_LINK_JOBS=1
+    -DLLVM_PARALLEL_LINK_JOBS=4
     # -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
-    -DLLVM_ENABLE_PROJECTS="clang;libcxxabi;libcxx"
+    -DLLVM_ENABLE_PROJECTS="clang;lld"
     -DLLVM_BUILD_LLVM_DYLIB=ON
+    -DLLVM_LINK_LLVM_DYLIB=ON
+    # -DCLANG_LINK_CLANG_DYLIB=ON
 )
 
 wget -nc "${LLVM_URL}" -O "${DOWNLOAD}/${LLVM_FILE}.${LLVM_EXT}" || true
@@ -29,6 +31,8 @@ patch -Np1 -i "${PATCH}/utils-benchmark-fix-missing-include.patch" || true
 # CC=clang CXX=clang++
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
 cmake --build build
+
+rm -rf "${LLVM_PREFIX}"
 ninja -C build install
 
 popd
