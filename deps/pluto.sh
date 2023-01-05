@@ -25,11 +25,21 @@ PLUTO_CONFIGURE_ARGS=(
 pushd ${BUILD}
 rm -fr pluto
 [ -e pluto ] || git clone --recurse-submodule git@github.com:bondhugula/pluto.git
+
 pushd pluto
 
-./autogen.sh
-./configure "${PLUTO_CONFIGURE_ARGS[@]}"
-make -j
+echo ">>> autogen.sh <<<"
+sh -x ./autogen.sh
+echo "<<< autogen.sh >>>"
+
+echo ">>> configure.sh <<<"
+sh -x ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
+echo "<<< configure.sh >>>"
+
+echo ">>> make <<<"
+make -j V=1 SHELL="sh -x"
+echo "<<< make >>>"
+
 make -j test
 
 rm -rf "${PLUTO_PREFIX}"
