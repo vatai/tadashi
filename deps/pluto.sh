@@ -37,7 +37,7 @@ sh -x ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
 echo "<<< configure.sh >>>"
 
 echo ">>> make <<<"
-make -j V=1 SHELL="sh -x"
+make -j V=1 SHELL="sh -x" LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
 echo "<<< make >>>"
 
 make -j test
