@@ -11,11 +11,9 @@ mkdir_ok_if_exists ()
 ROOT=$(pwd)
 DOWNLOAD="${ROOT}/downloads"
 OPT="${ROOT}/opt"
-PATCH="${ROOT}/patches"
 BUILD="${ROOT}/build"
 mkdir_ok_if_exists "$DOWNLOAD"
 mkdir_ok_if_exists "${OPT}"
-mkdir_ok_if_exists "${PATCH}"
 mkdir_ok_if_exists "${BUILD}"
 
 LLVM_BRANCH="10.0.0"
