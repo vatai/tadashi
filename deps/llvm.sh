@@ -10,7 +10,8 @@ LLVM_CMAKE_ARGS=(
     -G Ninja
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=${LLVM_PREFIX}
-    -DLLVM_PARALLEL_LINK_JOBS=4
+    -DLLVM_PARALLEL_COMPILE_JOBS=8
+    -DLLVM_PARALLEL_LINK_JOBS=1
     -DLLVM_ENABLE_PROJECTS="clang"
 )
 
@@ -25,7 +26,7 @@ pushd "${LLVM_EXTRACTED}"
 mkdir_ok_if_exists build
 patch -Np1 -i "${DOWNLOAD}/utils-benchmark-fix-missing-include.patch" || true
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
-cmake --build build
+cmake --build build -j8
 
 rm -rf "${LLVM_PREFIX}"
 ninja -C build install
