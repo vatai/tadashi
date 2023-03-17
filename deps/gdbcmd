@@ -1,7 +1,13 @@
+# Author: Emil Vatai
+# email: emil.vatai@gmail.com
+#
+# 1. link pluto-gdb.py
+# 2. run with: PYTHONPATH=. gdb -x gdbcmd
+
 set print pretty on
 set debuginfod enabled off
-file tool/pluto
-start ../../../examples/mv.cc  # --moredebug
+file build/pluto/tool/pluto
+start ../examples/mv.cc  # --moredebug
 break 660
 continue
 print *prog
