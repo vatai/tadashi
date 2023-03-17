@@ -12,6 +12,7 @@ PLUTO_PREFIX="${OPT}/pluto-${PLUTO_VERSION}"
 PLUTO_CONFIGURE_ARGS=(
     --prefix=${PLUTO_PREFIX}
     --with-clang-prefix=${LLVM_PREFIX}
+    --enable-debug
 )
 
 pushd ${BUILD}
@@ -20,7 +21,7 @@ pushd pluto
 
 ./autogen.sh
 ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
-make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
+bear -- make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
 make -j test
 
 rm -rf "${PLUTO_PREFIX}"
