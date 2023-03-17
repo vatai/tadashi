@@ -1,9 +1,9 @@
 set print pretty on
-set debuginfod enabled on
+set debuginfod enabled off
 file tool/pluto
 start ../../../examples/mv.cc  # --moredebug
 break 660
 continue
-# print *prog
 print *prog
+# info pretty-printer
 quit
