@@ -1,0 +1,18 @@
+{
+    "version": "1.13.8",
+    "configurations": [
+        {
+
+            "name": "Debug Pluto",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/tool/pluto",
+            "args": ["--moredebug", "--tile", "${workspaceFolder}/../../../examples/nodep.cc"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        }
+    ]
+}
