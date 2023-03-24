@@ -10,6 +10,6 @@ file build/pluto/tool/pluto
 start ../examples/mv.cc  # --moredebug
 break 660
 continue
-print *prog
 # info pretty-printer
+print *prog
 quit

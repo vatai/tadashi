@@ -1,85 +1,63 @@
 #!/usb/bin/env python
 import re
 
+import gdb.printing
 
-class StmtPrinter(object):
-    "Print Stmt"
 
+def get_string(s):
+    main = str(s).split()[1:]
+    return " ".join(main)[1:-1]
+
+
+class PrinterBase:
     def __init__(self, val):
         self.val = val
 
-    def to_string(self):
-        text = str(self.val["text"])
-        return f"StmtPrinter: {text}"
-
-    def display_hint(self):
-        return "plutoProg hint!!!"
+    def get_array(self, key, nkey, fn):
+        arr = self.val[key]
+        rng = range(int(self.val[nkey]))
+        return [fn(arr[i]) for i in rng]
 
 
-def stmt_lookup_function(val):
-    """Lookup Stmt"""
-    lookup_tag = str(val.type)
-    if lookup_tag is None:
-        return None
-    if re.match("^Stmt *$", lookup_tag):
-        return StmtPrinter(val)
-    return None
-
-
-class PlutoProgPrinterOld(object):
-    "Print plutoProg"
-
-    def __init__(self, val):
-        self.val = val
-
+class PlutoProgPrinter(PrinterBase):
     def to_string(self):
         nstmts = int(self.val["nstmts"])
         stmts = self.val["stmts"]
-        results = "\n" + "\n".join([str(stmts[i].dereference()) for i in range(nstmts)])
-        return f"foobar ({nstmts}): {results}"
-
-    def display_hint(self):
-        return "plutoProg hint!!!"
-
-
-def pluto_prog_lookup_function_old(val):
-    """Look up PlutoProg"""
-    lookup_tag = str(val.type)
-    if lookup_tag is None:
-        return None
-    if re.match("^PlutoProg *$", lookup_tag):
-        return PlutoProgPrinterOld(val)
-    return None
+        stmts = "\n" + "\n".join(
+            self.get_array("stmts", "nstmts", lambda t: str(t.dereference()))
+        )
+        return f"PlutoProg ({nstmts}): {stmts}"
 
 
-class PlutoProgPrinter(object):
-    "Print plutoProg"
-
-    def __init__(self, val, fn):
-        self.val = val
-        self.fn = fn
-
+class StmtPrinter(PrinterBase):
     def to_string(self):
-        nstmts = int(self.val["nstmts"])
-        stmts = self.val["stmts"]
-        results = "\n" + "\n".join([str(stmts[i].dereference()) for i in range(nstmts)])
-        return f"foobar ({nstmts}): {results}"
-
-    def display_hint(self):
-        return "plutoProg hint!!!"
+        text = get_string(self.val["text"])
+        domain = str(self.val["domain"].dereference())
+        return f"Stmt: {text} \n{domain}"
 
 
-def pluto_prog_lookup_function(val):
-    """Look up PlutoProg"""
-    lookup_tag = str(val.type)
-    if lookup_tag is None:
-        return None
-    if re.match("^PlutoProg *$", lookup_tag):
-        return PlutoProgPrinter(val, None)
-    return None
+class ConstraintPrinter(PrinterBase):
+    def to_string(self):
+        buf = self.val["buf"]
+        ncols = int(self.val["ncols"])
+        nrows = int(self.val["nrows"])
+        names = self.get_array("names", "ncols", get_string)
+        eqs = []
+        for row in range(nrows):
+            is_eq = "=" if bool(self.val["is_eq"][row]) else "<="
+            base = row * int(self.val["alloc_ncols"])
+            terms = [f"0{is_eq}"]
+            terms += [
+                f"{buf[base + i]}{names[i]}" for i in range(ncols) if int(buf[base + i])
+            ]
+            eqs.append("".join([(t if t[0] == "-" else f"+{t}") for t in terms]))
+
+        return f"Constraint: {eqs}"
 
 
-def register_printers(objfile):
-    """Register pritty printers"""
-    objfile.pretty_printers.append(pluto_prog_lookup_function)
-    objfile.pretty_printers.append(stmt_lookup_function)
+def build_pretty_printer():
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("pluto_prog_printer")
+    pp.add_printer("PlutoProg", "^plutoProg *$", PlutoProgPrinter)
+    pp.add_printer("stmt", "^statement *$", StmtPrinter)
+    pp.add_printer("pluto_constraint", "^pluto_constraints *$", ConstraintPrinter)
+    return pp
