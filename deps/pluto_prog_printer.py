@@ -31,8 +31,34 @@ class PlutoProgPrinter(PrinterBase):
 
 class StmtPrinter(PrinterBase):
     def to_string(self):
-        text = get_string(self.val["text"])
+        id = int(self.val["id"])
         domain = str(self.val["domain"].dereference())
+        # iterators ??
+        text = get_string(self.val["text"])
+        is_orig_loop = int(self.val["is_orig_loop"])
+
+        dim = int(self.val["dim"])
+        dim_orig = int(self.val["dim_orig"])
+        tile = int(self.val["tile"])
+        trans = int(self.val["trans"])
+        evicted_hyp = int(self.val["evicted_hyp"])
+        evicted_hyp_pos = int(self.val["evicted_hyp_pos"])
+        hyp_types = int(self.val["hyp_types"])
+        num_tiled_loops = int(self.val["num_tiled_loops"])
+        reads = int(self.val["reads"])
+        nreads = int(self.val["nreads"])
+        writes = int(self.val["writes"])
+        nwrites = int(self.val["nwrites"])
+        scc_id = int(self.val["scc_id"])
+        cc_id = int(self.val["cc_id"])
+        first_tile_dim = int(self.val["first_tile_dim"])
+        last_tile_dim = int(self.val["last_tile_dim"])
+        type = int(self.val["type"])
+        ploop_id = int(self.val["ploop_id"])
+        parent_compute_stmt = int(self.val["parent_compute_stmt"])
+        intra_stmt_dep_cst = int(self.val["intra_stmt_dep_cst"])
+        pstmt = int(self.val["pstmt"])
+
         return f"Stmt: {text} \n{domain}"
 
 
@@ -58,6 +84,6 @@ class ConstraintPrinter(PrinterBase):
 def build_pretty_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("pluto_prog_printer")
     pp.add_printer("PlutoProg", "^plutoProg *$", PlutoProgPrinter)
-    pp.add_printer("stmt", "^statement *$", StmtPrinter)
+    # pp.add_printer("stmt", "^statement *$", StmtPrinter)
     pp.add_printer("pluto_constraint", "^pluto_constraints *$", ConstraintPrinter)
     return pp
