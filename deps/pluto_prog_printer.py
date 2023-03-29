@@ -22,6 +22,17 @@ class PrinterBase:
         rng = range(int(self.val[nkey]))
         return [fn(arr[i]) for i in rng]
 
+    def print_members(self, members):
+        result = ""
+        for member in members:
+            if len(member) == 3:
+                tag, key, fn = member
+                result += f"{tag}:{fn(self.val[key])}; "
+            elif len(member) == 4:
+                tag, key, nkey, fn = member
+                result += f"{tag}:{self.get_array(key, nkey, fn)}; "
+        return result
+
 
 class PlutoProgPrinter(PrinterBase):
     def to_string(self):
@@ -35,56 +46,37 @@ class PlutoProgPrinter(PrinterBase):
 
 class StmtPrinter(PrinterBase):
     def to_string(self):
-        id = int(self.val["id"])
-
         members = [
-            ("id", "id", int),
-            ("it", "iterators", "dim", get_string),
-            ("dom", "domain", deref),
-            ("t", "text", get_string),
-            ("iol", "is_orig_loop", "dim", int),
-            # ("dim", "dim", int) # OK!
+            ("id", "id", int),  # OK!
+            ("it", "iterators", "dim", get_string),  # check?!
+            ("dom", "domain", deref),  # OK!
+            ("t", "text", get_string),  # OK!
+            ("iol", "is_orig_loop", "dim", int),  # OK!,
+            # ("dim", "dim", int), # OK!
+            ("do", "dim_orig", int),  # OK!
+            ("t", "tile", int),  # OK!
+            # ("tr", "trans", int),  # PlutoMatrix*
+            ("evicted_hyp"),  # PlutoMatrix*
+            ("ehp", "evicted_hyp_pos", int),  # OK!
+            # tmp += f"{self.get_array('hyp_types','',id)};"  # PlutoHypType*
+            ("ntl", "num_tiled_loops", int),  # OK!
+            ("rx", "reads", "nreads", int),  # PlutoAccess *
+            # tmp += f"{int(self.val['nreads']):2};" # OK!
+            ("wx", "writes", "nwrites", int),  # PlutoAccess *
+            # tmp += f"{int(self.val['nwrites']):2};"  # OK!
+            ("sid", "scc_id", int),  # OK!
+            ("cid", "cc_id", int),  # OK!
+            ("ftd", "first_tile_dim", int),  # OK!
+            ("ltd", "last_tile_dim", int),  # OK!
+            ("typ", "type", int),  # PlutoStmtType
+            ("plid", "ploop_id", int),  # OK!
+            ("pcs", "parent_compute_stmt", int),  # statement*
+            ("isd", "intra_stmt_dep_cst", int),  # PlutoConstraints*
+            ("ps", "pstmt", int),  # pet_stmt*
         ]
-        tmp = ""
-        tmp += f"id:{int(self.val['id'])}; "
-        tmp += f"it:{self.get_array('iterators', 'dim', get_string)};"  # check
-        tmp += f"dom:{self.val['domain'].dereference()}; "
-        tmp += f"{get_string(self.val['text'])};"  # OK!
-        tmp += f"{self.get_array('is_orig_loop', 'dim',  int)};"  # check
-        # tmp += f"d{int(self.val['dim']):2};" # OK!
 
-        tmp += f"do{int(self.val['dim_orig']):2};"  # OK!
-        tmp += f"t{int(self.val['tile']):2};"  # OK!
-        tmp += f"tr{int(self.val['trans'])};"  # PlutoMatrix*
-        tmp += f"eh{int(self.val['evicted_hyp'])};"  # PlutoMatrix*
-        tmp += f"ehp{int(self.val['evicted_hyp_pos']):2};"  # OK!
-        # tmp += f"{self.get_array('hyp_types','',id)};"  # PlutoHypType*
-        tmp += f"ntl{int(self.val['num_tiled_loops']):2};"  # OK!
-        tmp += f"rx:{self.get_array('reads', 'nreads', int)};"  # PlutoAccess *
-        # tmp += f"{int(self.val['nreads']):2};" # OK!
-        tmp += f"wx:{self.get_array('writes', 'nwrites', int)};"  # PlutoAccess *
-        # tmp += f"{int(self.val['nwrites']):2};"  # OK!
-        tmp += f"sid{int(self.val['scc_id']):2};"  # OK!
-        tmp += f"cid{int(self.val['cc_id']):2};"  # OK!
-        tmp += f"ftd{int(self.val['first_tile_dim']):02};"  # OK!
-        tmp += f"ltd{int(self.val['last_tile_dim']):02};"  # OK!
-        tmp += f"typ{int(self.val['type']):2};"  # PlutoStmtType
-        tmp += f"plid{int(self.val['ploop_id']):2};"  # OK!
-        tmp += f"pcs{int(self.val['parent_compute_stmt']):2};"  # statement*
-        tmp += f"isd{self.val['intra_stmt_dep_cst']};"  # PlutoConstraints*
-        tmp += f"ps{int(self.val['pstmt'])};"  # pet_stmt*
-
-        line1 = f"Stmt: |{tmp}|"
-
-        line2 = "Stmt: |"
-        for member in members:
-            if len(member) == 3:
-                tag, key, fn = member
-                line2 += f"{tag}:{fn(self.val[key])}; "
-            elif len(member) == 4:
-                tag, key, nkey, fn = member
-                line2 += f"{tag}:{self.get_array(key, nkey, fn)}; "
-        return f"{line1}\n{line2}\n"
+        statement = self.print_members(members)
+        return f"stmt: {statement}"
 
 
 class ConstraintPrinter(PrinterBase):
