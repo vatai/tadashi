@@ -51,45 +51,6 @@ class PlutoProgPrinter(PrinterBase):
         return f"PlutoProg ({nstmts}): {stmts}"
 
 
-class StmtPrinter(PrinterBase):
-    def to_string(self):
-        members = [
-            ("id", "id", int),  # OK!
-            ("it", "iterators", "dim", get_string),  # check?!
-            ("dom", "domain", deref),  # OK!
-            ("t", "text", get_string),  # OK!
-            ("iol", "is_orig_loop", "dim", int),  # OK!,
-            # ("dim", "dim", int), # OK!
-            ("do", "dim_orig", int),  # OK!
-            ("t", "tile", int),  # OK!
-            ("tr", "trans", deref),  # OK!
-            ("eh", "evicted_hyp", deref),  # OK!
-            ("ehp", "evicted_hyp_pos", int),  # OK!
-            # tmp += f"{self.get_array('hyp_types','',id)};"  # PlutoHypType*
-            ("ntl", "num_tiled_loops", int),  # OK!
-            ("rx", "reads", "nreads", sderef),  # OK!
-            # ("nr", "nreads", int),  # OK!
-            ("wx", "writes", "nwrites", sderef),  # OK!
-            # ("nw", "nwrites", int),  # OK!
-            ("sid", "scc_id", int),  # OK!
-            ("cid", "cc_id", int),  # OK!
-            ("ftd", "first_tile_dim", int),  # OK!
-            ("ltd", "last_tile_dim", int),  # OK!
-            ("typ", "type", int),  # PlutoStmtType
-            ("plid", "ploop_id", int),  # OK!
-            (
-                "pcs",
-                "parent_compute_stmt",
-                lambda t: int(t.dereference()["id"]),
-            ),  # statement*
-            ("isd", "intra_stmt_dep_cst", int),  # PlutoConstraints*
-            ("ps", "pstmt", int),  # pet_stmt*
-        ]
-
-        statement = self.print_members(members)
-        return f"stmt: {statement}"
-
-
 class PlutoAccessPrinter(PrinterBase):
     def to_string(self):
         """
@@ -139,6 +100,47 @@ class PlutoMatrixPrinter(PrinterBase):
         return f"{{{'|'.join(rows_strs)}}}"
 
 
+class StmtPrinter(PrinterBase):
+    def to_string(self):
+        members = [
+            ("id", "id", int),  # OK!
+            ("it", "iterators", "dim", get_string),  # check?!
+            ("dom", "domain", deref),  # OK!
+            ("t", "text", get_string),  # OK!
+            ("iol", "is_orig_loop", "dim", int),  # OK!,
+            # ("dim", "dim", int), # OK!
+            ("do", "dim_orig", int),  # OK!
+            ("t", "tile", int),  # OK!
+            ("tr", "trans", deref),  # OK!
+            ("eh", "evicted_hyp", deref),  # OK!
+            ("ehp", "evicted_hyp_pos", int),  # OK!
+            ("hy", "hyp_types", "nrows", id),  # PlutoHypType*
+            ("ntl", "num_tiled_loops", int),  # OK!
+            ("rx", "reads", "nreads", sderef),  # OK!
+            # ("nr", "nreads", int),  # OK!
+            ("wx", "writes", "nwrites", sderef),  # OK!
+            # ("nw", "nwrites", int),  # OK!
+            ("sid", "scc_id", int),  # OK!
+            ("cid", "cc_id", int),  # OK!
+            ("ftd", "first_tile_dim", int),  # OK!
+            ("ltd", "last_tile_dim", int),  # OK!
+            ("typ", "type", int),  # PlutoStmtType
+            ("plid", "ploop_id", int),  # OK!
+            ("pcs", "parent_compute_stmt", deref),  # OK!
+            ("isd", "intra_stmt_dep_cst", int),  # PlutoConstraints*
+            ("ps", "pstmt", int),  # pet_stmt*
+        ]
+
+        statement = self.print_members(members)
+        return f"stmt: {statement}"
+
+
+class PlutoHypTypePrinter(PrinterBase):
+    def to_string(self):
+        typs = ["UNKNOWN", "LOOP", "TILE_SPACE_LOOP", "SCALAR"]
+        return typs[int(self.val)]
+
+
 def build_pretty_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("pluto_prog_printer")
     pp.add_printer("PlutoProg", "^plutoProg *$", PlutoProgPrinter)
@@ -146,4 +148,5 @@ def build_pretty_printer():
     pp.add_printer("pluto_constraint", "^pluto_constraints *$", PlutoConstraintPrinter)
     pp.add_printer("pluto_matrix", "^pluto_matrix *$", PlutoMatrixPrinter)
     pp.add_printer("pluto_access", "^pluto_access *$", PlutoAccessPrinter)
+    pp.add_printer("hyptype", "^hyptype *$", PlutoHypTypePrinter)
     return pp
