@@ -114,7 +114,7 @@ class StmtPrinter(PrinterBase):
             ("tr", "trans", deref),  # OK!
             ("eh", "evicted_hyp", deref),  # OK!
             ("ehp", "evicted_hyp_pos", int),  # OK!
-            ("hy", "hyp_types", "nrows", id),  # PlutoHypType*
+            ("hy", "hyp_types", "nrows", id),  # OK!
             ("ntl", "num_tiled_loops", int),  # OK!
             ("rx", "reads", "nreads", sderef),  # OK!
             # ("nr", "nreads", int),  # OK!
@@ -124,7 +124,7 @@ class StmtPrinter(PrinterBase):
             ("cid", "cc_id", int),  # OK!
             ("ftd", "first_tile_dim", int),  # OK!
             ("ltd", "last_tile_dim", int),  # OK!
-            ("typ", "type", int),  # PlutoStmtType
+            ("typ", "type", int),  # PlutoStmtType NEXT?!
             ("plid", "ploop_id", int),  # OK!
             ("pcs", "parent_compute_stmt", deref),  # OK!
             ("isd", "intra_stmt_dep_cst", int),  # PlutoConstraints*
