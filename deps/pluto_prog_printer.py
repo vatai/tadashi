@@ -23,8 +23,25 @@ class PrinterBase:
         self.val = val
 
     def get_array(self, key, nkey, fn):
+        """Print an array like member.
+
+        Arguments:
+
+            key[str]: The member where the data is.
+
+            nkey[str]: A string of the form 'key1->key2->...->keyN',
+                which describes the number of data elements which will
+                be read.
+
+            fn[Callable]: The transformation performed on each data
+                element.
+
+        """
         arr = self.val[key]
-        rng = range(int(self.val[nkey]))
+        cur = self.val
+        for k in nkey.split("->"):
+            cur = cur[k]
+        rng = range(int(cur))
         return [fn(arr[i]) for i in rng]
 
     def print_members(self, members):
@@ -114,7 +131,7 @@ class StmtPrinter(PrinterBase):
             ("tr", "trans", deref),  # OK!
             ("eh", "evicted_hyp", deref),  # OK!
             ("ehp", "evicted_hyp_pos", int),  # OK!
-            ("hy", "hyp_types", "nrows", id),  # OK!
+            ("hty", "hyp_types", "trans->nrows", str),  # OK!
             ("ntl", "num_tiled_loops", int),  # OK!
             ("rx", "reads", "nreads", sderef),  # OK!
             # ("nr", "nreads", int),  # OK!
