@@ -60,7 +60,8 @@ class PrinterBase:
                 result += f"{tag}:{fn(self.val[key])}; "
             elif len(member) == 5:
                 tag, key, nkey, fn, sep = member
-                result += f"{tag}:{sep}{self.get_array(key, nkey, fn, sep)}; "
+                sstr = sep if sep else ""
+                result += f"{tag}:{sstr}{self.get_array(key, nkey, fn, sep)}; {sstr}"
             else:
                 raise ValueError(f"Bad members: {members}")
         return result
@@ -68,18 +69,56 @@ class PrinterBase:
 
 class PlutoProgPrinter(PrinterBase):
     def to_string(self):
+        """
+        $1 = {
+          OK: stmts = 0x555555a97730, nstmts = 2,
+          TODO: deps = 0x555555ab7b90, ndeps = 6,
+          OK: transdeps = 0x0, ntransdeps = 0,
+          OK: data_names = 0x555555a96260, num_data = 3,
+          params = 0x555555a96280,
+          num_hyperplanes = 3,
+          ddg = 0x0,
+          fcg = 0x0,
+          hProps = 0x555555aaf780,
+          nvar = 1,
+          npar = 1,
+          param_context = 0x555555a91060,
+          decls = 0x7ffff3bdb010 "",
+          codegen_context = 0x555555a97610,
+          globcst = 0x0,
+          evicted_hyp_pos = 0,
+          is_diamond_tiled = false,
+          num_parameterized_loops = -1,
+          num_stmts_to_be_coloured = 0,
+          scaled_dims = 0x0,
+          total_coloured_stmts = 0x0,
+          coloured_dims = 0,
+          mipTime = 0,
+          ilpTime = 0,
+          cst_solve_time = 0,
+          cst_const_time = 0,
+          cst_write_time = 0,
+          scaling_cst_sol_time = 0,
+          skew_time = 0,
+          stencil_check_time = 0,
+          fcg_const_time = 0,
+          fcg_colour_time = 0,
+          fcg_dims_scale_time = 0,
+          fcg_update_time = 0,
+          fcg_cst_alloc_time = 0,
+          tss_time = 0,
+          num_lp_calls = 0,
+          context = 0x555555a90510
+        }
+        """
         members = [
-            ("stmts", "stmts", "nstmts", sderef, "\n"),  # OK!,
+            ("stmts", "stmts", "nstmts", sderef, "\n"),  # OK!
+            ("deps", "deps", "ndeps", sderef, "\n"),
+            ("tdeps", "transdeps", "ntransdeps", sderef, "\n"),  # zero
+            ("dnames", "data_names", "num_data", get_string, None),  # OK!
         ]
         statement = self.print_members(members)
         return f"{statement}"
-
-        # nstmts = int(self.val["nstmts"])
-        # stmts = self.val["stmts"]
-        # stmts = "\n" + "\n".join(
-        #     self.get_array("stmts", "nstmts", lambda t: str(t.dereference()))
-        # )
-        # return f"PlutoProg ({nstmts}): {stmts}"
 
 
 class PlutoAccessPrinter(PrinterBase):
@@ -131,6 +170,12 @@ class PlutoMatrixPrinter(PrinterBase):
         return f"{{{'|'.join(rows_strs)}}}"
 
 
+class PlutoHypTypePrinter(PrinterBase):
+    def to_string(self):
+        typs = ["UNKNOWN", "LOOP", "TILE_SPACE_LOOP", "SCALAR"]
+        return typs[int(self.val)]
+
+
 class StmtPrinter(PrinterBase):
     def to_string(self):
         members = [
@@ -165,10 +210,9 @@ class StmtPrinter(PrinterBase):
         return self.print_members(members)
 
 
-class PlutoHypTypePrinter(PrinterBase):
+class DepPrinter(PrinterBase):
     def to_string(self):
-        typs = ["UNKNOWN", "LOOP", "TILE_SPACE_LOOP", "SCALAR"]
-        return typs[int(self.val)]
+        return "foobar"
 
 
 def build_pretty_printer():
@@ -179,4 +223,5 @@ def build_pretty_printer():
     pp.add_printer("pluto_matrix", "^pluto_matrix *$", PlutoMatrixPrinter)
     pp.add_printer("pluto_access", "^pluto_access *$", PlutoAccessPrinter)
     pp.add_printer("hyptype", "^hyptype *$", PlutoHypTypePrinter)
+    pp.add_printer("dependence", "^dependence *$", DepPrinter)
     return pp
