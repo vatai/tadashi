@@ -22,7 +22,7 @@ class PrinterBase:
     def __init__(self, val):
         self.val = val
 
-    def get_array(self, key, nkey, fn):
+    def get_array(self, key, nkey, fn, sep=None):
         """Print an array like member.
 
         Arguments:
@@ -36,13 +36,19 @@ class PrinterBase:
             fn[Callable]: The transformation performed on each data
                 element.
 
+            sep[Optional[str]]: What is the separator for the
+                elements.
+
         """
         arr = self.val[key]
         cur = self.val
         for k in nkey.split("->"):
             cur = cur[k]
         rng = range(int(cur))
-        return [fn(arr[i]) for i in rng]
+        result = [fn(arr[i]) for i in rng]
+        if sep:
+            return sep.join(result)
+        return result
 
     def print_members(self, members):
         result = ""
@@ -52,20 +58,28 @@ class PrinterBase:
                 if fn == deref and int(self.val[key]) == 0:
                     continue
                 result += f"{tag}:{fn(self.val[key])}; "
-            elif len(member) == 4:
-                tag, key, nkey, fn = member
-                result += f"{tag}:{self.get_array(key, nkey, fn)}; "
+            elif len(member) == 5:
+                tag, key, nkey, fn, sep = member
+                result += f"{tag}:{sep}{self.get_array(key, nkey, fn, sep)}; "
+            else:
+                raise ValueError(f"Bad members: {members}")
         return result
 
 
 class PlutoProgPrinter(PrinterBase):
     def to_string(self):
-        nstmts = int(self.val["nstmts"])
-        stmts = self.val["stmts"]
-        stmts = "\n" + "\n".join(
-            self.get_array("stmts", "nstmts", lambda t: str(t.dereference()))
-        )
-        return f"PlutoProg ({nstmts}): {stmts}"
+        members = [
+            ("stmts", "stmts", "nstmts", sderef, "\n"),  # OK!,
+        ]
+        statement = self.print_members(members)
+        return f"{statement}"
+
+        # nstmts = int(self.val["nstmts"])
+        # stmts = self.val["stmts"]
+        # stmts = "\n" + "\n".join(
+        #     self.get_array("stmts", "nstmts", lambda t: str(t.dereference()))
+        # )
+        # return f"PlutoProg ({nstmts}): {stmts}"
 
 
 class PlutoAccessPrinter(PrinterBase):
@@ -121,21 +135,21 @@ class StmtPrinter(PrinterBase):
     def to_string(self):
         members = [
             ("id", "id", int),  # OK!
-            ("it", "iterators", "dim", get_string),  # check?!
+            ("it", "iterators", "dim", get_string, None),  # OK!
             ("dom", "domain", deref),  # OK!
             ("t", "text", get_string),  # OK!
-            ("iol", "is_orig_loop", "dim", int),  # OK!,
+            ("iol", "is_orig_loop", "dim", int, None),  # OK!,
             # ("dim", "dim", int), # OK!
             ("do", "dim_orig", int),  # OK!
             ("t", "tile", int),  # OK!
             ("tr", "trans", deref),  # OK!
             ("eh", "evicted_hyp", deref),  # OK!
             ("ehp", "evicted_hyp_pos", int),  # OK!
-            ("hty", "hyp_types", "trans->nrows", str),  # OK!
+            ("hty", "hyp_types", "trans->nrows", str, None),  # OK!
             ("ntl", "num_tiled_loops", int),  # OK!
-            ("rx", "reads", "nreads", sderef),  # OK!
+            ("rx", "reads", "nreads", sderef, None),  # OK!
             # ("nr", "nreads", int),  # OK!
-            ("wx", "writes", "nwrites", sderef),  # OK!
+            ("wx", "writes", "nwrites", sderef, None),  # OK!
             # ("nw", "nwrites", int),  # OK!
             ("sid", "scc_id", int),  # OK!
             ("cid", "cc_id", int),  # OK!
@@ -148,8 +162,7 @@ class StmtPrinter(PrinterBase):
             ("ps", "pstmt", int),  # pet_stmt*
         ]
 
-        statement = self.print_members(members)
-        return f"stmt: {statement}"
+        return self.print_members(members)
 
 
 class PlutoHypTypePrinter(PrinterBase):
