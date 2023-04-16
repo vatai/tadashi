@@ -212,7 +212,17 @@ class StmtPrinter(PrinterBase):
 
 class DepPrinter(PrinterBase):
     def to_string(self):
-        return "foobar"
+        members = [
+            ("id", "id", int),  # OK!
+            ("s-st", "src", int),  # OK!
+            ("d-st", "dest", int),  # OK!
+            ("s-ac", "src_acc", sderef),  # OK!
+            ("d-ac", "dest_acc", sderef),  # OK!
+            ("tmp", "dpolytope", sderef),  # OK!
+            # ("tmp", "bounding_poly", sderef),  # OK!
+        ]
+
+        return "foobar" + self.print_members(members)
 
 
 def build_pretty_printer():
