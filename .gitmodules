@@ -1,3 +1,10 @@
 [submodule "src/pet"]
 	path = src/pet
 	url = git://repo.or.cz/pet.git
+[submodule "deps/build/llvm-project"]
+	path = deps/build/llvm-project
+	url = git@github.com:llvm/llvm-project.git
+	branch = release/10.x
+[submodule "deps/pluto"]
+	path = deps/build/pluto
+	url = git@github.com:bondhugula/pluto.git

@@ -8,6 +8,5 @@ ltximg/
 *.pdf
 .ccls-cache
 _minted*
-build
 *.pluto.c
 *.pluto.cloog
