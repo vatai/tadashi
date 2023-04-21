@@ -1,0 +1,26 @@
+#+title: A gentle introduction to the polyhedral model
+
+* Introduction
+
+The polyhedral model, also known as polyhedral compilation, polytope
+model, is fundamentally a device to efficiently express properties and
+transformation of fairly regular loops of scientific number crunching
+calculations (e.g., weather simulations),...
+
+
+which often (give a more precise definition of such loop in Section
+[[sec:SCoP]])
+
+** Overview
+
+*** Our goal of the polyhedral model
+
+** Tools
+
+* Basic components
+
+** Mathematics and notation
+
+*** Affine forms
+
+*** Static control parts
