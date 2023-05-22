@@ -4,10 +4,7 @@ project(polyhedral-tutor)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-
-# set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/src/pet;${CMAKE_SOURCE_DIR}/src/isl")
-set(ENV{PKG_CONFIG_PATH} "${CMAKE_SOURCE_DIR}/src/pet;${CMAKE_SOURCE_DIR}/src/pet/isl")
-# message("CMAKE_PREFIX_PATH is " ${CMAKE_PREFIX_PATH})
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_SOURCE_DIR}/deps/build/pet;${CMAKE_SOURCE_DIR}/deps/build/pet/isl")
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
@@ -20,8 +17,8 @@ pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
 
 add_executable(main src/main.c)
 target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
-# target_link_directories(main PUBLIC ${PET_LIBRARY_DIRS}  ${ISL_LIBRARY_DIRS})
-# target_include_directories(main PUBLIC ${PET_INCLUDE_DIRS} ${ISL_INCLUDE_DIRS})
+target_link_directories(main PUBLIC ${PET_LIBRARY_DIRS}  ${ISL_LIBRARY_DIRS})
+target_include_directories(main PUBLIC ${PET_INCLUDE_DIRS} ${ISL_INCLUDE_DIRS})
 
 add_executable(poly-scan src/poly-scan.c)
 target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
