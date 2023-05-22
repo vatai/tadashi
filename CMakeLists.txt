@@ -34,3 +34,6 @@ target_link_libraries(pet_codegen_skimo PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(depanalysis src/depanalysis.c)
 target_link_libraries(depanalysis PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(polegality src/polegality.c)
+target_link_libraries(polegality PUBLIC PkgConfig::ISL PkgConfig::PET)
