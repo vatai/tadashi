@@ -126,6 +126,11 @@ int main(int argc, char *argv[]) {
   char *fn = argc > 1 ? argv[1] : filename;
   printf("Parsing: %s\n", fn);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, fn, "f");
+  if (!scop) {
+    printf("No scop found!\n");
+    isl_ctx_free(ctx);
+    return -1;
+  }
 
   depanalysis(scop);
 
