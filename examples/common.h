@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <stddef.h>
 
 void print_arr(size_t N, double *A) {
   for (int i = 0; i < N; ++i) {
@@ -11,7 +12,7 @@ void print_arr(size_t N, double *A) {
 void init_arr(size_t N, double *A) {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution dis(0.0, 1.0);
+  std::uniform_real_distribution<double> dis(0.0, 1.0);
   for (int i = 0; i < N; ++i) {
     A[i] = dis(gen);
   }
