@@ -3,6 +3,9 @@
 #include <isl/options.h>
 #include <pet.h>
 
+char FILENAME[] = "../examples/depnodep.cc";
+char SCHEDULE[] = "NONE";
+
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
@@ -28,11 +31,17 @@ struct Args {
 };
 
 struct Args get_args(int argc, char *argv[]) {
+  struct Args args;
+  if (argc == 1) {
+    args.filename = FILENAME;
+    args.schedule = SCHEDULE;
+    return args;
+  }
+
   if (argc < 3) {
     printf("Usage: %s <C/C++ source file> <schedule>\n", argv[0]);
     exit(-1);
   }
-  struct Args args;
   args.filename = argv[1];
   args.schedule = argv[2];
   return args;
@@ -50,7 +59,12 @@ int main(int argc, char *argv[]) {
   printf("Input schedule %s\n", args.schedule);
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
-  pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, "g");
+  pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, 0);
+  if (!scop) {
+    printf("No scop found!\n");
+    isl_ctx_free(ctx);
+    return -1;
+  }
 
   polegality(&args, scop);
 
