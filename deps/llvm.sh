@@ -23,8 +23,9 @@ pushd "${BUILD}"
 [ -e "${LLVM_EXTRACTED}" ] || tar xvf "${DOWNLOAD}/${LLVM_FILE}.${LLVM_EXT}"
 pushd "${LLVM_EXTRACTED}"
 
-mkdir_ok_if_exists build
+mkdir -p build
 patch -Np1 -i "${DOWNLOAD}/utils-benchmark-fix-missing-include.patch" || true
+sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
 cmake --build build -j8
 

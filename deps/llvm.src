@@ -3,20 +3,15 @@
 set -x
 set -e
 
-mkdir_ok_if_exists ()
-{
-    [ -e "$1" ] || mkdir -p "$1"
-}
-
 ROOT=$(pwd)
 DOWNLOAD="${ROOT}/downloads"
 OPT="${ROOT}/opt"
 BUILD="${ROOT}/build"
-mkdir_ok_if_exists "$DOWNLOAD"
-mkdir_ok_if_exists "${OPT}"
-mkdir_ok_if_exists "${BUILD}"
+mkdir -p "$DOWNLOAD"
+mkdir -p "${OPT}"
+mkdir -p "${BUILD}"
 
-LLVM_BRANCH="10.0.0"
+LLVM_BRANCH="11.0.0"
 LLVM_FILE="llvm-project-${LLVM_BRANCH}"
 LLVM_PREFIX="${OPT}/${LLVM_FILE}"
 
