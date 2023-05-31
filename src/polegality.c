@@ -64,7 +64,8 @@ void polegality(struct Args *args, pet_scop *scop) {
   isl_union_map *result = isl_union_map_apply_range(
       isl_union_map_copy(may_reads),
       isl_union_map_reverse(isl_union_map_copy(may_writes)));
-
+  printf("result: %s\n", isl_union_map_to_str(result));
+  result = isl_union_map_apply_range(result, isl_union_map_copy(schedule_map));
   printf("result: %s\n", isl_union_map_to_str(result));
 
   isl_union_map_free(result);
