@@ -1,3 +1,5 @@
+#include <isl/flow.h>
+#include <isl/schedule.h>
 #include <isl/union_map.h>
 #include <stdio.h>
 
@@ -48,6 +50,33 @@ struct Args get_args(int argc, char *argv[]) {
   return args;
 }
 
+void compute_dependencies(pet_scop *scop) {
+  isl_union_map *sink, *may_source, *must_source, *full_dep, *dep, *dom, *rng,
+      *sch;
+  isl_schedule *schedule;
+  isl_union_access_info *access;
+  isl_union_flow *flow;
+  sink = pet_scop_get_may_reads(scop);
+  access = isl_union_access_info_from_sink(sink);
+  may_source = pet_scop_get_may_writes(scop);
+  access = isl_union_access_info_set_may_source(access, may_source);
+  must_source = pet_scop_get_must_writes(scop);
+  access = isl_union_access_info_set_must_source(access, must_source);
+  schedule = pet_scop_get_schedule(scop);
+  access = isl_union_access_info_set_schedule(access, schedule);
+  flow = isl_union_access_info_compute_flow(access);
+  full_dep = isl_union_flow_get_full_may_dependence(flow);
+  dep = isl_union_flow_get_may_dependence(flow);
+  printf("Full may_dep: %s\n", isl_union_map_to_str(full_dep));
+  printf("may_dep: %s\n", isl_union_map_to_str(dep));
+  sch = isl_schedule_get_map(schedule);
+  dom = isl_union_map_apply_domain(dep, sch);
+  /* rng = isl_union_map_apply_range(dep, sch); */
+  printf("dom: %s\n", isl_union_map_to_str(dom));
+  /* printf("rng: %s\n", isl_union_map_to_str(rng)); */
+  isl_union_flow_free(flow);
+}
+
 void polegality(struct Args *args, pet_scop *scop) {
   isl_union_map *schedule_map = isl_schedule_get_map(scop->schedule);
   printf("original schedule: %s\n", isl_union_map_to_str(schedule_map));
@@ -88,7 +117,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  polegality(&args, scop);
+  // polegality(&args, scop);
+  compute_dependencies(scop);
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
