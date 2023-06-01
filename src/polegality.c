@@ -66,14 +66,22 @@ void compute_dependencies(pet_scop *scop) {
   access = isl_union_access_info_set_schedule(access, schedule);
   flow = isl_union_access_info_compute_flow(access);
   full_dep = isl_union_flow_get_full_may_dependence(flow);
-  dep = isl_union_flow_get_may_dependence(flow);
   printf("Full may_dep: %s\n", isl_union_map_to_str(full_dep));
+  dep = isl_union_flow_get_may_dependence(flow);
   printf("may_dep: %s\n", isl_union_map_to_str(dep));
   sch = isl_schedule_get_map(schedule);
-  dom = isl_union_map_apply_domain(dep, sch);
-  /* rng = isl_union_map_apply_range(dep, sch); */
+  printf("sch: %s\n", isl_union_map_to_str(sch));
+  dom = isl_union_map_apply_domain(isl_union_map_copy(dep),
+                                   isl_union_map_copy(sch));
   printf("dom: %s\n", isl_union_map_to_str(dom));
-  /* printf("rng: %s\n", isl_union_map_to_str(rng)); */
+  rng = isl_union_map_apply_range(isl_union_map_copy(sch),
+                                  isl_union_map_copy(dep));
+  printf("rng: %s\n", isl_union_map_to_str(rng));
+  isl_union_map_free(full_dep);
+  isl_union_map_free(rng);
+  isl_union_map_free(dom);
+  isl_union_map_free(dep);
+  isl_union_map_free(sch);
   isl_union_flow_free(flow);
 }
 
