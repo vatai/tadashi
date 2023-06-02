@@ -1,6 +1,8 @@
 #include <isl/flow.h>
 #include <isl/schedule.h>
+#include <isl/schedule_type.h>
 #include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <stdio.h>
 
 #include <isl/options.h>
@@ -50,38 +52,65 @@ struct Args get_args(int argc, char *argv[]) {
   return args;
 }
 
-void compute_dependencies(pet_scop *scop) {
-  isl_union_map *sink, *may_source, *must_source, *full_dep, *dep, *dom, *rng,
-      *sch;
-  isl_schedule *schedule;
+__isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
+  isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
+  isl_schedule *schedule;
   isl_union_flow *flow;
   sink = pet_scop_get_may_reads(scop);
   access = isl_union_access_info_from_sink(sink);
+
   may_source = pet_scop_get_may_writes(scop);
   access = isl_union_access_info_set_may_source(access, may_source);
+
   must_source = pet_scop_get_must_writes(scop);
   access = isl_union_access_info_set_must_source(access, must_source);
+
   schedule = pet_scop_get_schedule(scop);
   access = isl_union_access_info_set_schedule(access, schedule);
+
   flow = isl_union_access_info_compute_flow(access);
-  full_dep = isl_union_flow_get_full_may_dependence(flow);
-  printf("Full may_dep: %s\n", isl_union_map_to_str(full_dep));
+  return flow;
+}
+
+void compute_dependencies(pet_scop *scop) {
+  isl_union_map *dep, *domain_map, *range_map, *schedule_map;
+  isl_union_set *domain, *tdomain, *range, *trange;
+  isl_schedule *schedule;
+  isl_union_flow *flow;
+
+  flow = get_flow_from_scop(scop);
+  schedule = pet_scop_get_schedule(scop);
+  schedule_map = isl_schedule_get_map(schedule);
+  printf("sch: %s\n", isl_union_map_to_str(schedule_map));
+
   dep = isl_union_flow_get_may_dependence(flow);
-  printf("may_dep: %s\n", isl_union_map_to_str(dep));
-  sch = isl_schedule_get_map(schedule);
-  printf("sch: %s\n", isl_union_map_to_str(sch));
-  dom = isl_union_map_apply_domain(isl_union_map_copy(dep),
-                                   isl_union_map_copy(sch));
-  printf("dom: %s\n", isl_union_map_to_str(dom));
-  rng = isl_union_map_apply_range(isl_union_map_copy(sch),
-                                  isl_union_map_copy(dep));
-  printf("rng: %s\n", isl_union_map_to_str(rng));
-  isl_union_map_free(full_dep);
-  isl_union_map_free(rng);
-  isl_union_map_free(dom);
+  printf("     may_dep: %s\n", isl_union_map_to_str(dep));
+
+  domain = isl_union_map_domain(isl_union_map_copy(dep));
+  printf("domain: %s\n", isl_union_set_to_str(domain));
+  tdomain = isl_union_set_apply(domain, isl_union_map_copy(schedule_map));
+  printf("tdomain: %s\n", isl_union_set_to_str(tdomain));
+
+  range = isl_union_map_range(isl_union_map_copy(dep));
+  printf("range: %s\n", isl_union_set_to_str(range));
+  trange = isl_union_set_apply(range, isl_union_map_copy(schedule_map));
+  printf("trange: %s\n", isl_union_set_to_str(trange));
+
+  domain_map = isl_union_map_apply_domain(isl_union_map_copy(dep),
+                                          isl_union_map_copy(schedule_map));
+  printf("dom: %s\n", isl_union_map_to_str(domain_map));
+  range_map = isl_union_map_apply_range(isl_union_map_copy(schedule_map),
+                                        isl_union_map_copy(dep));
+  printf("rng: %s\n", isl_union_map_to_str(range_map));
+
+  isl_union_map_free(range_map);
+  isl_union_map_free(domain_map);
+  isl_union_set_free(tdomain);
+  isl_union_set_free(trange);
   isl_union_map_free(dep);
-  isl_union_map_free(sch);
+  isl_union_map_free(schedule_map);
+  isl_schedule_free(schedule);
   isl_union_flow_free(flow);
 }
 
