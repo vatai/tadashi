@@ -1,3 +1,5 @@
+#include <isl/aff.h>
+#include <isl/aff_type.h>
 #include <isl/flow.h>
 #include <isl/schedule.h>
 #include <isl/schedule_type.h>
@@ -104,6 +106,12 @@ void compute_dependencies(pet_scop *scop) {
                                         isl_union_map_copy(dep));
   printf("rng: %s\n", isl_union_map_to_str(range_map));
 
+  isl_multi_union_pw_aff *pa =
+      isl_union_map_as_multi_union_pw_aff(isl_union_map_copy(dep));
+
+  printf("pa: %s\n", isl_multi_union_pw_aff_to_str(pa));
+
+  isl_multi_union_pw_aff_free(pa);
   isl_union_map_free(range_map);
   isl_union_map_free(domain_map);
   isl_union_set_free(tdomain);
