@@ -111,6 +111,18 @@ void compute_dependencies(pet_scop *scop) {
 
   printf("pa: %s\n", isl_multi_union_pw_aff_to_str(pa));
 
+  isl_union_pw_multi_aff *pa_dmn =
+      isl_union_map_domain_map_union_pw_multi_aff(isl_union_map_copy(dep));
+  printf("pa_dmn: %s\n", isl_union_pw_multi_aff_to_str(pa_dmn));
+
+  isl_union_pw_multi_aff *pa_rng =
+      isl_union_pw_multi_aff_apply_union_pw_multi_aff(
+          isl_union_pw_multi_aff_copy(pa_dmn),
+          isl_union_pw_multi_aff_from_union_map(isl_union_map_copy(dep)));
+  printf("pa_rng: %s\n", isl_union_pw_multi_aff_to_str(pa_rng));
+
+  isl_union_pw_multi_aff_free(pa_dmn);
+  isl_union_pw_multi_aff_free(pa_rng);
   isl_multi_union_pw_aff_free(pa);
   isl_union_map_free(range_map);
   isl_union_map_free(domain_map);
