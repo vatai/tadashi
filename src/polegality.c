@@ -77,7 +77,7 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
 
 void compute_dependencies(pet_scop *scop) {
   isl_union_map *dep, *domain_map, *range_map, *schedule_map;
-  isl_union_set *domain, *tdomain, *range, *trange;
+  isl_union_map *domain, *tdomain, *range, *trange;
   isl_schedule *schedule;
   isl_union_flow *flow;
 
@@ -89,15 +89,15 @@ void compute_dependencies(pet_scop *scop) {
   dep = isl_union_flow_get_may_dependence(flow);
   printf("     may_dep: %s\n", isl_union_map_to_str(dep));
 
-  domain = isl_union_map_domain(isl_union_map_copy(dep));
-  printf("domain: %s\n", isl_union_set_to_str(domain));
-  tdomain = isl_union_set_apply(domain, isl_union_map_copy(schedule_map));
-  printf("tdomain: %s\n", isl_union_set_to_str(tdomain));
+  domain = isl_union_map_domain_map(isl_union_map_copy(dep));
+  range = isl_union_map_range_map(isl_union_map_copy(dep));
+  printf("domain: %s\n", isl_union_map_to_str(domain));
+  printf("range: %s\n", isl_union_map_to_str(range));
 
-  range = isl_union_map_range(isl_union_map_copy(dep));
-  printf("range: %s\n", isl_union_set_to_str(range));
-  trange = isl_union_set_apply(range, isl_union_map_copy(schedule_map));
-  printf("trange: %s\n", isl_union_set_to_str(trange));
+  tdomain = isl_union_map_apply_range(domain, isl_union_map_copy(schedule_map));
+  trange = isl_union_map_apply_range(range, isl_union_map_copy(schedule_map));
+  printf("tdomain: %s\n", isl_union_map_to_str(tdomain));
+  printf("trange: %s\n", isl_union_map_to_str(trange));
 
   domain_map = isl_union_map_apply_domain(isl_union_map_copy(dep),
                                           isl_union_map_copy(schedule_map));
@@ -126,8 +126,8 @@ void compute_dependencies(pet_scop *scop) {
   isl_multi_union_pw_aff_free(pa);
   isl_union_map_free(range_map);
   isl_union_map_free(domain_map);
-  isl_union_set_free(tdomain);
-  isl_union_set_free(trange);
+  isl_union_map_free(tdomain);
+  isl_union_map_free(trange);
   isl_union_map_free(dep);
   isl_union_map_free(schedule_map);
   isl_schedule_free(schedule);
