@@ -12,6 +12,7 @@
 #include <isl/space_type.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 #include <stdio.h>
 
 #include <isl/options.h>
@@ -84,17 +85,19 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
 
 isl_stat fn(__isl_take isl_map *map, void *user) {
   isl_space *space = isl_map_get_space(map);
-  /* isl_set *set = isl_set_empty(isl_space_copy(space)); */
-  /* size_t dims = isl_map_dim(map, isl_dim_in); */
-  // isl_union_set_add_set((isl_union_set *)user, set);
-  /* isl_set_free(set); */
+  isl_multi_val *mv = isl_multi_val_zero(isl_space_copy(space));
+  isl_multi_aff_multi_val_on_domain_space(isl_space_copy(space),
+                                          isl_multi_val_copy(mv));
+  printf("!mv: %s\n", isl_multi_val_to_str(mv));
+  printf("!map: %s\n", isl_map_to_str(map));
+  isl_multi_val_free(mv);
   isl_space_free(space);
   isl_map_free(map);
   return isl_stat_ok;
 };
 
 void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
-  isl_union_map *dep, *domain, *schedule_map, *le;
+  isl_union_map *dep, *domain, *schedule_map, *le, *delta_map;
   isl_union_set *delta, *zeros, *range;
   isl_schedule *schedule;
   isl_union_flow *flow;
@@ -105,22 +108,10 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   schedule = pet_scop_get_schedule(scop);
 
   dep = isl_union_flow_get_may_dependence(flow);
-  schedule_map = isl_schedule_get_map(schedule);
 
-  /* printf("schedule: %s\n", isl_union_map_to_str(schedule_map)); */
-  /* range = isl_union_map_range(schedule_map); */
-  /* printf("set: %s\n", isl_union_set_to_str(range)); */
-  /* space = isl_union_set_get_space(range); */
-  /* printf("space: %s\n", isl_space_to_str(space)); */
-  /* printf("dim size: %d\n", isl_union_set_dim(range, isl_dim_param)); */
-  /* printf("dim size: %d\n", isl_union_set_dim(range, isl_dim_set)); */
-  /* printf("dim size: %d\n", isl_union_set_dim(range, isl_dim_in)); */
-  /* printf("dim size: %d\n", isl_union_set_dim(range, isl_dim_out)); */
-  /* isl_union_set_free(range); */
-  /* isl_space_free(space); */
-
-  isl_union_map_foreach_map(schedule_map, fn, 0);
-  isl_union_map_free(schedule_map);
+  /* schedule_map = isl_schedule_get_map(schedule); */
+  /* isl_union_map_foreach_map(schedule_map, fn, 0); */
+  /* isl_union_map_free(schedule_map); */
 
   schedule_map =
       isl_union_map_read_from_str(ctx, "[N] -> { S_0[i, j] -> [j, i] }");
@@ -132,6 +123,8 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
                                       isl_union_map_copy(schedule_map));
   domain = isl_union_map_apply_range(domain, isl_union_map_copy(schedule_map));
   delta = isl_union_map_deltas(isl_union_map_copy(domain));
+  delta_map = isl_union_map_deltas_map(isl_union_map_copy(domain));
+  isl_union_map_foreach_map(delta_map, fn, 0);
   printf("domain: %s\n", isl_union_map_to_str(domain));
   printf("delta: %s\n", isl_union_set_to_str(delta));
   le = isl_union_set_lex_le_union_set(isl_union_set_copy(delta),
@@ -139,6 +132,7 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   printf("The schedule is %scorrect!\n",
          (isl_union_map_is_empty(le) ? "" : "not "));
 
+  isl_union_map_free(delta_map);
   isl_union_map_free(le);
   isl_union_set_free(delta);
   isl_union_set_free(zeros);
