@@ -129,33 +129,6 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   isl_union_flow_free(flow);
 }
 
-void polegality(struct Args *args, pet_scop *scop) {
-  isl_union_map *schedule_map = isl_schedule_get_map(scop->schedule);
-  printf("original schedule: %s\n", isl_union_map_to_str(schedule_map));
-
-  isl_union_map *may_reads = pet_scop_get_may_reads(scop);
-  printf("may reads: %s\n", isl_union_map_to_str(may_reads));
-
-  isl_union_map *may_writes = pet_scop_get_may_writes(scop);
-  printf("may writes: %s\n", isl_union_map_to_str(may_writes));
-
-  isl_union_map *must_writes = pet_scop_get_must_writes(scop);
-  printf("must writes: %s\n", isl_union_map_to_str(must_writes));
-
-  isl_union_map *result = isl_union_map_apply_range(
-      isl_union_map_copy(may_reads),
-      isl_union_map_reverse(isl_union_map_copy(may_writes)));
-  printf("result: %s\n", isl_union_map_to_str(result));
-  result = isl_union_map_apply_range(result, isl_union_map_copy(schedule_map));
-  printf("result: %s\n", isl_union_map_to_str(result));
-
-  isl_union_map_free(result);
-  isl_union_map_free(must_writes);
-  isl_union_map_free(may_writes);
-  isl_union_map_free(may_reads);
-  isl_union_map_free(schedule_map);
-}
-
 int main(int argc, char *argv[]) {
   struct Args args = get_args(argc, argv);
   printf("Input file: %s\n", args.filename);
@@ -169,7 +142,6 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // polegality(&args, scop);
   compute_dependencies(ctx, scop);
 
   pet_scop_free(scop);
