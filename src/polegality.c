@@ -83,19 +83,6 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-isl_stat fn(__isl_take isl_map *map, void *user) {
-  isl_space *space = isl_map_get_space(map);
-  isl_multi_val *mv = isl_multi_val_zero(isl_space_copy(space));
-  isl_multi_aff_multi_val_on_domain_space(isl_space_copy(space),
-                                          isl_multi_val_copy(mv));
-  printf("!mv: %s\n", isl_multi_val_to_str(mv));
-  printf("!map: %s\n", isl_map_to_str(map));
-  isl_multi_val_free(mv);
-  isl_space_free(space);
-  isl_map_free(map);
-  return isl_stat_ok;
-};
-
 void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   isl_union_map *dep, *domain, *schedule_map, *le, *delta_map;
   isl_union_set *delta, *zeros, *range;
@@ -124,7 +111,6 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   domain = isl_union_map_apply_range(domain, isl_union_map_copy(schedule_map));
   delta = isl_union_map_deltas(isl_union_map_copy(domain));
   delta_map = isl_union_map_deltas_map(isl_union_map_copy(domain));
-  isl_union_map_foreach_map(delta_map, fn, 0);
   printf("domain: %s\n", isl_union_map_to_str(domain));
   printf("delta: %s\n", isl_union_set_to_str(delta));
   le = isl_union_set_lex_le_union_set(isl_union_set_copy(delta),
