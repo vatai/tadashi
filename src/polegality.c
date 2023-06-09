@@ -83,7 +83,7 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
+isl_bool compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   isl_union_map *dep, *domain, *schedule_map, *le;
   isl_union_set *delta, *zeros, *range;
   isl_schedule *schedule;
@@ -112,8 +112,7 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   zeros = isl_union_set_read_from_str(ctx, "[N] -> { [0, 0] }");
   le = isl_union_set_lex_le_union_set(isl_union_set_copy(delta),
                                       isl_union_set_copy(zeros));
-  printf("The schedule is %scorrect!\n",
-         (isl_union_map_is_empty(le) ? "" : "not "));
+  isl_bool retval = isl_union_map_is_empty(le);
 
   isl_union_map_free(le);
   isl_union_set_free(delta);
@@ -123,6 +122,7 @@ void compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   isl_union_map_free(schedule_map);
   isl_schedule_free(schedule);
   isl_union_flow_free(flow);
+  return retval;
 }
 
 int main(int argc, char *argv[]) {
@@ -138,8 +138,9 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  compute_dependencies(ctx, scop);
+  isl_bool legal = compute_dependencies(ctx, scop);
 
+  printf("The schedule is %scorrect!\n", (legal ? "" : "not "));
   pet_scop_free(scop);
   isl_ctx_free(ctx);
   printf("DONE!\n");
