@@ -18,9 +18,6 @@
 #include <isl/options.h>
 #include <pet.h>
 
-char FILENAME[] = "../examples/depnodep.cc";
-char SCHEDULE[] = "NONE";
-
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
@@ -47,18 +44,16 @@ struct Args {
 
 struct Args get_args(int argc, char *argv[]) {
   struct Args args;
-  if (argc == 1) {
-    args.filename = FILENAME;
-    args.schedule = SCHEDULE;
-    return args;
-  }
-
-  if (argc < 3) {
+  if (argc < 2) {
     printf("Usage: %s <C/C++ source file> <schedule>\n", argv[0]);
     exit(-1);
   }
   args.filename = argv[1];
-  args.schedule = argv[2];
+
+  args.schedule = 0;
+  if (argc >= 3) {
+    args.schedule = argv[2];
+  }
   return args;
 }
 
@@ -83,60 +78,41 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-isl_bool compute_dependencies(char *schedule_str, isl_ctx *ctx,
-                              pet_scop *scop) {
+__isl_give isl_union_set *
+get_zeros_on_union_set(__isl_take isl_union_set *uset) {
+  isl_set *dset;
+  isl_multi_aff *ma;
+
+  dset = isl_set_from_union_set(uset);
+  isl_set_free(dset);
+  ma = isl_multi_aff_zero(isl_set_get_space(dset));
+  return isl_union_set_from_set(isl_set_from_multi_aff(ma));
+}
+
+isl_bool check_legality(char *schedule_str, isl_ctx *ctx, pet_scop *scop) {
   isl_union_map *dep, *domain, *schedule_map, *le;
-  isl_union_set *delta, *zeros, *range;
-  isl_schedule *schedule;
+  isl_union_set *delta, *zeros;
   isl_union_flow *flow;
-  isl_space *space;
-  int correct;
 
   flow = get_flow_from_scop(scop);
-  schedule = pet_scop_get_schedule(scop);
-
   dep = isl_union_flow_get_may_dependence(flow);
-  printf("dep: %s\n", isl_union_map_to_str(dep));
+  isl_union_flow_free(flow);
 
   schedule_map = isl_union_map_read_from_str(ctx, schedule_str);
-  printf("sch: %s\n", isl_union_map_to_str(schedule_map));
 
-  domain = isl_union_map_apply_domain(isl_union_map_copy(dep),
-                                      isl_union_map_copy(schedule_map));
-  domain = isl_union_map_apply_range(domain, isl_union_map_copy(schedule_map));
-  printf("domain: %s\n", isl_union_map_to_str(domain));
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
+  domain = isl_union_map_apply_range(domain, schedule_map);
+  delta = isl_union_map_deltas(domain);
 
-  delta = isl_union_map_deltas(isl_union_map_copy(domain));
-  printf("delta: %s\n", isl_union_set_to_str(delta));
+  zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
 
-  isl_set *dset = isl_set_from_union_set(isl_union_set_copy(delta));
-  printf("dset: %s\n", isl_set_to_str(dset));
-  space = isl_set_get_space(dset);
-  isl_set_free(dset);
-  printf("space: %s\n", isl_space_to_str(space));
-  isl_multi_aff *ma = isl_multi_aff_zero(space);
-  printf("ma: %s\n", isl_multi_aff_to_str(ma));
-  isl_set *zset = isl_set_from_multi_aff(ma);
-  printf("zset: %s\n", isl_set_to_str(zset));
-  zeros = isl_union_set_from_set(zset);
-
-  le = isl_union_set_lex_le_union_set(isl_union_set_copy(delta),
-                                      isl_union_set_copy(zeros));
+  le = isl_union_set_lex_le_union_set(delta, zeros);
   isl_bool retval = isl_union_map_is_empty(le);
-
   isl_union_map_free(le);
-  isl_union_set_free(delta);
-  isl_union_set_free(zeros);
-  isl_union_map_free(domain);
-  isl_union_map_free(dep);
-  isl_union_map_free(schedule_map);
-  isl_schedule_free(schedule);
-  isl_union_flow_free(flow);
   return retval;
 }
 
-void check_schedule(char *schedule_str, isl_ctx *ctx, pet_scop *scop) {
-  isl_bool legal = compute_dependencies(schedule_str, ctx, scop);
+void print_legality(char *schedule_str, isl_bool legal) {
   printf("The schedule %s is %scorrect!\n", schedule_str,
          (legal ? "" : "not "));
 }
@@ -153,8 +129,16 @@ int main(int argc, char *argv[]) {
     isl_ctx_free(ctx);
     return -1;
   }
-  check_schedule("[N] -> { S_0[i, j] -> [j, i] }", ctx, scop);
-  check_schedule("[N] -> { S_0[i, j] -> [j, -i] }", ctx, scop);
+  if (args.schedule) {
+    isl_bool legal = check_legality(args.schedule, ctx, scop);
+    print_legality(args.schedule, legal);
+  } else {
+    isl_schedule *schedule = pet_scop_get_schedule(scop);
+    isl_union_map *schedule_map = isl_schedule_get_map(schedule);
+    isl_schedule_free(schedule);
+    printf("Schedule: %s\n", isl_union_map_to_str(schedule_map));
+    isl_union_map_free(schedule_map);
+  }
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
