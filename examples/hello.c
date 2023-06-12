@@ -9,11 +9,3 @@ void f(int n) {
   }
 #pragma endscop
 }
-
-void g(int n, double *a) {
-#pragma scop
-  for (int i = 1; i < n; i++) {
-    a[i] = 2 * a[i - 1];
-  }
-#pragma endscop
-}
