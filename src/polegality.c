@@ -83,7 +83,8 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-isl_bool compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
+isl_bool compute_dependencies(char *schedule_str, isl_ctx *ctx,
+                              pet_scop *scop) {
   isl_union_map *dep, *domain, *schedule_map, *le;
   isl_union_set *delta, *zeros, *range;
   isl_schedule *schedule;
@@ -97,8 +98,7 @@ isl_bool compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   dep = isl_union_flow_get_may_dependence(flow);
   printf("dep: %s\n", isl_union_map_to_str(dep));
 
-  schedule_map =
-      isl_union_map_read_from_str(ctx, "[N] -> { S_0[i, j] -> [j, i] }");
+  schedule_map = isl_union_map_read_from_str(ctx, schedule_str);
   printf("sch: %s\n", isl_union_map_to_str(schedule_map));
 
   domain = isl_union_map_apply_domain(isl_union_map_copy(dep),
@@ -109,7 +109,17 @@ isl_bool compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   delta = isl_union_map_deltas(isl_union_map_copy(domain));
   printf("delta: %s\n", isl_union_set_to_str(delta));
 
-  zeros = isl_union_set_read_from_str(ctx, "[N] -> { [0, 0] }");
+  isl_set *dset = isl_set_from_union_set(isl_union_set_copy(delta));
+  printf("dset: %s\n", isl_set_to_str(dset));
+  space = isl_set_get_space(dset);
+  isl_set_free(dset);
+  printf("space: %s\n", isl_space_to_str(space));
+  isl_multi_aff *ma = isl_multi_aff_zero(space);
+  printf("ma: %s\n", isl_multi_aff_to_str(ma));
+  isl_set *zset = isl_set_from_multi_aff(ma);
+  printf("zset: %s\n", isl_set_to_str(zset));
+  zeros = isl_union_set_from_set(zset);
+
   le = isl_union_set_lex_le_union_set(isl_union_set_copy(delta),
                                       isl_union_set_copy(zeros));
   isl_bool retval = isl_union_map_is_empty(le);
@@ -125,6 +135,12 @@ isl_bool compute_dependencies(isl_ctx *ctx, pet_scop *scop) {
   return retval;
 }
 
+void check_schedule(char *schedule_str, isl_ctx *ctx, pet_scop *scop) {
+  isl_bool legal = compute_dependencies(schedule_str, ctx, scop);
+  printf("The schedule %s is %scorrect!\n", schedule_str,
+         (legal ? "" : "not "));
+}
+
 int main(int argc, char *argv[]) {
   struct Args args = get_args(argc, argv);
   printf("Input file: %s\n", args.filename);
@@ -137,10 +153,9 @@ int main(int argc, char *argv[]) {
     isl_ctx_free(ctx);
     return -1;
   }
+  check_schedule("[N] -> { S_0[i, j] -> [j, i] }", ctx, scop);
+  check_schedule("[N] -> { S_0[i, j] -> [j, -i] }", ctx, scop);
 
-  isl_bool legal = compute_dependencies(ctx, scop);
-
-  printf("The schedule is %scorrect!\n", (legal ? "" : "not "));
   pet_scop_free(scop);
   isl_ctx_free(ctx);
   printf("DONE!\n");
