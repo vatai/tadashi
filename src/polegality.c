@@ -79,13 +79,13 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
 }
 
 __isl_give isl_union_set *
-get_zeros_on_union_set(__isl_take isl_union_set *uset) {
-  isl_set *dset;
+get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
+  isl_set *delta_set;
   isl_multi_aff *ma;
 
-  dset = isl_set_from_union_set(uset);
-  isl_set_free(dset);
-  ma = isl_multi_aff_zero(isl_set_get_space(dset));
+  delta_set = isl_set_from_union_set(delta_uset);
+  ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
+  isl_set_free(delta_set);
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
 }
 
