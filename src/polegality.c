@@ -89,14 +89,19 @@ get_zeros_on_union_set(__isl_take isl_union_set *uset) {
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
 }
 
-isl_bool check_legality(char *schedule_str, isl_ctx *ctx, pet_scop *scop) {
-  isl_union_map *dep, *domain, *schedule_map, *le;
-  isl_union_set *delta, *zeros;
+__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+  isl_union_map *dep;
   isl_union_flow *flow;
-
   flow = get_flow_from_scop(scop);
   dep = isl_union_flow_get_may_dependence(flow);
   isl_union_flow_free(flow);
+  return dep;
+}
+
+isl_bool check_legality(isl_ctx *ctx, char *schedule_str,
+                        __isl_take isl_union_map *dep) {
+  isl_union_map *domain, *schedule_map, *le;
+  isl_union_set *delta, *zeros;
 
   schedule_map = isl_union_map_read_from_str(ctx, schedule_str);
 
@@ -121,6 +126,7 @@ int main(int argc, char *argv[]) {
   struct Args args = get_args(argc, argv);
   printf("Input file: %s\n", args.filename);
   printf("Input schedule %s\n", args.schedule);
+
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, 0);
@@ -129,20 +135,23 @@ int main(int argc, char *argv[]) {
     isl_ctx_free(ctx);
     return -1;
   }
+
+  isl_union_map *dependencies = get_dependencies(scop);
   if (args.schedule) {
-    isl_bool legal = check_legality(args.schedule, ctx, scop);
+    isl_bool legal = check_legality(ctx, args.schedule, dependencies);
     print_legality(args.schedule, legal);
   } else {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
     isl_union_map *schedule_map = isl_schedule_get_map(schedule);
     isl_schedule_free(schedule);
+    printf("Dependencies: %s\n", isl_union_map_to_str(dependencies));
     printf("Schedule: %s\n", isl_union_map_to_str(schedule_map));
     isl_union_map_free(schedule_map);
+    isl_union_map_free(dependencies);
   }
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
   printf("DONE!\n");
-  printf("Hello, world!\n");
   return 0;
 }
