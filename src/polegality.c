@@ -4,6 +4,7 @@
 #include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/map.h>
+#include <isl/options.h>
 #include <isl/point.h>
 #include <isl/schedule.h>
 #include <isl/schedule_type.h>
@@ -15,7 +16,6 @@
 #include <isl/val.h>
 #include <stdio.h>
 
-#include <isl/options.h>
 #include <pet.h>
 
 struct options {
