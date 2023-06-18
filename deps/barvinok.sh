@@ -4,6 +4,7 @@ source llvm.src
 
 CONFIGURE_ARGS=(
     --with-clang=system
+    --with-pet=bundled
     --enable-shared-barvinok
 )
 
@@ -13,9 +14,12 @@ pushd ${BUILD}
 
 pushd barvinok
 ./get_submodules.sh
+autoupdate
 ./autogen.sh
 ./configure ${CONFIGURE_ARGS[@]}
-bear -- make -j
+# bear --
+make -j
+make isl.py
 
 popd
 popd
