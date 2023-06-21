@@ -30,14 +30,14 @@ void unittest(int kpass) {
   double input[N];
   for (int k = 0; k < kpass; k++) {
     for (int i = 0; i < N; i++) {
-      input[i] = 10 * (double)rand();
-      compare(input);
+      input[i] = (double)rand();
     }
+    compare(input);
   }
 }
 
 int main(int argc, char *argv[]) {
-  unittest(5);
+  unittest(10);
   double tricky_input[] = {400000000, 9e-8, 9e-8};
   printf("And now for some tricky input:\n");
   compare(tricky_input);
