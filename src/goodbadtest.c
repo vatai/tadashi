@@ -25,9 +25,6 @@ double compare(double input[N]) {
   printf("gold: %f; cgpt: %f;\n", gold(input), cgpt(input));
 }
 
-/* double iterate(double (*f)(double in1[N]), double input[N], int iterations)
- * {} */
-/*   iterate(gold, tricky_input, 100); */
 void unittest(int kpass) {
   srand((unsigned int)time(NULL));
   double input[N];
