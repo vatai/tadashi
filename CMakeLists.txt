@@ -38,4 +38,7 @@ target_link_libraries(depanalysis PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(polegality src/polegality.c)
 target_link_libraries(polegality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+add_executable(tree_manipulation src/tree_manipulation.c)
+target_link_libraries(tree_manipulation PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_executable(goodbadtest src/goodbadtest.c)
