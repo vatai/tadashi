@@ -1,3 +1,5 @@
+#include <isl/ctx.h>
+#include <isl/id.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/union_map.h>
@@ -33,11 +35,6 @@ struct Args {
 struct Args get_args(int argc, char *argv[]) {
   struct Args args;
 
-  // Don't commit
-  args.filename = "../examples/depnodep.cc";
-  return args;
-  // Don't commit
-
   if (argc < 2) {
     printf("Usage: %s <C/C++ source file> <schedule>\n", argv[0]);
     exit(-1);
@@ -53,12 +50,14 @@ struct Args get_args(int argc, char *argv[]) {
 
 void tree_manipulation(pet_scop *scop) {
   isl_schedule *schedule = pet_scop_get_schedule(scop);
+  isl_ctx *ctx = isl_schedule_get_ctx(schedule);
   printf("schedule: %s\n", isl_schedule_to_str(schedule));
   isl_schedule_node *root, *in, *jn, *leaf;
   root = isl_schedule_get_root(schedule);
   in = isl_schedule_node_get_child(root, 0);
   jn = isl_schedule_node_get_child(in, 0);
   leaf = isl_schedule_node_get_child(jn, 0);
+  leaf = isl_schedule_node_group(leaf, isl_id_read_from_str(ctx, "t"));
   isl_union_map *prefix_schedule =
       isl_schedule_node_get_prefix_schedule_relation(root);
   printf("root  : %s\n", isl_schedule_node_to_str(root));
@@ -66,14 +65,13 @@ void tree_manipulation(pet_scop *scop) {
   printf("j node: %s\n", isl_schedule_node_to_str(jn));
   printf("leaf  : %s\n", isl_schedule_node_to_str(leaf));
   isl_schedule_node *nroot, *nin, *njn;
-  nroot = isl_schedule_from_domain(isl_schedule_get_domain(schedule));
-  nroot = isl_schedule_insert_
-      // nin = isl_schedule_node_graft_after(in, leaf);
-      // printf("nin   : %s\n", isl_schedule_node_to_str(nin));
-      // njn = isl_schedule_node_graft_after(jn, nin);
-      // nroot = isl_schedule_node_graft_before(root, njn);
+  // nroot = isl_schedule_from_domain(isl_schedule_get_domain(schedule));
+  //  nin = isl_schedule_node_graft_after(in, leaf);
+  //  printf("nin   : %s\n", isl_schedule_node_to_str(nin));
+  //  njn = isl_schedule_node_graft_after(jn, nin);
+  //  nroot = isl_schedule_node_graft_before(root, njn);
 
-      isl_union_map_free(prefix_schedule);
+  isl_union_map_free(prefix_schedule);
   isl_schedule_node_free(leaf);
   isl_schedule_node_free(jn);
   isl_schedule_node_free(in);
@@ -88,7 +86,9 @@ int main(int argc, char *argv[]) {
 
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
-  pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, 0);
+  printf("set: %d\n", pet_options_set_autodetect(ctx, 0));
+  printf("get: %d\n", pet_options_get_autodetect(ctx));
+  pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, "main");
   if (!scop) {
     printf("No scop found!\n");
     isl_ctx_free(ctx);
@@ -96,6 +96,12 @@ int main(int argc, char *argv[]) {
   } else {
     printf("Scop found\n");
   }
+
+  printf("may_reads: %s\n", isl_union_map_to_str(pet_scop_get_may_reads(scop)));
+  printf("may_writes: %s\n",
+         isl_union_map_to_str(pet_scop_get_may_writes(scop)));
+  printf("must_writes: %s\n",
+         isl_union_map_to_str(pet_scop_get_must_writes(scop)));
   tree_manipulation(scop);
 
   pet_scop_free(scop);
