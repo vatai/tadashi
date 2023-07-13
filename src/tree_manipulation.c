@@ -60,8 +60,8 @@ void tree_manipulation(isl_schedule *schedule) {
 
 int main(int argc, char *argv[]) {
   struct options *options = options_new_with_defaults();
-  isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
   argc = options_parse(options, argc, argv, ISL_ARG_ALL);
+  isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
   printf("options->file: %s\n", options->code);
 
   /* printf("set: %d\n", pet_options_set_autodetect(ctx, 0)); */
