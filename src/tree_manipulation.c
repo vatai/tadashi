@@ -13,42 +13,21 @@
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
-  char *schedule;
   char *code;
-  unsigned tree;
+  // char *schedule;
+  // unsigned tree;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
-ISL_ARG_ARG(struct options, schedule, "schedule", NULL)
 ISL_ARG_ARG(struct options, code, "code", NULL)
-ISL_ARG_BOOL(struct options, tree, 0, "tree", 0,
-             "input schedule is specified as schedule tree")
+// ISL_ARG_ARG(struct options, schedule, "schedule", NULL)
+// ISL_ARG_BOOL(struct options, tree, 0, "tree", 0,
+// "input schedule is specified as schedule tree")
 ISL_ARGS_END
 
 ISL_ARG_DEF(options, struct options, options_args)
-
-struct Args {
-  char *filename;
-  char *schedule;
-};
-
-struct Args get_args(int argc, char *argv[]) {
-  struct Args args;
-
-  if (argc < 2) {
-    printf("Usage: %s <C/C++ source file> <schedule>\n", argv[0]);
-    exit(-1);
-  }
-  args.filename = argv[1];
-
-  args.schedule = 0;
-  if (argc >= 3) {
-    args.schedule = argv[2];
-  }
-  return args;
-}
 
 #define PRN(label, type, obj) printf("%s : %s\n", label, type##_to_str(obj))
 
@@ -80,15 +59,14 @@ void tree_manipulation(isl_schedule *schedule) {
 }
 
 int main(int argc, char *argv[]) {
-  struct Args args = get_args(argc, argv);
-  printf("Input file: %s\n", args.filename);
-  // printf("Input schedule %s\n", args.schedule);
-
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
+  argc = options_parse(options, argc, argv, ISL_ARG_ALL);
+  printf("options->file: %s\n", options->code);
+
   /* printf("set: %d\n", pet_options_set_autodetect(ctx, 0)); */
   /* printf("get: %d\n", pet_options_get_autodetect(ctx)); */
-  pet_scop *scop = pet_scop_extract_from_C_source(ctx, args.filename, 0);
+  pet_scop *scop = pet_scop_extract_from_C_source(ctx, options->code, 0);
   if (!scop) {
     printf("No scop found!\n");
     isl_ctx_free(ctx);
