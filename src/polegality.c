@@ -1,3 +1,6 @@
+#include <assert.h>
+#include <stdio.h>
+
 #include <isl/aff.h>
 #include <isl/aff_type.h>
 #include <isl/ctx.h>
@@ -14,7 +17,6 @@
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
-#include <stdio.h>
 
 #include <pet.h>
 
@@ -122,6 +124,19 @@ void print_legality(char *schedule_str, isl_bool legal) {
          (legal ? "" : "not "));
 }
 
+void codegen(isl_ctx *ctx, char *schedule_str) {
+  isl_ast_build *build;
+  isl_ast_node *ast;
+  isl_schedule *schedule = isl_schedule_read_from_str(ctx, schedule_str);
+  // build = isl_ast_build_alloc(ctx);
+  // assert(build != NULL);
+  // ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
+  // printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
+  // isl_ast_node_free(ast);
+  // isl_ast_build_free(build);
+  isl_schedule_free(schedule);
+}
+
 int main(int argc, char *argv[]) {
   struct Args args = get_args(argc, argv);
   printf("Input file: %s\n", args.filename);
@@ -140,6 +155,7 @@ int main(int argc, char *argv[]) {
   if (args.schedule) {
     isl_bool legal = check_legality(ctx, args.schedule, dependencies);
     print_legality(args.schedule, legal);
+    codegen(ctx, args.schedule);
   } else {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
     isl_union_map *schedule_map = isl_schedule_get_map(schedule);

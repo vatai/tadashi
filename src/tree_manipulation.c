@@ -1,3 +1,6 @@
+#include <assert.h>
+#include <stdio.h>
+
 #include <isl/aff.h>
 #include <isl/aff_type.h>
 #include <isl/ctx.h>
@@ -5,7 +8,6 @@
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/union_map.h>
-#include <stdio.h>
 
 #include <isl/options.h>
 #include <pet.h>
@@ -56,6 +58,17 @@ void tree_manipulation(isl_schedule *schedule) {
 
   leaf = isl_schedule_node_get_child(jn, 0);
   // leaf = isl_schedule_node_group(leaf, isl_id_read_from_str(ctx, "t"));
+}
+
+void codegen(isl_ctx *ctx, isl_schedule *schedule) {
+  isl_ast_build *build;
+  isl_ast_node *ast;
+  build = isl_ast_build_alloc(ctx);
+  assert(build != NULL);
+  ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
+  printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
+  isl_ast_node_free(ast);
+  isl_ast_build_free(build);
 }
 
 int main(int argc, char *argv[]) {
