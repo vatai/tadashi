@@ -1,0 +1,1 @@
+extension: "{ [i0, i1, i2] -> New_Domain_Element[i0, i1, i2] : 0 <= i0 <= 1055 and 0 <= i1 <= 1055 and 0 <= i2 <= 1023 }"
