@@ -42,3 +42,6 @@ add_executable(tree_manipulation src/tree_manipulation.c)
 target_link_libraries(tree_manipulation PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(goodbadtest src/goodbadtest.c)
+
+add_executable(astgen src/astgen.c)
+target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
