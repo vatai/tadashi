@@ -33,8 +33,10 @@
 
 #include <isl/aff.h>
 #include <isl/arg.h>
+#include <isl/ast.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
+#include <isl/map.h>
 #include <isl/options.h>
 #include <isl/printer.h>
 #include <isl/val.h>
@@ -281,9 +283,12 @@ static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
   isl_pw_multi_aff *reverse;
   isl_id_to_ast_expr *ref2expr;
 
+  printf(">>> at_domain(node = %s, build, user)\n",
+         isl_ast_node_to_C_str(node));
   stmt = node_stmt(node, id2stmt);
 
   schedule = isl_map_from_union_map(isl_ast_build_get_schedule(build));
+  printf("schedule: %s\n", isl_map_to_str(schedule));
   reverse = isl_pw_multi_aff_from_map(isl_map_reverse(schedule));
   printf("reverse: %s\n", isl_pw_multi_aff_to_str(reverse));
   ref2expr = pet_stmt_build_ast_exprs(stmt, build, &pullback_index, reverse,
@@ -292,6 +297,7 @@ static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
 
   id = isl_id_alloc(isl_ast_node_get_ctx(node), NULL, ref2expr);
   id = isl_id_set_free_user(id, &free_isl_id_to_ast_expr);
+  printf(">>> at_domain(): id: %s\n", isl_id_to_str(id));
   node = isl_ast_node_set_annotation(node, id);
   return node;
 }
