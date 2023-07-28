@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <isl/ast.h>
+#include <isl/schedule_node.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -130,23 +131,21 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  isl_union_map *dependencies = get_dependencies(scop);
   if (options->schedule) {
+    isl_union_map *dependencies = get_dependencies(scop);
     isl_bool legal = check_legality(ctx, options->schedule, dependencies);
     print_legality(options->schedule, legal);
     codegen(ctx, options->schedule);
+    isl_union_map_free(dependencies);
   } else {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
-    isl_union_map *schedule_map = isl_schedule_get_map(schedule);
+    isl_schedule_node *root = isl_schedule_get_root(schedule);
+    printf("%s\n", isl_schedule_node_to_str(root));
+    isl_schedule_node_free(root);
     isl_schedule_free(schedule);
-    printf("Dependencies: %s\n", isl_union_map_to_str(dependencies));
-    printf("Schedule: %s\n", isl_union_map_to_str(schedule_map));
-    isl_union_map_free(schedule_map);
-    isl_union_map_free(dependencies);
   }
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
-  printf("DONE!\n");
   return 0;
 }
