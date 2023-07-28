@@ -100,17 +100,9 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_bool check_schedule_legality(isl_ctx *ctx, char *schedule_yaml,
+isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
-  FILE *file;
-  isl_schedule *schedule;
-  isl_union_map *schedule_map;
-  file = fopen(schedule_yaml, "r");
-  schedule = isl_schedule_read_from_file(ctx, file);
-  fclose(file);
-  schedule_map = isl_schedule_get_map(schedule);
-  isl_schedule_free(schedule);
-  return check_legality(ctx, schedule_map, dep);
+  return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
 void codegen(isl_ctx *ctx, char *schedule_str) {
@@ -130,7 +122,7 @@ int main(int argc, char *argv[]) {
   int return_value = 0;
   struct options *options = options_new_with_defaults();
   options_parse(options, argc, argv, ISL_ARG_ALL);
-  isl_ctx *ctx = isl_ctx_alloc_with_pet_options(&options_args, options);
+  isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
 
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, options->source_file, 0);
   if (!scop) {
@@ -141,14 +133,16 @@ int main(int argc, char *argv[]) {
 
   if (options->schedule) {
     isl_union_map *dependencies = get_dependencies(scop);
-    // isl_bool legal = check_legality(ctx, options->schedule, dependencies);
-    if (check_schedule_legality(ctx, options->schedule, dependencies)) {
+    FILE *file = fopen(options->schedule, "r");
+    isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
+    fclose(file);
+    if (check_schedule_legality(ctx, schedule, dependencies)) {
       codegen(ctx, options->schedule);
     } else {
       printf("The schedule is not correct!\n");
       return_value = -1;
     }
-    isl_union_map_free(dependencies);
+    isl_schedule_free(schedule);
   } else {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
     isl_schedule_node *root = isl_schedule_get_root(schedule);
@@ -159,5 +153,6 @@ int main(int argc, char *argv[]) {
 
   pet_scop_free(scop);
   isl_ctx_free(ctx);
+  printf("done\n");
   return return_value;
 }
