@@ -2,23 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void init(double *data, size_t M, size_t N) {
-  for (size_t i = 0; i < M * N; i++) {
-    data[i] = rand();
-  }
-}
-
-void print_matrix(double *data, size_t M, size_t N) {
-
-  for (size_t i = 0; i < M; i++) {
-    for (size_t j = 1; j < N - 1; j++) {
-      size_t idx = i * M + j;
-      printf("%15.2lf ", data[idx]);
-    }
-    printf("\n");
-  }
-}
-
 void f(double *data, size_t M, size_t N) {
   // first scop: horizontal stencil
   for (size_t i = 0; i < M; i++) {
@@ -29,14 +12,15 @@ void f(double *data, size_t M, size_t N) {
   }
 
   // non-scop part;
-  for (size_t t = 0; t < M * N; t++) {
-    int r = rand();
+  int r = min(rand(), M * N);
+  for (size_t t = 1; t < r; t++) {
+    // int r = rand();
     if (r == 0) {
       data[t] = 0;
     } else if (r % 2 == 0) {
-      data[t] = -data[t];
+      data[t] += -data[t];
     } else {
-      data[t] = 2 * data[t];
+      data[t] += 2 * data[t];
     }
   }
 
@@ -58,6 +42,23 @@ void g(double *data, size_t M, size_t N) {
                    data[idx + M]) /
                   5;
     }
+  }
+}
+
+void init(double *data, size_t M, size_t N) {
+  for (size_t i = 0; i < M * N; i++) {
+    data[i] = rand();
+  }
+}
+
+void print_matrix(double *data, size_t M, size_t N) {
+
+  for (size_t i = 0; i < M; i++) {
+    for (size_t j = 1; j < N - 1; j++) {
+      size_t idx = i * M + j;
+      printf("%15.2lf ", data[idx]);
+    }
+    printf("\n");
   }
 }
 
