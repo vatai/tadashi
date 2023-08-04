@@ -4,7 +4,7 @@ Build instructions:
 
 ```
 git clone --recursive https://github.com/vatai/polyhedral-tutor.git
-cd polyhedral-tutor/src/pet
+cd polyhedral-tutor/deps/build/pet
 ./autogen.sh && ./configure && make -j
 cd ../..
 mkdir build
