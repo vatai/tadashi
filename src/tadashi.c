@@ -437,7 +437,15 @@ int main(int argc, char *argv[]) {
   FILE *output = stdout;
   isl_printer *p = isl_printer_to_file(ctx, stdout);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, input, "f");
-  pet_transform_C_source(ctx, input, output, transform, NULL);
+  if (scop) {
+    printf("Helooo\n");
+    isl_schedule *sched = pet_scop_get_schedule(scop);
+    // printf("%s\n", isl_schedule_to_str(sched));
+    isl_schedule_node *root = isl_schedule_get_root(sched);
+    printf("%s\n", isl_schedule_node_to_str(root));
+  }
+  // pet_transform_C_source(ctx, input, output, transform, NULL);
+  isl_ctx_free(ctx);
   printf("%s Done\n", argv[0]);
   return 0;
 }
