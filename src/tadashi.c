@@ -247,21 +247,16 @@ static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
   isl_pw_multi_aff *reverse;
   isl_id_to_ast_expr *ref2expr;
 
-  printf(">>> at_domain(node = %s, build, user)\n",
-         isl_ast_node_to_C_str(node));
   stmt = node_stmt(node, id2stmt);
 
   schedule = isl_map_from_union_map(isl_ast_build_get_schedule(build));
-  printf("schedule: %s\n", isl_map_to_str(schedule));
   reverse = isl_pw_multi_aff_from_map(isl_map_reverse(schedule));
-  printf("reverse: %s\n", isl_pw_multi_aff_to_str(reverse));
   ref2expr = pet_stmt_build_ast_exprs(stmt, build, &pullback_index, reverse,
                                       NULL, NULL);
   isl_pw_multi_aff_free(reverse);
 
   id = isl_id_alloc(isl_ast_node_get_ctx(node), NULL, ref2expr);
   id = isl_id_set_free_user(id, &free_isl_id_to_ast_expr);
-  printf(">>> at_domain(): id: %s\n", isl_id_to_str(id));
   node = isl_ast_node_set_annotation(node, id);
   return node;
 }
@@ -388,16 +383,9 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   if (!scop || !p)
     return isl_printer_free(p);
 
-  printf("n_array: %d", scop->n_array);
-  for (int i = 0; i < scop->n_array; ++i) {
-    printf(":%d", scop->arrays[i]->exposed);
-  }
-  printf("\n");
-
   ctx = isl_printer_get_ctx(p);
   schedule = isl_schedule_copy(scop->schedule);
   id2stmt = set_up_id2stmt(scop);
-  isl_id_to_id_dump(id2stmt);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
   node = isl_ast_build_node_from_schedule(build, schedule);
@@ -415,37 +403,32 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
 
   return p;
 }
-// isl_printer *transform(isl_printer *p, pet_scop *scop, void *usr) {
-// isl_schedule *schedule = pet_scop_get_schedule(scop);
-// isl_schedule_node *root = isl_schedule_get_root(schedule);
-// p = isl_printer_start_line(p);
-// p = isl_printer_print_str(p, "!!!!!!!!!!! SCOP begin !!!!!!!!!!!");
-// p = isl_printer_end_line(p);
-// printf("%s \n", isl_schedule_node_to_str(root));
-// // p = isl_printer_print_schedule_node(p, root);
-// p = isl_printer_start_line(p);
-// p = isl_printer_print_str(p, "!!!!!!!!!!! SCOP end !!!!!!!!!!!");
-// p = isl_printer_end_line(p);
-// return p;
-// }
 
+/* This is an example application that uses pet to parse a C file and
+ * prints out the code generated from the extracted polyhedral model
+ * without any transformation.
+ *
+ * First set some default options
+ * - only print required macro definitions once
+ * - encapsulate dynamic control into the extracted statements
+ *
+ * Then transform the specified input file, transforming
+ * each scop using the dummy transform() function and
+ * writing the result to stdout.
+ */
 int main(int argc, char *argv[]) {
-  struct options *options = options_new_with_defaults();
-  isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
-  isl_args_parse(&options_args, argc, argv, options, ISL_ARG_ALL);
+  isl_ctx *ctx;
+  struct options *options;
+  int r;
+  options = options_new_with_defaults();
+  ctx = isl_ctx_alloc_with_options(&options_args, options);
+  isl_options_set_ast_print_macro_once(ctx, 1);
+  pet_options_set_encapsulate_dynamic_control(ctx, 1);
+  // pet_options_set_autodetect(ctx, 1);
+  argc = options_parse(options, argc, argv, ISL_ARG_ALL);
   char *input = "../examples/many.c";
-  FILE *output = stdout;
-  isl_printer *p = isl_printer_to_file(ctx, stdout);
-  pet_scop *scop = pet_scop_extract_from_C_source(ctx, input, "f");
-  if (scop) {
-    // printf("Helooo\n");
-    // isl_schedule *sched = pet_scop_get_schedule(scop);
-    // isl_schedule_node *root = isl_schedule_get_root(sched);
-    // printf("%s\n", isl_schedule_node_to_str(root));
-    transform(p, scop, NULL);
-  }
-  // pet_transform_C_source(ctx, input, output, transform, NULL);
+  r = pet_transform_C_source(ctx, input, stdout, &transform, NULL);
   isl_ctx_free(ctx);
   printf("%s Done\n", argv[0]);
-  return 0;
+  return r;
 }
