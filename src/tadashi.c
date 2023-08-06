@@ -56,14 +56,16 @@
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
-  char *schedule;
+  // char *schedule;
   char *source_file;
-  unsigned tree;
+  // unsigned tree;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
+ISL_ARG_STR(struct options, source_file, 's', "source_file", "source file",
+            "../examples/many.c", "Source file")
 ISL_ARGS_END
 ISL_ARG_DEF(options, struct options, options_args)
 
@@ -433,10 +435,13 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+  p = print_str_on_line(p, "!!! BEGIN SCOP !!!");
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
+  p = print_str_on_line(p, "!!! END SCOP !!!");
+  p = isl_printer_print_schedule_node(p, isl_schedule_get_root(schedule));
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
@@ -467,8 +472,8 @@ int main(int argc, char *argv[]) {
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   // pet_options_set_autodetect(ctx, 1);
   argc = options_parse(options, argc, argv, ISL_ARG_ALL);
-  char *input = "../examples/many.c";
-  r = pet_transform_C_source(ctx, input, stdout, &transform, NULL);
+  r = pet_transform_C_source(ctx, options->source_file, stdout, &transform,
+                             NULL);
   isl_ctx_free(ctx);
   printf("%s Done\n", argv[0]);
   return r;
