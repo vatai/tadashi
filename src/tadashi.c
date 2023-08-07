@@ -470,7 +470,7 @@ int main(int argc, char *argv[]) {
   ctx = isl_ctx_alloc_with_options(&options_args, options);
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  // pet_options_set_autodetect(ctx, 1);
+  pet_options_set_autodetect(ctx, 1);
   argc = options_parse(options, argc, argv, ISL_ARG_ALL);
   r = pet_transform_C_source(ctx, options->source_file, stdout, &transform,
                              NULL);
