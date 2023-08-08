@@ -63,6 +63,15 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
+__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
 __isl_give isl_union_set *
 get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   isl_set *delta_set;
@@ -72,15 +81,6 @@ get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
   isl_set_free(delta_set);
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
-}
-
-__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
-  isl_union_map *dep;
-  isl_union_flow *flow;
-  flow = get_flow_from_scop(scop);
-  dep = isl_union_flow_get_may_dependence(flow);
-  isl_union_flow_free(flow);
-  return dep;
 }
 
 isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
