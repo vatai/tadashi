@@ -105,17 +105,6 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-void codegen(isl_ctx *ctx, isl_schedule *schedule) {
-  isl_ast_build *build;
-  isl_ast_node *ast;
-  build = isl_ast_build_alloc(ctx);
-  // assert(build != NULL);
-  // ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
-  // printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
-  // isl_ast_node_free(ast);
-  isl_ast_build_free(build);
-}
-
 int main(int argc, char *argv[]) {
   int return_value = 0;
   struct options *options = options_new_with_defaults();
@@ -135,7 +124,7 @@ int main(int argc, char *argv[]) {
     isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
     fclose(file);
     if (check_schedule_legality(ctx, schedule, dependencies)) {
-      codegen(ctx, schedule);
+      printf("The schedule is legal!\n");
     } else {
       printf("The schedule is not correct!\n");
       return_value = -1;
