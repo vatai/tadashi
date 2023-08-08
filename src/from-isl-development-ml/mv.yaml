@@ -1,0 +1,23 @@
+root : # YOU ARE HERE
+domain: "[N] -> { S_1[i] : 0 <= i < N; S_0[i] : 0 < i < N }"
+child:
+  sequence:
+  - filter: "[N] -> { S_0[i] }"
+    child:
+      schedule: "[N] -> L_0[{ S_0[i] -> [(i)] }]"
+  - filter: "[N] -> { S_1[i] }"
+    child:
+      schedule: "[N] -> L_1[{ S_1[i] -> [(i)] }]"
+
+root : # YOU ARE HERE
+domain: "[N] -> { S_1[i] : 0 <= i < N; S_0[i] : 0 < i < N }"
+child:
+  sequence:
+  - filter: "[N] -> { S_0[i] }"
+    child:
+      schedule: "[N] -> L_0[{ S_0[i] -> [(floor((i0)/32))] }]"
+      child:
+          schedule: "[{ Stmt_12[i0, i1] -> [(i0 - 32*floor((i0)/32))] },
+  - filter: "[N] -> { S_1[i] }"
+    child:
+      schedule: "[N] -> L_1[{ S_1[i] -> [(i)] }]"

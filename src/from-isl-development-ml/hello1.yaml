@@ -1,0 +1,19 @@
+root : # YOU ARE HERE
+domain: "[n] -> { S_1[i, j] : 0 <= i <= n and 0 <= j <= n; S_3[]; S_0[i] : 0 <= i <= n; S_2[]; S_4[] }"
+child:
+  sequence:
+  - filter: "[n] -> { S_1[i, j]; S_0[i] }"
+    child:
+      schedule: "[n] -> L_0[{ S_1[i, j] -> [(i)]; S_0[i] -> [(i)] }]"
+      child:
+        sequence:
+        - filter: "[n] -> { S_0[i] }"
+        - filter: "[n] -> { S_1[i, j] }"
+          child:
+            schedule: "[n] -> L_1[{ S_1[i, j] -> [(j)] }]"
+  - filter: "[n] -> { S_3[]; S_2[]; S_4[] }"
+    child:
+      set:
+      - filter: "{ S_2[] }"
+      - filter: "{ S_3[] }"
+      - filter: "{ S_4[] }"

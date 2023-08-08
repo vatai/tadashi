@@ -1,0 +1,9 @@
+domain: "[N, K, M] -> { S_4[i, j, k] : 0 <= i < M and 0 <= j < N and 0 <= k < K; S_2[i, j] : 0 <= i < M and 0 <= j < N }"
+child:
+  schedule: "[N, K, M] -> [{ S_2[i, j] -> [(i)]; S_4[i, j, k] -> [(i)] }, { S_2[i, j] -> [(j)]; S_4[i, j, k] -> [(j)] }, { S_2[i, j] -> [(0)]; S_4[i, j, k] -> [(k)] }]"
+  permutable: 1
+  coincident: [ 1, 1, 1 ]
+  child:
+    sequence:
+    - filter: "[N, K, M] -> { S_2[i, j] }"
+    - filter: "[N, K, M] -> { S_4[i, j, k] }"
