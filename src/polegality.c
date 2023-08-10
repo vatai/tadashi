@@ -104,47 +104,67 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
+
 isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
   // printf(">>> callback Node: %s\n", isl_schedule_node_to_str(node));
+  isl_union_map *deps = (isl_union_map *)user;
   enum isl_schedule_node_type type;
   type = isl_schedule_node_get_type(node);
   switch (type) {
-  case isl_schedule_node_band:
-    printf("type: band\n");
+  case isl_schedule_node_band: {
     isl_multi_union_pw_aff *mupa;
+    isl_union_map *map;
     mupa = isl_schedule_node_band_get_partial_schedule(node);
-    printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-    break;
-  case isl_schedule_node_context:
+    map = isl_schedule_node_band_get_partial_schedule_union_map(node);
+    // printf("type: band\n");
+    printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    isl_multi_union_pw_aff_free(mupa);
+    isl_union_map_free(map);
+  } break;
+  case isl_schedule_node_context: {
+    isl_set *set;
+    set = isl_schedule_node_context_get_context(node);
     printf("type: context\n");
-    break;
-  case isl_schedule_node_domain:
-    printf("type: domain\n");
+    printf("context set: %s\n", isl_set_to_str(set));
+    isl_set_free(set);
+  } break;
+  case isl_schedule_node_domain: {
     isl_union_set *domain;
     domain = isl_schedule_node_domain_get_domain(node);
+    printf("type: domain\n");
     printf("domain: %s\n", isl_union_set_to_str(domain));
-    break;
-  case isl_schedule_node_expansion:
+    isl_union_set_free(domain);
+  } break;
+  case isl_schedule_node_expansion: {
+    // TODO(vatai): what are expansions/contractions
     printf("type: expansion\n");
-    break;
-  case isl_schedule_node_extension:
+  } break;
+  case isl_schedule_node_extension: {
     printf("type: extension\n");
-    break;
-  case isl_schedule_node_filter:
-    printf("type: filter\n");
-    break;
-  case isl_schedule_node_leaf:
-    printf("type: leaf\n");
-    break;
+  } break;
+  case isl_schedule_node_filter: {
+    isl_union_set *filter;
+    filter = isl_schedule_node_filter_get_filter(node);
+    // printf("type: filter\n");
+    printf("filter: %s\n", isl_union_set_to_str(filter));
+    isl_union_set_free(filter);
+  } break;
+  case isl_schedule_node_leaf: {
+    // printf("type: leaf\n");
+  } break;
   case isl_schedule_node_guard:
     printf("type: guard\n");
     break;
   case isl_schedule_node_mark:
     printf("type: mark\n");
     break;
-  case isl_schedule_node_sequence:
+  case isl_schedule_node_sequence: {
+    isl_schedule_node *children;
+    isl_schedule_node_sequence_splice_children(node);
     printf("type: sequence\n");
-    break;
+    // printf("seq chldrn: %s\n", isl_schedule_node_to_str(children));
+    // isl_schedule_node_free(children);
+  } break;
   case isl_schedule_node_set:
     printf("type: set\n");
     break;
@@ -183,7 +203,21 @@ int main(int argc, char *argv[]) {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
     isl_schedule_node *root = isl_schedule_get_root(schedule);
     isl_stat rv;
-    rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, NULL);
+    isl_union_map *deps = get_dependencies(scop);
+    isl_id *id = isl_union_map_get_dim_id(deps, isl_dim_param, 0);
+    isl_map_list *list = isl_union_map_get_map_list(deps);
+    printf("id: %s\n", isl_id_to_str(id));
+    size_t size = isl_map_list_size(list);
+    for (size_t i = 0; i < size; ++i) {
+      isl_map *map = isl_map_list_get_at(list, i);
+      printf("map[%d]: %s\n", i, isl_map_to_str(map));
+      isl_map_free(map);
+    }
+    isl_map_list_free(list);
+    isl_id_free(id);
+    rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, deps);
+    printf("deps: %s\n", isl_union_map_to_str(deps));
+    isl_union_map_free(deps);
     printf("top-down result: %i\n", rv);
     printf("%s\n", isl_schedule_node_to_str(root));
     isl_schedule_node_free(root);
