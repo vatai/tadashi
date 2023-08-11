@@ -33,7 +33,13 @@
  * implied, of Sven Verdoolaege.
  */
 
+/*
+ * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
+ * reserved.  Date: 2023-08-04
+ */
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isl/arg.h>
 #include <isl/ctx.h>
@@ -382,6 +388,19 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
+/*
+ * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
+ * reserved.  Date: 2023-08-04
+ */
+
+#define MAX_PATH_LEN 1024
+struct transform_args {
+  char *input_source_file;
+  char output_file_name[MAX_PATH_LEN];
+  size_t counter;
+  isl_union_map *dependencies;
+};
+
 /* This function is called for each each scop detected in the input file and
  * is expected to write (a transformed version of) the scop "scop"
  * to the printer "p".
@@ -421,6 +440,8 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   isl_ast_node *node;
   isl_ast_print_options *print_options;
   isl_id_to_id *id2stmt;
+  char buffer[80];
+  struct transform_args *yaml_struct = user;
 
   if (!scop || !p)
     return isl_printer_free(p);
@@ -434,12 +455,18 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
-  p = print_str_on_line(p, "// !!! BEGIN SCOP !!!");
+
+  sprintf(buffer, "// !!! BEGIN SCOP %d !!!", yaml_struct->counter);
+  p = print_str_on_line(p, buffer);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
-  p = print_str_on_line(p, "// !!! END SCOP !!!");
+  sprintf(buffer, "// !!! END SCOP %d !!!", yaml_struct->counter);
+  p = print_str_on_line(p, buffer);
+
+  ++(yaml_struct->counter);
+
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
@@ -448,10 +475,76 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   return p;
 }
 
-/*
- * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
- * reserved.  Date: 2023-08-04
+void update_filename(struct transform_args *args) {
+  int rv;
+  rv = sprintf(args->output_file_name, "%s.%lu.yaml", args->input_source_file,
+               args->counter);
+  if (rv < 0 || rv >= MAX_PATH_LEN) {
+    fprintf(stderr, "UserError: source file (path) is too long!\n");
+    exit(2);
+  }
+}
+
+/* NEED TO REWRITE THIS: This function is called for each each scop detected
+ * in the input file and is expected to write (a transformed version of) the
+ * scop "scop" to the printer "p". "user" is the value passed to
+ * pet_transform_C_source.
+ *
+ * This particular callback does not perform any transformation and
+ * simply prints out the original scop.
+ * "user" is set to NULL.
+ *
+ * First build a map from statement names to the corresponding statements.
+ * This will be used to recover the statements from their names
+ * in at_domain() and print_user().
+ *
+ * Then create an isl_ast_build that will be used to build all AST nodes and
+ * expressions.  Set a callback that will be called
+ * by isl_ast_build_node_from_schedule for each leaf node.
+ * This callback takes care of creating AST expressions
+ * for all accesses in the corresponding statement and attaches
+ * them to the node.
+ *
+ * Generate an AST using the original schedule and print it
+ * using print_user() for printing statement bodies.
+ *
+ * Before printing the AST itself, print out the declarations
+ * of any variables that are declared inside the scop, as well as
+ * the definitions of any macros that are used in the generated AST or
+ * any of the generated AST expressions.
+ * Finally, close any scope that may have been opened
+ * to print variable declarations.
  */
+static __isl_give isl_printer *
+dump_schedules(__isl_take isl_printer *p, struct pet_scop *scop, void *user) {
+  isl_ctx *ctx;
+  isl_schedule *schedule;
+  isl_schedule_node *node;
+  FILE *file;
+  isl_printer *fp;
+  struct transform_args *args;
+
+  args = user;
+  if (!scop || !p)
+    return isl_printer_free(p);
+  ctx = isl_printer_get_ctx(p);
+
+  update_filename(args);
+  file = fopen(args->output_file_name, "w");
+  fp = isl_printer_to_file(ctx, file);
+
+  node = isl_schedule_get_root(scop->schedule);
+  fp = isl_printer_print_schedule_node(fp, node);
+  printf("Written: %s\n", args->output_file_name);
+
+  isl_printer_free(fp);
+  fclose(file);
+  isl_schedule_node_free(node);
+  pet_scop_free(scop);
+
+  ++(args->counter);
+  return p;
+}
 
 __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
@@ -517,11 +610,10 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
 }
 
 int generate_yaml_files_with_original_schedules(isl_ctx *ctx, char *path) {
-  return pet_transform_C_source(ctx, path, stdout, &transform, NULL);
+  return pet_transform_C_source(ctx, path, stdout, &dump_schedules, NULL);
 }
 
 int apply_transformations_in_yaml_fils(isl_ctx *ctx, char *path) {
-
   return pet_transform_C_source(ctx, path, stdout, &transform, NULL);
 }
 
@@ -545,12 +637,19 @@ int main(int argc, char *argv[]) {
         argv[0]);
     return 1;
   }
+
   // if (!opt->schedule)
   // r = generate_yaml_files_with_original_schedules(ctx, opt->source_file);
   // else
   // r = apply_transformations_in_yaml_fils(ctx, opt->source_file);
 
-  r = pet_transform_C_source(ctx, opt->source_file, stdout, &transform, NULL);
+  struct transform_args yaml_struct = {.counter = 0,
+                                       .input_source_file = opt->source_file};
+  FILE *dev_null = fopen("/dev/null", "w");
+  r = pet_transform_C_source(ctx, opt->source_file, dev_null, &dump_schedules,
+                             &yaml_struct);
+  fclose(dev_null);
+  printf("Number of scops: %d\n", yaml_struct.counter);
   isl_ctx_free(ctx);
   printf("%s Done\n", argv[0]);
   return r;
