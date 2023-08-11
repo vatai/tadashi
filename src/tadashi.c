@@ -33,15 +33,11 @@
  * implied, of Sven Verdoolaege.
  */
 
-/*
- * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
- * reserved.  Date: 2023-08-04
- */
-
 #include <stdio.h>
 
 #include <isl/arg.h>
 #include <isl/ctx.h>
+#include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
 #include <isl/map.h>
@@ -50,22 +46,25 @@
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/set.h>
+#include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
 
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
-  // char *schedule;
   char *source_file;
+  char *schedule;
   // unsigned tree;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
-ISL_ARG_STR(struct options, source_file, 's', "source_file", "source file",
-            "../examples/many.c", "Source file")
+ISL_ARG_ARG(struct options, source_file, "source file", NULL)
+ISL_ARG_STR(struct options, schedule, 's', "schedule", "schedule", NULL,
+            "schedule")
 ISL_ARGS_END
 ISL_ARG_DEF(options, struct options, options_args)
 
@@ -435,13 +434,12 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
-  p = print_str_on_line(p, "!!! BEGIN SCOP !!!");
+  p = print_str_on_line(p, "// !!! BEGIN SCOP !!!");
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
-  p = print_str_on_line(p, "!!! END SCOP !!!");
-  p = isl_printer_print_schedule_node(p, isl_schedule_get_root(schedule));
+  p = print_str_on_line(p, "// !!! END SCOP !!!");
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
@@ -450,30 +448,109 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   return p;
 }
 
-/* This is an example application that uses pet to parse a C file and
- * prints out the code generated from the extracted polyhedral model
- * without any transformation.
- *
- * First set some default options
- * - only print required macro definitions once
- * - encapsulate dynamic control into the extracted statements
- *
- * Then transform the specified input file, transforming
- * each scop using the dummy transform() function and
- * writing the result to stdout.
+/*
+ * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
+ * reserved.  Date: 2023-08-04
  */
+
+__isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
+  isl_union_map *sink, *may_source, *must_source;
+  isl_union_access_info *access;
+  isl_schedule *schedule;
+  isl_union_flow *flow;
+  sink = pet_scop_get_may_reads(scop);
+  access = isl_union_access_info_from_sink(sink);
+
+  may_source = pet_scop_get_may_writes(scop);
+  access = isl_union_access_info_set_may_source(access, may_source);
+
+  must_source = pet_scop_get_must_writes(scop);
+  access = isl_union_access_info_set_must_source(access, must_source);
+
+  schedule = pet_scop_get_schedule(scop);
+  access = isl_union_access_info_set_schedule(access, schedule);
+
+  flow = isl_union_access_info_compute_flow(access);
+  return flow;
+}
+
+__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
+__isl_give isl_union_set *
+get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
+  isl_set *delta_set;
+  isl_multi_aff *ma;
+
+  delta_set = isl_set_from_union_set(delta_uset);
+  ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
+  isl_set_free(delta_set);
+  return isl_union_set_from_set(isl_set_from_multi_aff(ma));
+}
+
+isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
+                        __isl_take isl_union_map *dep) {
+  isl_union_map *domain, *le;
+  isl_union_set *delta, *zeros;
+
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
+  domain = isl_union_map_apply_range(domain, schedule_map);
+  delta = isl_union_map_deltas(domain);
+
+  zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
+
+  le = isl_union_set_lex_le_union_set(delta, zeros);
+  isl_bool retval = isl_union_map_is_empty(le);
+  isl_union_map_free(le);
+  return retval;
+}
+
+isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
+                                 __isl_take isl_union_map *dep) {
+  return check_legality(ctx, isl_schedule_get_map(schedule), dep);
+}
+
+int generate_yaml_files_with_original_schedules(isl_ctx *ctx, char *path) {
+  return pet_transform_C_source(ctx, path, stdout, &transform, NULL);
+}
+
+int apply_transformations_in_yaml_fils(isl_ctx *ctx, char *path) {
+
+  return pet_transform_C_source(ctx, path, stdout, &transform, NULL);
+}
+
 int main(int argc, char *argv[]) {
   isl_ctx *ctx;
-  struct options *options;
+  struct options *opt;
   int r;
-  options = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, options);
+
+  opt = options_new_with_defaults();
+  ctx = isl_ctx_alloc_with_options(&options_args, opt);
+  argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
+
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   pet_options_set_autodetect(ctx, 1);
-  argc = options_parse(options, argc, argv, ISL_ARG_ALL);
-  r = pet_transform_C_source(ctx, options->source_file, stdout, &transform,
-                             NULL);
+
+  if (!opt->source_file) {
+    fprintf(
+        stderr,
+        "UserError: Source file not specified (see %s --help for details)\n",
+        argv[0]);
+    return 1;
+  }
+  // if (!opt->schedule)
+  // r = generate_yaml_files_with_original_schedules(ctx, opt->source_file);
+  // else
+  // r = apply_transformations_in_yaml_fils(ctx, opt->source_file);
+
+  r = pet_transform_C_source(ctx, opt->source_file, stdout, &transform, NULL);
   isl_ctx_free(ctx);
   printf("%s Done\n", argv[0]);
   return r;
