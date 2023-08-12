@@ -11,6 +11,7 @@
 #include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 
 #include <pet.h>
 
@@ -123,7 +124,7 @@ void depanalysis(pet_scop *scop) {
 int main(int argc, char *argv[]) {
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
-  char *fn = argc > 1 ? argv[1] : filename;
+  const char *fn = argc > 1 ? argv[1] : filename;
   printf("Parsing: %s\n", fn);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, fn, "f");
   if (!scop) {

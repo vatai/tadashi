@@ -7,6 +7,7 @@
 #include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 
 void param_space(isl_ctx *ctx) {
   unsigned int nparam = 3, n_in = 0, n_out = 0;
