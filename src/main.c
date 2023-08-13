@@ -9,7 +9,7 @@
 
 #include <pet.h>
 
-const char filename[] = "../src/hello.c";
+const char filename[] = "../examples/hello.c";
 
 struct options {
   struct isl_options *isl;

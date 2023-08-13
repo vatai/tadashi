@@ -100,10 +100,12 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
+
 isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
+
 
 void codegen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
@@ -123,6 +125,7 @@ int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
 
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, options->source_file, 0);
+  
   if (!scop) {
     printf("No scop found!\n");
     isl_ctx_free(ctx);
@@ -130,11 +133,14 @@ int main(int argc, char *argv[]) {
   }
 
   if (options->schedule) {
+    
     isl_union_map *dependencies = get_dependencies(scop);
+    printf("The schedule:\n");
     FILE *file = fopen(options->schedule, "r");
     isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
     fclose(file);
     if (check_schedule_legality(ctx, schedule, dependencies)) {
+      printf("The schedule is legal\n");
       codegen(ctx, schedule);
     } else {
       printf("The schedule is not correct!\n");

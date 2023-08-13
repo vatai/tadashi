@@ -1,16 +1,13 @@
+# domain: "[N, K, M] -> { S_4[i, j, k] : 0 <= i < M and 0 <= j < N and 0 <= k < K; S_2[i, j] : 0 <= i < M and 0 <= j < N }"
+# child:
+#   context: "[N, K, M] -> { [] : 0 <= N <= 2147483647 and 0 <= K <= 2147483647 and -2147483648 <= M <= 2147483647 and (M <= 0 or M > 0) }"
+#   child:
+#     schedule: "[N, K, M] -> [{ S_2[i, j] -> [(i - (i) mod 32)]; S_4[i, j, k] -> [(i - (i) mod 32)] }, { S_2[i, j] -> [(j - (j) mod 32)]; S_4[i, j, k] -> [(j - (j) mod 32)] }, { S_2[i, j] -> [(0)]; S_4[i, j, k] -> [(k - (k) mod 32)] }]"
+#     child:
+#       schedule: "[N, K, M] -> [{ S_2[i, j] -> [((i) mod 32)]; S_4[i, j, k] -> [((i) mod 32)] }, { S_2[i, j] -> [((j) mod 32)]; S_4[i, j, k] -> [((j) mod 32)] }, { S_2[i, j] -> [(0)]; S_4[i, j, k] -> [((k) mod 32)] }]"
+
 domain: "[N, K, M] -> { S_4[i, j, k] : 0 <= i < M and 0 <= j < N and 0 <= k < K; S_2[i, j] : 0 <= i < M and 0 <= j < N }"
-child:
-  context: "[N, K, M] -> { [] : 0 <= N <= 2147483647 and 0 <= K <= 2147483647 and -2147483648 <= M <= 2147483647 and (M <= 0 or M > 0) }"
   child:
     schedule: "[N, K, M] -> [{ S_2[i, j] -> [(i - (i) mod 32)]; S_4[i, j, k] -> [(i - (i) mod 32)] }, { S_2[i, j] -> [(j - (j) mod 32)]; S_4[i, j, k] -> [(j - (j) mod 32)] }, { S_2[i, j] -> [(0)]; S_4[i, j, k] -> [(k - (k) mod 32)] }]"
-    permutable: 1
-    coincident: [ 1, 1, 1 ]
-    options: "{ atomic[i0] : 0 <= i0 <= 2 }"
     child:
       schedule: "[N, K, M] -> [{ S_2[i, j] -> [((i) mod 32)]; S_4[i, j, k] -> [((i) mod 32)] }, { S_2[i, j] -> [((j) mod 32)]; S_4[i, j, k] -> [((j) mod 32)] }, { S_2[i, j] -> [(0)]; S_4[i, j, k] -> [((k) mod 32)] }]"
-      permutable: 1
-      coincident: [ 1, 1, 1 ]
-      child:
-        sequence:
-        - filter: "[N, K, M] -> { S_2[i, j] }"
-        - filter: "[N, K, M] -> { S_4[i, j, k] }"

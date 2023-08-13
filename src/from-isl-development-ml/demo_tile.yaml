@@ -1,26 +1,21 @@
-domain: "[N] -> { S_0[i] : 0 < i < N }"
-child:
-  schedule: "[N] -> L_0[{ S_0[i] -> [(i - (i) mod 32)] }]"
-  child:
-      schedule: "[N] -> L_1[{ S_0[i] -> [((i) mod 32)];
-
-# domain: "[M] -> { S_0[i, i0] : (i) mod 32 = 0 and i >= 0 and 0 <= i0 < M - i }"
-# child:
-#   schedule: "[M] -> L_0[{ S_0[i, i0] -> [(i)] }]"
+# domain: "[M] -> { S_0[i] : 0 <= i < M }"
 #   child:
-#     schedule: "[M] -> L_1[{ S_0[i, i0] -> [(i0)] }]"
-
+#     schedule: "[M] -> [{ S_0[i] -> [(i - (i) mod 4)] }]"
+#     child:
+#       schedule: "[M] -> [{ S_0[i] -> [((i) mod 4)] }]"
 
 # domain: "[N, M] -> { S_0[i, j] : 0 <= i < N and 0 <= j < M }"
 # child:
 #   schedule: "[N, M] -> [{ S_0[i, j] -> [(i - (i) mod 32)] }, { S_0[i, j] -> [(j - (j) mod 32)] }]"
 #   child:
-#     schedule: "[N, M] -> [{ S_0[i, j] -> [(((i) mod 32)] }, { S_0[i, j] -> [((j) mod 32)] }]"
+#     schedule: "[N, M] -> [{ S_0[i, j] -> [((i) mod 32)] }, { S_0[i, j] -> [((j) mod 32)] }]"
 
-# domain: "[N, M] -> { S_0[i, j] : 0 <= i < N and 0 <= j < M }"
-# child:
-#   schedule: "[N, M] -> [{ S_0[i, j] -> [(i - (i) mod 8)] }, { S_0[i, j] -> [(j - (j) mod 8)] }]"
-#   child:
-#     schedule: "[N, M] -> [{ S_0[i, j] -> [(i - (i) mod 4)] }, { S_0[i, j] -> [(j - (j) mod 4)] }]"
-#       child:
-#         schedule: "[N, M] -> [{ S_0[i, j] -> [(((i) mod 32)] }, { S_0[i, j] -> [((j) mod 32)] }]"
+domain: "[N, M] -> { S_0[i, j] : 0 <= i < N and 0 <= j < M }"
+child:
+  schedule: "[N, M] -> [{ S_0[i, j] -> [(i - (i) mod 32)] }]"
+    child:
+      schedule: "[N, M] -> [{ S_0[i, j] -> [((-i) mod 32)] }]"
+          child:
+            schedule: "[N, M] -> [{ S_0[i, j] -> [(j - (j) mod 32)] }]"
+              child:
+                schedule: "[N, M] -> [{ S_0[i, j] -> [((j) mod 32)] }]"
