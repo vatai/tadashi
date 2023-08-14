@@ -38,10 +38,13 @@
  * reserved.  Date: 2023-08-04
  */
 
+#include <isl/printer_type.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isl/arg.h>
 #include <isl/ctx.h>
+#include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
 #include <isl/map.h>
@@ -50,20 +53,25 @@
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/set.h>
+#include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
 
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
-  char *schedule;
   char *source_file;
-  unsigned tree;
+  char *schedule;
+  // unsigned tree;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
+ISL_ARG_ARG(struct options, source_file, "source file", NULL)
+ISL_ARG_STR(struct options, schedule, 's', "schedule", "schedule", NULL,
+            "schedule")
 ISL_ARGS_END
 ISL_ARG_DEF(options, struct options, options_args)
 
@@ -381,10 +389,139 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
-/* This function is called for each each scop detected in the input file and
- * is expected to write (a transformed version of) the scop "scop"
- * to the printer "p".
- * "user" is the value passed to pet_transform_C_source.
+/*
+ * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
+ * reserved.  Date: 2023-08-04
+ */
+
+#define MAX_PATH_LEN 1024
+struct transform_args_t {
+  char *input_source_file;
+  char file_name_buffer[MAX_PATH_LEN];
+  size_t counter;
+  isl_union_map *dependencies;
+};
+
+void update_filename(struct transform_args_t *args, const char *ext) {
+  int rv;
+  rv = sprintf(args->file_name_buffer, "%s.%lu.%s.yaml",
+               args->input_source_file, args->counter, ext);
+  if (rv < 0 || rv >= MAX_PATH_LEN) {
+    fprintf(stderr, "UserError: source file (path) is too long!\n");
+    exit(2);
+  }
+}
+
+__isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
+  isl_union_map *sink, *may_source, *must_source;
+  isl_union_access_info *access;
+  isl_schedule *schedule;
+  isl_union_flow *flow;
+  sink = pet_scop_get_may_reads(scop);
+  access = isl_union_access_info_from_sink(sink);
+
+  may_source = pet_scop_get_may_writes(scop);
+  access = isl_union_access_info_set_may_source(access, may_source);
+
+  must_source = pet_scop_get_must_writes(scop);
+  access = isl_union_access_info_set_must_source(access, must_source);
+
+  schedule = pet_scop_get_schedule(scop);
+  access = isl_union_access_info_set_schedule(access, schedule);
+
+  flow = isl_union_access_info_compute_flow(access);
+  return flow;
+}
+
+__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
+__isl_give isl_union_set *
+get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
+  isl_set *delta_set;
+  isl_multi_aff *ma;
+
+  delta_set = isl_set_from_union_set(delta_uset);
+  ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
+  isl_set_free(delta_set);
+  return isl_union_set_from_set(isl_set_from_multi_aff(ma));
+}
+
+isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
+                        __isl_take isl_union_map *dep) {
+  isl_union_map *domain, *le;
+  isl_union_set *delta, *zeros;
+
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
+  domain = isl_union_map_apply_range(domain, schedule_map);
+  delta = isl_union_map_deltas(domain);
+
+  zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
+
+  le = isl_union_set_lex_le_union_set(delta, zeros);
+  isl_bool retval = isl_union_map_is_empty(le);
+  isl_union_map_free(le);
+  return retval;
+}
+
+isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
+                                 __isl_take isl_union_map *dep) {
+  return check_legality(ctx, isl_schedule_get_map(schedule), dep);
+}
+
+void write_original_schedule(isl_ctx *ctx, isl_schedule *schedule,
+                             struct transform_args_t *args) {
+  FILE *orig_file;
+  isl_printer *orig_p;
+  isl_schedule_node *root;
+  update_filename(args, "orig");
+  orig_file = fopen(args->file_name_buffer, "w");
+  orig_p = isl_printer_to_file(ctx, orig_file);
+  root = isl_schedule_get_root(schedule);
+  orig_p = isl_printer_print_schedule_node(orig_p, root);
+  // fprintf(stderr, "Written: %s\n", args->file_name_buffer);
+  isl_printer_free(orig_p);
+  fclose(orig_file);
+  isl_schedule_node_free(root);
+}
+
+isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
+                            FILE *input_schedule_file) {
+  int indent;
+  isl_ast_build *build;
+  isl_ast_node *node;
+  isl_ast_print_options *print_options;
+  isl_id_to_id *id2stmt;
+  isl_schedule *schedule;
+  schedule = isl_schedule_read_from_file(ctx, input_schedule_file);
+
+  id2stmt = set_up_id2stmt(scop);
+  build = isl_ast_build_alloc(ctx);
+  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
+  node = isl_ast_build_node_from_schedule(build, schedule);
+  print_options = isl_ast_print_options_alloc(ctx);
+  print_options =
+      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+  p = print_declarations(p, build, scop, &indent);
+  p = print_macros(p, node);
+  p = isl_ast_node_print(node, p, print_options);
+  p = print_end_declarations(p, indent);
+  isl_ast_node_free(node);
+  isl_ast_build_free(build);
+  isl_id_to_id_free(id2stmt);
+  return p;
+}
+
+/* NEED TO REWRITE THIS: This function is called for each each scop detected
+ * in the input file and is expected to write (a transformed version of) the
+ * scop "scop" to the printer "p". "user" is the value passed to
+ * pet_transform_C_source.
  *
  * This particular callback does not perform any transformation and
  * simply prints out the original scop.
@@ -411,65 +548,70 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * Finally, close any scope that may have been opened
  * to print variable declarations.
  */
-static __isl_give isl_printer *transform(__isl_take isl_printer *p,
-                                         struct pet_scop *scop, void *user) {
-  int indent;
+static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
+                                                     struct pet_scop *scop,
+                                                     void *user) {
   isl_ctx *ctx;
   isl_schedule *schedule;
-  isl_ast_build *build;
-  isl_ast_node *node;
-  isl_ast_print_options *print_options;
-  isl_id_to_id *id2stmt;
+  struct transform_args_t *args;
+  FILE *input_schedule_file;
 
+  args = user;
   if (!scop || !p)
     return isl_printer_free(p);
-
   ctx = isl_printer_get_ctx(p);
-  schedule = isl_schedule_copy(scop->schedule);
-  id2stmt = set_up_id2stmt(scop);
-  build = isl_ast_build_alloc(ctx);
-  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
-  node = isl_ast_build_node_from_schedule(build, schedule);
-  print_options = isl_ast_print_options_alloc(ctx);
-  print_options =
-      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
-  p = print_declarations(p, build, scop, &indent);
-  p = print_macros(p, node);
-  p = isl_ast_node_print(node, p, print_options);
-  p = print_end_declarations(p, indent);
-  isl_ast_node_free(node);
-  isl_ast_build_free(build);
-  isl_id_to_id_free(id2stmt);
-  pet_scop_free(scop);
 
+  write_original_schedule(ctx, scop->schedule, args);
+
+  update_filename(args, "input");
+  input_schedule_file = fopen(args->file_name_buffer, "r");
+  if (input_schedule_file) {
+    p = transform_scop(ctx, p, scop, input_schedule_file);
+    fclose(input_schedule_file);
+  } else {
+    update_filename(args, "orig");
+    printf("\nWritten original schedule to %s\n", args->file_name_buffer);
+    update_filename(args, "input");
+    printf("\n\n// >>> Input file %s NOT FOUND! SCoPs not transformed! <<<\n\n",
+           args->file_name_buffer);
+  }
+
+  pet_scop_free(scop);
+  ++(args->counter);
   return p;
 }
 
-/* This is an example application that uses pet to parse a C file and
- * prints out the code generated from the extracted polyhedral model
- * without any transformation.
- *
- * First set some default options
- * - only print required macro definitions once
- * - encapsulate dynamic control into the extracted statements
- *
- * Then transform the specified input file, transforming
- * each scop using the dummy transform() function and
- * writing the result to stdout.
- */
 int main(int argc, char *argv[]) {
-  isl_ctx *ctx;
-  struct options *options;
   int r;
-  options = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, options);
+  isl_ctx *ctx;
+  struct options *opt;
+  struct transform_args_t tra_args;
+
+  opt = options_new_with_defaults();
+  ctx = isl_ctx_alloc_with_options(&options_args, opt);
+  argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
+
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  // pet_options_set_autodetect(ctx, 1);
-  argc = options_parse(options, argc, argv, ISL_ARG_ALL);
-  char *input = "../examples/many.c";
-  r = pet_transform_C_source(ctx, input, stdout, &transform, NULL);
+  pet_options_set_autodetect(ctx, 1);
+
+  if (!opt->source_file) {
+    fprintf(
+        stderr,
+        "UserError: Source file not specified (see %s --help for details)\n",
+        argv[0]);
+    return 1;
+  }
+
+  tra_args.counter = 0;
+  tra_args.input_source_file = opt->source_file;
+
+  FILE *dev_null = fopen("/dev/null", "w");
+  r = pet_transform_C_source(ctx, opt->source_file, stdout,
+                             &foreach_scop_callback, &tra_args);
+  // fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
+  fclose(dev_null);
   isl_ctx_free(ctx);
-  printf("%s Done\n", argv[0]);
+  // printf("%s Done\n", argv[0]);
   return r;
 }

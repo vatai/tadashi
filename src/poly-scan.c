@@ -12,6 +12,7 @@
 #include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 
 void inspect_spaces(__isl_keep isl_ctx *ctx) {
   printf("--- inspect_spaces(ctx) ---\n\n");

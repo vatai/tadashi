@@ -1,12 +1,10 @@
 #include <assert.h>
-#include <isl/ast.h>
-#include <isl/schedule_node.h>
-#include <isl/union_map_type.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
 #include <isl/aff_type.h>
 #include <isl/arg.h>
+#include <isl/ast.h>
 #include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
@@ -14,11 +12,13 @@
 #include <isl/options.h>
 #include <isl/point.h>
 #include <isl/schedule.h>
+#include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space.h>
 #include <isl/space_type.h>
 #include <isl/union_map.h>
+#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 
@@ -63,6 +63,15 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
+__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
 __isl_give isl_union_set *
 get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   isl_set *delta_set;
@@ -72,15 +81,6 @@ get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
   isl_set_free(delta_set);
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
-}
-
-__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
-  isl_union_map *dep;
-  isl_union_flow *flow;
-  flow = get_flow_from_scop(scop);
-  dep = isl_union_flow_get_may_dependence(flow);
-  isl_union_flow_free(flow);
-  return dep;
 }
 
 isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
@@ -107,15 +107,73 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
 }
 
 
-void codegen(isl_ctx *ctx, isl_schedule *schedule) {
-  isl_ast_build *build;
-  isl_ast_node *ast;
-  build = isl_ast_build_alloc(ctx);
-  // assert(build != NULL);
-  // ast = isl_ast_build_node_from_schedule(build, isl_schedule_copy(schedule));
-  // printf("code:\n%s\n", isl_ast_node_to_C_str(ast));
-  // isl_ast_node_free(ast);
-  isl_ast_build_free(build);
+isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
+  // printf(">>> callback Node: %s\n", isl_schedule_node_to_str(node));
+  isl_union_map *deps = (isl_union_map *)user;
+  enum isl_schedule_node_type type;
+  type = isl_schedule_node_get_type(node);
+  switch (type) {
+  case isl_schedule_node_band: {
+    isl_multi_union_pw_aff *mupa;
+    isl_union_map *map;
+    mupa = isl_schedule_node_band_get_partial_schedule(node);
+    map = isl_schedule_node_band_get_partial_schedule_union_map(node);
+    // printf("type: band\n");
+    printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    isl_multi_union_pw_aff_free(mupa);
+    isl_union_map_free(map);
+  } break;
+  case isl_schedule_node_context: {
+    isl_set *set;
+    set = isl_schedule_node_context_get_context(node);
+    printf("type: context\n");
+    printf("context set: %s\n", isl_set_to_str(set));
+    isl_set_free(set);
+  } break;
+  case isl_schedule_node_domain: {
+    isl_union_set *domain;
+    domain = isl_schedule_node_domain_get_domain(node);
+    printf("type: domain\n");
+    printf("domain: %s\n", isl_union_set_to_str(domain));
+    isl_union_set_free(domain);
+  } break;
+  case isl_schedule_node_expansion: {
+    // TODO(vatai): what are expansions/contractions
+    printf("type: expansion\n");
+  } break;
+  case isl_schedule_node_extension: {
+    printf("type: extension\n");
+  } break;
+  case isl_schedule_node_filter: {
+    isl_union_set *filter;
+    filter = isl_schedule_node_filter_get_filter(node);
+    // printf("type: filter\n");
+    printf("filter: %s\n", isl_union_set_to_str(filter));
+    isl_union_set_free(filter);
+  } break;
+  case isl_schedule_node_leaf: {
+    // printf("type: leaf\n");
+  } break;
+  case isl_schedule_node_guard:
+    printf("type: guard\n");
+    break;
+  case isl_schedule_node_mark:
+    printf("type: mark\n");
+    break;
+  case isl_schedule_node_sequence: {
+    isl_schedule_node *children;
+    isl_schedule_node_sequence_splice_children(node);
+    printf("type: sequence\n");
+    // printf("seq chldrn: %s\n", isl_schedule_node_to_str(children));
+    // isl_schedule_node_free(children);
+  } break;
+  case isl_schedule_node_set:
+    printf("type: set\n");
+    break;
+  default:
+    printf("DEFAULT\n");
+  }
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -140,8 +198,7 @@ int main(int argc, char *argv[]) {
     isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
     fclose(file);
     if (check_schedule_legality(ctx, schedule, dependencies)) {
-      printf("The schedule is legal\n");
-      codegen(ctx, schedule);
+      printf("The schedule is legal!\n");
     } else {
       printf("The schedule is not correct!\n");
       return_value = -1;
@@ -150,6 +207,23 @@ int main(int argc, char *argv[]) {
   } else {
     isl_schedule *schedule = pet_scop_get_schedule(scop);
     isl_schedule_node *root = isl_schedule_get_root(schedule);
+    isl_stat rv;
+    isl_union_map *deps = get_dependencies(scop);
+    isl_id *id = isl_union_map_get_dim_id(deps, isl_dim_param, 0);
+    isl_map_list *list = isl_union_map_get_map_list(deps);
+    printf("id: %s\n", isl_id_to_str(id));
+    size_t size = isl_map_list_size(list);
+    for (size_t i = 0; i < size; ++i) {
+      isl_map *map = isl_map_list_get_at(list, i);
+      printf("map[%d]: %s\n", i, isl_map_to_str(map));
+      isl_map_free(map);
+    }
+    isl_map_list_free(list);
+    isl_id_free(id);
+    rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, deps);
+    printf("deps: %s\n", isl_union_map_to_str(deps));
+    isl_union_map_free(deps);
+    printf("top-down result: %i\n", rv);
     printf("%s\n", isl_schedule_node_to_str(root));
     isl_schedule_node_free(root);
     isl_schedule_free(schedule);
