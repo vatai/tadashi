@@ -3,27 +3,27 @@ import re
 class OptionsPool():
     pass
 def node_convert_tile(node, tile_size):
-    pattern = r'\((\w+)\)'
-    loop_alphabet = re.findall(pattern, node['schedule'])[0]
-    temp = node['schedule']
-    outer_loop_tile = '({} - ({}) mod {})'.format(loop_alphabet, loop_alphabet, str(tile_size))
-    inner_loop_tile = '(({}) mod {})'.format(loop_alphabet, str(tile_size))
-    node['schedule'] = re.sub(pattern, outer_loop_tile, temp)
+    pattern = r'\((-?\w+)\)'
+    loop_alphabet = re.findall(pattern, node["schedule"])[0]
+    temp = node["schedule"]
+    outer_loop_tile = "({} - ({}) mod {})".format(loop_alphabet, loop_alphabet, str(tile_size))
+    inner_loop_tile = "(({}) mod {})".format(loop_alphabet, str(tile_size))
+    node["schedule"] = re.sub(pattern, outer_loop_tile, temp)
     if 'child' in node.keys():
-        t = {'schedule':'', 'child':{}}
-        t['child'] =  node['child']
+        t = {"schedule":'', "child":{}}
+        t["child"] =  node["child"]
     else:
-        t = {'schedule':''}
+        t = {"schedule":""}
    
-    t['schedule'] = re.sub(pattern, inner_loop_tile, temp)
-    node['child'] = t
+    t["schedule"] = re.sub(pattern, inner_loop_tile, temp)
+    node["child"] = t
     print("loop,tile finished!")
 
 def node_convert_reverse(node):
     pattern = r'\[\((\w+)\)\]'
     replacement = r'[(-\1)]'
     node['schedule'] = re.sub(pattern, replacement, node['schedule'])
-    print("loop,tile finished!")
+    print("loop,reverse finished!")
     
 class process_schedule():
     def __init__(self, yaml_schedule) -> None:
@@ -68,30 +68,7 @@ class process_schedule():
         pass
     
     def reverse(self, loop_index_list=list()):
-        node = self.yaml_schedule["child"]
-        for i in range(len(loop_index_list)):
-            loop_index = loop_index_list[i]
-            while True:
-                if isinstance(node, list):
-                    node = node[loop_index]
-                elif "schedule" in node.keys():
-                    if i==len(loop_index_list)-1:
-                        pattern = r'\[\((\w+)\)\]'
-                        replacement = r'[(-\1)]'
-                        node['schedule'] = re.sub(pattern, replacement, node['schedule'])
-                    else:
-                        node = node['child']
-                    break   
-                elif "child" in node.keys(): 
-                    node = node["child"]  
-                elif "sequence" in node.keys(): 
-                    node = node["sequence"]
-                elif "filter" in node.keys(): 
-                    node = node["filter"]
-                else: 
-                    print("key missed")
-                    return
-        print("loop{},reverse finished!".format(loop_index_list))
+        self.traverse(node_convert_reverse, loop_index_list)
             
     def fission(self, loop_index):
         pass

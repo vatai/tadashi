@@ -1,9 +1,9 @@
-domain: '[N, M] -> { S_0[i, j] : 0 <= i < N and 0 <= j < M }'
+domain: "[N, M] -> { S_0[i, j] : 0 <= i < N and 0 <= j < M }"
 child:
   schedule: '[N, M] -> [{ S_0[i, j] -> [(i - (i) mod 2)] }]'
   child:
     schedule: '[N, M] -> [{ S_0[i, j] -> [((i) mod 2)] }]'
     child:
-      schedule: '[N, M] -> [{ S_0[i, j] -> [(j - (j) mod 2)] }]'
+      schedule: '[N, M] -> [{ S_0[i, j] -> [(-j - (-j) mod 2)] }]'
       child:
-        schedule: '[N, M] -> [{ S_0[i, j] -> [((j) mod 2)] }]'
+        schedule: '[N, M] -> [{ S_0[i, j] -> [((-j) mod 2)] }]'
