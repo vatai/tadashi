@@ -569,6 +569,9 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
     p = transform_scop(ctx, p, scop, input_schedule_file);
     fclose(input_schedule_file);
   } else {
+    update_filename(args, "orig");
+    printf("\nWritten original schedule to %s\n", args->file_name_buffer);
+    update_filename(args, "input");
     printf("\n\n// >>> Input file %s NOT FOUND! SCoPs not transformed! <<<\n\n",
            args->file_name_buffer);
   }
