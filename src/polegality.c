@@ -118,7 +118,17 @@ isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
     map = isl_schedule_node_band_get_partial_schedule_union_map(node);
     // printf("type: band\n");
     printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    isl_union_map *theta;
+    printf(">>> deps : %s\n", isl_union_map_to_str(deps));
+    theta = isl_union_map_copy(deps);
+    theta = isl_union_map_apply_domain(theta, isl_union_map_copy(map));
+    theta = isl_union_map_apply_range(theta, isl_union_map_copy(map));
+    printf(">>> theta: %s\n", isl_union_map_to_str(theta));
+    isl_union_set *deltas = isl_union_map_deltas(isl_union_map_copy(theta));
+    printf(">>> delta: %s\n", isl_union_set_to_str(deltas));
     isl_multi_union_pw_aff_free(mupa);
+    isl_union_set_free(deltas);
+    isl_union_map_free(theta);
     isl_union_map_free(map);
   } break;
   case isl_schedule_node_context: {
@@ -216,7 +226,7 @@ int main(int argc, char *argv[]) {
     isl_map_list_free(list);
     isl_id_free(id);
     rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, deps);
-    printf("deps: %s\n", isl_union_map_to_str(deps));
+    // printf("deps: %s\n", isl_union_map_to_str(deps));
     isl_union_map_free(deps);
     printf("top-down result: %i\n", rv);
     printf("%s\n", isl_schedule_node_to_str(root));
