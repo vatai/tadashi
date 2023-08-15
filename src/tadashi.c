@@ -590,11 +590,9 @@ int main(int argc, char *argv[]) {
   opt = options_new_with_defaults();
   ctx = isl_ctx_alloc_with_options(&options_args, opt);
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
-
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   pet_options_set_autodetect(ctx, 1);
-
   if (!opt->source_file) {
     fprintf(
         stderr,
@@ -605,7 +603,7 @@ int main(int argc, char *argv[]) {
 
   tra_args.counter = 0;
   tra_args.input_source_file = opt->source_file;
-
+  // tra_args.file_name_buffer = opt->schedule;
   FILE *dev_null = fopen("/dev/null", "w");
   r = pet_transform_C_source(ctx, opt->source_file, stdout,
                              &foreach_scop_callback, &tra_args);
