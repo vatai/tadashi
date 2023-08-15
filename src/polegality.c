@@ -105,7 +105,7 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
+isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
   // printf(">>> callback Node: %s\n", isl_schedule_node_to_str(node));
   isl_union_map *deps = (isl_union_map *)user;
   enum isl_schedule_node_type type;
@@ -225,7 +225,8 @@ int main(int argc, char *argv[]) {
     }
     isl_map_list_free(list);
     isl_id_free(id);
-    rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, deps);
+    rv = isl_schedule_foreach_schedule_node_top_down(
+        schedule, schedule_tree_node_cb, deps);
     // printf("deps: %s\n", isl_union_map_to_str(deps));
     isl_union_map_free(deps);
     printf("top-down result: %i\n", rv);
