@@ -114,20 +114,34 @@ isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
   case isl_schedule_node_band: {
     isl_multi_union_pw_aff *mupa;
     isl_union_map *map;
+    isl_union_map *theta;
+    isl_union_set *deltas;
+    isl_set *deltas_set;
+    isl_pw_multi_aff *pmf;
+    isl_id *rid;
     mupa = isl_schedule_node_band_get_partial_schedule(node);
     map = isl_schedule_node_band_get_partial_schedule_union_map(node);
     // printf("type: band\n");
-    printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-    isl_union_map *theta;
+    // printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
     printf(">>> deps : %s\n", isl_union_map_to_str(deps));
     theta = isl_union_map_copy(deps);
     theta = isl_union_map_apply_domain(theta, isl_union_map_copy(map));
     theta = isl_union_map_apply_range(theta, isl_union_map_copy(map));
     printf(">>> theta: %s\n", isl_union_map_to_str(theta));
-    isl_union_set *deltas = isl_union_map_deltas(isl_union_map_copy(theta));
+
+    deltas = isl_union_map_deltas(isl_union_map_copy(theta));
     printf(">>> delta: %s\n", isl_union_set_to_str(deltas));
+    deltas_set = isl_union_set_as_set(deltas);
+    printf(">>> delta set: %s\n", isl_set_to_str(deltas_set));
+    pmf = isl_set_as_pw_multi_aff(isl_set_copy(deltas_set));
+    printf(">>> pmf: %s\n", isl_pw_multi_aff_to_str(pmf));
+    rid = isl_pw_multi_aff_get_range_tuple_id(pmf);
+    printf(">>> rid: %s\n", isl_id_to_str(rid));
+    isl_id_free(rid);
+    isl_pw_multi_aff_free(pmf);
+    // isl_union_set_free(deltas);
+    isl_set_free(deltas_set);
     isl_multi_union_pw_aff_free(mupa);
-    isl_union_set_free(deltas);
     isl_union_map_free(theta);
     isl_union_map_free(map);
   } break;
