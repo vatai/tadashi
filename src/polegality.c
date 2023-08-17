@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <isl/val_type.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -137,6 +138,19 @@ isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
     printf(">>> pmf: %s\n", isl_pw_multi_aff_to_str(pmf));
     rid = isl_pw_multi_aff_get_range_tuple_id(pmf);
     printf(">>> rid: %s\n", isl_id_to_str(rid));
+    printf(">>> single value: %d\n", isl_set_is_singleton(deltas_set));
+    isl_multi_val *mv;
+    mv = isl_set_get_plain_multi_val_if_fixed(isl_set_copy(deltas_set));
+    printf(">>> mv: %s\n", isl_multi_val_to_str(mv));
+    printf(">>> mv is zero: %d\n", isl_multi_val_is_zero(mv));
+    size_t size = isl_multi_val_size(mv);
+    for (size_t i = 0; i < size; ++i) {
+      isl_val *val;
+      val = isl_multi_val_get_at(isl_multi_val_copy(mv), 0);
+      printf("mv[%d] > 0\n", isl_val_is_pos(val));
+      isl_val_free(val);
+    }
+    isl_multi_val_free(mv);
     isl_id_free(rid);
     isl_pw_multi_aff_free(pmf);
     // isl_union_set_free(deltas);
