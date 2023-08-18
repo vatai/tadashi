@@ -2,6 +2,7 @@ import yaml
 import re
 class OptionsPool():
     pass
+
 def node_convert_tile(node, tile_size):
     pattern = r'\((-?\w+)\)'
     loop_alphabet = re.findall(pattern, node["schedule"])[0]
@@ -25,6 +26,9 @@ def node_convert_reverse(node):
     node['schedule'] = re.sub(pattern, replacement, node['schedule'])
     print("loop,reverse finished!")
     
+def node_convert_interchange(node):
+    return node
+    
 class process_schedule():
     def __init__(self, yaml_schedule) -> None:
         self.yaml_schedule = yaml_schedule
@@ -39,7 +43,7 @@ class process_schedule():
                     node = node[loop_index]
                 elif "schedule" in node.keys():
                     if i==len(loop_index_list)-1:
-                        func(node, *args, **kwargs)
+                        return func(node, *args, **kwargs)
                     else:
                         node = node['child']
                     break   
@@ -61,9 +65,13 @@ class process_schedule():
     def unroll(self, loop_index, unroll_size):
         pass
     
-    def interchange(self, loop_index_1, loop_index_2):
-        pass
-    
+    def interchange(self, loop_index_list_1=[], loop_index_list_2=[]):
+        node1 = self.traverse(node_convert_interchange, loop_index_list_1)
+        node2 = self.traverse(node_convert_interchange, loop_index_list_2)
+        temp_schedule = node1['schedule']
+        node1['schedule'] = node2['schedule']
+        node2['schedule'] = temp_schedule
+        
     def fuse(self, loop_index1=[], loop_index2=[]):
         pass
     
@@ -83,10 +91,12 @@ class process_schedule():
 with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo.yaml', 'r') as file:
     data = yaml.safe_load(file)
     schedule = process_schedule(data)
-schedule.reverse([0,0])
-schedule.tile(2, [0, 0])
-schedule.tile(2, [0])
-with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo3.yaml', 'w') as file:
-    data = yaml.dump(data, file, default_flow_style=False, sort_keys=False)
 
-print(data)
+# schedule.interchange([0], [0, 0])
+schedule.tile(2, [0])
+schedule.interchange([0], [0, 0])
+# schedule.tile(2, [0])
+with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo3.yaml', 'w') as file:
+    data = yaml.dump(data, file, default_flow_style=False, sort_keys=False, default_style='"')
+
+print("finished")

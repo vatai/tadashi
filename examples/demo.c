@@ -1,14 +1,17 @@
 #include "common.h"
-void demo(size_t N, size_t M, size_t K, double **A, double **B, double **C) {
+void demo(size_t N, size_t M, size_t K, double **A, double *B, double **C) {
 #pragma scop
-  for (int i = 0; i < N; ++i) {
-    for(int j = 0; j < M; j++)
-        C[i][j] = A[i][j] + B[i][j];
-    }
   // for (int i = 0; i < N; ++i) {
   //   for(int j = 0; j < M; j++)
   //       C[i][j] = A[i][j] + B[i][j];
   //   }
+  // for (int i = 0; i < N; ++i) {
+  //   for(int j = 0; j < M; j++)
+  //       C[i][j] = A[i][j] + B[i][j];
+  //   }
+  for(int i = 0; i < M; i++){
+     C[i] = A[i] + B[i];
+}
 #pragma endscop
 
 // #pragma scop
