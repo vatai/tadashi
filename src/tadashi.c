@@ -593,7 +593,7 @@ int main(int argc, char *argv[]) {
 
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  pet_options_set_autodetect(ctx, 1);
+  // pet_options_set_autodetect(ctx, 1);
 
   if (!opt->source_file) {
     fprintf(
