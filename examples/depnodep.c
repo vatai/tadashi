@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 void print_arr(size_t N, double *A) {
