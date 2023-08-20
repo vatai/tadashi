@@ -1,3 +1,9 @@
+/*
+ * Test/debug code for set generation (and God knows what).
+ *
+ * Emil Vatai
+ *
+ */
 #include <isl/local_space.h>
 #include <isl/space_type.h>
 #include <stdio.h>

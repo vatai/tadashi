@@ -1,3 +1,9 @@
+/*
+ * Test/debug version of tadashi. See tadashi.c
+ *
+ * Emil Vatai
+ *
+ */
 #include <assert.h>
 #include <isl/val_type.h>
 #include <stdio.h>

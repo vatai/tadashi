@@ -1,4 +1,16 @@
 /*
+ * The main program. For each scop in a C source file:
+ *
+ * - generate the schedules (in yaml format)
+ *
+ * - read the schedule (in yaml format), check legality, and if legal,
+ *   generates a new C source according to the new schedule
+ *
+ * Emil Vatai
+ *
+ */
+
+/*
  * Copyright 2022      Sven Verdoolaege. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

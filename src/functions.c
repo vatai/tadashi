@@ -1,3 +1,9 @@
+/*
+ * Test/debug code for set/map/point/constraint construction.
+ *
+ * Emil Vatai
+ *
+ */
 #include <stdio.h>
 
 #include <isl/aff.h>

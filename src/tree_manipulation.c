@@ -1,3 +1,9 @@
+/*
+ * Test/debug code to modify schedule trees.
+ *
+ * Emil Vatai
+ *
+ */
 #include <assert.h>
 #include <stdio.h>
 

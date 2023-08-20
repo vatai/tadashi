@@ -1,3 +1,10 @@
+/*
+ * Test/debug code for code generation.
+ *
+ * Emil Vatai
+ *
+ */
+
 #include <isl/ast_type.h>
 #include <isl/id.h>
 #include <isl/printer.h>
