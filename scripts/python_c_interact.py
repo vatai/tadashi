@@ -7,39 +7,45 @@
 
 import pexpect
 
-cmd = ["./build/c_python_interact"]
-SCHED = '{ domain: "[N, i] -> { S_0[] }" }'
-pattern = "### sched\[.*\] begin ###.*### sched\[.*\] end ###"
-
 
 def get_schedule(child):
-    print(f">>> {child.before=}")
-    print(f">>> {child.after=}")
-    return child.after.rstrip().decode().split("\r\n")[1]
+    lines = child.after.decode().split("\r\n")
+    return lines[1].rstrip()
 
 
-child = pexpect.spawn(cmd[0], echo=False)
+def modify_schedule(schedule):
+    return schedule.replace("[(i)]", "[(-i)]")
 
-child.expect(pattern)
-sched0 = get_schedule(child)
-print(f"{sched0=}")
-assert child.before.rstrip() == b"", child.before
 
-child.sendline(sched0.replace("[(i)]", "[(-i)]"))
+def main():
+    pattern = "### sched\[.*\] begin ###.*### sched\[.*\] end ###"
+    cmd = "./build/c_python_interact"
+    child = pexpect.spawn(cmd, echo=False)
 
-child.expect(pattern)
-sched1 = get_schedule(child)
-print(f"{sched1=}")
-assert child.before.rstrip() == b"", child.before
+    child.expect(pattern)
+    sched0 = get_schedule(child)
+    print(f"{sched0=}")
+    assert child.before.rstrip() == b"", child.before
 
-child.expect(pattern)
-sched2 = get_schedule(child)
-print(f"{sched2=}")
-assert child.before.rstrip() == b"", child.before
+    child.sendline(modify_schedule(sched0))
 
-child.sendline(SCHED)
+    child.expect(pattern)
+    sched1 = get_schedule(child)
+    print(f"{sched1=}")
+    assert child.before.rstrip() == b"", child.before
 
-child.expect(pattern)
-sched4 = get_schedule(child)
-print(f"{sched4=}")
-assert child.before.rstrip() == b"", child.before
+    child.expect(pattern)
+    sched2 = get_schedule(child)
+    print(f"{sched2=}")
+    assert child.before.rstrip() == b"", child.before
+
+    child.sendline(modify_schedule(sched2))
+
+    child.expect(pattern)
+    sched3 = get_schedule(child)
+    print(f"{sched3=}")
+    assert child.before.rstrip() == b"", child.before
+
+
+if __name__ == "__main__":
+    main()
