@@ -65,6 +65,18 @@
   }
 
 #+end_src
+***** Debug output
+The ~id~ used in ~id2stmt~ is deeply packed into a node...
+#+begin_example
+*** node: { user: { op: call, args: [ { id: S_0 } ] } }
+>>> S_0();
+*** expr: { op: call, args: [ { id: S_0 } ] }
+>>> S_0()
+*** arg: { id: S_0 }
+>>> S_0
+*** id: S_0
+
+#+end_example
 **** shedule = isl_map_from_union_map(isl_ast_build_get_schedule(build))
 **** reverse = isl_pw_multi_aff_from_map(isl_map_reverse(shedule))
 **** ref2expr = pet_stmt_build_ast_exprs(stmt, build, fn_index=&pullback_index, user_index=reverse, fn_expr=NULL, user_expr=NULL)
