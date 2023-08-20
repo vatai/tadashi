@@ -46,5 +46,8 @@ add_executable(goodbadtest src/goodbadtest.c)
 add_executable(astgen src/astgen.c)
 target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+add_executable(c_python_interact src/c_python_interact.c)
+target_link_libraries(c_python_interact PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET)
