@@ -83,22 +83,30 @@ The ~id~ used in ~id2stmt~ is deeply packed into a node...
 ***** pullback_index
 #+begin_src C
 
-    /* Construct an associative array from reference identifiers of
-     * access expressions in "stmt" to the corresponding isl_ast_expr.
-     * Each index expression is first transformed through "fn_index"
-     * (if not NULL).  Then an AST expression is generated using "build".
-     * Finally, the AST expression is transformed using "fn_expr"
-     * (if not NULL).
-     */
+  // pet_stmt_build_ast_exprs docs
+  /* Construct an associative array
+    ,*
+    ,* from reference identifiers of access expressions in "stmt"
+    ,*
+    ,* to the corresponding isl_ast_expr.
+    ,*
+    ,* Each index expression is first transformed through "fn_index" (if
+    ,* not NULL).
+    ,*
+    ,* Then an AST expression is generated using "build".
+    ,*
+    ,* Finally, the AST expression is transformed using "fn_expr" (if not
+    ,* NULL).
+   ,*/
 
-    static __isl_give isl_multi_pw_aff *
-    pullback_index(__isl_take isl_multi_pw_aff *index, //
-                   __isl_keep isl_id *ref_id, //
-                   void *user) {
-      isl_pw_multi_aff *fn = user;
-      fn = isl_pw_multi_aff_copy(fn);
-      return isl_multi_pw_aff_pullback_pw_multi_aff(index, fn);
-    }
+  static __isl_give isl_multi_pw_aff *
+  pullback_index(__isl_take isl_multi_pw_aff *index, //
+                 __isl_keep isl_id *ref_id, //
+                 void *user) {
+    isl_pw_multi_aff *fn = user;
+    fn = isl_pw_multi_aff_copy(fn);
+    return isl_multi_pw_aff_pullback_pw_multi_aff(index, fn);
+  }
 
 #+end_src
 **** id = isl_id_alloc(ctx=isl_ast_node_get_ctx(node), NULL, ref2expr)
@@ -110,6 +118,7 @@ static void free_isl_id_to_ast_expr(void *user) {
   isl_id_to_ast_expr_free(id_to_ast_expr);
 }
 #+end_src
+**** node = isl_ast_node_set_annotation(node, id);
 **** return node;
 ** node = isl_ast_build_node_from_schedule(build, schedule)
 ** print_options = print_options_set_print_user(print_user, id2stmt)
