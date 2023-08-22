@@ -31,12 +31,9 @@
  * Sven Verdoolaege.
  */
 
-#include <isl/aff.h>
 #include <isl/arg.h>
-#include <isl/ast.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
-#include <isl/map.h>
 #include <isl/options.h>
 #include <isl/printer.h>
 #include <isl/val.h>
@@ -283,21 +280,16 @@ static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
   isl_pw_multi_aff *reverse;
   isl_id_to_ast_expr *ref2expr;
 
-  printf(">>> at_domain(node = %s, build, user)\n",
-         isl_ast_node_to_C_str(node));
   stmt = node_stmt(node, id2stmt);
 
   schedule = isl_map_from_union_map(isl_ast_build_get_schedule(build));
-  printf("schedule: %s\n", isl_map_to_str(schedule));
   reverse = isl_pw_multi_aff_from_map(isl_map_reverse(schedule));
-  printf("reverse: %s\n", isl_pw_multi_aff_to_str(reverse));
   ref2expr = pet_stmt_build_ast_exprs(stmt, build, &pullback_index, reverse,
                                       NULL, NULL);
   isl_pw_multi_aff_free(reverse);
 
   id = isl_id_alloc(isl_ast_node_get_ctx(node), NULL, ref2expr);
   id = isl_id_set_free_user(id, &free_isl_id_to_ast_expr);
-  printf(">>> at_domain(): id: %s\n", isl_id_to_str(id));
   node = isl_ast_node_set_annotation(node, id);
   return node;
 }
@@ -424,16 +416,10 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   if (!scop || !p)
     return isl_printer_free(p);
 
-  printf("n_array: %d", scop->n_array);
-  for (int i = 0; i < scop->n_array; ++i) {
-    printf(":%d", scop->arrays[i]->exposed);
-  }
-  printf("\n");
-
+  printf("= transform =\n");
   ctx = isl_printer_get_ctx(p);
   schedule = isl_schedule_copy(scop->schedule);
   id2stmt = set_up_id2stmt(scop);
-  isl_id_to_id_dump(id2stmt);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
   node = isl_ast_build_node_from_schedule(build, schedule);
@@ -448,6 +434,7 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
   pet_scop_free(scop);
+  printf("=\n");
 
   return p;
 }

@@ -27,8 +27,8 @@ target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(divs src/divs.c)
 target_link_libraries(divs PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(pet_codegen_skimo src/pet_codegen_skimo.c)
-target_link_libraries(pet_codegen_skimo PUBLIC PkgConfig::ISL PkgConfig::PET)
+add_executable(annotated_pet_loopback src/annotated_pet_loopback.c)
+target_link_libraries(annotated_pet_loopback PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(depanalysis src/depanalysis.c)
 target_link_libraries(depanalysis PUBLIC PkgConfig::ISL PkgConfig::PET)
