@@ -127,3 +127,9 @@ static void free_isl_id_to_ast_expr(void *user) {
 ** isl_ast_node_print(node, p, print_options);
 ** print_end_declarations(p, indent);
 
+* Notes
+- "leafs" are the schedule tree leafs, which are the statements in
+  loops (e.g. S_0)
+- ~id2stmt~ maps id (e.g. S_0) to the corresponding PET statement
+  (e.g. ~A[i][j]=...~)
+- ~at_domain()~ and ~print_user()~ are invoked for each "leaf"
