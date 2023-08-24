@@ -6,6 +6,7 @@
 
 
 import pexpect
+import yaml
 
 
 def get_schedule(child):
@@ -24,7 +25,7 @@ def main():
 
     child.expect(pattern)
     sched0 = get_schedule(child)
-    print(f"{sched0=}")
+    print(f"{yaml.safe_load(sched0)=}")
     assert child.before.rstrip() == b"", child.before
 
     child.sendline(modify_schedule(sched0))
