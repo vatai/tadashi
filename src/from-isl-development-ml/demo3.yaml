@@ -1,5 +1,0 @@
-"domain": "[M] -> { S_0[i] : 0 <= i < M }"
-"child":
-  "schedule": "[M] -> [{ S_0[i] -> [((i) mod 2)] }]"
-  "child":
-    "schedule": "[M] -> [{ S_0[i] -> [(i - (i) mod 2)] }]"
