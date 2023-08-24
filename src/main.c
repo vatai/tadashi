@@ -1,3 +1,10 @@
+/*
+ * When I wrote this only God and I knew what I was doing. Now only
+ * god knows.  -- common comment in source code
+ *
+ * Emil Vatai
+ *
+ */
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +16,7 @@
 
 #include <pet.h>
 
-const char filename[] = "../examples/hello.c";
+const char filename[] = "../src/hello.c";
 
 struct options {
   struct isl_options *isl;

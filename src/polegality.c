@@ -1,4 +1,11 @@
+/*
+ * Test/debug version of tadashi. See tadashi.c
+ *
+ * Emil Vatai
+ *
+ */
 #include <assert.h>
+#include <isl/val_type.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -100,14 +107,12 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-
 isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-
-isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
+isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
   // printf(">>> callback Node: %s\n", isl_schedule_node_to_str(node));
   isl_union_map *deps = (isl_union_map *)user;
   enum isl_schedule_node_type type;
@@ -116,11 +121,48 @@ isl_bool callback(__isl_keep isl_schedule_node *node, void *user) {
   case isl_schedule_node_band: {
     isl_multi_union_pw_aff *mupa;
     isl_union_map *map;
+    isl_union_map *theta;
+    isl_union_set *deltas;
+    isl_set *deltas_set;
+    isl_pw_multi_aff *pmf;
+    isl_id *rid;
     mupa = isl_schedule_node_band_get_partial_schedule(node);
     map = isl_schedule_node_band_get_partial_schedule_union_map(node);
     // printf("type: band\n");
-    printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    // printf("band mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    printf(">>> deps : %s\n", isl_union_map_to_str(deps));
+    theta = isl_union_map_copy(deps);
+    theta = isl_union_map_apply_domain(theta, isl_union_map_copy(map));
+    theta = isl_union_map_apply_range(theta, isl_union_map_copy(map));
+    printf(">>> theta: %s\n", isl_union_map_to_str(theta));
+
+    deltas = isl_union_map_deltas(isl_union_map_copy(theta));
+    printf(">>> delta: %s\n", isl_union_set_to_str(deltas));
+    deltas_set = isl_union_set_as_set(deltas);
+    printf(">>> delta set: %s\n", isl_set_to_str(deltas_set));
+    pmf = isl_set_as_pw_multi_aff(isl_set_copy(deltas_set));
+    printf(">>> pmf: %s\n", isl_pw_multi_aff_to_str(pmf));
+    rid = isl_pw_multi_aff_get_range_tuple_id(pmf);
+    printf(">>> rid: %s\n", isl_id_to_str(rid));
+    printf(">>> single value: %d\n", isl_set_is_singleton(deltas_set));
+    isl_multi_val *mv;
+    mv = isl_set_get_plain_multi_val_if_fixed(isl_set_copy(deltas_set));
+    printf(">>> mv: %s\n", isl_multi_val_to_str(mv));
+    printf(">>> mv is zero: %d\n", isl_multi_val_is_zero(mv));
+    size_t size = isl_multi_val_size(mv);
+    for (size_t i = 0; i < size; ++i) {
+      isl_val *val;
+      val = isl_multi_val_get_at(isl_multi_val_copy(mv), 0);
+      printf("mv[%d] > 0\n", isl_val_is_pos(val));
+      isl_val_free(val);
+    }
+    isl_multi_val_free(mv);
+    isl_id_free(rid);
+    isl_pw_multi_aff_free(pmf);
+    // isl_union_set_free(deltas);
+    isl_set_free(deltas_set);
     isl_multi_union_pw_aff_free(mupa);
+    isl_union_map_free(theta);
     isl_union_map_free(map);
   } break;
   case isl_schedule_node_context: {
@@ -183,7 +225,6 @@ int main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
 
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, options->source_file, 0);
-  
   if (!scop) {
     printf("No scop found!\n");
     isl_ctx_free(ctx);
@@ -191,9 +232,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (options->schedule) {
-    
     isl_union_map *dependencies = get_dependencies(scop);
-    printf("The schedule:\n");
     FILE *file = fopen(options->schedule, "r");
     isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
     fclose(file);
@@ -220,8 +259,9 @@ int main(int argc, char *argv[]) {
     }
     isl_map_list_free(list);
     isl_id_free(id);
-    rv = isl_schedule_foreach_schedule_node_top_down(schedule, callback, deps);
-    printf("deps: %s\n", isl_union_map_to_str(deps));
+    rv = isl_schedule_foreach_schedule_node_top_down(
+        schedule, schedule_tree_node_cb, deps);
+    // printf("deps: %s\n", isl_union_map_to_str(deps));
     isl_union_map_free(deps);
     printf("top-down result: %i\n", rv);
     printf("%s\n", isl_schedule_node_to_str(root));
