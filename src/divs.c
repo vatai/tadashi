@@ -1,3 +1,10 @@
+/*
+ * Test/debug code to understand what are divs. (I still have no
+ * idea).
+ *
+ * Emil Vatai
+ *
+ */
 #include <isl/ctx.h>
 #include <isl/set.h>
 #include <stdio.h>

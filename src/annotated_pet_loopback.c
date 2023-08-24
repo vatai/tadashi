@@ -31,14 +31,13 @@
  * Sven Verdoolaege.
  */
 
-#include <isl/aff.h>
 #include <isl/arg.h>
 #include <isl/ast.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
-#include <isl/map.h>
 #include <isl/options.h>
 #include <isl/printer.h>
+#include <isl/schedule.h>
 #include <isl/val.h>
 
 #include <pet.h>
@@ -241,8 +240,11 @@ pullback_index(__isl_take isl_multi_pw_aff *index, __isl_keep isl_id *ref_id,
                void *user) {
   isl_pw_multi_aff *fn = user;
 
+  printf("=== pullback_index() ===\n");
   fn = isl_pw_multi_aff_copy(fn);
-  return isl_multi_pw_aff_pullback_pw_multi_aff(index, fn);
+  isl_multi_pw_aff *tmp = isl_multi_pw_aff_pullback_pw_multi_aff(index, fn);
+  printf("=== pullback_index() end ===\n");
+  return tmp;
 }
 
 /* isl_id_set_free_user callback for freeing
@@ -283,22 +285,22 @@ static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
   isl_pw_multi_aff *reverse;
   isl_id_to_ast_expr *ref2expr;
 
-  printf(">>> at_domain(node = %s, build, user)\n",
-         isl_ast_node_to_C_str(node));
+  printf("== at_domain() ==\n");
+  printf("== node: %s\n", isl_ast_node_to_str(node));
+  printf("== C_str:\n%s== C_str end ==\n", isl_ast_node_to_C_str(node));
   stmt = node_stmt(node, id2stmt);
 
   schedule = isl_map_from_union_map(isl_ast_build_get_schedule(build));
-  printf("schedule: %s\n", isl_map_to_str(schedule));
   reverse = isl_pw_multi_aff_from_map(isl_map_reverse(schedule));
-  printf("reverse: %s\n", isl_pw_multi_aff_to_str(reverse));
   ref2expr = pet_stmt_build_ast_exprs(stmt, build, &pullback_index, reverse,
                                       NULL, NULL);
   isl_pw_multi_aff_free(reverse);
 
   id = isl_id_alloc(isl_ast_node_get_ctx(node), NULL, ref2expr);
   id = isl_id_set_free_user(id, &free_isl_id_to_ast_expr);
-  printf(">>> at_domain(): id: %s\n", isl_id_to_str(id));
   node = isl_ast_node_set_annotation(node, id);
+
+  printf("== at_domain() end ==\n");
   return node;
 }
 
@@ -371,13 +373,14 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   struct pet_stmt *stmt;
   isl_id_to_ast_expr *ref2expr;
 
+  printf("== print_user() ==\n");
   stmt = node_stmt(node, id2stmt);
   ref2expr = peek_ref2expr(node);
 
   p = pet_stmt_print_body(stmt, p, ref2expr);
 
+  printf("== print_user() end ==\n");
   isl_ast_print_options_free(options);
-
   return p;
 }
 
@@ -424,26 +427,27 @@ static __isl_give isl_printer *transform(__isl_take isl_printer *p,
   if (!scop || !p)
     return isl_printer_free(p);
 
-  printf("n_array: %d", scop->n_array);
-  for (int i = 0; i < scop->n_array; ++i) {
-    printf(":%d", scop->arrays[i]->exposed);
-  }
-  printf("\n");
-
+  printf("= transform =\n");
   ctx = isl_printer_get_ctx(p);
   schedule = isl_schedule_copy(scop->schedule);
+  printf("= schedule: %s\n", isl_schedule_to_str(schedule));
   id2stmt = set_up_id2stmt(scop);
-  isl_id_to_id_dump(id2stmt);
+  printf("= id2stmt: %s\n", isl_id_to_id_to_str(id2stmt));
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
   node = isl_ast_build_node_from_schedule(build, schedule);
+  printf("= node (root?): %s\n", isl_ast_node_to_str(node));
+  printf("= C_str (root?): \n%s= C_str end =\n\n", isl_ast_node_to_C_str(node));
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
+
+  printf("=\n");
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);

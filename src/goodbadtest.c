@@ -1,3 +1,9 @@
+/*
+ * Demo of numerical instability not easily caught by testing.
+ *
+ * Emil Vatai
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

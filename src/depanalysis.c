@@ -1,3 +1,9 @@
+/*
+ * Test/debug code for dependency analysis.
+ *
+ * Emil Vatai
+ *
+ */
 #include <stdio.h>
 
 #include <isl/aff.h>

@@ -17,8 +17,6 @@ pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
 
 add_executable(main src/main.c)
 target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
-target_link_directories(main PUBLIC ${PET_LIBRARY_DIRS}  ${ISL_LIBRARY_DIRS})
-target_include_directories(main PUBLIC ${PET_INCLUDE_DIRS} ${ISL_INCLUDE_DIRS})
 
 add_executable(poly-scan src/poly-scan.c)
 target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
@@ -29,8 +27,8 @@ target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(divs src/divs.c)
 target_link_libraries(divs PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(pet_codegen_skimo src/pet_codegen_skimo.c)
-target_link_libraries(pet_codegen_skimo PUBLIC PkgConfig::ISL PkgConfig::PET)
+add_executable(annotated_pet_loopback src/annotated_pet_loopback.c)
+target_link_libraries(annotated_pet_loopback PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(depanalysis src/depanalysis.c)
 target_link_libraries(depanalysis PUBLIC PkgConfig::ISL PkgConfig::PET)
@@ -45,6 +43,12 @@ add_executable(goodbadtest src/goodbadtest.c)
 
 add_executable(astgen src/astgen.c)
 target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(c_python_interact src/c_python_interact.c)
+target_link_libraries(c_python_interact PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
+target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET)
