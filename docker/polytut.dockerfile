@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -16,9 +16,3 @@ RUN ./configure --with-isl=bundled --with-pet=bundled --with-clang=system --with
 RUN make -j
 RUN make isl.py
 RUN make install
-
-ADD diagonal.c .
-ADD run.sh .
-ADD run.py .
-
-RUN bash run.sh
