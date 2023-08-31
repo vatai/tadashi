@@ -487,31 +487,25 @@ isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-void write_original_schedule(isl_ctx *ctx, isl_schedule *schedule,
-                             struct transform_args_t *args) {
-  FILE *orig_file;
-  isl_printer *orig_p;
+void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
+                    struct transform_args_t *args) {
   isl_schedule_node *root;
-  update_filename(args, "orig");
-  orig_file = fopen(args->file_name_buffer, "w");
-  orig_p = isl_printer_to_file(ctx, orig_file);
   root = isl_schedule_get_root(schedule);
-  orig_p = isl_printer_print_schedule_node(orig_p, root);
-  // fprintf(stderr, "Written: %s\n", args->file_name_buffer);
-  isl_printer_free(orig_p);
-  fclose(orig_file);
+  printf("### sched[%d] begin ###\n", args->counter);
+  isl_schedule_dump(schedule);
+  printf("### sched[%d] end ###\n", args->counter);
   isl_schedule_node_free(root);
 }
 
-isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
-                            FILE *input_schedule_file) {
+isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
+                            struct pet_scop *scop) {
   int indent;
   isl_ast_build *build;
   isl_ast_node *node;
   isl_ast_print_options *print_options;
   isl_id_to_id *id2stmt;
   isl_schedule *schedule;
-  schedule = isl_schedule_read_from_file(ctx, input_schedule_file);
+  schedule = isl_schedule_read_from_file(ctx, stdin);
 
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
@@ -573,21 +567,11 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
-  write_original_schedule(ctx, scop->schedule, args);
+  print_schedule(ctx, scop->schedule, args);
 
   update_filename(args, "input");
   input_schedule_file = fopen(args->file_name_buffer, "r");
-  if (input_schedule_file) {
-    p = transform_scop(ctx, p, scop, input_schedule_file);
-    fclose(input_schedule_file);
-  } else {
-    update_filename(args, "orig");
-    printf("\nWritten original schedule to %s\n", args->file_name_buffer);
-    update_filename(args, "input");
-    printf("\n\n// >>> Input file %s NOT FOUND! SCoPs not transformed! <<<\n\n",
-           args->file_name_buffer);
-  }
-
+  p = transform_scop(ctx, p, scop);
   pet_scop_free(scop);
   ++(args->counter);
   return p;
@@ -619,10 +603,11 @@ int main(int argc, char *argv[]) {
   tra_args.input_source_file = opt->source_file;
 
   FILE *dev_null = fopen("/dev/null", "w");
-  r = pet_transform_C_source(ctx, opt->source_file, stdout,
+  r = pet_transform_C_source(ctx, opt->source_file, dev_null,
                              &foreach_scop_callback, &tra_args);
   // fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
   fclose(dev_null);
+  printf("### STOP ###\n");
   isl_ctx_free(ctx);
   // printf("%s Done\n", argv[0]);
   return r;
