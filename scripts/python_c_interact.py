@@ -19,33 +19,29 @@ def modify_schedule(schedule):
 
 
 def main():
-    pattern = "### sched\[.*\] begin ###.*### sched\[.*\] end ###"
+    patterns = ["### sched\[.*\] begin ###.*### sched\[.*\] end ###", "### STOP ###"]
     cmd = "./build/c_python_interact"
-    child = pexpect.spawn(cmd, echo=False)
+    child = pexpect.spawn(cmd, echo=False, maxread=1)
 
-    child.expect(pattern)
-    sched0 = get_schedule(child)
-    print(f"{yaml.safe_load(sched0)=}")
-    assert child.before.rstrip() == b"", child.before
+    match = child.expect(patterns)
+    while 0 == match:
+        print(f"{match} <<<<<<")
+        sched0 = get_schedule(child)
+        print(f"{yaml.safe_load(sched0)=}")
+        assert child.before.rstrip() == b"", child.before
 
-    child.sendline(modify_schedule(sched0))
+        new_schedule = modify_schedule(sched0)
+        child.sendline(new_schedule)
 
-    child.expect(pattern)
-    sched1 = get_schedule(child)
-    print(f"{sched1=}")
-    assert child.before.rstrip() == b"", child.before
-
-    child.expect(pattern)
-    sched2 = get_schedule(child)
-    print(f"{sched2=}")
-    assert child.before.rstrip() == b"", child.before
-
-    child.sendline(modify_schedule(sched2))
-
-    child.expect(pattern)
-    sched3 = get_schedule(child)
-    print(f"{sched3=}")
-    assert child.before.rstrip() == b"", child.before
+        match = child.expect(patterns)
+        assert match == 0
+        print(f"{match} --")
+        sched1 = get_schedule(child)
+        print(f"{yaml.safe_load(sched1)=}")
+        assert child.before.rstrip() == b"", child.before
+        print("======")
+        match = child.expect(patterns)
+        print(f"{match} >>>>>>>")
 
 
 if __name__ == "__main__":

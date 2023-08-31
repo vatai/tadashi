@@ -35,6 +35,8 @@ int main(int argc, char *argv[]) {
   sched[3] = isl_schedule_read_from_file(ctx, stdin);
   print_schedule(sched[3], 1);
 
+  printf("### STOP ###\n");
+
   isl_schedule_free(sched[0]);
   isl_schedule_free(sched[1]);
   isl_schedule_free(sched[2]);
