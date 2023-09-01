@@ -5,48 +5,37 @@
 # Emil Vatai
 
 
+import sys
+
 import pexpect
 import yaml
-
-
-def get_schedule(child):
-    lines = child.after.decode().split("\r\n")
-    return lines[1].rstrip()
 
 
 def modify_schedule(schedule):
     return schedule.replace("[(i)]", "[(-i)]")
 
 
-def main():
-    pattern = "### sched\[.*\] begin ###.*### sched\[.*\] end ###"
-    cmd = "./build/c_python_interact"
-    child = pexpect.spawn(cmd, echo=False)
+def invoke_tadashi(input_file):
+    cmd = f"./build/tadashi {input_file}"
+    print(f"Calling: {cmd}")
+    patterns = [
+        "### sched\[.*\] begin ###.*### sched\[.*\] end ###\r\n",
+        "### STOP ###\r\n",
+    ]
+    child = pexpect.spawn(cmd, echo=False, maxread=1)  # , timeout=1)
+    child.expect("WARNING: This app should only be invoced by the python wrapper!")
+    while 0 == child.expect(patterns):
+        print(child.before.decode())
+        sched0 = child.after.decode().rstrip()
+        print(f"{yaml.safe_load(sched0)=}")
+        # assert child.before.rstrip() == b"", f"{child.before=}"
 
-    child.expect(pattern)
-    sched0 = get_schedule(child)
-    print(f"{yaml.safe_load(sched0)=}")
-    assert child.before.rstrip() == b"", child.before
-
-    child.sendline(modify_schedule(sched0))
-
-    child.expect(pattern)
-    sched1 = get_schedule(child)
-    print(f"{sched1=}")
-    assert child.before.rstrip() == b"", child.before
-
-    child.expect(pattern)
-    sched2 = get_schedule(child)
-    print(f"{sched2=}")
-    assert child.before.rstrip() == b"", child.before
-
-    child.sendline(modify_schedule(sched2))
-
-    child.expect(pattern)
-    sched3 = get_schedule(child)
-    print(f"{sched3=}")
-    assert child.before.rstrip() == b"", child.before
+        new_schedule = modify_schedule(sched0)
+        child.sendline(new_schedule)
+        child.sendeof()
+    print(child.before.decode())
 
 
 if __name__ == "__main__":
-    main()
+    invoke_tadashi(input_file=sys.argv[1])
+    print("DONE")
