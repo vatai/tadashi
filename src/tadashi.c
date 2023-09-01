@@ -73,19 +73,18 @@
 struct options {
   struct isl_options *isl;
   struct pet_options *pet;
-  char *source_file;
-  char *schedule;
-  // unsigned tree;
+  char *source_file_path;
+  char *output_file_path;
 };
+
+char DEFAULT_OUTPUT_FILE[] = "out.c";
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
-ISL_ARG_ARG(struct options, source_file, "source file", NULL)
-ISL_ARG_STR(struct options, schedule, 's', "schedule", "schedule", NULL,
-            "schedule")
-ISL_ARGS_END
-ISL_ARG_DEF(options, struct options, options_args)
+ISL_ARG_ARG(struct options, source_file_path, "source file", NULL)
+ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", 0, NULL)
+ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 /* Call "fn" on each declared array in "scop" that has an exposed field
  * equal to "exposed".
@@ -497,6 +496,29 @@ void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
+void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop) {
+
+  int indent;
+  isl_ast_build *build;
+  isl_ast_node *node;
+  isl_ast_print_options *print_options;
+  isl_id_to_id *id2stmt;
+  id2stmt = set_up_id2stmt(scop);
+  build = isl_ast_build_alloc(ctx);
+  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
+  node = isl_ast_build_node_from_schedule(build, schedule);
+  print_options = isl_ast_print_options_alloc(ctx);
+  print_options =
+      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+  p = print_declarations(p, build, scop, &indent);
+  p = print_macros(p, node);
+  p = isl_ast_node_print(node, p, print_options);
+  p = print_end_declarations(p, indent);
+  isl_ast_node_free(node);
+  isl_ast_build_free(build);
+  isl_id_to_id_free(id2stmt);
+}
+
 isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
                             struct pet_scop *scop) {
   int indent;
@@ -506,6 +528,14 @@ isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
   isl_id_to_id *id2stmt;
   isl_schedule *schedule;
   schedule = isl_schedule_read_from_file(ctx, stdin);
+  isl_schedule_dump(schedule);
+  if (!check_schedule_legality(ctx, schedule, get_dependencies(scop))) {
+    printf("Illegal schedule!\n");
+    isl_schedule_free(schedule);
+    schedule = pet_scop_get_schedule(scop);
+  } else {
+    printf("Schedule is legal!\n");
+  }
 
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
@@ -583,15 +613,18 @@ int main(int argc, char *argv[]) {
   struct options *opt;
   struct transform_args_t tra_args;
 
+  printf("WARNING: This app should only be invoced by the python wrapper!\n");
   opt = options_new_with_defaults();
   ctx = isl_ctx_alloc_with_options(&options_args, opt);
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
+  if (!opt->output_file_path)
+    opt->output_file_path = DEFAULT_OUTPUT_FILE;
 
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   // pet_options_set_autodetect(ctx, 1);
 
-  if (!opt->source_file) {
+  if (!opt->source_file_path) {
     fprintf(
         stderr,
         "UserError: Source file not specified (see %s --help for details)\n",
@@ -600,14 +633,15 @@ int main(int argc, char *argv[]) {
   }
 
   tra_args.counter = 0;
-  tra_args.input_source_file = opt->source_file;
+  tra_args.input_source_file = opt->source_file_path;
 
-  FILE *dev_null = fopen("/dev/null", "w");
-  r = pet_transform_C_source(ctx, opt->source_file, dev_null,
+  FILE *output_file = fopen(opt->output_file_path, "w");
+  r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
                              &foreach_scop_callback, &tra_args);
   // fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
-  fclose(dev_null);
+  fclose(output_file);
   printf("### STOP ###\n");
+  options_free(opt);
   isl_ctx_free(ctx);
   // printf("%s Done\n", argv[0]);
   return r;

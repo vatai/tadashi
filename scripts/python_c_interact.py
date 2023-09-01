@@ -33,6 +33,7 @@ def invoke_tadashi(input_file):
         new_schedule = modify_schedule(sched0)
         child.sendline(new_schedule)
         child.sendeof()
+    print(child.before.decode())
 
 
 if __name__ == "__main__":
