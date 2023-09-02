@@ -1,12 +1,19 @@
 /*
+ * Copyright 2023  Emil Vatai. All rights reservered.
+ *
  * The main program. For each scop in a C source file:
  *
- * - generate the schedules (in yaml format)
+ * + Read the original schedules using pet, and print it in yaml
+ *   format to `stdout`.
  *
- * - read the schedule (in yaml format), check legality, and if legal,
- *   generates a new C source according to the new schedule
+ * + Transform the SCoP:
  *
- * Emil Vatai
+ *   1. Read a schedule (in yaml format) from `stdin`,
+ *
+ *   2. Check legality, and
+ *
+ *   3. Generate a C code according to the new schedule if it is legal
+ *   or according to the original schedule otherwise.
  *
  */
 
@@ -445,7 +452,7 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+__isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
   flow = get_flow_from_scop(scop);
@@ -470,8 +477,11 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
 
-  if (isl_union_map_is_empty(dep))
+  if (isl_union_map_is_empty(dep)) {
+    isl_union_map_free(dep);
+    isl_union_map_free(schedule_map);
     return isl_bool_true;
+  }
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
   domain = isl_union_map_apply_range(domain, schedule_map);
   delta = isl_union_map_deltas(domain);
@@ -482,12 +492,13 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
+isl_bool check_schedule_legality(isl_ctx *ctx,
+                                 __isl_keep isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
+void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
                     struct transform_args_t *args) {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
@@ -497,8 +508,9 @@ void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
-void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
-                   isl_schedule *schedule) {
+__isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
+                                      struct pet_scop *scop,
+                                      isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;
@@ -519,26 +531,26 @@ void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
+  return p;
 }
 
-isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
-                            struct pet_scop *scop) {
-  int indent;
-  isl_ast_build *build;
-  isl_ast_node *node;
-  isl_ast_print_options *print_options;
-  isl_id_to_id *id2stmt;
+__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
+                                       __isl_keep struct pet_scop *scop) {
   isl_schedule *schedule;
+  isl_union_map *dependencies;
   schedule = isl_schedule_read_from_file(ctx, stdin);
   isl_schedule_dump(schedule);
-  if (!check_schedule_legality(ctx, schedule, get_dependencies(scop))) {
+  dependencies = get_dependencies(scop);
+  isl_union_map_dump(dependencies);
+  isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
+  if (!legal) {
     printf("Illegal schedule!\n");
     isl_schedule_free(schedule);
     schedule = pet_scop_get_schedule(scop);
   } else {
     printf("Schedule is legal!\n");
   }
-  generate_code(ctx, p, scop, schedule);
+  p = generate_code(ctx, p, scop, schedule);
   return p;
 }
 
@@ -577,19 +589,15 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      void *user) {
   isl_ctx *ctx;
   isl_schedule *schedule;
-  struct transform_args_t *args;
+  struct transform_args_t *args = user;
   FILE *input_schedule_file;
 
   printf("Begin processing SCOP %d\n", args->counter);
-  args = user;
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
   print_schedule(ctx, scop->schedule, args);
-
-  update_filename(args, "input");
-  input_schedule_file = fopen(args->file_name_buffer, "r");
   p = transform_scop(ctx, p, scop);
   pet_scop_free(scop);
   printf("End processing SCOP %d\n", args->counter);
@@ -614,25 +622,18 @@ int main(int argc, char *argv[]) {
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   // pet_options_set_autodetect(ctx, 1);
 
-  if (!opt->source_file_path) {
-    fprintf(
-        stderr,
-        "UserError: Source file not specified (see %s --help for details)\n",
-        argv[0]);
-    return 1;
-  }
-
   tra_args.counter = 0;
   tra_args.input_source_file = opt->source_file_path;
 
   FILE *output_file = fopen(opt->output_file_path, "w");
   r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
                              &foreach_scop_callback, &tra_args);
-  // fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
+  fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
   fclose(output_file);
-  printf("### STOP ###\n");
-  options_free(opt);
+  opt->source_file_path = NULL;
+  opt->output_file_path = NULL;
+  // options_free(opt);
   isl_ctx_free(ctx);
-  // printf("%s Done\n", argv[0]);
+  printf("### STOP ###\n");
   return r;
 }
