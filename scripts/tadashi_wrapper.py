@@ -17,6 +17,10 @@ def modify_schedule(schedule):
     return schedule.replace("[(i)]", "[(i)]")
 
 
+# def construct_tadashi_command(args):
+#     return args
+
+
 def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
     tadashi_bin = Path(__file__).parent.parent / "build/tadashi"
     cmd = [tadashi_bin, input_file_path, *tadashi_args]
@@ -28,16 +32,19 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
         "### sched\[.*\] begin ###.*### sched\[.*\] end ###\r\n",
         "### STOP ###\r\n",
     ]
-    child = pexpect.spawn(cmd, echo=False, maxread=1)  # , timeout=1)
+    child = pexpect.spawn(cmd, echo=False, maxread=1, encoding="utf-8")  # , timeout=1)
+    child.logfile = sys.stdout
     child.expect("WARNING: This app should only be invoced by the python wrapper!")
     while 0 == child.expect(patterns):
-        print(child.before.decode())
-        sched0 = child.after.decode().rstrip()
-        print(f"{yaml.safe_load(sched0)=}")
-        new_schedule = modify_schedule(sched0)
+        # print(child.before)
+        schedule = child.after.rstrip()
+        # print(f"{yaml.safe_load(sched0)=}")
+        # print(f"got sched0:\n{schedule}")
+        new_schedule = modify_schedule(schedule)
+        # print(f"sending new_schedule:\n{new_schedule}")
         child.sendline(new_schedule)
         child.sendeof()
-    print(child.before.decode())
+    # print(child.before)
 
 
 if __name__ == "__main__":
