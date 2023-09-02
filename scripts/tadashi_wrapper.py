@@ -5,18 +5,24 @@
 # Emil Vatai
 
 
+import argparse
 import sys
+from pathlib import Path
 
 import pexpect
 import yaml
 
 
 def modify_schedule(schedule):
-    return schedule.replace("[(i)]", "[(i+j)]")
+    return schedule.replace("[(i)]", "[(i)]")
 
 
-def invoke_tadashi(input_file):
-    cmd = f"./build/tadashi {input_file}"
+def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
+    tadashi_bin = Path(__file__).parent.parent / "build/tadashi"
+    cmd = [tadashi_bin, input_file_path, *tadashi_args]
+    if output_file_path:
+        cmd += ["-o", output_file_path]
+    cmd = " ".join(map(str, cmd))
     print(f"Calling: {cmd}")
     patterns = [
         "### sched\[.*\] begin ###.*### sched\[.*\] end ###\r\n",
@@ -28,8 +34,6 @@ def invoke_tadashi(input_file):
         print(child.before.decode())
         sched0 = child.after.decode().rstrip()
         print(f"{yaml.safe_load(sched0)=}")
-        # assert child.before.rstrip() == b"", f"{child.before=}"
-
         new_schedule = modify_schedule(sched0)
         child.sendline(new_schedule)
         child.sendeof()
@@ -37,5 +41,13 @@ def invoke_tadashi(input_file):
 
 
 if __name__ == "__main__":
-    invoke_tadashi(input_file=sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file_path", type=Path)
+    parser.add_argument("-o", dest="output_file_path", type=Path)
+    args, tadashi_args = parser.parse_known_args()
+    invoke_tadashi(
+        input_file_path=args.input_file_path,
+        output_file_path=args.output_file_path,
+        tadashi_args=tadashi_args,
+    )
     print("DONE")
