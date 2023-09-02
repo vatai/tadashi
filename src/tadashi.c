@@ -51,6 +51,7 @@
  */
 
 #include <isl/printer_type.h>
+#include <isl/union_map.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -469,12 +470,12 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
 
+  if (isl_union_map_is_empty(dep))
+    return isl_bool_true;
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
   domain = isl_union_map_apply_range(domain, schedule_map);
   delta = isl_union_map_deltas(domain);
-
   zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
-
   le = isl_union_set_lex_le_union_set(delta, zeros);
   isl_bool retval = isl_union_map_is_empty(le);
   isl_union_map_free(le);
