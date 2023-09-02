@@ -580,6 +580,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   struct transform_args_t *args;
   FILE *input_schedule_file;
 
+  printf("Begin processing SCOP %d\n", args->counter);
   args = user;
   if (!scop || !p)
     return isl_printer_free(p);
@@ -591,6 +592,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   input_schedule_file = fopen(args->file_name_buffer, "r");
   p = transform_scop(ctx, p, scop);
   pet_scop_free(scop);
+  printf("End processing SCOP %d\n", args->counter);
   ++(args->counter);
   return p;
 }
