@@ -12,7 +12,7 @@ import yaml
 
 
 def modify_schedule(schedule):
-    return schedule.replace("[(i)]", "[(-i)]")
+    return schedule.replace("[(i)]", "[(i+j)]")
 
 
 def invoke_tadashi(input_file):

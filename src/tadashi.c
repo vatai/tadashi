@@ -496,7 +496,8 @@ void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
-void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop) {
+void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
+                   isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;
@@ -536,21 +537,7 @@ isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
   } else {
     printf("Schedule is legal!\n");
   }
-
-  id2stmt = set_up_id2stmt(scop);
-  build = isl_ast_build_alloc(ctx);
-  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
-  node = isl_ast_build_node_from_schedule(build, schedule);
-  print_options = isl_ast_print_options_alloc(ctx);
-  print_options =
-      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
-  p = print_declarations(p, build, scop, &indent);
-  p = print_macros(p, node);
-  p = isl_ast_node_print(node, p, print_options);
-  p = print_end_declarations(p, indent);
-  isl_ast_node_free(node);
-  isl_ast_build_free(build);
-  isl_id_to_id_free(id2stmt);
+  generate_code(ctx, p, scop, schedule);
   return p;
 }
 
