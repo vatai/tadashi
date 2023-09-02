@@ -48,15 +48,9 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
     # child.logfile = sys.stdout
     child.expect("WARNING: This app should only be invoced by the python wrapper!")
     while 0 == child.expect(patterns):
-        # print(child.before)
         schedule = child.after.rstrip()
-        # print(f"{yaml.safe_load(sched0)=}")
-        # print(f"got sched0:\n{schedule}")
         new_schedule = modify_schedule(schedule)
-        # print(f"sending new_schedule:\n{new_schedule}")
         child.sendline(new_schedule)
-        # child.sendeof()
-    # print(child.before)
 
 
 if __name__ == "__main__":
