@@ -14,7 +14,19 @@ import yaml
 
 
 def modify_schedule(schedule):
-    return schedule.replace("[(i)]", "[(i)]")
+    print(f"==orig==\n{schedule}")
+    new_schedule = schedule.replace("[(i)]", "[(i)]")
+    new_schedule = yaml.safe_load(new_schedule)
+    print(f"==dict==\n{new_schedule}")
+    new_schedule = yaml.dump(
+        new_schedule,
+        sort_keys=False,
+        default_flow_style=True,
+        width=float("inf"),
+    )
+    new_schedule = new_schedule.replace("'", '"')
+    print(f"==new==\n{new_schedule}")
+    return new_schedule
 
 
 # def construct_tadashi_command(args):
@@ -33,7 +45,7 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
         "### STOP ###\r\n",
     ]
     child = pexpect.spawn(cmd, echo=False, maxread=1, encoding="utf-8")  # , timeout=1)
-    child.logfile = sys.stdout
+    # child.logfile = sys.stdout
     child.expect("WARNING: This app should only be invoced by the python wrapper!")
     while 0 == child.expect(patterns):
         # print(child.before)
@@ -43,7 +55,7 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
         new_schedule = modify_schedule(schedule)
         # print(f"sending new_schedule:\n{new_schedule}")
         child.sendline(new_schedule)
-        child.sendeof()
+        # child.sendeof()
     # print(child.before)
 
 
