@@ -22,9 +22,9 @@ def modify_schedule(schedule):
         new_schedule,
         sort_keys=False,
         default_flow_style=True,
+        default_style='"',
         width=float("inf"),
     )
-    new_schedule = new_schedule.replace("'", '"')
     print(f"==new==\n{new_schedule}")
     return new_schedule
 
