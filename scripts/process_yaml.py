@@ -87,16 +87,16 @@ class process_schedule():
     
     
 
-    
-with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo.yaml', 'r') as file:
-    data = yaml.safe_load(file)
-    schedule = process_schedule(data)
+if __name__ == "__main__":    
+    with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo.yaml', 'r') as file:
+        data = yaml.safe_load(file)
+        schedule = process_schedule(data)
 
-# schedule.interchange([0], [0, 0])
-schedule.tile(2, [0])
-schedule.interchange([0], [0, 0])
-# schedule.tile(2, [0])
-with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo3.yaml', 'w') as file:
-    data = yaml.dump(data, file, default_flow_style=False, sort_keys=False, default_style='"')
+    # schedule.interchange([0], [0, 0])
+    schedule.tile(2, [0])
+    schedule.interchange([0], [0, 0])
+    # schedule.tile(2, [0])
+    with open('/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo3.yaml', 'w') as file:
+        data = yaml.dump(data, file, default_flow_style=False, sort_keys=False, default_style='"')
 
-print("finished")
+    print("finished")
