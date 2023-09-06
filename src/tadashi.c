@@ -413,24 +413,6 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
-#define MAX_PATH_LEN 1024
-struct transform_args_t {
-  char *input_source_file;
-  char file_name_buffer[MAX_PATH_LEN];
-  size_t counter;
-  isl_union_map *dependencies;
-};
-
-void update_filename(struct transform_args_t *args, const char *ext) {
-  int rv;
-  rv = sprintf(args->file_name_buffer, "%s.%lu.%s.yaml",
-               args->input_source_file, args->counter, ext);
-  if (rv < 0 || rv >= MAX_PATH_LEN) {
-    fprintf(stderr, "UserError: source file (path) is too long!\n");
-    exit(2);
-  }
-}
-
 __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
@@ -499,12 +481,12 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
 }
 
 void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
-                    struct transform_args_t *args) {
+                    size_t *counter) {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
-  printf("### sched[%d] begin ###\n", args->counter);
+  printf("### sched[%lu] begin ###\n", *counter);
   isl_schedule_dump(schedule);
-  printf("### sched[%d] end ###\n", args->counter);
+  printf("### sched[%lu] end ###\n", *counter);
   isl_schedule_node_free(root);
 }
 
@@ -589,19 +571,19 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      void *user) {
   isl_ctx *ctx;
   isl_schedule *schedule;
-  struct transform_args_t *args = user;
+  size_t *counter = user;
   FILE *input_schedule_file;
 
-  printf("Begin processing SCOP %d\n", args->counter);
+  printf("Begin processing SCOP %lu\n", *counter);
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
-  print_schedule(ctx, scop->schedule, args);
+  print_schedule(ctx, scop->schedule, counter);
   p = transform_scop(ctx, p, scop);
   pet_scop_free(scop);
-  printf("End processing SCOP %d\n", args->counter);
-  ++(args->counter);
+  printf("End processing SCOP %lu\n", *counter);
+  ++(*counter);
   return p;
 }
 
@@ -609,7 +591,7 @@ int main(int argc, char *argv[]) {
   int r;
   isl_ctx *ctx;
   struct options *opt;
-  struct transform_args_t tra_args;
+  size_t counter = 0;
 
   printf("WARNING: This app should only be invoced by the python wrapper!\n");
   opt = options_new_with_defaults();
@@ -622,17 +604,12 @@ int main(int argc, char *argv[]) {
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
   // pet_options_set_autodetect(ctx, 1);
 
-  tra_args.counter = 0;
-  tra_args.input_source_file = opt->source_file_path;
-
   FILE *output_file = fopen(opt->output_file_path, "w");
   r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
-                             &foreach_scop_callback, &tra_args);
-  fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
+                             &foreach_scop_callback, &counter);
+  fprintf(stderr, "Number of scops: %lu\n", counter);
   fclose(output_file);
-  opt->source_file_path = NULL;
-  opt->output_file_path = NULL;
-  // options_free(opt);
+  options_free(opt);
   isl_ctx_free(ctx);
   printf("### STOP ###\n");
   return r;
