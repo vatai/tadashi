@@ -593,7 +593,7 @@ int main(int argc, char *argv[]) {
   struct options *opt;
   size_t counter = 0;
 
-  printf("WARNING: This app should only be invoced by the python wrapper!\n");
+  printf("WARNING: This app should only be invoked by the python wrapper!\n");
   opt = options_new_with_defaults();
   ctx = isl_ctx_alloc_with_options(&options_args, opt);
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
