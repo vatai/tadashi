@@ -79,19 +79,18 @@
 #include <pet.h>
 
 struct options {
-  struct isl_options *isl;
-  struct pet_options *pet;
+  struct isl *isl;
+  struct pet *pet;
   char *source_file_path;
   char *output_file_path;
 };
 
-char DEFAULT_OUTPUT_FILE[] = "out.c";
-
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
-ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
+ISL_ARG_CHILD(struct options, pet, "pet", &pet_options_args, "pet options")
 ISL_ARG_ARG(struct options, source_file_path, "source file", NULL)
-ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", 0, NULL)
+ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", "out.c",
+            "Output file")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 /* Call "fn" on each declared array in "scop" that has an exposed field
@@ -595,21 +594,16 @@ int main(int argc, char *argv[]) {
 
   printf("WARNING: This app should only be invoked by the python wrapper!\n");
   opt = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, opt);
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
-  if (!opt->output_file_path)
-    opt->output_file_path = DEFAULT_OUTPUT_FILE;
-
+  ctx = isl_ctx_alloc_with_options(&options_args, opt);
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  // pet_options_set_autodetect(ctx, 1);
 
   FILE *output_file = fopen(opt->output_file_path, "w");
   r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
                              &foreach_scop_callback, &counter);
   fprintf(stderr, "Number of scops: %lu\n", counter);
   fclose(output_file);
-  options_free(opt);
   isl_ctx_free(ctx);
   printf("### STOP ###\n");
   return r;
