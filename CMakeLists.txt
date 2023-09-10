@@ -8,31 +8,31 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
 find_package(PkgConfig REQUIRED)
 
-set(PET_PREFIX ${CMAKE_BINARY_DIR}/pet)
+set(PET_PREFIX ${CMAKE_BINARY_DIR}/pet-prefix)
 
 include(FetchContent)
 include(ExternalProject)
 
-# FetchContent_Declare(
 ExternalProject_Add(
   pet
   GIT_REPOSITORY https://repo.or.cz/pet.git
-  PREFIX ${PET_PREFIX}
+  # PREFIX ${PET_PREFIX}
   GIT_TAG pet-0.11.7
-  CONFIGURE_COMMAND ./autogen.sh && ./configure --prefix=${PET_PREFIX}/install
+  GIT_SUBMODULES ""
+  GIT_SUBMODULES_RECURSE False
+  GIT_SHALLOW ON
+  CONFIGURE_COMMAND ./autogen.sh && ./configure --with-isl=system --prefix=${PET_PREFIX}/install
   BUILD_COMMAND make -j
-  # INSTALL_COMMAND ""
+  INSTALL_COMMAND make install
   BUILD_IN_SOURCE 1
-  # BUILD_BYPRODUCTS
-  #   "${PET_PREFIX}/libpluto.so"
+  BUILD_BYPRODUCTS
+    "${PET_PREFIX}/libpluto.so"
 )
-# FetchContent_MakeAvailable(pet)
 # add_library(libplutoisl SHARED IMPORTED)
 # set_target_properties(libplutoisl PROPERTIES IMPORTED_LOCATION "${PLUTO_LIB_DIR}/libisl.so")
 
-set(ENV{PKG_CONFIG_PATH} "${CMAKE_BINARY_DIR}/pet/pet;${CMAKE_BINARY_DIR}/pet/pet/isl")
-set(ENV{PKG_CONFIG_PATH} "pet")
-
+# set(ENV{PKG_CONFIG_PATH} "${CMAKE_BINARY_DIR}/pet/pet;${CMAKE_BINARY_DIR}/pet/pet/isl")
+# set(ENV{PKG_CONFIG_PATH} "pet")
 # find_package(PkgConfig REQUIRED)
 # pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
 # pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
@@ -48,7 +48,7 @@ set(ENV{PKG_CONFIG_PATH} "pet")
 # llvm_map_components_to_libnames(llvm_libs support core irreader clang)
 
 # add_executable(main src/main.c)
-# target_link_libraries(main PUBLIC PkgConfig::pet gmp ${llvm_libs})
+# target_link_libraries(main PUBLIC pet)
 
 # add_executable(poly-scan src/poly-scan.c)
 # target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
