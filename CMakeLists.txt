@@ -20,11 +20,11 @@ FetchContent_Declare(
   UPDATE_DISCONNECTED ON
 )
 
-set(ENV{PKG_CONFIG_PATH} ${libpet_SOURCE_DIR})
 find_package(PkgConfig REQUIRED)
-pkg_search_module(pet IMPORTED_TARGET libpet)
+pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
+pkg_search_module(PET IMPORTED_TARGET pet)
 
-if(NOT libpet_POPULATED AND NOT pet_FOUND)
+if(NOT libpet_POPULATED AND NOT PET_FOUND)
   message("Package 'pet' not found, so we're building it")
   FetchContent_Populate(libpet)
 
@@ -49,8 +49,8 @@ if(NOT libpet_POPULATED AND NOT pet_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
+  set(ENV{PKG_CONFIG_PATH} ${libpet_SOURCE_DIR})
   pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
-  pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
 endif()
 
 
