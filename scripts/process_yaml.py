@@ -39,9 +39,7 @@ class process_schedule():
         for i in range(len(loop_index_list)):
             loop_index = loop_index_list[i]
             while True:
-                if isinstance(node, list):
-                    node = node[loop_index]
-                elif "schedule" in node.keys():
+                if "schedule" in node.keys():
                     if i==len(loop_index_list)-1:
                         return func(node, *args, **kwargs)
                     else:
@@ -51,8 +49,21 @@ class process_schedule():
                     node = node["child"]  
                 elif "sequence" in node.keys(): 
                     node = node["sequence"]
+                    count = -1
+                    len_filter = len(node)
+                    for t in range(len_filter):
+                        if("child" in node[t].keys()):
+                            count += 1
+                        if(count == loop_index):
+                            node = node[t]
+                            break
+                        
                 elif "filter" in node.keys(): 
                     node = node["filter"]
+                elif isinstance(node, list):
+                    # len_filter
+                    # while ~ re.match(r'\{ S_\d+\[\] \}', )
+                    node = node[loop_index]
                 else: 
                     print("key missed")
                     return
