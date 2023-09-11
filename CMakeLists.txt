@@ -4,16 +4,55 @@ project(polyhedral-tutor)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-set(ENV{PKG_CONFIG_PATH} "${CMAKE_SOURCE_DIR}/deps/build/pet;${CMAKE_SOURCE_DIR}/deps/build/pet/isl")
+
+# list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
+
+
+include(FetchContent)
+
+FetchContent_Declare(
+  libpet
+  GIT_REPOSITORY https://repo.or.cz/pet.git
+  GIT_TAG pet-0.11.7
+  GIT_SUBMODULES ""
+  GIT_SUBMODULES_RECURSE False
+  GIT_SHALLOW ON
+  UPDATE_DISCONNECTED ON
+)
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
 pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
+pkg_search_module(PET IMPORTED_TARGET pet)
 
-# message(WARNING "PET_INCLUDE_DIRS is ${PET_INCLUDE_DIRS}")
-# message(WARNING "PET_FOUND is ${PET_FOUND}")
-# message(WARNING "ISL_FOUND is ${ISL_FOUND}")
-# message(WARNING "ISL_LIBRARY_DIRS is ${ISL_LIBRARY_DIRS}")
+if(NOT libpet_POPULATED AND NOT PET_FOUND)
+  message("Package 'pet' not found, so we're building it")
+  FetchContent_Populate(libpet)
+
+  set(ENV${CC} ${CMAKE_C_COMPILER})
+  set(ENV{CXX} ${CMAKE_CXX_COMPILER})
+
+  execute_process(
+    OUTPUT_QUIET
+    COMMAND ./autogen.sh --host=${CMAKE_SYSTEM_PROCESSOR}
+    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+  )
+
+  execute_process(
+    OUTPUT_QUIET
+    COMMAND ./configure --prefix=${libpet_BINARY_DIR}
+    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+  )
+
+  execute_process(
+    OUTPUT_QUIET
+    COMMAND make -j
+    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+  )
+
+  set(ENV{PKG_CONFIG_PATH} ${libpet_SOURCE_DIR})
+  pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
+endif()
+
 
 add_executable(main src/main.c)
 target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
