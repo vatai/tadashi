@@ -1,12 +1,19 @@
 /*
+ * Copyright 2023  Emil Vatai. All rights reservered.
+ *
  * The main program. For each scop in a C source file:
  *
- * - generate the schedules (in yaml format)
+ * + Read the original schedules using pet, and print it in yaml
+ *   format to `stdout`.
  *
- * - read the schedule (in yaml format), check legality, and if legal,
- *   generates a new C source according to the new schedule
+ * + Transform the SCoP:
  *
- * Emil Vatai
+ *   1. Read a schedule (in yaml format) from `stdin`,
+ *
+ *   2. Check legality, and
+ *
+ *   3. Generate a C code according to the new schedule if it is legal
+ *   or according to the original schedule otherwise.
  *
  */
 
@@ -51,6 +58,7 @@
  */
 
 #include <isl/printer_type.h>
+#include <isl/union_map.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -71,19 +79,18 @@
 #include <pet.h>
 
 struct options {
-  struct isl_options *isl;
-  struct pet_options *pet;
+  struct isl *isl;
+  struct pet *pet;
   char *source_file_path;
   char *output_file_path;
 };
 
-char DEFAULT_OUTPUT_FILE[] = "out.c";
-
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
-ISL_ARG_CHILD(struct options, pet, NULL, &pet_options_args, "pet options")
+ISL_ARG_CHILD(struct options, pet, "pet", &pet_options_args, "pet options")
 ISL_ARG_ARG(struct options, source_file_path, "source file", NULL)
-ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", 0, NULL)
+ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", "out.c",
+            "Output file")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 /* Call "fn" on each declared array in "scop" that has an exposed field
@@ -405,24 +412,6 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
-#define MAX_PATH_LEN 1024
-struct transform_args_t {
-  char *input_source_file;
-  char file_name_buffer[MAX_PATH_LEN];
-  size_t counter;
-  isl_union_map *dependencies;
-};
-
-void update_filename(struct transform_args_t *args, const char *ext) {
-  int rv;
-  rv = sprintf(args->file_name_buffer, "%s.%lu.%s.yaml",
-               args->input_source_file, args->counter, ext);
-  if (rv < 0 || rv >= MAX_PATH_LEN) {
-    fprintf(stderr, "UserError: source file (path) is too long!\n");
-    exit(2);
-  }
-}
-
 __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
@@ -444,7 +433,7 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+__isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
   flow = get_flow_from_scop(scop);
@@ -469,35 +458,40 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
 
+  if (isl_union_map_is_empty(dep)) {
+    isl_union_map_free(dep);
+    isl_union_map_free(schedule_map);
+    return isl_bool_true;
+  }
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
   domain = isl_union_map_apply_range(domain, schedule_map);
   delta = isl_union_map_deltas(domain);
-
   zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
-
   le = isl_union_set_lex_le_union_set(delta, zeros);
   isl_bool retval = isl_union_map_is_empty(le);
   isl_union_map_free(le);
   return retval;
 }
 
-isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
+isl_bool check_schedule_legality(isl_ctx *ctx,
+                                 __isl_keep isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-void print_schedule(isl_ctx *ctx, isl_schedule *schedule,
-                    struct transform_args_t *args) {
+void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+                    size_t *counter) {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
-  printf("### sched[%d] begin ###\n", args->counter);
+  printf("### sched[%lu] begin ###\n", *counter);
   isl_schedule_dump(schedule);
-  printf("### sched[%d] end ###\n", args->counter);
+  printf("### sched[%lu] end ###\n", *counter);
   isl_schedule_node_free(root);
 }
 
-void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
-                   isl_schedule *schedule) {
+__isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
+                                      struct pet_scop *scop,
+                                      isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;
@@ -518,26 +512,26 @@ void generate_code(isl_ctx *ctx, isl_printer *p, struct pet_scop *scop,
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);
+  return p;
 }
 
-isl_printer *transform_scop(isl_ctx *ctx, isl_printer *p,
-                            struct pet_scop *scop) {
-  int indent;
-  isl_ast_build *build;
-  isl_ast_node *node;
-  isl_ast_print_options *print_options;
-  isl_id_to_id *id2stmt;
+__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
+                                       __isl_keep struct pet_scop *scop) {
   isl_schedule *schedule;
+  isl_union_map *dependencies;
   schedule = isl_schedule_read_from_file(ctx, stdin);
   isl_schedule_dump(schedule);
-  if (!check_schedule_legality(ctx, schedule, get_dependencies(scop))) {
+  dependencies = get_dependencies(scop);
+  isl_union_map_dump(dependencies);
+  isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
+  if (!legal) {
     printf("Illegal schedule!\n");
     isl_schedule_free(schedule);
     schedule = pet_scop_get_schedule(scop);
   } else {
     printf("Schedule is legal!\n");
   }
-  generate_code(ctx, p, scop, schedule);
+  p = generate_code(ctx, p, scop, schedule);
   return p;
 }
 
@@ -576,21 +570,19 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      void *user) {
   isl_ctx *ctx;
   isl_schedule *schedule;
-  struct transform_args_t *args;
+  size_t *counter = user;
   FILE *input_schedule_file;
 
-  args = user;
+  printf("Begin processing SCOP %lu\n", *counter);
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
-  print_schedule(ctx, scop->schedule, args);
-
-  update_filename(args, "input");
-  input_schedule_file = fopen(args->file_name_buffer, "r");
+  print_schedule(ctx, scop->schedule, counter);
   p = transform_scop(ctx, p, scop);
   pet_scop_free(scop);
-  ++(args->counter);
+  printf("End processing SCOP %lu\n", *counter);
+  ++(*counter);
   return p;
 }
 
@@ -598,38 +590,21 @@ int main(int argc, char *argv[]) {
   int r;
   isl_ctx *ctx;
   struct options *opt;
-  struct transform_args_t tra_args;
+  size_t counter = 0;
 
-  printf("WARNING: This app should only be invoced by the python wrapper!\n");
+  printf("WARNING: This app should only be invoked by the python wrapper!\n");
   opt = options_new_with_defaults();
-  ctx = isl_ctx_alloc_with_options(&options_args, opt);
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
-  if (!opt->output_file_path)
-    opt->output_file_path = DEFAULT_OUTPUT_FILE;
-
+  ctx = isl_ctx_alloc_with_options(&options_args, opt);
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  // pet_options_set_autodetect(ctx, 1);
-
-  if (!opt->source_file_path) {
-    fprintf(
-        stderr,
-        "UserError: Source file not specified (see %s --help for details)\n",
-        argv[0]);
-    return 1;
-  }
-
-  tra_args.counter = 0;
-  tra_args.input_source_file = opt->source_file_path;
 
   FILE *output_file = fopen(opt->output_file_path, "w");
   r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
-                             &foreach_scop_callback, &tra_args);
-  // fprintf(stderr, "Number of scops: %d\n", tra_args.counter);
+                             &foreach_scop_callback, &counter);
+  fprintf(stderr, "Number of scops: %lu\n", counter);
   fclose(output_file);
-  printf("### STOP ###\n");
-  options_free(opt);
   isl_ctx_free(ctx);
-  // printf("%s Done\n", argv[0]);
+  printf("### STOP ###\n");
   return r;
 }
