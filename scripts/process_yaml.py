@@ -79,9 +79,11 @@ class process_schedule():
     def interchange(self, loop_index_list_1=[], loop_index_list_2=[]):
         node1 = self.traverse(node_convert_interchange, loop_index_list_1)
         node2 = self.traverse(node_convert_interchange, loop_index_list_2)
-        temp_schedule = node1['schedule']
-        node1['schedule'] = node2['schedule']
-        node2['schedule'] = temp_schedule
+        pattern = r'\[\((.*?)\)\]'
+        loop_alphabet1 = re.findall(pattern, node1['schedule'])[0]
+        loop_alphabet2 = re.findall(pattern, node2['schedule'])[0]
+        node1['schedule'] = node1['schedule'].replace(loop_alphabet1, loop_alphabet2)
+        node2['schedule'] = node2['schedule'].replace(loop_alphabet2, loop_alphabet1)
         
     def fuse(self, loop_index1=[], loop_index2=[]):
         pass
