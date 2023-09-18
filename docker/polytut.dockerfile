@@ -13,5 +13,6 @@ RUN ./configure --with-pet=bundled --with-clang=system --enable-shared-barvinok 
 RUN make -j
 RUN make isl.py
 RUN make install
+# RUN git clone git@github.com:vatai/polyhedral-tutor.git
 
-COPY ../. .
+# COPY ../deps/ .
