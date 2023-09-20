@@ -17,15 +17,13 @@ LLVM_CMAKE_ARGS=(
 
 wget -nc "${LLVM_URL}" -O "${DOWNLOAD}/${LLVM_FILE}.${LLVM_EXT}" || true
 
-wget -nc "https://raw.githubusercontent.com/archlinux/svntogit-packages/packages/llvm11/trunk/utils-benchmark-fix-missing-include.patch" -O "${DOWNLOAD}/utils-benchmark-fix-missing-include.patch" || true
-
 pushd "${BUILD}"
 [ -e "${LLVM_EXTRACTED}" ] || tar xvf "${DOWNLOAD}/${LLVM_FILE}.${LLVM_EXT}"
 pushd "${LLVM_EXTRACTED}"
 
 mkdir -p build
-patch -Np1 -i "${DOWNLOAD}/utils-benchmark-fix-missing-include.patch" || true
 sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
+sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
 cmake --build build -j8
 

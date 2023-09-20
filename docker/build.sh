@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-docker build -f polytut.dockerfile -t polytut .
+docker buildx build --ssh default=$SSH_AUTH_SOCK -f polytut.dockerfile -t polytut .
