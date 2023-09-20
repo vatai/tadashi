@@ -57,6 +57,7 @@
  * reserved.  Date: 2023-08-04
  */
 
+#include <isl/ast.h>
 #include <isl/printer_type.h>
 #include <isl/union_map.h>
 #include <stdio.h>
@@ -412,6 +413,43 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
+static __isl_give isl_printer *
+print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
+          __isl_keep isl_ast_node *node, void *user) {
+  isl_ast_expr *iter = isl_ast_node_for_get_iterator(node);
+  isl_ast_expr *init = isl_ast_node_for_get_init(node);
+  isl_ast_expr *cond = isl_ast_node_for_get_cond(node);
+  isl_ast_expr *inc = isl_ast_node_for_get_inc(node);
+  isl_ast_node *body = isl_ast_node_for_get_body(node);
+  // p = isl_printer_start_line(p);
+  p = isl_printer_print_str(p, "#pragma omp parallel for");
+  p = isl_printer_end_line(p);
+  p = isl_printer_print_str(p, "for(");
+  p = isl_printer_print_ast_expr(p, iter);
+  p = isl_printer_print_str(p, " = ");
+  p = isl_printer_print_ast_expr(p, init);
+  p = isl_printer_print_str(p, "; ");
+  p = isl_printer_print_ast_expr(p, cond);
+  p = isl_printer_print_str(p, "; ");
+  p = isl_printer_print_ast_expr(p, inc);
+  p = isl_printer_print_str(p, "){");
+
+  p = isl_printer_end_line(p);
+  p = isl_printer_start_line(p);
+  p = isl_ast_node_print(body, p, options);
+
+  p = isl_printer_start_line(p);
+  p = isl_printer_print_str(p, "}");
+  p = isl_printer_end_line(p);
+
+  isl_ast_expr_free(iter);
+  isl_ast_expr_free(init);
+  isl_ast_expr_free(cond);
+  isl_ast_expr_free(inc);
+  isl_ast_node_free(body);
+  return p;
+}
+
 __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
@@ -505,6 +543,8 @@ __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+  print_options =
+      isl_ast_print_options_set_print_for(print_options, &print_for, NULL);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
