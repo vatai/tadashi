@@ -1,0 +1,7 @@
+{"domain": "[N] -> { S_0[i] : 0 <= i < N }", "child": {"schedule": "[N] -> L_0[{ S_0[i] -> [(i)] }]"}}
+
+{"domain": "[N] -> { S_0[i, j] : 0 < i < N and 0 <= j < N }", "child": {"schedule": "[N] -> L_0[{ S_0[i, j] -> [(i)] }]", "child": {"schedule": "[N] -> L_1[{ S_0[i, j] -> [(j)] }]"}}}
+
+{"domain": "[N, i] -> { S_0[] }"}
+
+
