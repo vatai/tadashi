@@ -8,7 +8,7 @@
 #+begin_export latex
 \begin{tikzpicture}
   \graph [edge quotes={fill=white,inner sep=1pt},
-          grow down, nodes={circle,draw}] {
+          grow down, tree layout, nodes={rounded corners, rectangle,draw}] {
   %  "" -> h [>"9"] -> {
   %    c [>"4"] -> {
   %      a [>"2"],
