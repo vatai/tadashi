@@ -8,20 +8,20 @@
 #+begin_export latex
 \begin{tikzpicture}
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
-    "\texttt{band\_band}" -> {
+    "\texttt{{band\_node}}" -- {
       "",
       "",
-      "\texttt{band\_node}" -> { "", "" }
+      "\texttt{band\_node}" -- { "", "" }
     }
   };
   % TODO: draw arc around the marked subtree
   \scoped [xshift=5cm]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
-    "\texttt{band\_band}" -> {
+    "\texttt{{band\_node}}" -- {
       "",
       "",
-      "\texttt{mark\_node}" -> {
-        "\texttt{band\_node}" [>red] -> { "", "" }
+      "\texttt{mark:{"parallel"}}"[red] -- {
+        "\texttt{band\_node}" [>red] -- { "", "" }
       }
     }
   };
