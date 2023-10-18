@@ -82,6 +82,9 @@
 #include <isl/val.h>
 #include <pet.h>
 
+#define TADASHI_LABEL_MAX_SIZE 100
+#define TADASHI_LABEL_PARALLEL "parallel"
+
 struct options {
   struct isl *isl;
   struct pet *pet;
@@ -416,6 +419,15 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
+int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+  if (!id)
+    return 0;
+  const char *id_name = isl_id_get_name(id);
+  int result = strncmp(id_name, label, TADASHI_LABEL_MAX_SIZE);
+  isl_id_free(id);
+  return result == 0;
+}
+
 static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
           __isl_keep isl_ast_node *for_node, void *user) {
@@ -424,12 +436,12 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
   isl_ast_expr *inc = isl_ast_node_for_get_inc(for_node);
   isl_ast_node *body = isl_ast_node_for_get_body(for_node);
-  isl_id *annotation = isl_ast_node_get_annotation(for_node);
 
-  if (annotation) {
+  isl_id *annotation = isl_ast_node_get_annotation(for_node);
+  if (id_name_is_label_and_free(annotation, TADASHI_LABEL_PARALLEL)) {
     p = isl_printer_print_str(p, "#pragma omp parallel for\n");
   }
-  isl_id_free(annotation);
+
   p = isl_printer_print_str(p, "for(");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
@@ -536,16 +548,14 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
 __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
                                     __isl_keep isl_ast_build *build,
                                     void *user) {
-  // Check if the mark is "parallel"
+  isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
   isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
-  int cmp_result = strcmp(isl_id_get_name(mark_id), "parallel");
-  isl_id_free(mark_id);
-  if (cmp_result != 0)
+  if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
     return mark_node;
 
   isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
-  isl_ctx *ctx = isl_ast_build_get_ctx(build);
-  isl_id *annotation = isl_id_alloc(ctx, "foo-bar", NULL);
+  isl_ast_node_free(mark_node);
+  isl_id *annotation = isl_id_alloc(ctx, TADASHI_LABEL_PARALLEL, NULL);
   for_node = isl_ast_node_set_annotation(for_node, annotation);
   return for_node;
 }
