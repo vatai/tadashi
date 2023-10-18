@@ -1,0 +1,26 @@
+#+startup: beamer
+#+latex_header: \usepackage{tikz}
+#+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing}
+#+latex_compiler: lualatex
+#+latex_header: \usegdlibrary{trees}
+
+* Mark
+#+begin_export latex
+\begin{tikzpicture}
+  \graph [edge quotes={fill=white,inner sep=1pt},
+          grow down, nodes={circle,draw}] {
+  %  "" -> h [>"9"] -> {
+  %    c [>"4"] -> {
+  %      a [>"2"],
+  %      e [>"0"]
+  %    },
+  %    j [>"7"]
+  %  }
+    root -> { 
+      child 1,
+      child 2,
+      child 3
+    }
+  };
+\end{tikzpicture}
+#+end_export
