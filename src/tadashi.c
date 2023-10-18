@@ -422,29 +422,18 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
 static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
-          __isl_keep isl_ast_node *node, void *user) {
-  isl_ast_expr *iter = isl_ast_node_for_get_iterator(node);
-  isl_ast_expr *init = isl_ast_node_for_get_init(node);
-  isl_ast_expr *cond = isl_ast_node_for_get_cond(node);
-  isl_ast_expr *inc = isl_ast_node_for_get_inc(node);
-  isl_ast_node *body = isl_ast_node_for_get_body(node);
-  isl_id *annotation = isl_ast_node_get_annotation(node);
+          __isl_keep isl_ast_node *for_node, void *user) {
+  isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
+  isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
+  isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
+  isl_ast_expr *inc = isl_ast_node_for_get_inc(for_node);
+  isl_ast_node *body = isl_ast_node_for_get_body(for_node);
+  isl_id *annotation = isl_ast_node_get_annotation(for_node);
 
-  // printf(">>>>> %s\n", isl_ast_node_to_str(node));
-
-  if (isl_ast_node_get_type(body) == isl_ast_node_mark) {
-    isl_ast_node *child = isl_ast_node_mark_get_node(body);
-    isl_ctx *ctx = isl_printer_get_ctx(p);
-    isl_id *id = isl_id_alloc(ctx, "parallel", NULL);
-    isl_ast_node_set_annotation(child, id);
+  if (annotation) {
+    p = isl_printer_print_str(p, "#pragma omp parallel for\n");
   }
-
-  if (annotation)
-    printf("ANNOTATION: %s\n", isl_id_to_str(annotation));
   isl_id_free(annotation);
-  // p = isl_printer_start_line(p);
-  p = isl_printer_print_str(p, "#pragma omp parallel for");
-  p = isl_printer_end_line(p);
   p = isl_printer_print_str(p, "for(");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
@@ -548,42 +537,14 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
-isl_stat before_for(__isl_keep isl_ast_build *build, void *user) {
-
-  // printf("BEFOREFOR: %s\n", isl_id_to_str(mark));
-  return isl_stat_ok;
-}
-
-__isl_give isl_ast_node *after_for(__isl_take isl_ast_node *node,
-                                   __isl_keep isl_ast_build *build,
-                                   void *user) {
-
-  /* isl_ctx *ctx = isl_ast_build_get_ctx(build); */
-  /* isl_id *annotation = isl_id_alloc(ctx, "foo-bar", NULL); */
-  /* isl_ast_node_set_annotation(node, annotation); */
-  /* printf("AFTERFOR: %s\n", isl_ast_node_to_str(node)); */
-  /* printf("AFTERFOR: %s\n", isl_ast_node_to_C_str(node)); */
-  return node;
-}
-
-isl_stat before_mark(__isl_take isl_id *mark, __isl_keep isl_ast_build *build,
-                     void *user) {
-
-  printf("BEFOREMARK: %s\n", isl_id_to_str(mark));
-  return isl_stat_ok;
-}
-
-__isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *node,
+__isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
                                     __isl_keep isl_ast_build *build,
                                     void *user) {
-  /* printf("AFTERMARK: %s\n", isl_ast_node_to_str(node)); */
-  isl_ast_node *forloop = isl_ast_node_mark_get_node(node);
-  /* printf("EXPLORE: %s\n", isl_ast_node_to_str(forloop)); */
-  /* printf("AFTERMARK: %s\n", isl_ast_node_to_C_str(node)); */
+  isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
   isl_ctx *ctx = isl_ast_build_get_ctx(build);
   isl_id *annotation = isl_id_alloc(ctx, "foo-bar", NULL);
-  isl_ast_node_set_annotation(forloop, annotation);
-  return node;
+  for_node = isl_ast_node_set_annotation(for_node, annotation);
+  return for_node;
 }
 
 __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
@@ -598,9 +559,6 @@ __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
-  /* build = isl_ast_build_set_before_each_for(build, before_for, NULL); */
-  build = isl_ast_build_set_after_each_for(build, after_for, NULL);
-  /* build = isl_ast_build_set_before_each_mark(build, before_mark, NULL); */
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
   node = isl_ast_build_node_from_schedule(build, schedule);
   print_options = isl_ast_print_options_alloc(ctx);
