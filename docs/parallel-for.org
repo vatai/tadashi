@@ -14,6 +14,17 @@
       "\texttt{band\_node}" -> { "", "" }
     }
   };
-  % draw arc around the marked subtree
+  % TODO: draw arc around the marked subtree
+  \scoped [xshift=5cm]
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{band\_band}" -> {
+      "",
+      "",
+      "\texttt{mark\_node}" -> {
+        "\texttt{band\_node}" [>red] -> { "", "" }
+      }
+    }
+  };
+  % TODO: color mark node red
 \end{tikzpicture}
 #+end_export
