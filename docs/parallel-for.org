@@ -1,21 +1,21 @@
 #+startup: beamer
 #+latex_header: \usepackage{tikz}
-#+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing}
+#+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing,arrows.meta}
 #+latex_compiler: lualatex
 #+latex_header: \usegdlibrary{trees}
 
-* Mark
+* Mark subtree
 #+begin_export latex
 \begin{tikzpicture}
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
       "",
-      "\texttt{band\_node}" -- { "", "" }
+      band/"\texttt{band\_node}" -- { "", "" }
     }
   };
-  % TODO: draw arc around the marked subtree
-  \scoped [xshift=5cm]
+  \draw[red, dashed, thick] (band) +(-1.5cm,-0.8cm) arc (180:0:1.5cm);
+  \scoped [xshift=6cm]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
@@ -25,6 +25,34 @@
       }
     }
   };
-  % TODO: color mark node red
+  \path (3,1) node{Generate (edit) yaml file};
+  \draw [blue, line width=6pt,
+             arrows = {-Latex[length=0pt 3 0]}] (3,-1) -- (4,-1);
+\end{tikzpicture}
+#+end_export
+
+* Generating the AST
+
+#+begin_export latex
+\begin{tikzpicture}
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{{band\_node}}" -- {
+      "",
+      "",
+      "\texttt{mark:{"parallel"}}"[red] -- {
+        "\texttt{band\_node}" [>red] -- { "", "" }
+      }
+    }
+  };
+  \scoped [purple, xshift=5cm]
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{{for\_node}}" -- {
+      "",
+      "",
+      "\texttt{mark:{"parallel"}}"[red] -- {
+        "\texttt{for\_node}" [>red] -- { "", "" }
+      }
+    }
+  };
 \end{tikzpicture}
 #+end_export
