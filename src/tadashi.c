@@ -64,6 +64,7 @@
 #include <isl/union_map.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <isl/arg.h>
 #include <isl/ctx.h>
@@ -397,18 +398,13 @@ static __isl_give isl_printer *
 print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
            __isl_keep isl_ast_node *node, void *user) {
 
-  if (isl_ast_node_get_type(node) == isl_ast_node_mark) {
-    // check if id == "parallel"
-    p = print_str_on_line(p, "#pragma omp YAAAAAY");
-  } else {
-    isl_id_to_id *id2stmt = user;
-    struct pet_stmt *stmt;
-    isl_id_to_ast_expr *ref2expr;
-    stmt = node_stmt(node, id2stmt);
-    ref2expr = peek_ref2expr(node);
+  isl_id_to_id *id2stmt = user;
+  struct pet_stmt *stmt;
+  isl_id_to_ast_expr *ref2expr;
+  stmt = node_stmt(node, id2stmt);
+  ref2expr = peek_ref2expr(node);
 
-    p = pet_stmt_print_body(stmt, p, ref2expr);
-  }
+  p = pet_stmt_print_body(stmt, p, ref2expr);
 
   isl_ast_print_options_free(options);
 
@@ -540,6 +536,13 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
 __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
                                     __isl_keep isl_ast_build *build,
                                     void *user) {
+  // Check if the mark is "parallel"
+  isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
+  int cmp_result = strcmp(isl_id_get_name(mark_id), "parallel");
+  isl_id_free(mark_id);
+  if (cmp_result != 0)
+    return mark_node;
+
   isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
   isl_ctx *ctx = isl_ast_build_get_ctx(build);
   isl_id *annotation = isl_id_alloc(ctx, "foo-bar", NULL);
