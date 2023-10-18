@@ -400,10 +400,10 @@ static __isl_give isl_printer *print_macros(__isl_take isl_printer *p,
 static __isl_give isl_printer *
 print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
            __isl_keep isl_ast_node *node, void *user) {
-
   isl_id_to_id *id2stmt = user;
   struct pet_stmt *stmt;
   isl_id_to_ast_expr *ref2expr;
+
   stmt = node_stmt(node, id2stmt);
   ref2expr = peek_ref2expr(node);
 
