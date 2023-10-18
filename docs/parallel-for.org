@@ -7,20 +7,13 @@
 * Mark
 #+begin_export latex
 \begin{tikzpicture}
-  \graph [edge quotes={fill=white,inner sep=1pt},
-          grow down, tree layout, nodes={rounded corners, rectangle,draw}] {
-  %  "" -> h [>"9"] -> {
-  %    c [>"4"] -> {
-  %      a [>"2"],
-  %      e [>"0"]
-  %    },
-  %    j [>"7"]
-  %  }
-    root -> { 
-      child 1,
-      child 2,
-      child 3
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{band\_band}" -> {
+      "",
+      "",
+      "\texttt{band\_node}" -> { "", "" }
     }
   };
+  % draw arc around the marked subtree
 \end{tikzpicture}
 #+end_export
