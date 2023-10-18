@@ -442,6 +442,8 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
     p = isl_printer_print_str(p, "#pragma omp parallel for\n");
   }
 
+  p = isl_printer_start_line(p);
+  p = isl_printer_indent(p, 2);
   p = isl_printer_print_str(p, "for(");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
@@ -451,12 +453,14 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_print_str(p, "; ");
   p = isl_printer_print_ast_expr(p, inc);
   p = isl_printer_print_str(p, "){");
-
   p = isl_printer_end_line(p);
+
   p = isl_printer_start_line(p);
   p = isl_ast_node_print(body, p, options);
+  p = isl_printer_indent(p, -2);
 
   p = isl_printer_start_line(p);
+  p = isl_printer_indent(p, -2);
   p = isl_printer_print_str(p, "}");
   p = isl_printer_end_line(p);
 
