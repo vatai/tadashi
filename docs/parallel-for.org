@@ -99,3 +99,47 @@
 #+end_export
 
 * Code
+
+#+begin_src C
+    static __isl_give isl_printer *
+    print_user(__isl_take isl_printer *p, //
+               __isl_take isl_ast_print_options *options, //
+               __isl_keep isl_ast_node *node, void *user) {
+      isl_id_to_id *id2stmt = user;
+      struct pet_stmt *stmt;
+      isl_id_to_ast_expr *ref2expr;
+
+      stmt = node_stmt(node, id2stmt);
+      ref2expr = peek_ref2expr(node);
+
+      p = pet_stmt_print_body(stmt, p, ref2expr);
+
+      isl_ast_print_options_free(options);
+
+      return p;
+    }
+#+end_src
+
+
+* Code
+#+begin_src C
+  print_for(__isl_take isl_printer *p, //
+            __isl_take isl_ast_print_options *options,//
+            __isl_keep isl_ast_node *for_node, void *user) {
+    isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
+    isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
+    isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
+    isl_ast_expr *inc = isl_ast_node_for_get_inc(for_node);
+    isl_ast_node *body = isl_ast_node_for_get_body(for_node);
+    isl_id *annotation = isl_ast_node_get_annotation(for_node);
+    if (id_name_is_label_and_free(annotation, TADASHI_LABEL_PARALLEL)) {
+      p = isl_printer_print_str(p, "#pragma omp parallel for\n");
+    }
+    p = isl_printer_start_line(p);
+    p = isl_printer_indent(p, 2);
+    p = isl_printer_print_str(p, "for(");
+    p = isl_printer_print_ast_expr(p, iter);
+    // .. snip ..
+  }
+
+#+end_src
