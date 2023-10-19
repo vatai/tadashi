@@ -1,4 +1,5 @@
 #+startup: beamer
+#+latex_class_options: [aspectratio=169]
 #+latex_header: \usepackage{tikz}
 #+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing,arrows.meta}
 #+latex_compiler: lualatex
@@ -39,6 +40,7 @@
 
 \end{tikzpicture}
 #+end_export
+
 
 * Generating the AST
 
@@ -96,6 +98,49 @@
 \end{tikzpicture}
 #+end_export
 
+
+* Code: ~at_domain~
+
+#+begin_src C
+  static __isl_give
+  isl_ast_node *at_domain(__isl_take isl_ast_node *node, //
+                          __isl_keep isl_ast_build *build, //
+                          void *user) {
+    isl_id_to_id *id2stmt = user;
+    isl_id *id; struct pet_stmt *stmt; isl_map *schedule; isl_pw_multi_aff *reverse;
+    isl_id_to_ast_expr *ref2expr;
+    stmt = node_stmt(node, id2stmt);
+    schedule = isl_map_from_union_map(isl_ast_build_get_schedule(build));
+    reverse = isl_pw_multi_aff_from_map(isl_map_reverse(schedule));
+    ref2expr = pet_stmt_build_ast_exprs(stmt, build, &pullback_index, reverse, NULL, NULL);
+    isl_pw_multi_aff_free(reverse);
+
+    id = isl_id_alloc(isl_ast_node_get_ctx(node), NULL, ref2expr);
+    id = isl_id_set_free_user(id, &free_isl_id_to_ast_expr);
+    node = isl_ast_node_set_annotation(node, id);
+    return node;
+  }
+
+#+end_src
+
+* Code: ~after_mark~
+
+#+begin_src C
+  __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node, //
+                                      __isl_keep isl_ast_build *build, //
+                                      void *user) {
+    isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
+    isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
+    if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
+      return mark_node;
+
+    isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
+    isl_ast_node_free(mark_node);
+    isl_id *annotation = isl_id_alloc(ctx, TADASHI_LABEL_PARALLEL, NULL);
+    for_node = isl_ast_node_set_annotation(for_node, annotation);
+    return for_node;
+  }
+#+end_src
 
 * Printing the AST
 
