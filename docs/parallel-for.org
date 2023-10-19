@@ -4,10 +4,16 @@
 #+latex_compiler: lualatex
 #+latex_header: \usegdlibrary{trees}
 #+latex_header: \tikzset{trafo/.style={line width=6pt, arrows = {-Latex[length=0pt 3 0]}}}
+#+latex_header: \def\scheduletreecolor{purple}
+#+latex_header: \def\fromschedulecolor{teal}
+#+latex_header:  \def\markcolor{red}
+#+latex_header:  \def\aftermarkcolor{magenta}
+#+latex_header:  \def\atdomaincolor{blue}
 
 * Mark subtree
 #+begin_export latex
 \begin{tikzpicture}
+  \scoped[\scheduletreecolor]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
@@ -15,19 +21,20 @@
       band/"\texttt{band\_node}" -- { "", "" }
     }
   };
-  \draw[red, dashed, thick] (band) +(-1.5cm,-0.8cm) arc (180:0:1.5cm);
-  \scoped [xshift=6cm]
+  \draw[\markcolor, dashed, thick] (band) +(-1.5cm,-0.8cm) arc (180:0:1.5cm);
+
+  \scoped [\scheduletreecolor, xshift=6cm]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
       "",
-      "\texttt{mark:{"parallel"}}"[red] -- {
-        "\texttt{band\_node}" [>red] -- { "", "" }
+      "\texttt{mark:{"parallel"}}"[\markcolor] -- {
+        "\texttt{band\_node}" [>\markcolor] -- { "", "" }
       }
     }
   };
   \path (3,1) node{Generate (edit) yaml file};
-  \draw [red, trafo] (3, -1) -- +(1, 0);
+  \draw [\markcolor, trafo] (3, -1) -- +(1, 0);
 
 \end{tikzpicture}
 #+end_export
@@ -36,26 +43,59 @@
 
 #+begin_export latex
 \begin{tikzpicture}
+  \scoped [\scheduletreecolor]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
       "",
-      "\texttt{mark:{"parallel"}}"[red] -- {
-        "\texttt{band\_node}" [>red] -- { "", "" }
+      "\texttt{mark:{"parallel"}}"[\markcolor] -- {
+        "\texttt{band\_node}" [>\markcolor] -- { "", "" }
       }
     }
   };
-  \path (3,1) node[teal]{isl\_ast\_build\_node\_from\_schedule(build, schedule)};
-  \draw [teal, trafo] (3, -1.5) -- +(1, 0);
-  \scoped [purple, xshift=6cm]
+  \path (3,1) node[\fromschedulecolor]{isl\_ast\_build\_node\_from\_schedule(build, schedule)};
+  \draw [\fromschedulecolor, trafo] (3, -1.5) -- +(1, 0);
+  \scoped [xshift=6cm]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{for\_node}}" -- {
       "",
       "",
-      "\texttt{mark:{"parallel"}}"[red] -- {
-        "\texttt{for\_node}" [>red] -- { "", "" }
+      "\texttt{mark:{"parallel"}}"[\markcolor] -- {
+        "\texttt{for\_node}" [>\markcolor] -- { "", "" }
       }
     }
   };
 \end{tikzpicture}
 #+end_export
+
+
+* Pre\-processing the AST
+
+#+begin_export latex
+\begin{tikzpicture}
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{{for\_node}}" -- {
+      "",
+      "",
+      "\texttt{mark:{"parallel"}}"[\markcolor] -- {
+        "\texttt{for\_node}" [>\markcolor] -- { "$S_{0}[i, j]$"[blue] }
+      }
+    }
+  };
+
+  \path (3,1.5) node[\aftermarkcolor]{isl\_ast\_build\_set\_at\_each\_domain(build, at\_domain, id2stmt)}
+  (3, 1) node[\atdomaincolor]{isl\_ast\_build\_set\_after\_each\_mark(build, after\_mark, NULL)};
+  \draw [teal, trafo] (3, -2) -- +(1, 0);
+
+  \scoped [xshift=5.5cm]
+  \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
+    "\texttt{{for\_node}}" -- {
+      "",
+      "",
+      "\texttt{for\_node+annotation}"[\aftermarkcolor] [>\markcolor] -- { "\texttt{A[i][j] += A[i-1][j]}"[\atdomaincolor] }
+    }
+  };
+\end{tikzpicture}
+#+end_export
+
+* Code
