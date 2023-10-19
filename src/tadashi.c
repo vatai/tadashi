@@ -575,14 +575,14 @@ __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_id_to_id *id2stmt;
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
-  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
+  build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
   node = isl_ast_build_node_from_schedule(build, schedule);
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
-      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+      isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
   print_options =
-      isl_ast_print_options_set_print_for(print_options, &print_for, NULL);
+      isl_ast_print_options_set_print_for(print_options, print_for, NULL);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
