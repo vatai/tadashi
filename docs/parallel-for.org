@@ -17,8 +17,7 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
-      "",
-      band/"\texttt{band\_node}" -- { "", "" }
+      band/"\texttt{band\_node}" -- { "", "", "" }
     }
   };
   \draw[\markcolor, dashed, thick] (band) +(-1.5cm,-0.8cm) arc (180:0:1.5cm);
@@ -27,9 +26,8 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
-      "",
       "\texttt{mark:{"parallel"}}"[\markcolor] -- {
-        "\texttt{band\_node}" [>\markcolor] -- { "", "" }
+        "\texttt{band\_node}" [>\markcolor] -- { "", "", "" }
       }
     }
   };
@@ -47,9 +45,8 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{band\_node}}" -- {
       "",
-      "",
       "\texttt{mark:{"parallel"}}"[\markcolor] -- {
-        "\texttt{band\_node}" [>\markcolor] -- { "", "" }
+        "\texttt{band\_node}" [>\markcolor] -- { "", "", "" }
       }
     }
   };
@@ -59,9 +56,8 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{for\_node}}" -- {
       "",
-      "",
       "\texttt{mark:{"parallel"}}"[\markcolor] -- {
-        "\texttt{for\_node}" [>\markcolor] -- { "", "" }
+        "\texttt{for\_node}" [>\markcolor] -- { "", "", "" }
       }
     }
   };
@@ -76,9 +72,8 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{for\_node}}" -- {
       "",
-      "",
       "\texttt{mark:{"parallel"}}"[\markcolor] -- {
-        "\texttt{for\_node}" [>\markcolor] -- { "$S_{0}[i, j]$"[blue] }
+        "\texttt{for\_node}" [>\markcolor] -- { "$S_0[i, j]$"[blue] }
       }
     }
   };
@@ -91,8 +86,7 @@
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{for\_node}}" -- {
       "",
-      "",
-      "\texttt{for\_node+annotation}"[\aftermarkcolor] [>\markcolor] -- { "\texttt{A[i][j] += A[i-1][j]}"[\atdomaincolor] }
+      "\texttt{for\_node} + annot(``parallel'')"[\aftermarkcolor] [>\markcolor] -- { "$S_0[i,j]$ + annot(\texttt{A[i][j]+=..})"[\atdomaincolor] }
     }
   };
 \end{tikzpicture}
