@@ -3,6 +3,7 @@
 #+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing,arrows.meta}
 #+latex_compiler: lualatex
 #+latex_header: \usegdlibrary{trees}
+#+latex_header: \tikzset{trafo/.style={line width=6pt, arrows = {-Latex[length=0pt 3 0]}}}
 
 * Mark subtree
 #+begin_export latex
@@ -26,8 +27,8 @@
     }
   };
   \path (3,1) node{Generate (edit) yaml file};
-  \draw [blue, line width=6pt,
-             arrows = {-Latex[length=0pt 3 0]}] (3,-1) -- (4,-1);
+  \draw [red, trafo] (3, -1) -- +(1, 0);
+
 \end{tikzpicture}
 #+end_export
 
@@ -44,7 +45,9 @@
       }
     }
   };
-  \scoped [purple, xshift=5cm]
+  \path (3,1) node[teal]{isl\_ast\_build\_node\_from\_schedule(build, schedule)};
+  \draw [teal, trafo] (3, -1.5) -- +(1, 0);
+  \scoped [purple, xshift=6cm]
   \graph [grow down, tree layout, nodes={rounded corners, rectangle, draw}] {
     "\texttt{{for\_node}}" -- {
       "",
