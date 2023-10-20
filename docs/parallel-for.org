@@ -1,4 +1,5 @@
 #+startup: beamer
+#+options: toc:nil
 #+latex_class_options: [aspectratio=169]
 #+latex_header: \usepackage{tikz}
 #+latex_header: \usetikzlibrary{graphs,quotes,graphdrawing,arrows.meta}
@@ -13,6 +14,7 @@
 #+latex_header: \def\atdomaincolor{blue}
 #+latex_header: \def\printforcolor{orange}
 #+latex_header: \def\printusercolor{cyan}
+#+title: Generating parallel for loops
 
 * Quote
 "Program testing can be used to show the presence of bugs, but never to show their absence!"
@@ -83,13 +85,15 @@ Edsger W. Dijkstra
     "{for\_node}" -- {
       "",
       "{mark:{"parallel"}}"[\markcolor] -- {
-        "{{ for\_node }}" [>\markcolor] -- { "$S_0[i, j]$"[blue] }
+        "{{ for\_node }}" [>\markcolor] -- { "$S_0[i, j]$"[\atdomaincolor] }
       }
     }
   };
 
-  \path (3,1.5) node[\aftermarkcolor]{isl\_ast\_build\_set\_at\_each\_domain(build, at\_domain, id2stmt)}
-  (3, 1) node[\atdomaincolor]{isl\_ast\_build\_set\_after\_each\_mark(build, after\_mark, NULL)};
+  \path
+  (3, 1.5) node[\aftermarkcolor]{isl\_ast\_build\_set\_after\_each\_mark(build, after\_mark, NULL)}
+  (3,1) node[\atdomaincolor]{isl\_ast\_build\_set\_at\_each\_domain(build, at\_domain, id2stmt)}
+  ;
   \draw[\aftermarkcolor, trafo] (3, -1.5) -- +(1, 0);
   \draw[\atdomaincolor, trafo] (3, -2.5) -- +(1, 0);
 
