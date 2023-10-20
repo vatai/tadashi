@@ -14,6 +14,11 @@
 #+latex_header: \def\printforcolor{orange}
 #+latex_header: \def\printusercolor{cyan}
 
+* Quote
+"Program testing can be used to show the presence of bugs, but never to show their absence!"
+
+Edsger W. Dijkstra
+
 * Mark subtree
 #+begin_export latex
 \begin{tikzpicture}
