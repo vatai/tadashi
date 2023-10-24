@@ -6,6 +6,7 @@
 
 
 import argparse
+import sys
 from pathlib import Path
 
 import pexpect
@@ -53,7 +54,7 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
         "### STOP ###\r\n",
     ]
     child = pexpect.spawn(cmd, echo=False, maxread=1, encoding="utf-8", timeout=1)
-    # child.logfile = sys.stdout
+    child.logfile = sys.stdout
     child.expect("WARNING: This app should only be invoked by the python wrapper!")
     while 0 == child.expect(patterns):
         schedule = child.after.rstrip()

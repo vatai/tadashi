@@ -536,6 +536,7 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
 isl_bool check_schedule_legality(isl_ctx *ctx,
                                  __isl_keep isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
+  printf(">>>> foobar\n");
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
