@@ -6,7 +6,6 @@
 
 
 import argparse
-import sys
 from pathlib import Path
 
 import pexpect
@@ -21,11 +20,12 @@ def modify_schedule(schedule):
     new_schedule = process_yaml.process_schedule(schedule)
 
     new_schedule.tile(4, [0])
+    new_schedule.interchange([0, 0], [0, 0, 0])
     new_schedule.tile(4, [0, 0, 0])
-    new_schedule.mark_parallel([0])
-    # new_schedule.interchange([0, 0], [0, 0, 0])
+    # new_schedule.mark_parallel([0])
     # new_schedule.reverse([0])
-    print(f"==dict==\n{new_schedule.yaml_schedule}")
+    print(f"==dict==")
+    print(yaml.dump(new_schedule.yaml_schedule))
     # with open('/barvinok/polyhedral-tutor/src/now_interchange_matmul.yaml', 'r') as file:
     #     new_schedule.yaml_schedule = yaml.safe_load(file)
 
@@ -36,7 +36,8 @@ def modify_schedule(schedule):
         default_style='"',
         width=float("inf"),
     )
-    print(f"==new==\n{new_schedule}")
+    # print(f"==new==")
+    # pprint(new_schedule)
     return new_schedule
 
 
