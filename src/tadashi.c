@@ -539,6 +539,7 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
   isl_multi_union_pw_aff *mupa;
   isl_union_map *domain, *le;
+  isl_union_set *delta;
   /* int *count = user; */
   /* printf(">>> %d: ", *count); */
   /* ++*count; */
@@ -557,6 +558,8 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
                                         isl_union_map_copy(partial));
     domain = isl_union_map_apply_range(domain, partial);
     printf("      DOM: %s\n", isl_union_map_to_str(domain));
+    delta = isl_union_map_deltas(isl_union_map_copy(domain));
+    printf("      DEL: %s\n", isl_union_set_to_str(delta));
     isl_union_map_free(domain);
     break;
   }
