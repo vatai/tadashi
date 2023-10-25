@@ -57,6 +57,8 @@
  * reserved.  Date: 2023-08-04
  */
 
+#include <isl/aff.h>
+#include <isl/aff_type.h>
 #include <isl/ast.h>
 #include <isl/ast_build.h>
 #include <isl/ast_type.h>
@@ -533,10 +535,35 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
+isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
+  enum isl_schedule_node_type type;
+  isl_multi_union_pw_aff *mupa;
+  int *count = user;
+  printf(">>> %d: ", *count);
+  ++*count;
+  type = isl_schedule_node_get_type(node);
+  switch (type) {
+  case isl_schedule_node_band:
+    printf("BAND: ");
+    mupa = isl_schedule_node_band_get_partial_schedule(node);
+    printf("MUPA %s: ", isl_multi_union_pw_aff_to_str(mupa));
+    isl_multi_union_pw_aff_free(mupa);
+    break;
+  }
+  printf("\n");
+
+  return isl_bool_true;
+}
+
 isl_bool check_schedule_legality(isl_ctx *ctx,
                                  __isl_keep isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
-  printf(">>>> foobar\n");
+  isl_bool legal;
+  int counter = 0;
+  isl_schedule_node *root;
+  root = isl_schedule_get_root(schedule);
+  legal = isl_schedule_node_every_descendant(root, legality_test, &counter);
+  isl_schedule_node_free(root);
   return check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
