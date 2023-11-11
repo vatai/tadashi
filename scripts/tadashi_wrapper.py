@@ -22,6 +22,7 @@ def modify_schedule(schedule):
 
     new_schedule.tile(4, [0])
     new_schedule.tile(4, [0, 0, 0])
+    new_schedule.mark_parallel([0])
     # new_schedule.interchange([0, 0], [0, 0, 0])
     # new_schedule.reverse([0])
     print(f"==dict==\n{new_schedule.yaml_schedule}")

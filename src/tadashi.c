@@ -57,10 +57,14 @@
  * reserved.  Date: 2023-08-04
  */
 
+#include <isl/ast.h>
+#include <isl/ast_build.h>
+#include <isl/ast_type.h>
 #include <isl/printer_type.h>
 #include <isl/union_map.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <isl/arg.h>
 #include <isl/ctx.h>
@@ -77,6 +81,9 @@
 #include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
+
+#define TADASHI_LABEL_MAX_SIZE 100
+#define TADASHI_LABEL_PARALLEL "parallel"
 
 struct options {
   struct isl *isl;
@@ -412,6 +419,59 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
+int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+  if (!id)
+    return 0;
+  const char *id_name = isl_id_get_name(id);
+  int result = strncmp(id_name, label, TADASHI_LABEL_MAX_SIZE);
+  isl_id_free(id);
+  return result == 0;
+}
+
+static __isl_give isl_printer *
+print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
+          __isl_keep isl_ast_node *for_node, void *user) {
+  isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
+  isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
+  isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
+  isl_ast_expr *inc = isl_ast_node_for_get_inc(for_node);
+  isl_ast_node *body = isl_ast_node_for_get_body(for_node);
+
+  isl_id *annotation = isl_ast_node_get_annotation(for_node);
+  if (id_name_is_label_and_free(annotation, TADASHI_LABEL_PARALLEL)) {
+    p = isl_printer_print_str(p, "#pragma omp parallel for\n");
+  }
+
+  p = isl_printer_start_line(p);
+  p = isl_printer_indent(p, 2);
+  p = isl_printer_print_str(p, "for(");
+  p = isl_printer_print_ast_expr(p, iter);
+  p = isl_printer_print_str(p, " = ");
+  p = isl_printer_print_ast_expr(p, init);
+  p = isl_printer_print_str(p, "; ");
+  p = isl_printer_print_ast_expr(p, cond);
+  p = isl_printer_print_str(p, "; ");
+  p = isl_printer_print_ast_expr(p, inc);
+  p = isl_printer_print_str(p, "){");
+  p = isl_printer_end_line(p);
+
+  p = isl_printer_start_line(p);
+  p = isl_ast_node_print(body, p, options);
+  p = isl_printer_indent(p, -2);
+
+  p = isl_printer_start_line(p);
+  p = isl_printer_indent(p, -2);
+  p = isl_printer_print_str(p, "}");
+  p = isl_printer_end_line(p);
+
+  isl_ast_expr_free(iter);
+  isl_ast_expr_free(init);
+  isl_ast_expr_free(cond);
+  isl_ast_expr_free(inc);
+  isl_ast_node_free(body);
+  return p;
+}
+
 __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
@@ -489,6 +549,21 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
+__isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
+                                    __isl_keep isl_ast_build *build,
+                                    void *user) {
+  isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
+  isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
+  if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
+    return mark_node;
+
+  isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
+  isl_ast_node_free(mark_node);
+  isl_id *annotation = isl_id_alloc(ctx, TADASHI_LABEL_PARALLEL, NULL);
+  for_node = isl_ast_node_set_annotation(for_node, annotation);
+  return for_node;
+}
+
 __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
                                       struct pet_scop *scop,
                                       isl_schedule *schedule) {
@@ -500,11 +575,14 @@ __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_id_to_id *id2stmt;
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
-  build = isl_ast_build_set_at_each_domain(build, &at_domain, id2stmt);
+  build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
+  build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
   node = isl_ast_build_node_from_schedule(build, schedule);
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
-      isl_ast_print_options_set_print_user(print_options, &print_user, id2stmt);
+      isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
+  print_options =
+      isl_ast_print_options_set_print_for(print_options, print_for, NULL);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
