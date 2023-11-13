@@ -541,7 +541,7 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
   isl_multi_union_pw_aff *mupa;
   isl_union_map *domain, *le;
-  isl_union_set *delta;
+  isl_union_set *delta, *zeros;
   /* int *count = user; */
   /* printf(">>> %d: ", *count); */
   /* ++*count; */
@@ -562,6 +562,9 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
     printf("      DOM: %s\n", isl_union_map_to_str(domain));
     delta = isl_union_map_deltas(isl_union_map_copy(domain));
     printf("      DEL: %s\n", isl_union_set_to_str(delta));
+    zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
+    le = isl_union_set_lex_le_union_set(delta, zeros);
+    printf("      LE : %s\n", isl_union_map_to_str(le));
     isl_union_map_free(domain);
     break;
   }
@@ -579,11 +582,12 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
   isl_union_pw_multi_aff *dep_upma;
   root = isl_schedule_get_root(schedule);
   // dep_upma = isl_union_pw_multi_aff_from_union_map(isl_union_map_copy(dep));
-  legal = isl_schedule_node_every_descendant(root, legality_test, dep);
+  // legal = isl_schedule_node_every_descendant(root, legality_test, dep);
   // isl_union_pw_multi_aff_free(dep_upma);
   isl_schedule_node_free(root);
-
-  return check_legality(ctx, isl_schedule_get_map(schedule), dep);
+  isl_union_map *map = isl_schedule_get_map(schedule);
+  printf("schedule as union map:\n%s\n", isl_union_map_to_str(map));
+  return check_legality(ctx, map, dep);
 }
 
 void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
