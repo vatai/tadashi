@@ -16,6 +16,7 @@ import process_yaml
 
 
 def modify_schedule(schedule):
+    print("== wrapper.py::modify_schedule begin ==")
     print(f"==orig==\n{schedule}")
     schedule = yaml.safe_load(schedule)
     new_schedule = process_yaml.process_schedule(schedule)
@@ -25,21 +26,29 @@ def modify_schedule(schedule):
     new_schedule.tile(4, [0, 0, 0])
     # new_schedule.mark_parallel([0])
     # new_schedule.reverse([0])
-    print(f"==dict==")
-    print(yaml.dump(new_schedule.yaml_schedule))
+    print(f"== wrapper.py: ==\n{yaml.dump(new_schedule.yaml_schedule)=}")
     # with open('/barvinok/polyhedral-tutor/src/now_interchange_matmul.yaml', 'r') as file:
     #     new_schedule.yaml_schedule = yaml.safe_load(file)
 
-    new_schedule = yaml.dump(
+    new_yaml = yaml.dump(
         new_schedule.yaml_schedule,
         sort_keys=False,
         default_flow_style=True,
         default_style='"',
         width=float("inf"),
     )
+    pretty_new_yaml = yaml.dump(
+        new_schedule.yaml_schedule,
+        sort_keys=False,
+        # default_flow_style=True,
+        # default_style='"',
+        width=float("inf"),
+    )
     # print(f"==new==")
-    # pprint(new_schedule)
-    return new_schedule
+    print(f"== wrapper.py::pretty_new_yaml ==")
+    print(pretty_new_yaml)
+    print("== wrapper.py::modify_schedule end ==")
+    return new_yaml
 
 
 def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
@@ -75,4 +84,3 @@ if __name__ == "__main__":
         output_file_path=args.output_file_path,
         tadashi_args=tadashi_args,
     )
-    print("DONE")
