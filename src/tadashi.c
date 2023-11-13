@@ -453,6 +453,8 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_print_str(p, "; ");
   p = isl_printer_print_ast_expr(p, cond);
   p = isl_printer_print_str(p, "; ");
+  p = isl_printer_print_ast_expr(p, iter);
+  p = isl_printer_print_str(p, " += ");
   p = isl_printer_print_ast_expr(p, inc);
   p = isl_printer_print_str(p, "){");
   p = isl_printer_end_line(p);
