@@ -537,6 +537,20 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
+isl_stat fn(isl_map *map, void *user) {
+  isl_set *set;
+  isl_pw_multi_aff *pma;
+  pma = isl_map_lexmax_pw_multi_aff(isl_map_copy(map));
+  // pma = isl_pw_multi_aff_range_factor_range(pma);
+  printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
+  isl_pw_multi_aff_free(pma);
+
+  /* isl_multi_pw_aff *mpa; */
+  /* mpa = isl_map_max_multi_pw_aff(map); */
+  /* printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa)); */
+  /* isl_multi_pw_aff_free(mpa); */
+}
+
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
   isl_multi_union_pw_aff *mupa;
@@ -565,6 +579,8 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
     zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
     le = isl_union_set_lex_le_union_set(delta, zeros);
     printf("      LE : %s\n", isl_union_map_to_str(le));
+    printf("LE EMPTY : %d\n", isl_union_map_is_empty(le));
+    isl_union_map_foreach_map(le, fn, NULL);
     isl_union_map_free(domain);
     break;
   }
@@ -582,7 +598,7 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
   isl_union_pw_multi_aff *dep_upma;
   root = isl_schedule_get_root(schedule);
   // dep_upma = isl_union_pw_multi_aff_from_union_map(isl_union_map_copy(dep));
-  // legal = isl_schedule_node_every_descendant(root, legality_test, dep);
+  legal = isl_schedule_node_every_descendant(root, legality_test, dep);
   // isl_union_pw_multi_aff_free(dep_upma);
   isl_schedule_node_free(root);
   isl_union_map *map = isl_schedule_get_map(schedule);
