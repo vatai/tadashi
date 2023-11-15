@@ -57,19 +57,19 @@
  * reserved.  Date: 2023-08-04
  */
 
-#include <isl/aff.h>
-#include <isl/aff_type.h>
-#include <isl/ast.h>
-#include <isl/ast_build.h>
-#include <isl/ast_type.h>
-#include <isl/printer_type.h>
-#include <isl/space_type.h>
-#include <isl/union_map.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <pet.h>
+
+#include <isl/aff.h>
+#include <isl/aff_type.h>
 #include <isl/arg.h>
+#include <isl/ast.h>
+#include <isl/ast_build.h>
+#include <isl/ast_type.h>
 #include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
@@ -77,13 +77,15 @@
 #include <isl/map.h>
 #include <isl/options.h>
 #include <isl/printer.h>
+#include <isl/printer_type.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <isl/set.h>
+#include <isl/space_type.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
-#include <pet.h>
 
 #define TADASHI_LABEL_MAX_SIZE 100
 #define TADASHI_LABEL_PARALLEL "parallel"
@@ -556,6 +558,11 @@ isl_stat foreach_piece(isl_set *set, isl_multi_aff *ma, void *user) {
   for (isl_size pos = 0; pos < madim; pos++) {
     isl_aff *aff = isl_multi_aff_get_at(ma, pos);
     // check if aff has always dim == 1
+    assert(!isl_aff_is_cst(aff));
+    isl_val *constant = isl_aff_get_constant_val(aff);
+    printf("const: %s\n", isl_val_to_str(constant));
+    isl_val *denom = isl_aff_get_denominator_val(aff);
+    printf("denom: %s\n", isl_val_to_str(denom));
   }
 }
 
@@ -568,7 +575,7 @@ isl_stat each_set(isl_set *set, void *user) {
   mpa = isl_set_min_multi_pw_aff(set);
   printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa));
   isl_size mpa_dim = isl_multi_pw_aff_dim(mpa, isl_dim_set);
-  printf("  DIM : %d\n", pma_dim);
+  printf("  DIM : %d\n", mpa_dim);
   isl_pw_aff *pa;
   for (isl_size d = 0; d < mpa_dim; d++) {
     pa = isl_multi_pw_aff_get_pw_aff(mpa, d);
