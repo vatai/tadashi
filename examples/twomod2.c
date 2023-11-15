@@ -19,12 +19,10 @@ const size_t NUM_STEPS = 10;
 
 void f(size_t N, double A[N]) {
 #pragma scop
-  size_t half_floor = N / 2;
-  size_t half_ceil = N - (N / 2);
-  for (size_t i = 0; i < half_ceil; i++) {
+  for (size_t i = 0; i < N - (N / 2); i++) {
     A[2 * i] *= 2; // 0, 2, 4...
   }
-  for (size_t i = 0; i < half_floor; i++) {
+  for (size_t i = 0; i < N / 2; i++) {
     A[2 * i + 1] += 3; // 1, 3, 5...
   }
 #pragma endscop
