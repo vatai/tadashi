@@ -551,6 +551,14 @@ isl_stat each_piece(isl_set *set, isl_aff *aff, void *user) {
   }
 }
 
+isl_stat foreach_piece(isl_set *set, isl_multi_aff *ma, void *user) {
+  isl_size madim = isl_multi_aff_dim(ma, isl_dim_set);
+  for (isl_size pos = 0; pos < madim; pos++) {
+    isl_aff *aff = isl_multi_aff_get_at(ma, pos);
+    // check if aff has always dim == 1
+  }
+}
+
 isl_stat each_set(isl_set *set, void *user) {
   // isl_pw_multi_aff *pma;
   // pma =isl_map_lexmax_pw_multi_aff(isl_set_copy(set));
@@ -560,18 +568,20 @@ isl_stat each_set(isl_set *set, void *user) {
   mpa = isl_set_min_multi_pw_aff(set);
   printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa));
   isl_size mpa_dim = isl_multi_pw_aff_dim(mpa, isl_dim_set);
-  printf("  DIM : %d\n", mpa_dim);
+  printf("  DIM : %d\n", pma_dim);
   isl_pw_aff *pa;
   for (isl_size d = 0; d < mpa_dim; d++) {
     pa = isl_multi_pw_aff_get_pw_aff(mpa, d);
     printf("   PA : %s\n", isl_pw_aff_to_str(pa));
     isl_pw_aff_foreach_piece(pa, each_piece, NULL);
   }
-  /* isl_multi_pw_aff_free(mpa); */
-  /* isl_multi_pw_aff *mpa; */
-  /* mpa = isl_map_max_multi_pw_aff(map); */
-  /* printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa)); */
-  /* isl_multi_pw_aff_free(mpa); */
+
+  isl_pw_multi_aff *pma;
+  pma = isl_set_lexmin_pw_multi_aff(set);
+  printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
+  isl_size pma_dim = isl_pw_multi_aff_dim(pma, isl_dim_set);
+  printf("  DIM : %d\n", mpa_dim);
+  isl_pw_multi_aff_foreach_piece(pma, foreach_piece, NULL);
 }
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
