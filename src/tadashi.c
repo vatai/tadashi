@@ -562,10 +562,11 @@ isl_stat each_set(isl_set *set, void *user) {
   isl_size mpa_dim = isl_multi_pw_aff_dim(mpa, isl_dim_set);
   printf("  DIM : %d\n", mpa_dim);
   isl_pw_aff *pa;
-  pa = isl_multi_pw_aff_get_pw_aff(mpa, 0);
-  printf("   PA : %s\n", isl_pw_aff_to_str(pa));
-  isl_pw_aff_foreach_piece(pa, each_piece, NULL);
-
+  for (isl_size d = 0; d < mpa_dim; d++) {
+    pa = isl_multi_pw_aff_get_pw_aff(mpa, d);
+    printf("   PA : %s\n", isl_pw_aff_to_str(pa));
+    isl_pw_aff_foreach_piece(pa, each_piece, NULL);
+  }
   /* isl_multi_pw_aff_free(mpa); */
   /* isl_multi_pw_aff *mpa; */
   /* mpa = isl_map_max_multi_pw_aff(map); */
