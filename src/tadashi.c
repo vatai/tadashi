@@ -63,6 +63,7 @@
 #include <isl/ast_build.h>
 #include <isl/ast_type.h>
 #include <isl/printer_type.h>
+#include <isl/space_type.h>
 #include <isl/union_map.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -536,15 +537,36 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   isl_union_map_free(le);
   return retval;
 }
+isl_stat each_piece(isl_set *set, isl_aff *aff, void *user) {
+  printf(">> set: %s\n", isl_set_to_str(set));
+  printf(">> aff: %s\n", isl_aff_to_str(aff));
+  isl_size dim = isl_aff_dim(aff, isl_dim_set);
+  for (isl_size d = 0; d < dim; d++) {
+    isl_val *constant = isl_aff_get_constant_val(aff);
+    printf("const: %s\n", isl_val_to_str(constant));
+    isl_val *coeff = isl_aff_get_coefficient_val(aff, isl_dim_set, d);
+    printf("coeff: %s\n", isl_val_to_str(coeff));
+    isl_val *denom = isl_aff_get_denominator_val(aff);
+    printf("denom: %s\n", isl_val_to_str(denom));
+  }
+}
 
-isl_stat fn(isl_map *map, void *user) {
-  isl_set *set;
-  isl_pw_multi_aff *pma;
-  pma = isl_map_lexmax_pw_multi_aff(isl_map_copy(map));
+isl_stat each_set(isl_set *set, void *user) {
+  // isl_pw_multi_aff *pma;
+  // pma =isl_map_lexmax_pw_multi_aff(isl_set_copy(set));
   // pma = isl_pw_multi_aff_range_factor_range(pma);
-  printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
-  isl_pw_multi_aff_free(pma);
+  // printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
+  isl_multi_pw_aff *mpa;
+  mpa = isl_set_min_multi_pw_aff(set);
+  printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa));
+  isl_size mpa_dim = isl_multi_pw_aff_dim(mpa, isl_dim_set);
+  printf("  DIM : %d\n", mpa_dim);
+  isl_pw_aff *pa;
+  pa = isl_multi_pw_aff_get_pw_aff(mpa, 0);
+  printf("   PA : %s\n", isl_pw_aff_to_str(pa));
+  isl_pw_aff_foreach_piece(pa, each_piece, NULL);
 
+  /* isl_multi_pw_aff_free(mpa); */
   /* isl_multi_pw_aff *mpa; */
   /* mpa = isl_map_max_multi_pw_aff(map); */
   /* printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa)); */
@@ -576,11 +598,12 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
     printf("      DOM: %s\n", isl_union_map_to_str(domain));
     delta = isl_union_map_deltas(isl_union_map_copy(domain));
     printf("      DEL: %s\n", isl_union_set_to_str(delta));
-    zeros = get_zeros_on_union_set(isl_union_set_copy(delta));
-    le = isl_union_set_lex_le_union_set(delta, zeros);
-    printf("      LE : %s\n", isl_union_map_to_str(le));
-    printf("LE EMPTY : %d\n", isl_union_map_is_empty(le));
-    isl_union_map_foreach_map(le, fn, NULL);
+    isl_union_set_foreach_set(delta, each_set, NULL);
+    /* zeros = get_zeros_on_union_set(isl_union_set_copy(delta)); */
+    /* le = isl_union_set_lex_le_union_set(delta, zeros); */
+    /* printf("      LE : %s\n", isl_union_map_to_str(le)); */
+    /* printf("LE EMPTY : %d\n", isl_union_map_is_empty(le)); */
+    /* isl_union_map_foreach_map(le, fn, NULL); */
     isl_union_map_free(domain);
     break;
   }
