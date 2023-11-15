@@ -539,6 +539,7 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   isl_union_map_free(le);
   return retval;
 }
+
 isl_stat each_piece(isl_set *set, isl_aff *aff, void *user) {
   printf(">> set: %s\n", isl_set_to_str(set));
   printf(">> aff: %s\n", isl_aff_to_str(aff));
@@ -586,8 +587,6 @@ isl_stat each_set(isl_set *set, void *user) {
   isl_pw_multi_aff *pma;
   pma = isl_set_lexmin_pw_multi_aff(set);
   printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
-  isl_size pma_dim = isl_pw_multi_aff_dim(pma, isl_dim_set);
-  printf("  DIM : %d\n", mpa_dim);
   isl_pw_multi_aff_foreach_piece(pma, foreach_piece, NULL);
 }
 
