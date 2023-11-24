@@ -11,6 +11,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 include(FetchContent)
 
 FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+FetchContent_Declare(
   libpet
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG pet-0.11.7
@@ -86,5 +94,7 @@ target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
 target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+add_library(legality_check OBJECT src/legality.c)
+
 add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET)
+target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality_check)
