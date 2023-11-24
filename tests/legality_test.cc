@@ -15,7 +15,15 @@
 
 #include "legality.h"
 
-TEST(LegalityTest, PieceLexpos) {
+class LegalityTest : public testing::Test {
+protected:
+  LegalityTest() : ctx{isl_ctx_alloc()} {}
+  ~LegalityTest() { isl_ctx_free(ctx); }
+
+  isl_ctx *ctx;
+};
+
+TEST_F(LegalityTest, PieceLexpos) {
   struct test_data_t {
     std::string input;
     int output;
@@ -65,15 +73,17 @@ TEST(LegalityTest, PieceLexpos) {
       {"{ [ i ] -> [ 1, 1, 1 ]  }", 1},     //
   };
   int rv;
-  isl_ctx *ctx = isl_ctx_alloc();
   for (size_t i = 0; i < data.size(); i++) {
-    isl_multi_aff *ma = isl_multi_aff_read_from_str(ctx, data[i].input.c_str());
-    isl_set *set = isl_set_read_from_str(ctx, "{ : }");
+    isl_multi_aff *ma =
+        isl_multi_aff_read_from_str(this->ctx, data[i].input.c_str());
+    isl_set *set = isl_set_read_from_str(this->ctx, "{ : }");
     isl_stat stat = piece_lexpos(set, ma, &rv);
+    // isl_set_free(set);
+    // isl_multi_aff_free(ma);
     assert(stat == isl_stat_ok);
     SCOPED_TRACE("i = " + std::to_string(i));
     EXPECT_EQ(rv, data[i].output);
   }
 }
 
-TEST(LegalityTest, DeltaSetLexpos) {}
+TEST_F(LegalityTest, DeltaSetLexpos) {}
