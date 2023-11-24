@@ -7,9 +7,8 @@
 #include <isl/ctx.h>
 #include <isl/set.h>
 
-#include "../include/legality.h"
+#include "legality.h"
 
-// Demonstrate some basic assertions.
 TEST(LegalityTest, PieceLexpos) {
   struct test_data_t {
     std::string input;

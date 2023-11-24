@@ -94,6 +94,8 @@ target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
 target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+include_directories(include)
+
 add_library(legality src/legality.c)
 
 enable_testing()
