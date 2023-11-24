@@ -540,21 +540,26 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_stat foreach_piece(isl_set *set, isl_multi_aff *ma, void *user) {
-  isl_set_free(set);
+isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
   isl_size madim = isl_multi_aff_dim(ma, isl_dim_set);
+  printf("madim: %d\n", madim);
   for (isl_size pos = 0; pos < madim; pos++) {
     isl_aff *aff = isl_multi_aff_get_at(ma, pos);
     // check if aff has always dim == 1
+    printf("CST: %d\n", isl_aff_is_cst(aff));
     assert(!isl_aff_is_cst(aff));
+
     isl_val *constant = isl_aff_get_constant_val(aff);
+    printf("const: %s\n", isl_val_to_str(constant));
     isl_val_free(constant);
-    /* printf("const: %s\n", isl_val_to_str(constant)); */
+
     isl_val *denom = isl_aff_get_denominator_val(aff);
-    /* printf("denom: %s\n", isl_val_to_str(denom)); */
+    printf("denom: %s\n", isl_val_to_str(denom));
     isl_val_free(denom);
+
     isl_aff_free(aff);
   }
+  isl_set_free(set);
   isl_multi_aff_free(ma);
   return isl_stat_ok;
 }
@@ -564,10 +569,20 @@ isl_stat each_set(isl_set *set, void *user) {
   pma = isl_set_lexmin_pw_multi_aff(set);
   // TODO(vatai): check for an "exists" instead of "forall" sets in
   // union_set
-  isl_pw_multi_aff_foreach_piece(pma, foreach_piece, NULL);
+  isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
   isl_pw_multi_aff_free(pma);
   return isl_stat_ok;
 }
+
+void test(isl_ctx *ctx) {
+  isl_multi_aff *ma =
+      isl_multi_aff_read_from_str(ctx, "{ [ i ] -> [ i, -1 ]  }");
+  isl_multi_aff_dump(ma);
+  isl_set *set = isl_set_read_from_str(ctx, "{ : }");
+  isl_set_dump(set);
+  isl_stat rv = piece_lexpos(set, ma, NULL);
+  printf("RV: %d\n", rv);
+};
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
@@ -593,7 +608,6 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
     isl_union_set_free(delta);
     break;
   }
-  printf("\n");
 
   return isl_bool_true;
 }
@@ -749,6 +763,11 @@ int main(int argc, char *argv[]) {
   opt = options_new_with_defaults();
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
   ctx = isl_ctx_alloc_with_options(&options_args, opt);
+
+  test(ctx);
+  isl_ctx_free(ctx);
+  return 0;
+
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
