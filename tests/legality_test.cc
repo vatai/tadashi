@@ -16,7 +16,6 @@ TEST(LegalityTest, PieceLexpos) {
     int output;
   };
 
-  isl_ctx *ctx = isl_ctx_alloc();
   std::vector<struct test_data_t> data = {
       {"{ [ i ] -> [ -1 ]  }", -1}, //
       {"{ [ i ] -> [ 0 ]  }", 0},   //
@@ -61,6 +60,7 @@ TEST(LegalityTest, PieceLexpos) {
       {"{ [ i ] -> [ 1, 1, 1 ]  }", 1},     //
   };
   int rv;
+  isl_ctx *ctx = isl_ctx_alloc();
   for (size_t i = 0; i < data.size(); i++) {
     isl_multi_aff *ma = isl_multi_aff_read_from_str(ctx, data[i].input.c_str());
     isl_set *set = isl_set_read_from_str(ctx, "{ : }");
