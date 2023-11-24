@@ -10,7 +10,7 @@
 #include "../include/legality.h"
 
 // Demonstrate some basic assertions.
-TEST(LegalityTest, BasicAssertions) {
+TEST(LegalityTest, PkieceLexpos) {
   struct test_data_t {
     std::string input;
     int output;
@@ -61,17 +61,13 @@ TEST(LegalityTest, BasicAssertions) {
       {"{ [ i ] -> [ 1, 1, 1 ]  }", 1},     //
   };
   size_t nbtests = sizeof(data) / sizeof(data[0]);
-  for (size_t i = 0; i < nbtests; i++) {
+  for (size_t i = 0; i < data.size(); i++) {
     isl_multi_aff *ma = isl_multi_aff_read_from_str(ctx, data[i].input.c_str());
     isl_set *set = isl_set_read_from_str(ctx, "{ : }");
     int rv;
     isl_stat stat = piece_lexpos(set, ma, &rv);
     assert(stat == isl_stat_ok);
-    printf("test %lu: %s\n", i,
-           rv == data[i].output ? "OK" : data[i].input.c_str());
+    SCOPED_TRACE("i = " + std::to_string(i));
+    EXPECT_EQ(rv, data[i].output);
   }
-  // Expect two strings not to be equal.
-  EXPECT_STRNE("hello", "world");
-  // Expect equality.
-  EXPECT_EQ(7 * 6, 42);
 }
