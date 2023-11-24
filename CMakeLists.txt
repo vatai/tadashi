@@ -105,6 +105,6 @@ add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality)
 
 add_executable(legality_test tests/legality_test.cc)
-target_link_libraries(legality_test PUBLIC PkgConfig::ISL PkgConfig::PET GTest::gtest_main legality)
+target_link_libraries(legality_test PUBLIC PkgConfig::ISL GTest::gtest_main legality)
 
 gtest_discover_tests(legality_test)
