@@ -94,14 +94,15 @@ target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
 target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_library(legality SHARED src/legality.c)
+add_library(legality src/legality.c)
 
 enable_testing()
 include(GoogleTest)
 
-add_executable(legality_test tests/legality_test.cc)
-target_link_libraries(legality_test PUBLIC PkgConfig::ISL PkgConfig::PET GTest::gtest_main)
-gtest_discover_tests(legality_test)
-
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality)
+
+add_executable(legality_test tests/legality_test.cc)
+target_link_libraries(legality_test PUBLIC PkgConfig::ISL PkgConfig::PET GTest::gtest_main legality)
+
+gtest_discover_tests(legality_test)
