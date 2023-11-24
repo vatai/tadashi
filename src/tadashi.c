@@ -540,54 +540,33 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_stat each_piece(isl_set *set, isl_aff *aff, void *user) {
-  printf(">> set: %s\n", isl_set_to_str(set));
-  printf(">> aff: %s\n", isl_aff_to_str(aff));
-  isl_size dim = isl_aff_dim(aff, isl_dim_set);
-  for (isl_size d = 0; d < dim; d++) {
-    isl_val *constant = isl_aff_get_constant_val(aff);
-    printf("const: %s\n", isl_val_to_str(constant));
-    isl_val *coeff = isl_aff_get_coefficient_val(aff, isl_dim_set, d);
-    printf("coeff: %s\n", isl_val_to_str(coeff));
-    isl_val *denom = isl_aff_get_denominator_val(aff);
-    printf("denom: %s\n", isl_val_to_str(denom));
-  }
-}
-
 isl_stat foreach_piece(isl_set *set, isl_multi_aff *ma, void *user) {
+  isl_set_free(set);
   isl_size madim = isl_multi_aff_dim(ma, isl_dim_set);
   for (isl_size pos = 0; pos < madim; pos++) {
     isl_aff *aff = isl_multi_aff_get_at(ma, pos);
     // check if aff has always dim == 1
     assert(!isl_aff_is_cst(aff));
     isl_val *constant = isl_aff_get_constant_val(aff);
-    printf("const: %s\n", isl_val_to_str(constant));
+    isl_val_free(constant);
+    /* printf("const: %s\n", isl_val_to_str(constant)); */
     isl_val *denom = isl_aff_get_denominator_val(aff);
-    printf("denom: %s\n", isl_val_to_str(denom));
+    /* printf("denom: %s\n", isl_val_to_str(denom)); */
+    isl_val_free(denom);
+    isl_aff_free(aff);
   }
+  isl_multi_aff_free(ma);
+  return isl_stat_ok;
 }
 
 isl_stat each_set(isl_set *set, void *user) {
-  // isl_pw_multi_aff *pma;
-  // pma =isl_map_lexmax_pw_multi_aff(isl_set_copy(set));
-  // pma = isl_pw_multi_aff_range_factor_range(pma);
-  // printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
-  isl_multi_pw_aff *mpa;
-  mpa = isl_set_min_multi_pw_aff(set);
-  printf("  MPA : %s\n", isl_multi_pw_aff_to_str(mpa));
-  isl_size mpa_dim = isl_multi_pw_aff_dim(mpa, isl_dim_set);
-  printf("  DIM : %d\n", mpa_dim);
-  isl_pw_aff *pa;
-  for (isl_size d = 0; d < mpa_dim; d++) {
-    pa = isl_multi_pw_aff_get_pw_aff(mpa, d);
-    printf("   PA : %s\n", isl_pw_aff_to_str(pa));
-    isl_pw_aff_foreach_piece(pa, each_piece, NULL);
-  }
-
   isl_pw_multi_aff *pma;
   pma = isl_set_lexmin_pw_multi_aff(set);
-  printf("  PMA : %s\n", isl_pw_multi_aff_to_str(pma));
+  // TODO(vatai): check for an "exists" instead of "forall" sets in
+  // union_set
   isl_pw_multi_aff_foreach_piece(pma, foreach_piece, NULL);
+  isl_pw_multi_aff_free(pma);
+  return isl_stat_ok;
 }
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
@@ -595,33 +574,23 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   isl_multi_union_pw_aff *mupa;
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
-  /* int *count = user; */
-  /* printf(">>> %d: ", *count); */
-  /* ++*count; */
-  // isl_union_pw_multi_aff *dep = user;
   isl_union_map *dep = user;
   type = isl_schedule_node_get_type(node);
   switch (type) {
   case isl_schedule_node_band:
-    printf("BAND: ");
     mupa = isl_schedule_node_band_get_partial_schedule(node);
-    printf("MUPA %s\n", isl_multi_union_pw_aff_to_str(mupa));
+    /* printf("MUPA %s\n", isl_multi_union_pw_aff_to_str(mupa)); */
     isl_union_map *partial = isl_union_map_from_multi_union_pw_aff(mupa);
-    printf("      UMAP %s\n", isl_union_map_to_str(partial));
-    printf("      DEP: %s\n", isl_union_map_to_str(dep));
+    /* printf("      UMAP %s\n", isl_union_map_to_str(partial)); */
+    /* printf("      DEP: %s\n", isl_union_map_to_str(dep)); */
     domain = isl_union_map_apply_domain(isl_union_map_copy(dep),
                                         isl_union_map_copy(partial));
     domain = isl_union_map_apply_range(domain, partial);
-    printf("      DOM: %s\n", isl_union_map_to_str(domain));
-    delta = isl_union_map_deltas(isl_union_map_copy(domain));
-    printf("      DEL: %s\n", isl_union_set_to_str(delta));
+    /* printf("      DOM: %s\n", isl_union_map_to_str(domain)); */
+    delta = isl_union_map_deltas(domain);
+    /* printf("      DEL: %s\n", isl_union_set_to_str(delta)); */
     isl_union_set_foreach_set(delta, each_set, NULL);
-    /* zeros = get_zeros_on_union_set(isl_union_set_copy(delta)); */
-    /* le = isl_union_set_lex_le_union_set(delta, zeros); */
-    /* printf("      LE : %s\n", isl_union_map_to_str(le)); */
-    /* printf("LE EMPTY : %d\n", isl_union_map_is_empty(le)); */
-    /* isl_union_map_foreach_map(le, fn, NULL); */
-    isl_union_map_free(domain);
+    isl_union_set_free(delta);
     break;
   }
   printf("\n");
@@ -633,7 +602,6 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
                                  __isl_keep isl_schedule *schedule,
                                  __isl_take isl_union_map *dep) {
   isl_bool legal;
-  int counter = 0;
   isl_schedule_node *root;
   isl_union_pw_multi_aff *dep_upma;
   root = isl_schedule_get_root(schedule);
