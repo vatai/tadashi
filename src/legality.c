@@ -36,3 +36,13 @@ isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
   isl_multi_aff_free(ma);
   return isl_stat_ok;
 }
+
+isl_stat delta_set_lexpos(isl_set *set, void *user) {
+  isl_pw_multi_aff *pma;
+  pma = isl_set_lexmin_pw_multi_aff(set);
+  // TODO(vatai): check for an "exists" instead of "forall" sets in
+  // union_set
+  isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
+  isl_pw_multi_aff_free(pma);
+  return isl_stat_ok;
+}

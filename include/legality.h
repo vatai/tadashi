@@ -10,6 +10,8 @@ extern "C" {
 
 isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user);
 
+isl_stat delta_set_lexpos(isl_set *set, void *user);
+
 #if defined(__cplusplus)
 }
 #endif

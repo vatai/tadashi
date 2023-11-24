@@ -1,3 +1,9 @@
+/*
+ * Emil VATAI, Riken, R-CCS, HPAIS. All rights reserved.
+ *
+ * Date: 2023-11-24
+ */
+
 #include <string>
 #include <vector>
 
@@ -69,3 +75,5 @@ TEST(LegalityTest, PieceLexpos) {
     EXPECT_EQ(rv, data[i].output);
   }
 }
+
+TEST(LegalityTest, DeltaSetLexpos) {}

@@ -87,11 +87,10 @@
 #include <isl/union_set.h>
 #include <isl/val.h>
 
+#include "legality.h"
+
 #define TADASHI_LABEL_MAX_SIZE 100
 #define TADASHI_LABEL_PARALLEL "parallel"
-
-isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user);
-void test_piece_lexpos(isl_ctx *ctx);
 
 struct options {
   struct isl *isl;
@@ -427,7 +426,7 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
  * reserved.  Date: 2023-08-04
  */
 
-int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+static int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
   if (!id)
     return 0;
   const char *id_name = isl_id_get_name(id);
@@ -482,7 +481,8 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
-__isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
+static __isl_give isl_union_flow *
+get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
   isl_schedule *schedule;
@@ -503,7 +503,8 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop) {
+static __isl_give isl_union_map *
+get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
   flow = get_flow_from_scop(scop);
@@ -512,7 +513,7 @@ __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop) {
   return dep;
 }
 
-__isl_give isl_union_set *
+static __isl_give isl_union_set *
 get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   isl_set *delta_set;
   isl_multi_aff *ma;
@@ -543,16 +544,6 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_stat each_set(isl_set *set, void *user) {
-  isl_pw_multi_aff *pma;
-  pma = isl_set_lexmin_pw_multi_aff(set);
-  // TODO(vatai): check for an "exists" instead of "forall" sets in
-  // union_set
-  isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
-  isl_pw_multi_aff_free(pma);
-  return isl_stat_ok;
-}
-
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
   isl_multi_union_pw_aff *mupa;
@@ -573,7 +564,7 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
     /* printf("      DOM: %s\n", isl_union_map_to_str(domain)); */
     delta = isl_union_map_deltas(domain);
     /* printf("      DEL: %s\n", isl_union_set_to_str(delta)); */
-    isl_union_set_foreach_set(delta, each_set, NULL);
+    isl_union_set_foreach_set(delta, delta_set_lexpos, NULL);
     isl_union_set_free(delta);
     break;
   }
