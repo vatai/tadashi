@@ -541,28 +541,97 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
 }
 
 isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
-  isl_size madim = isl_multi_aff_dim(ma, isl_dim_set);
-  printf("madim: %d\n", madim);
-  for (isl_size pos = 0; pos < madim; pos++) {
+  isl_set_free(set);
+  isl_size dim = isl_multi_aff_dim(ma, isl_dim_set);
+  int *retval = user;
+  *retval = 0;
+  for (isl_size pos = 0; pos < dim; pos++) {
     isl_aff *aff = isl_multi_aff_get_at(ma, pos);
     // check if aff has always dim == 1
-    printf("CST: %d\n", isl_aff_is_cst(aff));
-    assert(!isl_aff_is_cst(aff));
+    assert(isl_aff_is_cst(aff));
 
-    isl_val *constant = isl_aff_get_constant_val(aff);
-    printf("const: %s\n", isl_val_to_str(constant));
-    isl_val_free(constant);
+    isl_val *cst = isl_aff_get_constant_val(aff);
+    isl_bool is_zero = isl_val_is_zero(cst);
+    isl_bool is_pos = isl_val_is_pos(cst);
+    isl_val_free(cst);
+    if (is_zero)
+      continue;
 
     isl_val *denom = isl_aff_get_denominator_val(aff);
-    printf("denom: %s\n", isl_val_to_str(denom));
+    isl_bool denom_pos = isl_val_is_pos(denom);
     isl_val_free(denom);
 
+    if (is_pos && denom_pos)
+      *retval = +1;
+    else
+      *retval = -1;
+
     isl_aff_free(aff);
+    break;
   }
-  isl_set_free(set);
   isl_multi_aff_free(ma);
   return isl_stat_ok;
 }
+
+struct test_data_t {
+  char *input;
+  int output;
+};
+
+void test_piece_lexpos(isl_ctx *ctx) {
+  struct test_data_t data[] = {
+      {"{ [ i ] -> [ -1 ]  }", -1}, //
+      {"{ [ i ] -> [ 0 ]  }", 0},   //
+      {"{ [ i ] -> [ 1 ]  }", 1},   //
+      //
+      {"{ [ i ] -> [ -1, -1 ]  }", -1}, //
+      {"{ [ i ] -> [ -1, 0 ]  }", -1},  //
+      {"{ [ i ] -> [ -1, 1 ]  }", -1},  //
+      {"{ [ i ] -> [ 0, -1 ]  }", -1},  //
+      {"{ [ i ] -> [ 0, 0 ]  }", 0},    //
+      {"{ [ i ] -> [ 0, 1 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, -1 ]  }", 1},   //
+      {"{ [ i ] -> [ 1, 0 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, 1 ]  }", 1},    //
+      //
+      {"{ [ i ] -> [ -1, -1, -1 ]  }", -1}, //
+      {"{ [ i ] -> [ -1, -1, 0 ]  }", -1},  //
+      {"{ [ i ] -> [ -1, -1, 1 ]  }", -1},  //
+      {"{ [ i ] -> [ -1, 0, -1 ]  }", -1},  //
+      {"{ [ i ] -> [ -1, 0, 0 ]  }", -1},   //
+      {"{ [ i ] -> [ -1, 0, 1 ]  }", -1},   //
+      {"{ [ i ] -> [ -1, 1, -1 ]  }", -1},  //
+      {"{ [ i ] -> [ -1, 1, 0 ]  }", -1},   //
+      {"{ [ i ] -> [ -1, 1, 1 ]  }", -1},   //
+      {"{ [ i ] -> [ 0, -1, -1 ]  }", -1},  //
+      {"{ [ i ] -> [ 0, -1, 0 ]  }", -1},   //
+      {"{ [ i ] -> [ 0, -1, 1 ]  }", -1},   //
+      {"{ [ i ] -> [ 0, 0, -1 ]  }", -1},   //
+      {"{ [ i ] -> [ 0, 0, 0 ]  }", 0},     //
+      {"{ [ i ] -> [ 0, 0, 1 ]  }", 1},     //
+      {"{ [ i ] -> [ 0, 1, -1 ]  }", 1},    //
+      {"{ [ i ] -> [ 0, 1, 0 ]  }", 1},     //
+      {"{ [ i ] -> [ 0, 1, 1 ]  }", 1},     //
+      {"{ [ i ] -> [ 1, -1, -1 ]  }", 1},   //
+      {"{ [ i ] -> [ 1, -1, 0 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, -1, 1 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, 0, -1 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, 0, 0 ]  }", 1},     //
+      {"{ [ i ] -> [ 1, 0, 1 ]  }", 1},     //
+      {"{ [ i ] -> [ 1, 1, -1 ]  }", 1},    //
+      {"{ [ i ] -> [ 1, 1, 0 ]  }", 1},     //
+      {"{ [ i ] -> [ 1, 1, 1 ]  }", 1},     //
+  };
+  size_t nbtests = sizeof(data) / sizeof(data[0]);
+  for (size_t i = 0; i < nbtests; i++) {
+    isl_multi_aff *ma = isl_multi_aff_read_from_str(ctx, data[i].input);
+    isl_set *set = isl_set_read_from_str(ctx, "{ : }");
+    int rv;
+    isl_stat stat = piece_lexpos(set, ma, &rv);
+    assert(stat == isl_stat_ok);
+    printf("test %d: %s\n", i, rv == data[i].output ? "OK" : data[i].input);
+  }
+};
 
 isl_stat each_set(isl_set *set, void *user) {
   isl_pw_multi_aff *pma;
@@ -573,16 +642,6 @@ isl_stat each_set(isl_set *set, void *user) {
   isl_pw_multi_aff_free(pma);
   return isl_stat_ok;
 }
-
-void test(isl_ctx *ctx) {
-  isl_multi_aff *ma =
-      isl_multi_aff_read_from_str(ctx, "{ [ i ] -> [ i, -1 ]  }");
-  isl_multi_aff_dump(ma);
-  isl_set *set = isl_set_read_from_str(ctx, "{ : }");
-  isl_set_dump(set);
-  isl_stat rv = piece_lexpos(set, ma, NULL);
-  printf("RV: %d\n", rv);
-};
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
@@ -764,7 +823,7 @@ int main(int argc, char *argv[]) {
   argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
   ctx = isl_ctx_alloc_with_options(&options_args, opt);
 
-  test(ctx);
+  test_piece_lexpos(ctx);
   isl_ctx_free(ctx);
   return 0;
 
