@@ -107,6 +107,7 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
   };
   isl_set *set;
   int rv;
+  // TODO(vatai): try isl_basic_set_partial_lexmin et al
   for (auto d : data) {
     set = isl_set_read_from_str(ctx, d.input.c_str());
     isl_set_dump(set);
