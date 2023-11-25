@@ -21,7 +21,7 @@
 class LegalityTest : public testing::Test {
 protected:
   LegalityTest() : ctx{isl_ctx_alloc()} {
-    // isl_options_set_on_error(ctx, ISL_ON_ERROR_ABORT);
+    isl_options_set_on_error(ctx, ISL_ON_ERROR_ABORT);
   }
   virtual ~LegalityTest() { isl_ctx_free(ctx); }
 
