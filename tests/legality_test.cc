@@ -4,6 +4,7 @@
  * Date: 2023-11-24
  */
 
+#include <isl/options.h>
 #include <string>
 #include <vector>
 
@@ -17,7 +18,9 @@
 
 class LegalityTest : public testing::Test {
 protected:
-  LegalityTest() : ctx{isl_ctx_alloc()} {}
+  LegalityTest() : ctx{isl_ctx_alloc()} {
+    isl_options_set_on_error(ctx, ISL_ON_ERROR_ABORT);
+  }
   virtual ~LegalityTest() { isl_ctx_free(ctx); }
 
   isl_ctx *ctx;
@@ -79,11 +82,9 @@ TEST_F(LegalityTest, PieceLexpos) {
     ma = isl_multi_aff_read_from_str(ctx, data[i].input.c_str());
     set = isl_set_read_from_str(ctx, "{ : }");
     isl_stat stat = piece_lexpos(set, ma, &rv);
-    // isl_set_free(set);
-    // isl_multi_aff_free(ma);
     assert(stat == isl_stat_ok);
     SCOPED_TRACE("i = " + std::to_string(i));
-    // EXPECT_EQ(rv, data[i].output);
+    EXPECT_EQ(rv, data[i].output);
   }
 }
 
