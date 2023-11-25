@@ -4,7 +4,9 @@
  * Date: 2023-11-24
  */
 
+#include <algorithm>
 #include <isl/options.h>
+#include <isl/point.h>
 #include <string>
 #include <vector>
 
@@ -26,12 +28,12 @@ protected:
   isl_ctx *ctx;
 };
 
-TEST_F(LegalityTest, PieceLexpos) {
-  struct test_data_t {
-    std::string input;
-    int output;
-  };
+struct test_data_t {
+  std::string input;
+  int output;
+};
 
+TEST_F(LegalityTest, PieceLexpos) {
   std::vector<struct test_data_t> data = {
       {"{ [ i ] -> [ -1 ]  }", -1}, //
       {"{ [ i ] -> [ 0 ]  }", 0},   //
@@ -78,14 +80,34 @@ TEST_F(LegalityTest, PieceLexpos) {
   isl_multi_aff *ma;
   isl_set *set;
   int rv;
-  for (size_t i = 0; i < data.size(); i++) {
-    ma = isl_multi_aff_read_from_str(ctx, data[i].input.c_str());
+  for (auto d : data) {
+    ma = isl_multi_aff_read_from_str(ctx, d.input.c_str());
     set = isl_set_read_from_str(ctx, "{ : }");
     isl_stat stat = piece_lexpos(set, ma, &rv);
     assert(stat == isl_stat_ok);
-    SCOPED_TRACE("i = " + std::to_string(i));
-    EXPECT_EQ(rv, data[i].output);
+    SCOPED_TRACE("input = " + d.input);
+    EXPECT_EQ(rv, d.output);
+    EXPECT_EQ(stat, isl_stat_ok);
   }
 }
+isl_stat fn(isl_point *p, void *user) {
+  // printf("p: %s\n", isl_point_to_str(p));
+  isl_point_dump(p);
+  return isl_stat_ok;
+}
 
-// TEST_F(LegalityTest, DeltaSetLexpos) {}
+TEST_F(LegalityTest, DeltaSetLexpos) {
+  std::vector<struct test_data_t> data = {
+      {"{[i]: i>=0 and (i mod 2)=0 and i<10;"
+       "[i]: -10<i< 0 and (i mod 2)=1}",
+       -1}, //
+            // {"{[i]: exists(a: i = 2a) and 10<=i<=15}", -1},
+  };
+  isl_set *set;
+  int rv;
+  for (auto d : data) {
+    set = isl_set_read_from_str(ctx, d.input.c_str());
+    isl_set_dump(set);
+    isl_stat stat = delta_set_lexpos(set, &rv);
+  }
+}

@@ -4,8 +4,10 @@
 #include <isl/ctx.h>
 #include <isl/set.h>
 #include <isl/val.h>
+#include <stdio.h>
 
-isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
+isl_stat piece_lexpos(__isl_take isl_set *set, __isl_take isl_multi_aff *ma,
+                      void *user) {
   isl_set_free(set);
   isl_size dim = isl_multi_aff_dim(ma, isl_dim_set);
   int *retval = user;
@@ -40,12 +42,16 @@ isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
   return isl_stat_ok;
 }
 
-isl_stat delta_set_lexpos(isl_set *set, void *user) {
+isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
+  int *retval = user;
+  *retval = -1;
   isl_pw_multi_aff *pma;
   pma = isl_set_lexmin_pw_multi_aff(set);
+  printf("PMA: %s\n", isl_pw_multi_aff_to_str(pma));
+  fflush(stdout);
   // TODO(vatai): check for an "exists" instead of "forall" sets in
   // union_set
-  isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
-  isl_pw_multi_aff_free(pma);
+  // isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
+  // isl_pw_multi_aff_free(pma);
   return isl_stat_ok;
 }
