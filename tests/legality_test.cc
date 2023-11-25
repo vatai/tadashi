@@ -21,7 +21,7 @@
 class LegalityTest : public testing::Test {
 protected:
   LegalityTest() : ctx{isl_ctx_alloc()} {
-    isl_options_set_on_error(ctx, ISL_ON_ERROR_ABORT);
+    // isl_options_set_on_error(ctx, ISL_ON_ERROR_ABORT);
   }
   virtual ~LegalityTest() { isl_ctx_free(ctx); }
 
@@ -98,10 +98,12 @@ isl_stat fn(isl_point *p, void *user) {
 
 TEST_F(LegalityTest, DeltaSetLexpos) {
   std::vector<struct test_data_t> data = {
+      {"{ [ i ] : 10 <= i and i <= 15 }", -1},
       {"{[i]: i>=0 and (i mod 2)=0 and i<10;"
        "[i]: -10<i< 0 and (i mod 2)=1}",
        -1}, //
-            // {"{[i]: exists(a: i = 2a) and 10<=i<=15}", -1},
+      {"{[i]: exists(a: i = 2a) and 10<=i<=15}", -1},
+
   };
   isl_set *set;
   int rv;

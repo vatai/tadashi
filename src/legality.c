@@ -8,7 +8,6 @@
 
 isl_stat piece_lexpos(__isl_take isl_set *set, __isl_take isl_multi_aff *ma,
                       void *user) {
-  isl_set_free(set);
   isl_size dim = isl_multi_aff_dim(ma, isl_dim_set);
   int *retval = user;
   *retval = 0;
@@ -38,6 +37,7 @@ isl_stat piece_lexpos(__isl_take isl_set *set, __isl_take isl_multi_aff *ma,
     isl_aff_free(aff);
     break;
   }
+  isl_set_free(set);
   isl_multi_aff_free(ma);
   return isl_stat_ok;
 }
@@ -51,7 +51,8 @@ isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   fflush(stdout);
   // TODO(vatai): check for an "exists" instead of "forall" sets in
   // union_set
-  // isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, NULL);
-  // isl_pw_multi_aff_free(pma);
-  return isl_stat_ok;
+  int rv;
+  isl_stat stat = isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, &rv);
+  isl_pw_multi_aff_free(pma);
+  return stat;
 }
