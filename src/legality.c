@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include <isl/aff.h>
+#include <isl/ctx.h>
 #include <isl/set.h>
 #include <isl/val.h>
 
@@ -18,8 +19,10 @@ isl_stat piece_lexpos(isl_set *set, isl_multi_aff *ma, void *user) {
     isl_bool is_zero = isl_val_is_zero(cst);
     isl_bool is_pos = isl_val_is_pos(cst);
     isl_val_free(cst);
-    if (is_zero)
+    if (is_zero) {
+      isl_aff_free(aff);
       continue;
+    }
 
     isl_val *denom = isl_aff_get_denominator_val(aff);
     isl_bool denom_pos = isl_val_is_pos(denom);
