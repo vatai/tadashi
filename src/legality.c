@@ -1,10 +1,10 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include <isl/aff.h>
 #include <isl/ctx.h>
 #include <isl/set.h>
 #include <isl/val.h>
-#include <stdio.h>
 
 isl_stat piece_lexpos(__isl_take isl_set *set, __isl_take isl_multi_aff *ma,
                       void *user) {
