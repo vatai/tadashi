@@ -98,12 +98,19 @@ isl_stat fn(isl_point *p, void *user) {
 
 TEST_F(LegalityTest, DeltaSetLexpos) {
   std::vector<struct test_data_t> data = {
-      {"{ [ i ] : 10 <= i and i <= 15 }", -1},
+      {"{ [ i ] : 10 <= i and i <= 15 }", 1},
       {"{[i]: i>=0 and (i mod 2)=0 and i<10;"
        "[i]: -10<i< 0 and (i mod 2)=1}",
        -1}, //
-      {"{[i]: exists(a: i = 2a) and 10<=i<=15}", -1},
-
+      {"{[i]: exists(a: i = 2a) and 0<=i<=15}", 0},
+      /*
+        02 12 22 32 42
+        01 11    31 41
+        00          40
+       */
+      {"{[i,j]: 0 <= i <= j and 1 <= j < 3;"
+       "[i,j]: 4-j <= i <= 4 and 0 <= j < 3 }",
+       0},
   };
   isl_set *set;
   int rv;
