@@ -4,16 +4,18 @@
  * Date: 2023-11-24
  */
 
-#include <algorithm>
-#include <isl/options.h>
-#include <isl/point.h>
+#include <isl/space_type.h>
+#include <isl/val.h>
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 #include <isl/aff.h>
+#include <isl/constraint.h>
 #include <isl/ctx.h>
+#include <isl/options.h>
+#include <isl/point.h>
 #include <isl/set.h>
 
 #include "legality.h"
@@ -90,11 +92,6 @@ TEST_F(LegalityTest, PieceLexpos) {
     EXPECT_EQ(stat, isl_stat_ok);
   }
 }
-isl_stat fn(isl_point *p, void *user) {
-  // printf("p: %s\n", isl_point_to_str(p));
-  isl_point_dump(p);
-  return isl_stat_ok;
-}
 
 TEST_F(LegalityTest, DeltaSetLexpos) {
   std::vector<struct test_data_t> data = {
@@ -120,4 +117,33 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
     isl_set_dump(set);
     isl_stat stat = delta_set_lexpos(set, &rv);
   }
+}
+
+isl_stat fn(isl_basic_set *bset, void *user) {
+  isl_constraint_list *lst = isl_basic_set_get_constraint_list(bset);
+  isl_basic_set_free(bset);
+  isl_constraint *cst = isl_constraint_list_get_at(lst, 0);
+  isl_constraint_list_free(lst);
+
+  isl_constraint_dump(cst);
+  isl_val *v = isl_constraint_get_coefficient_val(cst, isl_dim_set, 0);
+  isl_constraint_free(cst);
+  isl_val_dump(v);
+  isl_val_free(v);
+  return isl_stat_ok;
+}
+
+TEST_F(LegalityTest, Scratch) {
+  std::cout << "Hello" << std::endl;
+  isl_set *set, *lm;
+  isl_basic_set *bset;
+  set = isl_set_read_from_str(ctx, "{[i,j]: 0<=i<=j and 0<=j<=5 }");
+  isl_set_dump(set);
+  lm = isl_set_lexmin(set);
+  isl_multi_val *mv = isl_set_get_plain_multi_val_if_fixed(lm);
+  isl_multi_val_dump(mv);
+  isl_multi_val_free(mv);
+  std::cout << "Size: " << isl_multi_val_size(mv) << std::endl;
+  // isl_set_foreach_basic_set(lm, fn, NULL);
+  isl_set_free(lm);
 }
