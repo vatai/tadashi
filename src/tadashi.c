@@ -209,7 +209,7 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
   isl_union_pw_multi_aff *dep_upma;
   root = isl_schedule_get_root(schedule);
   // dep_upma = isl_union_pw_multi_aff_from_union_map(isl_union_map_copy(dep));
-  legal = isl_schedule_node_every_descendant(root, legality_test, dep);
+  // legal = isl_schedule_node_every_descendant(root, legality_test, dep);
   // isl_union_pw_multi_aff_free(dep_upma);
   isl_schedule_node_free(root);
   isl_union_map *map = isl_schedule_get_map(schedule);
