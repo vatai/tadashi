@@ -21,9 +21,9 @@ def modify_schedule(schedule):
     schedule = yaml.safe_load(schedule)
     new_schedule = process_yaml.process_schedule(schedule)
 
-    new_schedule.tile(4, [0])
-    new_schedule.interchange([0, 0], [0, 0, 0])
-    new_schedule.tile(4, [0, 0, 0])
+    # new_schedule.tile(4, [0])
+    # new_schedule.interchange([0, 0], [0, 0, 0])
+    # new_schedule.tile(4, [0, 0, 0])
     # new_schedule.mark_parallel([0])
     # new_schedule.reverse([0])
     print(f"== wrapper.py: ==\n{yaml.dump(new_schedule.yaml_schedule)=}")
