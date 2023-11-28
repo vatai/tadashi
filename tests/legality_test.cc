@@ -37,11 +37,11 @@ struct test_data_t {
 
 TEST_F(LegalityTest, DeltaSetLexpos) {
   std::vector<struct test_data_t> data = {
-      {"{ [ i ] : 10 <= i and i <= 15 }", 1},
+      {"{ [ i ] : 10 <= i and i <= 15 }", isl_stat_ok},
       {"{[i]: i>=0 and (i mod 2)=0 and i<10;"
        "[i]: -10<i< 0 and (i mod 2)=1}",
        -1}, //
-      {"{[i]: exists(a: i = 2a) and 0<=i<=15}", 0},
+      {"{[i]: exists(a: i = 2a) and 0<=i<=15}", isl_stat_error},
       /*
         02 12 22 32 42
         01 11    31 41
@@ -49,7 +49,7 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
        */
       {"{[i,j]: 0 <= i <= j and 1 <= j < 3;"
        "[i,j]: 4-j <= i <= 4 and 0 <= j < 3 }",
-       0},
+       isl_stat_ok},
   };
   isl_set *set;
   int rv;
@@ -58,6 +58,8 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
     set = isl_set_read_from_str(ctx, d.input.c_str());
     isl_set_dump(set);
     isl_stat stat = delta_set_lexpos(set, &rv);
+    SCOPED_TRACE("Failed set: " + d.input);
+    EXPECT_EQ(stat, d.output);
   }
 }
 
