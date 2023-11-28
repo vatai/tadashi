@@ -17,74 +17,10 @@
  *
  */
 
-/*
- * Copyright 2022      Sven Verdoolaege. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *    1. Redistributions of source code must retain the above
- *       copyright notice, this list of conditions and the following
- *       disclaimer.
- *
- *    2. Redistributions in binary form must reproduce the above
- *       copyright notice, this list of conditions and the following
- *       disclaimer in the documentation and/or other materials
- *       provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY SVEN VERDOOLAEGE ''AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SVEN VERDOOLAEGE OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The views and conclusions contained in the software and
- * documentation are those of the authors and should not be
- * interpreted as representing official policies, either expressed or
- * implied, of Sven Verdoolaege.
- */
-
-/*
- * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
- * reserved.  Date: 2023-08-04
- */
-
-#include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include <pet.h>
-
-#include <isl/aff.h>
-#include <isl/aff_type.h>
-#include <isl/arg.h>
-#include <isl/ast.h>
-#include <isl/ast_build.h>
-#include <isl/ast_type.h>
-#include <isl/ctx.h>
-#include <isl/id.h>
-#include <isl/id_to_id.h>
-#include <isl/map.h>
 #include <isl/options.h>
-#include <isl/printer.h>
-#include <isl/printer_type.h>
-#include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
-#include <isl/set.h>
-#include <isl/space_type.h>
-#include <isl/union_map.h>
-#include <isl/union_set.h>
-#include <isl/val.h>
 
 #include "codegen.h"
 #include "legality.h"
