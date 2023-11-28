@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <isl/space_type.h>
+#include <isl/val_type.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -111,18 +113,19 @@ isl_stat piece_lexpos(__isl_take isl_set *set, __isl_take isl_multi_aff *ma,
 }
 
 isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
+  isl_val *val;
   int *retval = user;
-  *retval = -1;
-  isl_pw_multi_aff *pma;
-  pma = isl_set_lexmin_pw_multi_aff(set);
-  printf("PMA: %s\n", isl_pw_multi_aff_to_str(pma));
-  fflush(stdout);
-  // TODO(vatai): check for an "exists" instead of "forall" sets in
-  // union_set
-  int rv;
-  isl_stat stat = isl_pw_multi_aff_foreach_piece(pma, piece_lexpos, &rv);
-  isl_pw_multi_aff_free(pma);
-  return stat;
+  *retval = 0;
+  set = isl_set_lexmin(set);
+  isl_size dim = isl_set_dim(set, isl_dim_set);
+  for (unsigned pos = 0; pos < dim; pos++) {
+    val = isl_set_plain_get_val_if_fixed(set, isl_dim_set, pos);
+    if (isl_val_is_zero(val))
+      continue;
+    break;
+  }
+  isl_set_free(set);
+  return isl_val_is_pos(val) ? isl_stat_ok : isl_stat_error;
 }
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {

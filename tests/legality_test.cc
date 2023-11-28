@@ -4,8 +4,6 @@
  * Date: 2023-11-24
  */
 
-#include <isl/space_type.h>
-#include <isl/val.h>
 #include <string>
 #include <vector>
 
@@ -17,6 +15,8 @@
 #include <isl/options.h>
 #include <isl/point.h>
 #include <isl/set.h>
+#include <isl/space_type.h>
+#include <isl/val.h>
 
 #include "legality.h"
 
@@ -137,13 +137,15 @@ TEST_F(LegalityTest, Scratch) {
   std::cout << "Hello" << std::endl;
   isl_set *set, *lm;
   isl_basic_set *bset;
-  set = isl_set_read_from_str(ctx, "{[i,j]: 0<=i<=j and 0<=j<=5 }");
+  set = isl_set_read_from_str(ctx, "{[i,j]: 0<=i and 0<=j<=5 }");
   isl_set_dump(set);
+  printf("Bounded:%d\n", isl_set_is_bounded(set));
   lm = isl_set_lexmin(set);
-  isl_multi_val *mv = isl_set_get_plain_multi_val_if_fixed(lm);
-  isl_multi_val_dump(mv);
-  isl_multi_val_free(mv);
-  std::cout << "Size: " << isl_multi_val_size(mv) << std::endl;
+  // isl_multi_val *mv = isl_set_get_plain_multi_val_if_fixed(lm);
+  // isl_multi_val_dump(mv);
+  // isl_multi_val_free(mv);
+  // std::cout << "Size: " << isl_multi_val_size(mv) << std::endl;
   // isl_set_foreach_basic_set(lm, fn, NULL);
+  // isl_set_free(set);
   isl_set_free(lm);
 }
