@@ -19,8 +19,14 @@
 
 #include <stdio.h>
 
+#include <isl/ctx.h>
 #include <isl/options.h>
+#include <isl/printer.h>
+#include <isl/schedule.h>
 #include <isl/schedule_node.h>
+#include <isl/union_map.h>
+
+#include <pet.h>
 
 #include "codegen.h"
 #include "legality.h"
@@ -75,7 +81,9 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   return p;
 }
 
-/* NEED TO REWRITE THIS: This function is called for each each scop detected
+/* IGNORE THIS COMMENT, IT'S FROM THE OLD CODE:
+ *
+ * This function is called for each each scop detected
  * in the input file and is expected to write (a transformed version of) the
  * scop "scop" to the printer "p". "user" is the value passed to
  * pet_transform_C_source.
