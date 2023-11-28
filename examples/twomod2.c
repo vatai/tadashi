@@ -30,7 +30,6 @@ void f(size_t N, double A[N]) {
 
 void g(size_t N, double A[N]) {
 #pragma scop
-  double B[N];
   for (size_t i = 0; i < N; i++) {
     if (i % 2 == 0) {
       A[i] += 30; // 0, 2, 4...
