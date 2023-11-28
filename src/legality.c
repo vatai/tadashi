@@ -118,14 +118,16 @@ isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   *retval = 0;
   set = isl_set_lexmin(set);
   isl_size dim = isl_set_dim(set, isl_dim_set);
-  for (unsigned pos = 0; pos < dim; pos++) {
+  unsigned pos = 0;
+  val = isl_set_plain_get_val_if_fixed(set, isl_dim_set, pos);
+  while (isl_val_is_zero(val) && pos < dim) {
+    pos++;
     val = isl_set_plain_get_val_if_fixed(set, isl_dim_set, pos);
-    if (isl_val_is_zero(val))
-      continue;
-    break;
   }
+  isl_bool is_pos = isl_val_is_pos(val);
   isl_set_free(set);
-  return isl_val_is_pos(val) ? isl_stat_ok : isl_stat_error;
+  isl_val_free(val);
+  return is_pos ? isl_stat_ok : isl_stat_error;
 }
 
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
