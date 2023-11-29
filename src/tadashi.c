@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include <isl/ctx.h>
 #include <isl/options.h>
@@ -51,24 +52,58 @@ ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
  * reserved.  Date: 2023-08-04
  */
 
+struct user_t {
+  size_t counter;
+  struct options *opt;
+};
+
 void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
-                    size_t *counter) {
+                    size_t counter) {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
-  printf("### sched[%lu] begin ###\n", *counter);
+  printf("### sched[%lu] begin ###\n", counter);
   isl_schedule_dump(schedule);
-  printf("### sched[%lu] end ###\n", *counter);
+  printf("### sched[%lu] end ###\n", counter);
   isl_schedule_node_free(root);
 }
 
+void write_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+                    struct user_t *user) {
+  char *filename = malloc(strlen(user->opt->source_file_path) + 6);
+  sprintf(filename, "%s.yaml", user->opt->source_file_path);
+  printf(">>>> FILENAME: %s\n", filename);
+  FILE *file = fopen(filename, "w");
+  isl_printer *p = isl_printer_to_file(ctx, file);
+  isl_printer_print_schedule(p, schedule);
+  isl_printer_free(p);
+  fclose(file);
+  free(filename);
+}
+
+void write_dependencies(isl_ctx *ctx, __isl_keep isl_union_map *deps,
+                        struct user_t *user) {
+  char *filename = malloc(strlen(user->opt->source_file_path) + 6);
+  sprintf(filename, "%s.isl", user->opt->source_file_path);
+  printf(">>>> FILENAME: %s\n", filename);
+  FILE *file = fopen(filename, "w");
+  isl_printer *p = isl_printer_to_file(ctx, file);
+  isl_printer_print_union_map(p, deps);
+  isl_printer_free(p);
+  fclose(file);
+  free(filename);
+}
+
 __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
-                                       __isl_keep struct pet_scop *scop) {
+                                       __isl_keep struct pet_scop *scop,
+                                       struct user_t *user) {
   isl_schedule *schedule;
   isl_union_map *dependencies;
   schedule = isl_schedule_read_from_file(ctx, stdin);
   isl_schedule_dump(schedule);
+  write_schedule(ctx, schedule, user);
   dependencies = get_dependencies(scop);
   isl_union_map_dump(dependencies);
+  write_dependencies(ctx, dependencies, user);
   isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
   if (!legal) {
     printf("Illegal schedule!\n");
@@ -115,43 +150,41 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
  */
 static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      struct pet_scop *scop,
-                                                     void *user) {
+                                                     void *_user) {
   isl_ctx *ctx;
-  isl_schedule *schedule;
-  size_t *counter = user;
-  FILE *input_schedule_file;
+  struct user_t *user = _user;
 
-  printf("Begin processing SCOP %lu\n", *counter);
+  printf("Begin processing SCOP %lu\n", user->counter);
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
-  print_schedule(ctx, scop->schedule, counter);
-  p = transform_scop(ctx, p, scop);
+  print_schedule(ctx, scop->schedule, user->counter);
+  p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
-  printf("End processing SCOP %lu\n", *counter);
-  ++(*counter);
+  printf("End processing SCOP %lu\n", user->counter);
+  user->counter++;
   return p;
 }
 
 int main(int argc, char *argv[]) {
   int r;
   isl_ctx *ctx;
-  struct options *opt;
-  size_t counter = 0;
+  struct user_t user;
+  user.counter = 0;
 
   printf("WARNING: This app should only be invoked by the python wrapper!\n");
-  opt = options_new_with_defaults();
-  argc = options_parse(opt, argc, argv, ISL_ARG_ALL);
-  ctx = isl_ctx_alloc_with_options(&options_args, opt);
+  user.opt = options_new_with_defaults();
+  argc = options_parse(user.opt, argc, argv, ISL_ARG_ALL);
+  ctx = isl_ctx_alloc_with_options(&options_args, user.opt);
 
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
-  FILE *output_file = fopen(opt->output_file_path, "w");
-  r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
-                             &foreach_scop_callback, &counter);
-  fprintf(stderr, "Number of scops: %lu\n", counter);
+  FILE *output_file = fopen(user.opt->output_file_path, "w");
+  r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
+                             &foreach_scop_callback, &user);
+  fprintf(stderr, "Number of scops: %lu\n", user.counter);
   fclose(output_file);
   isl_ctx_free(ctx);
   printf("### STOP ###\n");
