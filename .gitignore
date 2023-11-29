@@ -11,3 +11,4 @@ _minted*
 build
 *.pluto.c
 *.pluto.cloog
+compile_commands.json
