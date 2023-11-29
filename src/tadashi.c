@@ -17,6 +17,7 @@
  *
  */
 
+#include <isl/arg.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -39,18 +40,21 @@ struct options {
   char *output_file_path;
   char *original_schedule_suffix;
   char *dependencies_suffix;
+  isl_bool legality_check;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, "pet", &pet_options_args, "pet options")
 ISL_ARG_ARG(struct options, source_file_path, "source file", NULL)
-ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "path", "out.c",
-            "Output file")
-ISL_ARG_STR(struct options, original_schedule_suffix, 's', NULL, "suffix", "",
-            "Original schedule file suffix")
-ISL_ARG_STR(struct options, dependencies_suffix, 'd', NULL, "suffix", "",
-            "Dependencies file suffix")
+ISL_ARG_STR(struct options, output_file_path, 'o', "output-file", "path",
+            "out.c", "Output file")
+ISL_ARG_STR(struct options, original_schedule_suffix, 's', "schedule-suffix",
+            "suffix", "", "Original schedule file suffix")
+ISL_ARG_STR(struct options, dependencies_suffix, 'd', "dependencies-suffix",
+            "suffix", "", "Dependencies file suffix")
+ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
+             "Check legality")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 /*
@@ -102,22 +106,33 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_schedule *schedule;
   isl_union_map *dependencies;
   isl_printer *tmp;
-
+  isl_bool legal;
+  if (user->opt->legality_check)
+    printf("\n>>> CHECK LEGALITY <<<\n");
+  else
+    printf("\n<<< DON'T CHECK LEGALITY >>>\n");
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
   tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
                     user->opt->dependencies_suffix);
   tmp = isl_printer_print_union_map(tmp, dependencies);
   delete_printer(tmp);
+  printf("\n");
 
-  schedule = isl_schedule_read_from_file(ctx, stdin);
-  isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
-  if (!legal) {
-    printf("Illegal schedule!\n");
-    isl_schedule_free(schedule);
-    schedule = pet_scop_get_schedule(scop);
+  if (user->opt->legality_check) {
+    schedule = isl_schedule_read_from_file(ctx, stdin);
+    legal = check_schedule_legality(ctx, schedule, dependencies);
+    if (!legal) {
+      printf("Illegal schedule!\n");
+      isl_schedule_free(schedule);
+      schedule = pet_scop_get_schedule(scop);
+    } else {
+      printf("Schedule is legal!\n");
+    };
   } else {
-    printf("Schedule is legal!\n");
+    printf("Schedule not checked!\n");
+    isl_union_map_free(dependencies);
+    schedule = pet_scop_get_schedule(scop);
   }
   p = generate_code(ctx, p, scop, schedule);
   return p;
@@ -173,6 +188,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                     user->opt->original_schedule_suffix);
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
+  printf("\n");
 
   p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
