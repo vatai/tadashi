@@ -77,7 +77,8 @@ isl_stat fn(isl_basic_set *bset, void *user) {
   return isl_stat_ok;
 }
 
-TEST_F(LegalityTest, Scratch) {
+TEST_F(LegalityTest, DISABLED_Scratch) {
+
   std::cout << "Hello" << std::endl;
   isl_set *set, *lm;
   isl_basic_set *bset;
@@ -92,4 +93,14 @@ TEST_F(LegalityTest, Scratch) {
   // isl_set_foreach_basic_set(lm, fn, NULL);
   // isl_set_free(set);
   isl_set_free(lm);
+}
+
+void f() {
+  // const char *testName =
+  //     ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  // FILE *output_file = fopen(opt->output_file_path, "w");
+  // r = pet_transform_C_source(ctx, opt->source_file_path, output_file,
+  //                            &foreach_scop_callback, &counter);
+  // fprintf(stderr, "Number of scops: %lu\n", counter);
+  // fclose(output_file);
 }

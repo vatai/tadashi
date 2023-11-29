@@ -84,9 +84,11 @@ isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   isl_size dim = isl_set_dim(set, isl_dim_set);
   unsigned pos = 0;
   val = isl_set_plain_get_val_if_fixed(set, isl_dim_set, pos);
+  pos++;
   while (isl_val_is_zero(val) && pos < dim) {
-    pos++;
+    isl_val_free(val);
     val = isl_set_plain_get_val_if_fixed(set, isl_dim_set, pos);
+    pos++;
   }
   isl_bool is_pos = isl_val_is_pos(val);
   isl_set_free(set);
