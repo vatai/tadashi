@@ -37,14 +37,20 @@ struct options {
   struct pet *pet;
   char *source_file_path;
   char *output_file_path;
+  char *original_schedule_suffix;
+  char *dependencies_suffix;
 };
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct options, pet, "pet", &pet_options_args, "pet options")
 ISL_ARG_ARG(struct options, source_file_path, "source file", NULL)
-ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "output file", "out.c",
+ISL_ARG_STR(struct options, output_file_path, 'o', NULL, "path", "out.c",
             "Output file")
+ISL_ARG_STR(struct options, original_schedule_suffix, 's', NULL, "suffix", "",
+            "Original schedule file suffix")
+ISL_ARG_STR(struct options, dependencies_suffix, 'd', NULL, "suffix", "",
+            "Dependencies file suffix")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 /*
@@ -67,30 +73,27 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
-void write_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
-                    struct user_t *user) {
-  char *filename = malloc(strlen(user->opt->source_file_path) + 6);
-  sprintf(filename, "%s.yaml", user->opt->source_file_path);
-  printf(">>>> FILENAME: %s\n", filename);
-  FILE *file = fopen(filename, "w");
-  isl_printer *p = isl_printer_to_file(ctx, file);
-  isl_printer_print_schedule(p, schedule);
-  isl_printer_free(p);
-  fclose(file);
-  free(filename);
+__isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
+                                    const char *suffix) {
+  FILE *file;
+  size_t path_len = strnlen(path, 1024);
+  size_t suffix_len = strnlen(suffix, 1024);
+  if (suffix_len) {
+    char *filename = malloc(path_len + suffix_len + 2); // + 2 = dot and \0
+    sprintf(filename, "%s.%s", path, suffix);
+    file = fopen(filename, "w");
+    free(filename);
+  } else {
+    file = stdout;
+  }
+  return isl_printer_to_file(ctx, file);
 }
 
-void write_dependencies(isl_ctx *ctx, __isl_keep isl_union_map *deps,
-                        struct user_t *user) {
-  char *filename = malloc(strlen(user->opt->source_file_path) + 6);
-  sprintf(filename, "%s.isl", user->opt->source_file_path);
-  printf(">>>> FILENAME: %s\n", filename);
-  FILE *file = fopen(filename, "w");
-  isl_printer *p = isl_printer_to_file(ctx, file);
-  isl_printer_print_union_map(p, deps);
+void delete_printer(__isl_take isl_printer *p) {
+  FILE *file = isl_printer_get_file(p);
   isl_printer_free(p);
-  fclose(file);
-  free(filename);
+  if (file != stdout)
+    fclose(file);
 }
 
 __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
@@ -98,12 +101,22 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
                                        struct user_t *user) {
   isl_schedule *schedule;
   isl_union_map *dependencies;
+  isl_printer *tmp;
+
   schedule = isl_schedule_read_from_file(ctx, stdin);
-  isl_schedule_dump(schedule);
-  write_schedule(ctx, schedule, user);
+  printf("\nPrinting schedule...\n");
+  tmp = new_printer(ctx, user->opt->source_file_path,
+                    user->opt->original_schedule_suffix);
+  tmp = isl_printer_print_schedule(tmp, schedule);
+  delete_printer(tmp);
+
   dependencies = get_dependencies(scop);
-  isl_union_map_dump(dependencies);
-  write_dependencies(ctx, dependencies, user);
+  printf("\nPrinting dependencies...\n");
+  tmp = new_printer(ctx, user->opt->source_file_path,
+                    user->opt->dependencies_suffix);
+  tmp = isl_printer_print_union_map(tmp, dependencies);
+  delete_printer(tmp);
+
   isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
   if (!legal) {
     printf("Illegal schedule!\n");
