@@ -78,8 +78,6 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
 
 isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   isl_val *val;
-  int *retval = user;
-  *retval = 0;
   set = isl_set_lexmin(set);
   isl_size dim = isl_set_dim(set, isl_dim_set);
   unsigned pos = 0;
