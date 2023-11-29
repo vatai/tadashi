@@ -74,13 +74,13 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
 }
 
 __isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
-                                    const char *suffix) {
+                                    size_t count, const char *suffix) {
   FILE *file;
   size_t path_len = strnlen(path, 1024);
   size_t suffix_len = strnlen(suffix, 1024);
   if (suffix_len) {
     char *filename = malloc(path_len + suffix_len + 2); // + 2 = dot and \0
-    sprintf(filename, "%s.%s", path, suffix);
+    sprintf(filename, "%s.%lu.%s", path, count, suffix);
     file = fopen(filename, "w");
     free(filename);
   } else {
@@ -103,20 +103,14 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_union_map *dependencies;
   isl_printer *tmp;
 
-  schedule = isl_schedule_read_from_file(ctx, stdin);
-  printf("\nPrinting schedule...\n");
-  tmp = new_printer(ctx, user->opt->source_file_path,
-                    user->opt->original_schedule_suffix);
-  tmp = isl_printer_print_schedule(tmp, schedule);
-  delete_printer(tmp);
-
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
-  tmp = new_printer(ctx, user->opt->source_file_path,
+  tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
                     user->opt->dependencies_suffix);
   tmp = isl_printer_print_union_map(tmp, dependencies);
   delete_printer(tmp);
 
+  schedule = isl_schedule_read_from_file(ctx, stdin);
   isl_bool legal = check_schedule_legality(ctx, schedule, dependencies);
   if (!legal) {
     printf("Illegal schedule!\n");
@@ -166,6 +160,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      void *_user) {
   isl_ctx *ctx;
   struct user_t *user = _user;
+  isl_printer *tmp;
 
   printf("Begin processing SCOP %lu\n", user->counter);
   if (!scop || !p)
@@ -173,6 +168,12 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   ctx = isl_printer_get_ctx(p);
 
   print_schedule(ctx, scop->schedule, user->counter);
+
+  tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
+                    user->opt->original_schedule_suffix);
+  tmp = isl_printer_print_schedule(tmp, scop->schedule);
+  delete_printer(tmp);
+
   p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->counter);
