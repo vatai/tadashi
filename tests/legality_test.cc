@@ -4,6 +4,10 @@
  * Date: 2023-11-24
  */
 
+#include <isl/schedule.h>
+#include <isl/schedule_node.h>
+#include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <string>
 #include <vector>
 
@@ -14,8 +18,10 @@
 #include <isl/ctx.h>
 #include <isl/options.h>
 #include <isl/point.h>
+#include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space_type.h>
+#include <isl/union_map_type.h>
 #include <isl/val.h>
 
 #include "legality.h"
@@ -62,16 +68,19 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
   }
 }
 
-isl_stat fn(isl_basic_set *bset, void *user) {
-  isl_constraint_list *lst = isl_basic_set_get_constraint_list(bset);
-  isl_basic_set_free(bset);
-  isl_constraint *cst = isl_constraint_list_get_at(lst, 0);
-  isl_constraint_list_free(lst);
+TEST_F(LegalityTest, CalculateDelta) {
+  isl_schedule_node *node;
+  isl_union_map *dep;
+  isl_union_set *delta;
+  isl_schedule *schedule;
 
-  isl_constraint_dump(cst);
-  isl_val *v = isl_constraint_get_coefficient_val(cst, isl_dim_set, 0);
-  isl_constraint_free(cst);
-  isl_val_dump(v);
-  isl_val_free(v);
-  return isl_stat_ok;
-}
+  // schedule = isl_schedule_read_from_str(ctx, "");
+  // node = isl_schedule_get_root(schedule);
+  // isl_schedule_free(schedule);
+  // dep = isl_union_map_read_from_str(ctx, "");
+  // delta = calculate_delta(node, dep);
+  // isl_schedule_node_free(node);
+  // isl_union_map_free(dep);
+  // isl_union_set_free(delta);
+  EXPECT_TRUE(0); // TODO: implement the above
+};

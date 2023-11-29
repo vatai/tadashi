@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <isl/space_type.h>
+#include <isl/union_map_type.h>
 #include <isl/val_type.h>
 #include <stdio.h>
 
@@ -94,26 +95,30 @@ isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   return is_pos ? isl_stat_ok : isl_stat_error;
 }
 
+__isl_give isl_union_set *calculate_delta(__isl_keep isl_schedule_node *node,
+                                          __isl_keep isl_union_map *dep) {
+  isl_multi_union_pw_aff *mupa;
+  isl_union_map *domain, *range;
+  isl_union_set *delta;
+  isl_union_map *partial;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  partial = isl_union_map_from_multi_union_pw_aff(mupa);
+  domain = isl_union_map_apply_domain(isl_union_map_copy(dep),
+                                      isl_union_map_copy(partial));
+  domain = isl_union_map_apply_range(domain, partial);
+  delta = isl_union_map_deltas(domain);
+  return delta;
+}
+
 isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
-  isl_multi_union_pw_aff *mupa;
-  isl_union_map *domain, *le;
-  isl_union_set *delta, *zeros;
+  isl_union_map *le;
+  isl_union_set *delta;
   isl_union_map *dep = user;
   type = isl_schedule_node_get_type(node);
   switch (type) {
   case isl_schedule_node_band:
-    mupa = isl_schedule_node_band_get_partial_schedule(node);
-    /* printf("MUPA %s\n", isl_multi_union_pw_aff_to_str(mupa)); */
-    isl_union_map *partial = isl_union_map_from_multi_union_pw_aff(mupa);
-    /* printf("      UMAP %s\n", isl_union_map_to_str(partial)); */
-    /* printf("      DEP: %s\n", isl_union_map_to_str(dep)); */
-    domain = isl_union_map_apply_domain(isl_union_map_copy(dep),
-                                        isl_union_map_copy(partial));
-    domain = isl_union_map_apply_range(domain, partial);
-    /* printf("      DOM: %s\n", isl_union_map_to_str(domain)); */
-    delta = isl_union_map_deltas(domain);
-    /* printf("      DEL: %s\n", isl_union_set_to_str(delta)); */
+    delta = calculate_delta(node, dep);
     isl_union_set_foreach_set(delta, delta_set_lexpos, NULL);
     isl_union_set_free(delta);
     break;
