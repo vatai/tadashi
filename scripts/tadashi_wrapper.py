@@ -73,10 +73,7 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "input_file_path",
-        type=Path,
-    )
+    parser.add_argument("input_file_path", type=Path)
     parser.add_argument("-o", dest="output_file_path", type=Path)
     args, tadashi_args = parser.parse_known_args()
     invoke_tadashi(
