@@ -102,6 +102,9 @@ target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_library(codegen src/codegen.c)
 target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+add_executable(scratch src/scratch.c)
+target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
 enable_testing()
 include(GoogleTest)
 
