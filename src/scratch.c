@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <isl/aff.h>
 #include <isl/aff_type.h>
+#include <isl/id.h>
 #include <isl/space.h>
 #include <isl/space_type.h>
 #include <isl/val.h>
@@ -45,23 +46,31 @@ int main() {
   n = isl_schedule_node_first_child(n);
   n = isl_schedule_node_insert_partial_schedule(n, mupa);
 
-  mupa = isl_multi_union_pw_aff_read_from_str(
-      ctx, "[N] -> L_1[{ S_0[i, j] -> [(j)] }, { S_0[i, j] -> [(i+j)] }]");
-  isl_space *space = isl_multi_union_pw_aff_get_space(mupa);
-  isl_size size = isl_space_dim(space, isl_dim_out);
-  // todo try isl_val instead of name
-  printf("dim0: %s\n", isl_space_get_dim_name(space, isl_dim_out, 0));
-  printf("dim1: %s\n", isl_space_get_dim_name(space, isl_dim_out, 1));
-  printf("dims: %d\n", isl_space_dim(space, isl_dim_out));
-  isl_space_free(space);
-  isl_multi_union_pw_aff_free(mupa);
-  printf("size: %d\n", size);
-
   isl_schedule_node_dump(n);
 
   isl_schedule_node_free(n);
   isl_schedule_free(schedule);
   isl_union_map_free(umap);
+
+  mupa = isl_multi_union_pw_aff_read_from_str(
+      ctx, "[N] -> L_1[{ S_0[i, j] -> [(j)] }, { S_0[i, j] -> [(i+j)] }]");
+  isl_space *space = isl_multi_union_pw_aff_get_space(mupa);
+  isl_space_dump(space);
+  enum isl_dim_type type = isl_dim_all;
+  isl_size size = isl_space_dim(space, type);
+  printf("dims: %d\n", size);
+  for (size_t i = 0; i < size; i++) {
+    printf("dim%d: %s\n", i, isl_space_get_dim_name(space, type, i));
+    /* isl_id *id = isl_space_get_dim_id(space, isl_dim_all, i); */
+    /* printf("id%d: %s\n", i, id); */
+    /* isl_id_free(id); */
+  }
+  /* isl_id *id = isl_space_get_dim_id(space, isl_dim_all, 0); */
+  /* printf("id1: %s\n", isl_id_to_str(id)); */
+  /* isl_id_free(id); */
+
+  isl_space_free(space);
+  isl_multi_union_pw_aff_free(mupa);
 
   isl_ctx_free(ctx);
   printf("Bye!\n");
