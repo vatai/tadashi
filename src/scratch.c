@@ -53,10 +53,27 @@ int main() {
   isl_union_map_free(umap);
 
   mupa = isl_multi_union_pw_aff_read_from_str(
-      ctx, "[N] -> L_1[{ S_0[i, j] -> [(j)] }, { S_0[i, j] -> [(i+j)] }]");
+      ctx, "[N] -> L_1[{ S_0[i, j] -> [(j)] }, { S_0[i, j] -> [(i+j)] }, { "
+           "S_0[i, j] -> [(j)] }]");
+  enum isl_dim_type type = isl_dim_out;
+  printf(">>>>%s\n", isl_multi_union_pw_aff_get_tuple_name(mupa, type));
+  isl_size dim = isl_multi_union_pw_aff_dim(mupa, type);
+  printf("DIM: %d\n", dim);
+  for (size_t i = 0; i < dim; i++) {
+    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, i);
+    isl_union_pw_aff_dump(upa);
+    isl_pw_aff_list *lst = isl_union_pw_aff_get_pw_aff_list(upa);
+    isl_pw_aff *pa = isl_pw_aff_list_get_at(lst, 0);
+    printf("dimname: %s\n", isl_pw_aff_get_dim_name(pa, isl_dim_in, 0));
+    printf("pa: %s\n", isl_pw_aff_to_str(pa));
+    isl_pw_aff_free(pa);
+    isl_pw_aff_list_free(lst);
+
+    isl_union_pw_aff_free(upa);
+  }
+  printf("-----\n");
   isl_space *space = isl_multi_union_pw_aff_get_space(mupa);
-  isl_space_dump(space);
-  enum isl_dim_type type = isl_dim_all;
+  printf("Space: %s\n", isl_space_to_str(space));
   isl_size size = isl_space_dim(space, type);
   printf("dims: %d\n", size);
   for (size_t i = 0; i < size; i++) {
