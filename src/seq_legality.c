@@ -19,10 +19,12 @@ int main(int argc, char *argv[]) {
 
   FILE *file;
   file = fopen("./examples/dotprod.c.0.tadashi.isl", "r");
+  assert(file != 0);
   isl_union_map *umap = isl_union_map_read_from_file(ctx, file);
   isl_union_map_dump(umap);
   fclose(file);
   file = fopen("./examples/dotprod.c.0.tadashi.yaml", "r");
+  assert(file != 0);
   isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
   isl_schedule_dump(schedule);
   fclose(file);
