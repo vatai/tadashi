@@ -43,7 +43,11 @@ int main() {
     printf("upa: %s ", isl_union_pw_aff_to_str(upa));
     isl_pw_aff_list *lst = isl_union_pw_aff_get_pw_aff_list(upa);
     isl_pw_aff *pa = isl_pw_aff_list_get_at(lst, 0);
-    printf("dimname: %s, ", isl_pw_aff_get_dim_name(pa, isl_dim_in, 0));
+    isl_size d = isl_pw_aff_dim(pa, isl_dim_in);
+    printf("(%d) dimname: %s, ", d, isl_pw_aff_get_dim_name(pa, isl_dim_in, 0));
+    isl_id *id = isl_pw_aff_get_dim_id(pa, isl_dim_in, 0);
+    printf("id: %s, ", isl_id_to_str(id));
+    isl_id_free(id);
     printf("pa: %s\n", isl_pw_aff_to_str(pa));
     isl_pw_aff_free(pa);
     isl_pw_aff_list_free(lst);
