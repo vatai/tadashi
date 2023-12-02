@@ -105,6 +105,9 @@ target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(seq_legality src/seq_legality.c)
 target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
+add_executable(tile_and_interchange src/tile_and_interchange.c)
+target_link_libraries(tile_and_interchange PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
 add_executable(scratch src/scratch.c)
 target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
