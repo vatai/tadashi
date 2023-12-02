@@ -12,3 +12,5 @@ build
 *.pluto.c
 *.pluto.cloog
 compile_commands.json
+*.tadashi.yaml
+*.tadashi.isl
