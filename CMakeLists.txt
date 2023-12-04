@@ -108,6 +108,9 @@ target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality
 add_executable(tile_and_interchange src/tile_and_interchange.c)
 target_link_libraries(tile_and_interchange PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
+add_executable(get_dim_name src/get_dim_name.c)
+target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
 add_executable(scratch src/scratch.c)
 target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
