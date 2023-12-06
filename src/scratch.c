@@ -145,11 +145,14 @@ int main() {
   node = isl_schedule_node_order_before(
       node, isl_union_set_read_from_str(
                 ctx, "[N]->{ S_3[i] : 0 <= i < floor(N/2) }"));
-  // node = isl_schedule_node_parent(node);
-  // node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
   // node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_parent(node);
   // node = isl_schedule_node_parent(node);
-  // node = isl_schedule_node_parent(node);
+  isl_schedule_node_dump(node);
+  node = isl_schedule_node_order_before(
+      node, isl_union_set_read_from_str(ctx, "[N]->{S_0[i] : 0 <= i < N/2}"));
 
   isl_schedule_node_dump(node);
   isl_schedule_node_free(node);
