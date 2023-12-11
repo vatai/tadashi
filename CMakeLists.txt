@@ -11,6 +11,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 include(FetchContent)
 
 FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+FetchContent_Declare(
   libpet
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG pet-0.11.7
@@ -86,5 +95,35 @@ target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
 target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+include_directories(include)
+
+add_library(legality src/legality.c)
+target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
+add_library(codegen src/codegen.c)
+target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(seq_legality src/seq_legality.c)
+target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(tile_and_interchange src/tile_and_interchange.c)
+target_link_libraries(tile_and_interchange PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(get_dim_name src/get_dim_name.c)
+target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(sink_and_order src/sink_and_order.c)
+target_link_libraries(sink_and_order PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(scratch src/scratch.c)
+target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+enable_testing()
+include(GoogleTest)
+
 add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET)
+target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(legality_test tests/legality_test.cc)
+target_link_libraries(legality_test PUBLIC PkgConfig::ISL GTest::gtest_main legality)
+
+gtest_discover_tests(legality_test)
