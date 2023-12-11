@@ -108,10 +108,6 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_union_map *dependencies;
   isl_printer *tmp;
   isl_bool legal;
-  if (user->opt->legality_check)
-    printf("\n>>> CHECK LEGALITY <<<\n");
-  else
-    printf("\n<<< DON'T CHECK LEGALITY >>>\n");
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
   tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
