@@ -1,5 +1,8 @@
 /*
- * Copyright 2023  Emil Vatai. All rights reservered.
+ * Copyright 2023 Emil Vatai, Riken, R-CCS, HPAIS. All rights
+ * reservered.
+ *
+ * Date: 2023-08-04
  *
  * The main program. For each scop in a C source file:
  *
@@ -41,6 +44,7 @@ struct options {
   char *original_schedule_suffix;
   char *dependencies_suffix;
   isl_bool legality_check;
+  isl_bool interactive;
 };
 
 ISL_ARGS_START(struct options, options_args)
@@ -55,12 +59,9 @@ ISL_ARG_STR(struct options, dependencies_suffix, 'd', "dependencies-suffix",
             "suffix", "", "Dependencies file suffix")
 ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
              "Check legality")
+ISL_ARG_BOOL(struct options, interactive, 0, "interactive", isl_bool_false,
+             "Interactive transformations")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
-
-/*
- * Modifications by Emil VATAI, Riken, R-CCS, HPAIS. All rights
- * reserved.  Date: 2023-08-04
- */
 
 struct user_t {
   size_t counter;
@@ -138,7 +139,8 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   return p;
 }
 
-/* IGNORE THIS COMMENT, IT'S FROM THE OLD CODE:
+/*
+ * IGNORE THIS COMMENT, IT'S FROM THE OLD CODE:
  *
  * This function is called for each each scop detected
  * in the input file and is expected to write (a transformed version of) the
