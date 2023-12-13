@@ -1,6 +1,7 @@
 import isl
 import pet
-
+import os
+print(os.environ["LD_LIBRARY_PATH"])
 
 def get_may_dependence(scop):
     access = isl.union_access_info(scop.get_may_reads())
@@ -31,5 +32,5 @@ def main(path):
 
 
 if __name__ == "__main__":
-    path = "/home/vatai/code/polyhedral-tutor/examples/depnodep.cc"
+    path = "/barvinok/polyhedral-tutor/examples/matmul.c"
     main(path)

@@ -126,11 +126,24 @@ def node_convert_interchange(node):
     return node
 
 
+def node_shift(node, shift_paramater):
+    pattern = r"\[\((\w+)\)\]"
+    schedule_itr = re.findall(pattern, node["schedule"])[0]
+    pos = node["schedule"].find(schedule_itr)
+    schedule_itr_before = node["schedule"][pos-3]
+    node["schedule"] = re.sub(pattern,  "[("+str(shift_paramater[0])+str(schedule_itr_before)+'+'+str(schedule_itr)+")]", node["schedule"])
+    # node["schedule"] = re.sub(r"\[\((\w+)\)\]", r'(\1+{})'.format(shift_paramater), node["schedule"])
+    # pattern = re.compile(r'0\s*<=\s*'+str(schedule_node)+'\s*<\s*(\w+)')
+    # match = pattern.search()[0]
+    # left = match[0]
+    return node
+
 class process_schedule:
     def __init__(self, yaml_schedule) -> None:
         self.yaml_schedule = yaml_schedule
         self.for_loop_index = dict()
-
+        self.domain = self.yaml_schedule['domain']
+        
     def mark_parallel(self, loop_idx_list):
         self.traverse(node_mark_parallel, loop_idx_list)
 
@@ -195,14 +208,14 @@ class process_schedule:
     def fission(self, loop_index):
         pass
 
-    def skew(self, loop_index, skew_parameter):
-        pass
+    def skew(self, skew_parameter, loop_index=[]):
+        self.traverse(node_shift, loop_index, skew_parameter)
 
 
 if __name__ == "__main__":
     with open(
         "/barvinok/polyhedral-tutor/src/from-isl-development-ml/demo.yaml", "r"
-    ) as file:
+    ) as file:                              
         data = yaml.safe_load(file)
         schedule = process_schedule(data)
 
