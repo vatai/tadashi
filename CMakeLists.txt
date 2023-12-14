@@ -114,6 +114,9 @@ target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality
 add_executable(sink_and_order src/sink_and_order.c)
 target_link_libraries(sink_and_order PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
+add_executable(scale_and_shift src/scale_and_shift.c)
+target_link_libraries(scale_and_shift PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
 add_executable(scratch src/scratch.c)
 target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
