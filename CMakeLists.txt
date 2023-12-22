@@ -98,8 +98,12 @@ include_directories(include)
 
 add_library(legality src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_library(codegen src/codegen.c)
 target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_library(transformations src/transformations.c)
+target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(seq_legality src/seq_legality.c)
 target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
