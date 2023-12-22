@@ -38,34 +38,89 @@ int main() {
   // ORDER_BEFORE
   node = isl_schedule_node_order_before(
       node,
-      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 2 = 0 }"));
-  printf("ORDER_BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 0 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 1 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 2 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 3 }"));
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+  // printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
 
-  // BAND_SCALE
-  // node = isl_schedule_node_band_scale(
-  //     node, isl_multi_val_from_val_list(
-  //               isl_schedule_node_band_get_space(node),
-  //               isl_val_list_from_val(isl_val_int_from_si(ctx, 6))));
-  // printf("BAND_SCALE:\n%s\n\n", isl_schedule_node_to_str(node));
+  // TODO: idx1 = min(pos1, pos2);
+  // TODO: idx2 = max(pos1, pos2)
+  int idx1 = 1, idx2 = 3;
+  isl_union_set_list *filters;
+  isl_union_set *filter;
+  isl_multi_union_pw_aff *mupa;
+  isl_size size = isl_schedule_node_n_children(node) - 1;
+  printf("size = %d\n", size);
+  filters = isl_union_set_list_alloc(ctx, size);
+  node = isl_schedule_node_child(node, idx1);
+  filter = isl_schedule_node_filter_get_filter(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_child(node, idx2);
+  filter =
+      isl_union_set_union(filter, isl_schedule_node_filter_get_filter(node));
+  node = isl_schedule_node_parent(node);
+  for (int i = 0; i < size; i++) {
+    isl_union_set *f;
+    if (i >= idx2) {
+      node = isl_schedule_node_child(node, i + 1);
+      f = isl_schedule_node_filter_get_filter(node);
+      node = isl_schedule_node_parent(node);
+    } else if (i == idx1) {
+      f = filter;
+    } else { // i < idx2
+      node = isl_schedule_node_child(node, i);
+      f = isl_schedule_node_filter_get_filter(node);
+      node = isl_schedule_node_parent(node);
+    }
+    filters = isl_union_set_list_insert(filters, i, f);
+  }
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_first_child(node);
 
-  // BAND_SCALE_DOWN
-  // node = isl_schedule_node_band_scale_down(
-  //     node, isl_multi_val_from_val_list(
-  //               isl_schedule_node_band_get_space(node),
-  //               isl_val_list_from_val(isl_val_int_from_si(ctx, 3))));
-  // printf("BAND_SCALE_DOWN:\n%s\n\n", isl_schedule_node_to_str(node));
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_next_sibling(node);
+  node = isl_schedule_node_first_child(node);
 
+  node = isl_schedule_node_child(node, idx1);
+  filter = isl_schedule_node_filter_get_filter(node);
+  filters = isl_union_set_list_from_union_set(isl_union_set_copy(filter));
+  node = isl_schedule_node_first_child(node);
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  mupa = isl_multi_union_pw_aff_intersect_domain(mupa, filter);
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+
+  node = isl_schedule_node_child(node, idx2);
+  filter = isl_schedule_node_filter_get_filter(node);
+  filters = isl_union_set_list_insert(filters, 1, isl_union_set_copy(filter));
+  node = isl_schedule_node_first_child(node);
+  mupa = isl_multi_union_pw_aff_union_add(
+      mupa, isl_multi_union_pw_aff_intersect_domain(
+                isl_schedule_node_band_get_partial_schedule(node), filter));
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+
+  printf("AFTER:\n%s\n\n", isl_schedule_node_to_str(node));
+  // TODO ///////////////////////////////////
   // GROUP
   // node = isl_schedule_node_group(node, isl_id_read_from_str(ctx, "S_0"));
   // printf("GROUP:\n%s\n\n", isl_schedule_node_to_str(node));
 
-  isl_multi_union_pw_aff *tmp =
-      isl_multi_union_pw_aff_read_from_str(ctx, "[N] -> [{ [i] -> [2i] }]");
-  isl_multi_union_pw_aff_dump(
-      isl_schedule_node_band_get_partial_schedule(node));
-  node = isl_schedule_node_band_shift(node, tmp);
-
-  // TODO ///////////////////////////////////
   // node = isl_schedule_node_parent(node);
   // printf("SPLICE_CHILDREN:\n%s\n\n", isl_schedule_node_to_str(node));
   // node = isl_schedule_node_sequence_splice_children(node);
