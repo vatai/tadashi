@@ -11,9 +11,23 @@ from pathlib import Path
 
 import pexpect
 import yaml
-
 import process_yaml
 
+# def modify_schedule(schedule):
+#     print(f"==orig==\n{schedule}")
+#     new_schedule = schedule.replace("[(i)]", "[(2i+j)]")
+#     new_schedule = new_schedule.replace("[(j)]", "[(2j)]")
+#     new_schedule = yaml.safe_load(new_schedule)
+#     print(f"==dict==\n{new_schedule}")
+#     new_schedule = yaml.dump(
+#         new_schedule,
+#         sort_keys=False,
+#         default_flow_style=True,
+#         default_style='"',
+#         width=float("inf"),
+#     )
+#     print(f"==new==\n{new_schedule}")
+#     return new_schedule
 
 def modify_schedule(schedule):
     print("== wrapper.py::modify_schedule begin ==")
@@ -26,7 +40,8 @@ def modify_schedule(schedule):
     # new_schedule.tile(4, [0])
     # new_schedule.tile(4, [0, 0, 0])
     # new_schedule.mark_parallel([0])
-    new_schedule.interchange([0], [0, 0])
+    # new_schedule.interchange([0], [0, 0])
+    new_schedule.skew([2,1], [0,0])
     # new_schedule.interchange([0, 0], [0, 0, 0])
     # new_schedule.tile(4, [0, 0, 0])
     # new_schedule.mark_parallel([0])
@@ -80,7 +95,10 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_file_path", type=Path)
+    parser.add_argument(
+        "input_file_path",
+        type=Path,
+    )
     parser.add_argument("-o", dest="output_file_path", type=Path)
     args, tadashi_args = parser.parse_known_args()
     invoke_tadashi(

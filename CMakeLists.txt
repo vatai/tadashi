@@ -13,7 +13,6 @@ include(FetchContent)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-  DOWNLOAD_EXTRACT_TIMESTAMP ON
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 # set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -99,8 +98,12 @@ include_directories(include)
 
 add_library(legality src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_library(codegen src/codegen.c)
 target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_library(transformations src/transformations.c)
+target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(seq_legality src/seq_legality.c)
 target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
@@ -113,6 +116,9 @@ target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality
 
 add_executable(sink_and_order src/sink_and_order.c)
 target_link_libraries(sink_and_order PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(scale_and_shift src/scale_and_shift.c)
+target_link_libraries(scale_and_shift PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
 add_executable(scratch src/scratch.c)
 target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
