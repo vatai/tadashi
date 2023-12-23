@@ -36,17 +36,7 @@
 
 #include "codegen.h"
 #include "legality.h"
-
-struct options {
-  struct isl *isl;
-  struct pet *pet;
-  char *source_file_path;
-  char *output_file_path;
-  char *original_schedule_suffix;
-  char *dependencies_suffix;
-  isl_bool legality_check;
-  isl_bool interactive;
-};
+#include "tadashi.h"
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
@@ -63,11 +53,6 @@ ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
 ISL_ARG_BOOL(struct options, interactive, 0, "interactive", isl_bool_false,
              "Interactive transformations")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
-
-struct user_t {
-  size_t counter;
-  struct options *opt;
-};
 
 void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
                     size_t counter) {
