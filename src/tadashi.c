@@ -70,6 +70,7 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
 __isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
                                     size_t count, const char *suffix) {
   FILE *file;
+  isl_printer *p;
   size_t path_len = strnlen(path, 1024);
   size_t suffix_len = strnlen(suffix, 1024);
   if (suffix_len) {
@@ -80,14 +81,35 @@ __isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
   } else {
     file = stdout;
   }
-  return isl_printer_to_file(ctx, file);
+  p = isl_printer_to_file(ctx, file);
+  return isl_printer_start_line(p);
 }
 
 void delete_printer(__isl_take isl_printer *p) {
   FILE *file = isl_printer_get_file(p);
+  isl_printer_end_line(p);
   isl_printer_free(p);
   if (file != stdout)
     fclose(file);
+}
+
+__isl_give isl_schedule *get_schedule(isl_ctx *ctx, struct pet_scop *scop,
+                                      struct user_t *user) {
+  isl_schedule *schedule;
+  char *sched_src = user->opt->schedule_source;
+  if (!strncmp(sched_src, "interactive", 32)) {
+    schedule = interactive_transform(ctx, scop, user);
+  } else if (!strncmp(sched_src, "yaml", 32)) {
+    schedule = isl_schedule_read_from_file(ctx, stdin);
+  } else if (!strncmp(sched_src, "scop", 32)) {
+    schedule = pet_scop_get_schedule(scop);
+  } else {
+    isl_die(ctx, isl_error_abort,
+            "Wrong `schedule-source` value: possible "
+            "values: " SCHEDULE_SOURCE_VALUES ".\n",
+            exit(1));
+  };
+  return schedule;
 }
 
 __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
@@ -102,29 +124,15 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
                     user->opt->dependencies_suffix);
   tmp = isl_printer_print_union_map(tmp, dependencies);
   delete_printer(tmp);
-  printf("\n");
 
-  char *sched_src = user->opt->schedule_source;
-  if (!strncmp(sched_src, "interactive", 32)) {
-    schedule = interactive_transform(ctx, scop, user);
-  } else if (!strncmp(sched_src, "yaml", 32)) {
-    schedule = isl_schedule_read_from_file(ctx, stdin);
-  } else if (!strncmp(sched_src, "scop", 32)) {
-    schedule = pet_scop_get_schedule(scop);
-  } else {
-    isl_die(ctx, isl_error_abort,
-            "Wrong `schedule-source` value: possible "
-            "values: " SCHEDULE_SOURCE_VALUES ".\n",
-            exit(1));
-  };
+  schedule = get_schedule(ctx, scop, user);
   if (user->opt->legality_check) {
     if (!check_schedule_legality(ctx, schedule, dependencies)) {
       printf("Illegal schedule!\n");
       isl_schedule_free(schedule);
       schedule = pet_scop_get_schedule(scop);
-    } else {
+    } else
       printf("Schedule is legal!\n");
-    };
   } else {
     printf("Schedule not checked!\n");
     isl_union_map_free(dependencies);
@@ -184,7 +192,6 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                     user->opt->original_schedule_suffix);
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
-  printf("\n");
   p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->scop_counter);
