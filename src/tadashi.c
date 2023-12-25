@@ -87,7 +87,7 @@ void delete_printer(__isl_take isl_printer *p) {
     fclose(file);
 }
 
-__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
+__isl_give isl_printer *yaml_transform(isl_ctx *ctx, __isl_take isl_printer *p,
                                        __isl_keep struct pet_scop *scop,
                                        struct user_t *user) {
   isl_schedule *schedule;
@@ -176,25 +176,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   delete_printer(tmp);
   printf("\n");
 
-  p = transform_scop(ctx, p, scop, user);
-  pet_scop_free(scop);
-  printf("End processing SCOP %lu\n", user->counter);
-  user->counter++;
-  return p;
-}
-
-static __isl_give isl_printer *interactive_callback(__isl_take isl_printer *p,
-                                                    struct pet_scop *scop,
-                                                    void *_user) {
-  isl_ctx *ctx;
-  struct user_t *user = _user;
-
-  printf("INTERACTIVE");
-  printf("Begin processing SCOP %lu\n", user->counter);
-  if (!scop || !p)
-    return isl_printer_free(p);
-  ctx = isl_printer_get_ctx(p);
-
+  p = yaml_transform(ctx, p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->counter);
   user->counter++;
@@ -215,11 +197,9 @@ int main(int argc, char *argv[]) {
   isl_options_set_ast_print_macro_once(ctx, 1);
   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
-  foreach_scop_t fn;
-  fn = user.opt->interactive ? interactive_callback : foreach_scop_callback;
   FILE *output_file = fopen(user.opt->output_file_path, "w");
-  r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file, fn,
-                             &user);
+  r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
+                             foreach_scop_callback, &user);
   fprintf(stderr, "Number of scops: %lu\n", user.counter);
   fclose(output_file);
   isl_ctx_free(ctx);
