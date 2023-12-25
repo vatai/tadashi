@@ -26,6 +26,7 @@ isl_bool foreach_node(isl_schedule_node *node, void *user) {
     if (isl_schedule_node_get_type(node) == isl_schedule_node_band) {
       node = single_tile(ctx, node, 4);
     }
+    // TODO Figure out what to do with tile which changes the tree.
     return isl_bool_false;
   }
   u->node_counter++;
@@ -41,6 +42,7 @@ __isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
   user->node_counter = 0;
   // isl_schedule_node_dump(node);
   isl_schedule_node_foreach_descendant_top_down(node, foreach_node, user);
+
   // isl_schedule_node_dump(node);
   isl_schedule_node_free(node);
   return schedule;
