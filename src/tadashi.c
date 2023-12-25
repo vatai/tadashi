@@ -98,7 +98,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_printer *tmp;
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
-  tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
+  tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
                     user->opt->dependencies_suffix);
   tmp = isl_printer_print_union_map(tmp, dependencies);
   delete_printer(tmp);
@@ -173,22 +173,22 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   struct user_t *user = _user;
   isl_printer *tmp;
 
-  printf("Begin processing SCOP %lu\n", user->counter);
+  printf("Begin processing SCOP %lu\n", user->scop_counter);
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
 
-  print_schedule(ctx, scop->schedule, user->counter);
+  print_schedule(ctx, scop->schedule, user->scop_counter);
 
-  tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
+  tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
                     user->opt->original_schedule_suffix);
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
   printf("\n");
   p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
-  printf("End processing SCOP %lu\n", user->counter);
-  user->counter++;
+  printf("End processing SCOP %lu\n", user->scop_counter);
+  user->scop_counter++;
   return p;
 }
 
@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
   int r;
   isl_ctx *ctx;
   struct user_t user;
-  user.counter = 0;
+  user.scop_counter = 0;
 
   printf("WARNING: This app should only be invoked by the python wrapper!\n");
   user.opt = options_new_with_defaults();
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
   FILE *output_file = fopen(user.opt->output_file_path, "w");
   r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
                              foreach_scop_callback, &user);
-  fprintf(stderr, "Number of scops: %lu\n", user.counter);
+  fprintf(stderr, "Number of scops: %lu\n", user.scop_counter);
   fclose(output_file);
   isl_ctx_free(ctx);
   printf("### STOP ###\n");

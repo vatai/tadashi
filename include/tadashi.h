@@ -20,7 +20,8 @@ struct options {
 };
 
 struct user_t {
-  size_t counter;
+  size_t scop_counter;
+  size_t node_counter;
   struct options *opt;
 };
 
