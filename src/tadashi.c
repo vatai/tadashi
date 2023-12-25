@@ -93,7 +93,6 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_schedule *schedule;
   isl_union_map *dependencies;
   isl_printer *tmp;
-  isl_bool legal;
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
   tmp = new_printer(ctx, user->opt->source_file_path, user->counter,
@@ -104,8 +103,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
 
   if (user->opt->legality_check) {
     schedule = isl_schedule_read_from_file(ctx, stdin);
-    legal = check_schedule_legality(ctx, schedule, dependencies);
-    if (!legal) {
+    if (!check_schedule_legality(ctx, schedule, dependencies)) {
       printf("Illegal schedule!\n");
       isl_schedule_free(schedule);
       schedule = pet_scop_get_schedule(scop);
