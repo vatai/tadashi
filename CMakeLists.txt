@@ -127,7 +127,7 @@ enable_testing()
 include(GoogleTest)
 
 add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
 add_executable(legality_test tests/legality_test.cc)
 target_link_libraries(legality_test PUBLIC PkgConfig::ISL GTest::gtest_main legality)

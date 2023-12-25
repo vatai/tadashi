@@ -15,8 +15,8 @@ struct options {
   char *output_file_path;
   char *original_schedule_suffix;
   char *dependencies_suffix;
+  char *schedule_source;
   isl_bool legality_check;
-  isl_bool interactive;
 };
 
 struct user_t {

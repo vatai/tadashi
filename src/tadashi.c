@@ -37,6 +37,9 @@
 #include "codegen.h"
 #include "legality.h"
 #include "tadashi.h"
+#include "transformations.h"
+
+#define SCHEDULE_SOURCE_VALUES "interactive, yaml, scop"
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
@@ -48,10 +51,10 @@ ISL_ARG_STR(struct options, original_schedule_suffix, 's', "schedule-suffix",
             "suffix", "", "Original schedule file suffix")
 ISL_ARG_STR(struct options, dependencies_suffix, 'd', "dependencies-suffix",
             "suffix", "", "Dependencies file suffix")
+ISL_ARG_STR(struct options, schedule_source, 'x', "schedule-source", "source",
+            "interactive", "Source of schedule (" SCHEDULE_SOURCE_VALUES ")")
 ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
              "Check legality")
-ISL_ARG_BOOL(struct options, interactive, 0, "interactive", isl_bool_false,
-             "Interactive transformations")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
 void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
@@ -87,7 +90,7 @@ void delete_printer(__isl_take isl_printer *p) {
     fclose(file);
 }
 
-__isl_give isl_printer *yaml_transform(isl_ctx *ctx, __isl_take isl_printer *p,
+__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
                                        __isl_keep struct pet_scop *scop,
                                        struct user_t *user) {
   isl_schedule *schedule;
@@ -101,8 +104,20 @@ __isl_give isl_printer *yaml_transform(isl_ctx *ctx, __isl_take isl_printer *p,
   delete_printer(tmp);
   printf("\n");
 
-  if (user->opt->legality_check) {
+  char *sched_src = user->opt->schedule_source;
+  if (!strncmp(sched_src, "interactive", 32)) {
+    schedule = interactive_transform(ctx, scop, user);
+  } else if (!strncmp(sched_src, "yaml", 32)) {
     schedule = isl_schedule_read_from_file(ctx, stdin);
+  } else if (!strncmp(sched_src, "scop", 32)) {
+    schedule = pet_scop_get_schedule(scop);
+  } else {
+    isl_die(ctx, isl_error_abort,
+            "Wrong `schedule-source` value: possible "
+            "values: " SCHEDULE_SOURCE_VALUES ".\n",
+            exit(1));
+  };
+  if (user->opt->legality_check) {
     if (!check_schedule_legality(ctx, schedule, dependencies)) {
       printf("Illegal schedule!\n");
       isl_schedule_free(schedule);
@@ -113,7 +128,6 @@ __isl_give isl_printer *yaml_transform(isl_ctx *ctx, __isl_take isl_printer *p,
   } else {
     printf("Schedule not checked!\n");
     isl_union_map_free(dependencies);
-    schedule = pet_scop_get_schedule(scop);
   }
   p = generate_code(ctx, p, scop, schedule);
   return p;
@@ -171,8 +185,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
   printf("\n");
-
-  p = yaml_transform(ctx, p, scop, user);
+  p = transform_scop(ctx, p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->counter);
   user->counter++;
