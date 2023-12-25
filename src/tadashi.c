@@ -152,10 +152,6 @@ __isl_give isl_printer *yaml_transform(isl_ctx *ctx, __isl_take isl_printer *p,
  * Finally, close any scope that may have been opened
  * to print variable declarations.
  */
-typedef __isl_give isl_printer *(*foreach_scop_t)(__isl_take isl_printer *p,
-                                                  struct pet_scop *scop,
-                                                  void *_user);
-
 static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      struct pet_scop *scop,
                                                      void *_user) {
