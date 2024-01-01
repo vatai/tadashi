@@ -22,10 +22,10 @@ FetchContent_Declare(
   libpet
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG pet-0.11.7
-  GIT_SUBMODULES ""
-  GIT_SUBMODULES_RECURSE False
   GIT_SHALLOW ON
-  UPDATE_DISCONNECTED ON
+  # GIT_SUBMODULES ""
+  # GIT_SUBMODULES_RECURSE False
+  # UPDATE_DISCONNECTED ON
 )
 
 find_package(PkgConfig REQUIRED)
