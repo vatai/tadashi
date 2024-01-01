@@ -1,7 +1,5 @@
 name: Run tests
-on:
-  push:
-
+on: push
 jobs:
   build-pet:
     strategy:
@@ -20,6 +18,8 @@ jobs:
       # run: sudo apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
+      with:
+        generator: Ninja
     - name: Build Project
       runs: cmake --build build
     - name: Test Project
