@@ -57,9 +57,10 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
+  message(">>>>>>>> ENV DIR :$ENV{PKG_CONFIG_PATH}")
   execute_process(
     # OUTPUT_QUIET
-    COMMAND ls isl/.libs
+    COMMAND ls isl
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
