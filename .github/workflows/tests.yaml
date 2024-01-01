@@ -13,10 +13,11 @@ jobs:
     - name: Check out repo
       uses: actions/checkout@master
     - name: Install packages 📦
-      run: sudo apt-get install -y git python-is-python3
-      run: sudo apt-get install -y build-essential autoconf pkg-config libtool libc++-dev libyaml-dev libntl-dev libgmp-dev
-      run: sudo apt-get install -y llvm clang llvm-dev libclang-dev
-      run: sudo apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
+      run: >-
+        sudo apt-get install -y git python-is-python3
+        sudo apt-get install -y build-essential autoconf pkg-config libtool libc++-dev libyaml-dev libntl-dev libgmp-dev
+        sudo apt-get install -y llvm clang llvm-dev libclang-dev
+        sudo apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
       with:
