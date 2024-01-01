@@ -40,19 +40,19 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
 
   execute_process(
-    OUTPUT_QUIET
+    # OUTPUT_QUIET
     COMMAND ./autogen.sh --host=${CMAKE_SYSTEM_PROCESSOR}
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
   execute_process(
-    OUTPUT_QUIET
+    # OUTPUT_QUIET
     COMMAND ./configure --prefix=${libpet_BINARY_DIR}
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
   execute_process(
-    OUTPUT_QUIET
+    # OUTPUT_QUIET
     COMMAND make -j
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
