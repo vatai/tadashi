@@ -42,7 +42,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
 
   execute_process(
     # OUTPUT_QUIET
-    COMMAND ./autogen.sh --host=${CMAKE_SYSTEM_PROCESSOR}
+    COMMAND ./autogen.sh
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
