@@ -29,7 +29,8 @@ FetchContent_Declare(
 )
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(ISL REQUIRED IMPORTED_TARGET isl)
+
+pkg_search_module(ISL IMPORTED_TARGET isl)
 pkg_search_module(PET IMPORTED_TARGET pet)
 
 if(NOT libpet_POPULATED AND NOT PET_FOUND)
@@ -57,8 +58,11 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
-  set(ENV{PKG_CONFIG_PATH} ${libpet_SOURCE_DIR})
+  set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR/isl}")
   pkg_search_module(PET REQUIRED IMPORTED_TARGET pet)
+  pkg_search_module(PET REQUIRED IMPORTED_TARGET isl)
+
+  # list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
 endif()
 
 
