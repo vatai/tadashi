@@ -58,13 +58,14 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   )
 
   set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
-  pkg_check_modules(PET REQUIRED IMPORTED_TARGET isl pet)
+  pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
+  message("PET_FOUND ${PET_FOUND}")
+  pkg_check_modules(PET REQUIRED IMPORTED_TARGET isl)
+  message("ISL_FOUND ${ISL_FOUND}")
 
   # list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
 endif()
 
-message("ISL_FOUND ${ISL_FOUND}")
-message("PET_FOUND ${PET_FOUND}")
 
 
 add_executable(main src/main.c)
