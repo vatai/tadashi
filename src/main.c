@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include <isl/options.h>
+#include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/set.h>
 #include <isl/space.h>
