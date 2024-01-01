@@ -3,33 +3,24 @@ on:
   push:
 
 jobs:
-
   build-pet:
-
-    name: Build PET
-    runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         python: ["3.10", "3.11"]
         os: [ubuntu-latest, ubuntu-22.10]
-
+    name: Build PET
+    runs-on: ${{ matrix.os }}
     steps:
-
     - name: Check out repo
       uses: actions/checkout@master
-
     - name: Install packages 📦
       run: sudo apt-get install -y git python-is-python3
       # run: sudo apt-get install -y build-essential autoconf pkg-config libtool libc++-dev libyaml-dev libntl-dev libgmp-dev
       # run: sudo apt-get install -y llvm clang llvm-dev libclang-dev
       # run: sudo apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
-
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
-
     - name: Build Project
       runs: cmake --build build
-
     - name: Test Project
       runs: ctest --test-dir build
