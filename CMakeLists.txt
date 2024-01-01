@@ -57,7 +57,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
-  set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR/isl}")
+  set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET isl pet)
 
   # list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
