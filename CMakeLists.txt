@@ -39,6 +39,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
 
   set(ENV${CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
+  list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
 
   execute_process(
     # OUTPUT_QUIET
@@ -76,7 +77,6 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
   message("ISL_FOUND ${ISL_FOUND}")
 
-  # list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
 endif()
 
 
