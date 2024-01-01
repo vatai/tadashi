@@ -57,6 +57,12 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
+  execute_process(
+    # OUTPUT_QUIET
+    COMMAND ls isl/.libs
+    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+  )
+
   set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   message("PET_FOUND ${PET_FOUND}")
