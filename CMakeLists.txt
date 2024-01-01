@@ -30,7 +30,8 @@ FetchContent_Declare(
 
 find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(ISL IMPORTED_TARGET isl pet)
+pkg_check_modules(ISL IMPORTED_TARGET isl)
+pkg_check_modules(PET IMPORTED_TARGET pet)
 
 if(NOT libpet_POPULATED AND NOT PET_FOUND)
   message("Package 'pet' not found, so we're building it")
@@ -66,7 +67,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   message("PET_FOUND ${PET_FOUND}")
-  pkg_check_modules(PET REQUIRED IMPORTED_TARGET isl)
+  pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
   message("ISL_FOUND ${ISL_FOUND}")
 
   # list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
