@@ -39,7 +39,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
 
   set(ENV${CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
-  list(APPEND CMAKE_INSTALL_RPATH "${libpet_SOURCE_DIR}/isl/.libs")
+  list(APPEND CMAKE_INSTALL_RPATH "${libpet_BUILD_DIR}/lib")
 
   execute_process(
     # OUTPUT_QUIET
