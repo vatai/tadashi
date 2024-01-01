@@ -9,20 +9,27 @@ jobs:
     #     os: [ubuntu-latest, ubuntu-22.10]
     # runs-on: ${{ matrix.os }}
     runs-on: ubuntu-latest
+
     steps:
-    - name: Check out repo
-      uses: actions/checkout@master
+
     - name: Install packages 📦
       run: >
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev llvm-15 clang-15 llvm-15-dev libclang-15-dev
+        libclang-dev
+        # llvm-15 clang-15 llvm-15-dev libclang-15-dev
+
+    - name: Check out repo
+      uses: actions/checkout@master
+
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
       with:
         generator: Ninja
+
     - name: Build Project
       run: cmake --build build
+
     - name: Test Project
       run: ctest --test-dir build
