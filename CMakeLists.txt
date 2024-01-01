@@ -39,9 +39,6 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   set(ENV${CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
 
-  set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
-  message(">>>>>>>> ENV DIR: $ENV{PKG_CONFIG_PATH}")
-
   execute_process(
     # OUTPUT_QUIET
     COMMAND ./autogen.sh --host=${CMAKE_SYSTEM_PROCESSOR}
@@ -62,10 +59,11 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
 
   execute_process(
     # OUTPUT_QUIET
-    COMMAND ls isl
+    COMMAND cat isl/isl.pc
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
+  set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   message("PET_FOUND ${PET_FOUND}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET isl)
