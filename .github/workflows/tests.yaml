@@ -13,11 +13,11 @@ jobs:
     - name: Check out repo
       uses: actions/checkout@master
     - name: Install packages 📦
-      run: >-
+      run: >
         sudo apt-get install -y
-          git build-essential autoconf pkg-config libtool libc++-dev
-          libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-          libclang-dev llvm-15 clang-15 llvm-15-dev libclang-15-dev
+        git build-essential autoconf pkg-config libtool libc++-dev
+        libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
+        libclang-dev llvm-15 clang-15 llvm-15-dev libclang-15-dev
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
       with:
