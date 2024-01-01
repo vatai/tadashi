@@ -11,6 +11,7 @@
 
 #include <isl/options.h>
 #include <isl/schedule_node.h>
+#include <isl/set.h>
 #include <isl/space.h>
 #include <isl/union_set.h>
 
