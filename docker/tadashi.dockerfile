@@ -9,7 +9,6 @@ RUN apt-get install -y python-is-python3 \
     libntl-dev libgmp-dev llvm clang llvm-dev libclang-dev cmake ninja-build
 
 RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN echo hi
 RUN --mount=type=ssh git clone git@github.com:vatai/tadashi.git
 WORKDIR tadashi
 RUN git checkout 4-write-gh-actions
