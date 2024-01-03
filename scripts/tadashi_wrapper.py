@@ -11,33 +11,66 @@ from pathlib import Path
 
 import pexpect
 import yaml
-
 import process_yaml
 
+# def modify_schedule(schedule):
+#     print(f"==orig==\n{schedule}")
+#     new_schedule = schedule.replace("[(i)]", "[(2i+j)]")
+#     new_schedule = new_schedule.replace("[(j)]", "[(2j)]")
+#     new_schedule = yaml.safe_load(new_schedule)
+#     print(f"==dict==\n{new_schedule}")
+#     new_schedule = yaml.dump(
+#         new_schedule,
+#         sort_keys=False,
+#         default_flow_style=True,
+#         default_style='"',
+#         width=float("inf"),
+#     )
+#     print(f"==new==\n{new_schedule}")
+#     return new_schedule
 
 def modify_schedule(schedule):
+    print("== wrapper.py::modify_schedule begin ==")
     print(f"==orig==\n{schedule}")
     schedule = yaml.safe_load(schedule)
+    process_yaml.dump_schedule_to_file(schedule)
     new_schedule = process_yaml.process_schedule(schedule)
-
-    new_schedule.tile(4, [0])
-    new_schedule.tile(4, [0, 0, 0])
-    new_schedule.mark_parallel([0])
+    OptionsPool = process_yaml.OptionsPool(schedule)
+    OptionsPoolRoot = OptionsPool.get_valid_range()
+    # new_schedule.tile(4, [0])
+    # new_schedule.tile(4, [0, 0, 0])
+    # new_schedule.mark_parallel([0])
+    # new_schedule.interchange([0], [0, 0])
+    new_schedule.skew([2,1], [0,0])
     # new_schedule.interchange([0, 0], [0, 0, 0])
+    # new_schedule.tile(4, [0, 0, 0])
+    # new_schedule.mark_parallel([0])
     # new_schedule.reverse([0])
-    print(f"==dict==\n{new_schedule.yaml_schedule}")
+
+    process_yaml.dump_schedule_to_file(new_schedule.yaml_schedule)
+    print(f"== wrapper.py: ==\n{yaml.dump(new_schedule.yaml_schedule)=}")
     # with open('/barvinok/polyhedral-tutor/src/now_interchange_matmul.yaml', 'r') as file:
     #     new_schedule.yaml_schedule = yaml.safe_load(file)
 
-    new_schedule = yaml.dump(
+    new_yaml = yaml.dump(
         new_schedule.yaml_schedule,
         sort_keys=False,
         default_flow_style=True,
         default_style='"',
         width=float("inf"),
     )
-    print(f"==new==\n{new_schedule}")
-    return new_schedule
+    pretty_new_yaml = yaml.dump(
+        new_schedule.yaml_schedule,
+        sort_keys=False,
+        # default_flow_style=True,
+        # default_style='"',
+        width=float("inf"),
+    )
+    # print(f"==new==")
+    print(f"== wrapper.py::pretty_new_yaml ==")
+    print(pretty_new_yaml)
+    print("== wrapper.py::modify_schedule end ==")
+    return new_yaml
 
 
 def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
@@ -52,7 +85,7 @@ def invoke_tadashi(input_file_path, output_file_path, tadashi_args):
         "### STOP ###\r\n",
     ]
     child = pexpect.spawn(cmd, echo=False, maxread=1, encoding="utf-8", timeout=1)
-    # child.logfile = sys.stdout
+    child.logfile = sys.stdout
     child.expect("WARNING: This app should only be invoked by the python wrapper!")
     while 0 == child.expect(patterns):
         schedule = child.after.rstrip()
@@ -73,4 +106,3 @@ if __name__ == "__main__":
         output_file_path=args.output_file_path,
         tadashi_args=tadashi_args,
     )
-    print("DONE")

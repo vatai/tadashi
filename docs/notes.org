@@ -1,3 +1,29 @@
+* More efficient legality check
+SCH: [N] -> L_0[{ S_0[i, j] -> [(i - (i) mod 4)] }]
+SCH: [N] -> { S_0[i, j] -> L_0[o0] : (i) mod 4 = i - o0 and -3 + i <= o0 <= i }
+apply
+DEP: [N] -> { S_0[i, j] -> S_0[i' = 1 + i, j' = j] : 0 < i <= -2 + N and 0 <= j < N }
+=============
+RES: [N] -> { L_0[i0] -> L_0[o0] :
+  N >= 3 and
+  (i0) mod 4 = 0 and
+  -2 <= i0 < N - 1 and   # i0 = 0, 4, 8 but N = 9 so WTF????
+  i0 < o0 + 1 and
+  -1 <= o0 <= 4 + i0 and
+  (o0) mod 4 = 0 and
+  o0 < N }
+
+
+- i L_0 is c0
+- 
+| i - 3 | i - (i mod 4) |  i | i mod 4 |
+|     5 |             8 |  8 |       0 |
+|     6 |             8 |  9 |       1 |
+|     7 |             8 | 10 |       2 |
+|     8 |             8 | 11 |       3 |
+|       |            12 | 12 |       0 |
+|       |            12 | 13 |       1 |
+
 * pet_loopback callback
 ** id2stmt = set_up_id2stmt
 #+begin_src C
