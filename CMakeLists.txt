@@ -34,6 +34,7 @@ pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 
 if(NOT libpet_POPULATED AND NOT PET_FOUND)
+
   message("Package 'pet' not found, so we're building it")
   FetchContent_Populate(libpet)
 
@@ -75,13 +76,9 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl")
   set(ENV{LIBRARY_PATH} "${libpet_BINARY_DIR}/lib")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
-  message("PET_FOUND ${PET_FOUND}")
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
-  message("ISL_FOUND ${ISL_FOUND}")
 
 endif()
-
-
 
 add_executable(main src/main.c)
 target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
