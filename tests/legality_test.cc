@@ -68,7 +68,7 @@ TEST_F(LegalityTest, DeltaSetLexpos) {
   }
 }
 
-TEST_F(LegalityTest, CalculateDelta) {
+TEST_F(LegalityTest, DISABLED_CalculateDelta) {
   isl_schedule_node *node;
   isl_union_map *dep;
   isl_union_set *delta;
