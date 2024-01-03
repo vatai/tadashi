@@ -1,6 +1,6 @@
 # Tadashi
 
-Build instructions:
+## Build instructions:
 
 Before building, install LLVM and other (system) packages (check [dockerfile](docker/tadashi.dockerfile) for an exact list of `apt-get` packages).
 
