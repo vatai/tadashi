@@ -14,3 +14,4 @@ build
 compile_commands.json
 *.tadashi.yaml
 *.tadashi.isl
+__pycache__
