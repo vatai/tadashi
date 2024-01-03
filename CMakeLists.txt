@@ -73,6 +73,7 @@ if(NOT libpet_POPULATED AND NOT PET_FOUND)
   )
 
   set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl")
+  set(ENV{LIBRARY_PATH} "${libpet_BINARY_DIR}/lib")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   message("PET_FOUND ${PET_FOUND}")
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
