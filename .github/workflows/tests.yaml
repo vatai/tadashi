@@ -1,5 +1,8 @@
 name: Run tests
 on: push
+env:
+  LIBRARY_PATH: /tadashi/build/_deps/libpet-build/lib
+
 jobs:
   build-pet:
     name: Build PET
@@ -27,6 +30,9 @@ jobs:
       uses: threeal/cmake-action@v1.3.0
       with:
         generator: Ninja
+
+    - name: Get current working dir
+      run: pwd
 
     - name: Build Project
       run: cmake --build build
