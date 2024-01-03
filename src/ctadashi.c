@@ -20,12 +20,14 @@ struct cell *foo(int n) {
   return first;
 }
 
-int bar(struct cell *t) {
+size_t bar(struct cell *t) {
   struct cell *next;
+  size_t count = 0;
   while (t) {
     next = t->next;
     free(t);
+    count++;
     t = next;
   }
-  return 0;
+  return count;
 }
