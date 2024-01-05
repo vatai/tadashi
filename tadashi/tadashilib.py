@@ -1,4 +1,5 @@
-from ctypes import CDLL, POINTER, Structure, c_int, c_longlong, c_size_t
+from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_longlong,
+                    c_size_t)
 from pathlib import Path
 
 
@@ -21,5 +22,12 @@ _tadashi.bar.argtypes = [POINTER(cell_t)]
 bar = _tadashi.bar
 
 c = foo(10)
-print(c)
-print(bar(c))
+# print(c)
+# print(bar(c))
+
+scan_source = _tadashi.scan_source
+scan_source.argtypes = [c_char_p]
+
+scan_source(b"./examples/depnodep.c")
+
+print("PYTHON DONE")
