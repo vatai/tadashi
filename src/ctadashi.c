@@ -9,6 +9,7 @@
 
 struct node {
   struct node *parent;
+  size_t id;
 };
 
 struct user_t {
@@ -35,7 +36,7 @@ struct user_t *alloc_user(isl_ctx *ctx) {
   }
 
   return u;
-};
+}
 
 void maybe_realloc(struct user_t *user) {
   if (user->num_nodes < user->allocated_nodes)
@@ -46,13 +47,13 @@ void maybe_realloc(struct user_t *user) {
   tmp = realloc(user->nodes, new_size);
   if (tmp != NULL) {
     user->nodes = tmp;
-    return
+    return;
   }
 }
 
 void add_node(struct user_t *user, size_t id) {
   maybe_realloc(user);
-  user->nodes[user->num_nodes++] = id;
+  user->nodes[user->num_nodes++].id = id;
 }
 
 void free_user(struct user_t *u) {
