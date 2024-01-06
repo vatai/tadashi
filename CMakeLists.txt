@@ -148,7 +148,7 @@ include(GoogleTest)
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
-add_library(ctadashi SHARED src/ctadashi.c)
+add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
 add_executable(legality_test tests/legality_test.cc)

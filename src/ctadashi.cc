@@ -25,14 +25,14 @@ struct user_t {
 struct user_t *alloc_user(isl_ctx *ctx) {
   const size_t INIT_SIZE = 16;
 
-  struct user_t *u = malloc(sizeof(*u));
+  struct user_t *u = (struct user_t *)malloc(sizeof(*u));
   if (u == NULL)
     isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
 
   u->num_nodes = 0;
   u->num_scopes = 0;
   u->allocated_nodes = INIT_SIZE;
-  u->nodes = malloc(sizeof(*u->nodes) * u->allocated_nodes);
+  u->nodes = (struct node_t *)malloc(sizeof(*u->nodes) * u->allocated_nodes);
   if (u->nodes == NULL) {
     free(u);
     isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
@@ -47,7 +47,7 @@ void maybe_realloc(struct user_t *user) {
   user->allocated_nodes *= 2;
   struct node_t *tmp;
   const size_t new_size = sizeof(*user->nodes) * user->allocated_nodes;
-  tmp = realloc(user->nodes, new_size);
+  tmp = (struct node_t *)realloc(user->nodes, new_size);
   if (tmp != NULL) {
     user->nodes = tmp;
     return;
@@ -68,7 +68,7 @@ void free_user(struct user_t *u) {
 }
 
 isl_bool foreach_node(isl_schedule_node *node, void *user) {
-  struct user_t *u = user;
+  struct user_t *u = (struct user_t *)user;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   add_node(u, u->num_nodes);
   isl_size depth = isl_schedule_node_get_tree_depth(node);
@@ -80,7 +80,7 @@ __isl_give isl_printer *foreach_scope(__isl_take isl_printer *p, pet_scop *scop,
                                       void *user)
 
 {
-  struct user_t *u = user;
+  struct user_t *u = (struct user_t *)user;
   u->num_scopes++;
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_foreach_schedule_node_top_down(sched, foreach_node, user);
@@ -89,7 +89,7 @@ __isl_give isl_printer *foreach_scope(__isl_take isl_printer *p, pet_scop *scop,
   return p;
 }
 
-int scan_source(char *input) { // Entry point
+extern "C" int scan_source(char *input) { // Entry point
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("cout.c", "w");
 
@@ -110,12 +110,12 @@ struct cell {
   struct cell *next;
 };
 
-struct cell *foo(int n) {
+extern "C" struct cell *foo(int n) {
   struct cell *t, *first;
-  first = t = malloc(sizeof(struct cell));
+  first = t = (struct cell *)malloc(sizeof(struct cell));
   for (size_t i = 0; i < n; ++i) {
     t->name = i;
-    t->next = malloc(sizeof(struct cell));
+    t->next = (struct cell *)malloc(sizeof(struct cell));
     t = t->next;
   }
   t->name = n;
@@ -123,7 +123,7 @@ struct cell *foo(int n) {
   return first;
 }
 
-size_t bar(struct cell *t) {
+extern "C" size_t bar(struct cell *t) {
   struct cell *next;
   size_t count = 0;
   while (t) {
