@@ -1,13 +1,14 @@
-#include <isl/ast.h>
-#include <isl/id.h>
-#include <isl/schedule.h>
-#include <isl/schedule_type.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <map>
 
+#include <isl/ast.h>
 #include <isl/ctx.h>
+#include <isl/id.h>
 #include <isl/printer.h>
+#include <isl/schedule.h>
 #include <isl/schedule_node.h>
+#include <isl/schedule_type.h>
 #include <pet.h>
 
 struct node_t {
@@ -16,6 +17,7 @@ struct node_t {
 };
 
 struct user_t {
+  std::map<isl_schedule_node *, size_t> pointer_to_index;
   struct node_t *nodes;
   size_t num_nodes;
   size_t num_scopes;
