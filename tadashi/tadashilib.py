@@ -2,6 +2,8 @@ from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_longlong,
                     c_size_t)
 from pathlib import Path
 
+########################################
+
 
 class cell_t(Structure):
     pass
@@ -24,6 +26,8 @@ bar = _tadashi.bar
 c = foo(10)
 # print(c)
 # print(bar(c))
+
+########################################
 
 scan_source = _tadashi.scan_source
 scan_source.argtypes = [c_char_p]

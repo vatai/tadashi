@@ -1,4 +1,7 @@
+#include <isl/ast.h>
+#include <isl/id.h>
 #include <isl/schedule.h>
+#include <isl/schedule_type.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,13 +10,13 @@
 #include <isl/schedule_node.h>
 #include <pet.h>
 
-struct node {
-  struct node *parent;
+struct node_t {
+  struct node_t *parent;
   size_t id;
 };
 
 struct user_t {
-  struct node *nodes;
+  struct node_t *nodes;
   size_t num_nodes;
   size_t num_scopes;
   size_t allocated_nodes;
@@ -42,7 +45,7 @@ void maybe_realloc(struct user_t *user) {
   if (user->num_nodes < user->allocated_nodes)
     return;
   user->allocated_nodes *= 2;
-  struct node *tmp;
+  struct node_t *tmp;
   const size_t new_size = sizeof(*user->nodes) * user->allocated_nodes;
   tmp = realloc(user->nodes, new_size);
   if (tmp != NULL) {
@@ -53,7 +56,10 @@ void maybe_realloc(struct user_t *user) {
 
 void add_node(struct user_t *user, size_t id) {
   maybe_realloc(user);
-  user->nodes[user->num_nodes++].id = id;
+  struct node_t *node = user->nodes + user->num_nodes;
+  node->id = id;
+  // todo: node->parent = ;
+  user->num_nodes++;
 }
 
 void free_user(struct user_t *u) {
@@ -63,9 +69,10 @@ void free_user(struct user_t *u) {
 
 isl_bool foreach_node(isl_schedule_node *node, void *user) {
   struct user_t *u = user;
-  printf("num_nodes: %lu\n", u->num_nodes);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   add_node(u, u->num_nodes);
-  u->num_nodes++;
+  isl_size depth = isl_schedule_node_get_tree_depth(node);
+  printf("depth: %lu\n", depth);
   return isl_bool_true;
 }
 
