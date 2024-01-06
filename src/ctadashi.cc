@@ -27,14 +27,14 @@ struct user_t {
 struct user_t *alloc_user(isl_ctx *ctx) {
   const size_t INIT_SIZE = 16;
 
-  struct user_t *u = (struct user_t *)malloc(sizeof(*u));
+  struct user_t *u = new user_t();
   if (u == NULL)
     isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
 
   u->num_nodes = 0;
   u->num_scopes = 0;
   u->allocated_nodes = INIT_SIZE;
-  u->nodes = (struct node_t *)malloc(sizeof(*u->nodes) * u->allocated_nodes);
+  u->nodes = new node_t();
   if (u->nodes == NULL) {
     free(u);
     isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
