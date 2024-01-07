@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -18,7 +19,9 @@ struct node_t {
 };
 
 std::vector<node_t> NODES;
-std::map<std::pair<isl_size, isl_size>, size_t> DEPTH_CHILDPOS_TO_INDEX;
+
+typedef std::map<std::pair<isl_size, isl_size>, size_t> map_deppos2idx_t;
+map_deppos2idx_t DEPPOS2IDX;
 
 isl_bool foreach_node(isl_schedule_node *node, void *user) {
   isl_size pos = 0;
@@ -26,7 +29,7 @@ isl_bool foreach_node(isl_schedule_node *node, void *user) {
     pos = isl_schedule_node_get_child_position(node);
   isl_size dep = isl_schedule_node_get_tree_depth(node);
   size_t id = NODES.size() * 100;
-  DEPTH_CHILDPOS_TO_INDEX[{dep, pos}] = id;
+  DEPPOS2IDX[{dep, pos}] = id;
   printf("%d, %d = %d\n", dep, pos, id);
   if (isl_schedule_node_has_parent(node)) {
     node = isl_schedule_node_parent(node);
@@ -34,8 +37,9 @@ isl_bool foreach_node(isl_schedule_node *node, void *user) {
     isl_size ppos = 0;
     if (isl_schedule_node_has_parent(node))
       isl_schedule_node_get_child_position(node);
-    printf("%d, %d: find: %d\n", pdep, ppos,
-           DEPTH_CHILDPOS_TO_INDEX.find({pdep, ppos})->second);
+    map_deppos2idx_t::iterator find = DEPPOS2IDX.find({pdep, ppos});
+    assert(find != DEPPOS2IDX.end());
+    printf("%d, %d: find: %d\n", pdep, ppos, find->second);
     node = isl_schedule_node_child(node, pos);
   }
   NODES.push_back({0, id});
