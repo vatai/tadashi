@@ -32,6 +32,6 @@ print(bar(c))
 scan_source = _tadashi.scan_source
 scan_source.argtypes = [c_char_p]
 
-# scan_source(b"./examples/depnodep.c")
+scan_source(b"./examples/depnodep.c")
 
 print("PYTHON DONE")

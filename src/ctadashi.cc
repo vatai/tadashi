@@ -10,80 +10,40 @@
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <pet.h>
+#include <vector>
 
 struct node_t {
-  struct node_t *parent;
+  size_t parent;
   size_t id;
 };
 
-struct user_t {
-  std::map<isl_schedule_node *, size_t> pointer_to_index;
-  struct node_t *nodes;
-  size_t num_nodes;
-  size_t num_scopes;
-  size_t allocated_nodes;
-};
-
-struct user_t *alloc_user(isl_ctx *ctx) {
-  const size_t INIT_SIZE = 16;
-
-  struct user_t *u = new user_t();
-  if (u == NULL)
-    isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
-
-  u->num_nodes = 0;
-  u->num_scopes = 0;
-  u->allocated_nodes = INIT_SIZE;
-  u->nodes = new node_t();
-  if (u->nodes == NULL) {
-    free(u);
-    isl_die(ctx, isl_error_alloc, "allocation failure", return NULL);
-  }
-
-  return u;
-}
-
-void maybe_realloc(struct user_t *user) {
-  if (user->num_nodes < user->allocated_nodes)
-    return;
-  user->allocated_nodes *= 2;
-  struct node_t *tmp;
-  const size_t new_size = sizeof(*user->nodes) * user->allocated_nodes;
-  tmp = (struct node_t *)realloc(user->nodes, new_size);
-  if (tmp != NULL) {
-    user->nodes = tmp;
-    return;
-  }
-}
-
-void add_node(struct user_t *user, size_t id) {
-  maybe_realloc(user);
-  struct node_t *node = user->nodes + user->num_nodes;
-  node->id = id;
-  // todo: node->parent = ;
-  user->num_nodes++;
-}
-
-void free_user(struct user_t *u) {
-  free(u->nodes);
-  free(u);
-}
+std::vector<node_t> NODES;
+std::map<std::pair<isl_size, isl_size>, size_t> DEPTH_CHILDPOS_TO_INDEX;
 
 isl_bool foreach_node(isl_schedule_node *node, void *user) {
-  struct user_t *u = (struct user_t *)user;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  add_node(u, u->num_nodes);
-  isl_size depth = isl_schedule_node_get_tree_depth(node);
-  printf("depth: %lu\n", depth);
+  isl_size pos = 0;
+  if (isl_schedule_node_has_parent(node))
+    isl_schedule_node_get_child_position(node);
+  isl_size dep = isl_schedule_node_get_tree_depth(node);
+  size_t id = NODES.size();
+  DEPTH_CHILDPOS_TO_INDEX[{dep, pos}] = id;
+  printf("%d, %d = %d\n", dep, pos, id);
+  if (isl_schedule_node_has_parent(node)) {
+    node = isl_schedule_node_parent(node);
+    printf("find: %x\n", DEPTH_CHILDPOS_TO_INDEX.find(
+                             {isl_schedule_node_get_tree_depth(node),
+                              isl_schedule_node_has_parent(node)
+                                  ? isl_schedule_node_get_child_position(node)
+                                  : 0}));
+    node = isl_schedule_node_child(node, pos);
+  }
+  NODES.push_back({0, id});
+  printf("---\n");
   return isl_bool_true;
 }
 
 __isl_give isl_printer *foreach_scope(__isl_take isl_printer *p, pet_scop *scop,
-                                      void *user)
-
-{
-  struct user_t *u = (struct user_t *)user;
-  u->num_scopes++;
+                                      void *user) {
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_foreach_schedule_node_top_down(sched, foreach_node, user);
   isl_schedule_free(sched);
@@ -95,11 +55,7 @@ extern "C" int scan_source(char *input) { // Entry point
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("cout.c", "w");
 
-  struct user_t *user = alloc_user(ctx);
-  pet_transform_C_source(ctx, input, output, foreach_scope, user);
-  printf("Num scops: %lu\n", user->num_scopes);
-  printf("Num nodes: %lu\n", user->num_nodes);
-  free_user(user);
+  pet_transform_C_source(ctx, input, output, foreach_scope, NULL);
 
   fclose(output);
   isl_ctx_free(ctx);
