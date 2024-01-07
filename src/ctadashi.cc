@@ -20,27 +20,29 @@ struct node_t {
 
 std::vector<node_t> NODES;
 
-typedef std::map<std::pair<isl_size, isl_size>, size_t> map_deppos2idx_t;
+typedef std::pair<isl_size, isl_size> depth_position_t;
+typedef std::map<depth_position_t, size_t> map_deppos2idx_t;
 map_deppos2idx_t DEPPOS2IDX;
 
-isl_bool foreach_node(isl_schedule_node *node, void *user) {
+depth_position_t _get_depth_position(isl_schedule_node *node) {
   isl_size pos = 0;
   if (isl_schedule_node_has_parent(node))
     pos = isl_schedule_node_get_child_position(node);
   isl_size dep = isl_schedule_node_get_tree_depth(node);
+  return {dep, pos};
+}
+
+isl_bool foreach_node(isl_schedule_node *node, void *user) {
   size_t id = NODES.size() * 100;
-  DEPPOS2IDX[{dep, pos}] = id;
-  printf("%d, %d = %d\n", dep, pos, id);
+  depth_position_t dp = _get_depth_position(node);
+  DEPPOS2IDX[dp] = id;
+  printf("%d, %d = %ld\n", dp.first, dp.second, id);
   if (isl_schedule_node_has_parent(node)) {
     node = isl_schedule_node_parent(node);
-    isl_size pdep = isl_schedule_node_get_tree_depth(node);
-    isl_size ppos = 0;
-    if (isl_schedule_node_has_parent(node))
-      isl_schedule_node_get_child_position(node);
-    map_deppos2idx_t::iterator find = DEPPOS2IDX.find({pdep, ppos});
-    assert(find != DEPPOS2IDX.end());
-    printf("%d, %d: find: %d\n", pdep, ppos, find->second);
-    node = isl_schedule_node_child(node, pos);
+    map_deppos2idx_t::iterator parent_id;
+    parent_id = DEPPOS2IDX.find(_get_depth_position(node));
+    assert(parent_id != DEPPOS2IDX.end());
+    node = isl_schedule_node_child(node, dp.second);
   }
   NODES.push_back({0, id});
   printf("---\n");
