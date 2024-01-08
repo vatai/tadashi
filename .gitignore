@@ -15,3 +15,7 @@ compile_commands.json
 *.tadashi.yaml
 *.tadashi.isl
 __pycache__
+tadashi/*.c
+Testing
+dist
+tadashi.egg-info
