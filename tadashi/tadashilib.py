@@ -2,6 +2,8 @@ from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_longlong,
                     c_size_t)
 from pathlib import Path
 
+from . import tadashi_interface as ti
+
 ########################################
 
 
@@ -35,3 +37,6 @@ scan_source.argtypes = [c_char_p]
 scan_source(b"./examples/depnodep.c")
 
 print("PYTHON DONE")
+
+ti.hello()
+ti.hello()
