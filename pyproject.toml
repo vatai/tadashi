@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tadashi"
+authors = [ {name = "Emil VATAI", email = "emil.vatai@gmail.com"} ]
+version = "0.42"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tadashi"]
+
+[tool.setuptools.package-data]
+tadashi = ["*.pyx"]
