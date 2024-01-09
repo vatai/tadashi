@@ -123,4 +123,12 @@ extern "C" size_t bar(struct cell *t) {
   return count;
 }
 
+std::vector<int> buz(size_t n) {
+  std::vector<int> v;
+  for (size_t i = 0; i < n; ++i) {
+    v.insert(v.begin(), i * 10);
+  }
+  return v;
+}
+
 /***** remove END *****/

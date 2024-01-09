@@ -1,11 +1,14 @@
 #ifndef _CTADASHI_H_
 #define _CTADASHI_H_
 
+#include <cstddef>
+#include <vector>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-// struct cell *foo(int n);
+std::vector<int> &buz(size_t n);
 
 #if defined(__cplusplus)
 }

@@ -39,4 +39,5 @@ scan_source(b"./examples/depnodep.c")
 print("PYTHON DONE")
 
 ti.hello()
+# print(f"{ti.buz_wrap(5)}")
 ti.hello()
