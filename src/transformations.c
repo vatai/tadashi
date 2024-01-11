@@ -12,29 +12,6 @@
 #include <pet.h>
 #include <string.h>
 
-void dim_names(isl_schedule_node *node) {
-  const char *name;
-  isl_multi_union_pw_aff *mupa;
-  mupa = isl_schedule_node_band_get_partial_schedule(node);
-  name = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
-  // TODO save name
-  isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
-  isl_size num_sets = isl_union_set_n_set(domain);
-  isl_set_list *slist = isl_union_set_get_set_list(domain);
-  for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-    isl_set *set = isl_set_list_get_at(slist, set_idx);
-    isl_size num_dims = isl_set_dim(set, isl_dim_set);
-    for (isl_size di = 0; di < num_dims; di++) {
-      name = isl_set_get_dim_name(set, isl_dim_set, di);
-      size_t len = strlen(name);
-      // TODO save name
-    }
-    isl_set_free(set);
-  }
-  isl_set_list_free(slist);
-  isl_union_set_free(domain);
-}
-
 isl_bool chk_single_tile() { return isl_bool_true; }
 
 isl_schedule_node *single_tile(isl_ctx *ctx, isl_schedule_node *node, int si) {
