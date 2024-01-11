@@ -31,6 +31,7 @@ typedef std::map<depth_position_t, size_t> map_deppos2idx_t;
 map_deppos2idx_t DEPPOS2IDX;
 
 extern "C" {
+
 depth_position_t _get_depth_position(isl_schedule_node *node) {
   isl_size pos = 0;
   if (isl_schedule_node_has_parent(node))
@@ -57,24 +58,6 @@ isl_bool foreach_node(isl_schedule_node *node, void *user) {
   node = isl_schedule_node_child(node, dp.second); // return from parent
   NODES.push_back({.parent = parent->second, .id = id});
   printf("add(parent=%lu, id=%lu)\n", parent->second, id);
-  printf("---\n");
-  return isl_bool_true;
-}
-
-isl_bool foreach_node_old(isl_schedule_node *node, void *user) {
-  size_t id = NODES.size() * 100;
-  size_t parent_it = -1;
-  depth_position_t dp = _get_depth_position(node);
-  DEPPOS2IDX[dp] = id;
-  printf("%d, %d = %ld\n", dp.first, dp.second, id);
-  if (isl_schedule_node_has_parent(node)) {
-    node = isl_schedule_node_parent(node);
-    map_deppos2idx_t::iterator parent;
-    parent = DEPPOS2IDX.find(_get_depth_position(node));
-    assert(parent != DEPPOS2IDX.end());
-    node = isl_schedule_node_child(node, dp.second);
-  }
-  NODES.push_back({.parent = 0, .id = id});
   printf("---\n");
   return isl_bool_true;
 }
