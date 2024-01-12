@@ -50,7 +50,7 @@ get_dim_names.restype = c_char_p
 get_dim_names.argtypes = [c_long]
 
 get_type = _tadashi.get_type
-get_type.restype = int
+get_type.restype = c_int
 get_type.argtypes = [c_long]
 
 get_type_str = _tadashi.get_type_str
@@ -73,33 +73,37 @@ print(f"{get_num_children(0)=}")
 print(f"{get_dim_names(0)=}")
 
 
-def traverse(i, r):
-    num_children = get_num_children(i)
-    dim_names = [t.split("|")[:-1] for t in get_dim_names(i).decode().split(";")[:-1]]
-    result = dict(
-        type=get_type(i),
-        type_str=get_type_str(i),
+def traverse(scop_idx, nodes, parent):
+    num_children = get_num_children(scop_idx)
+    inner_dim_names = get_dim_names(scop_idx).decode().split(";")[:-1]
+    dim_names = [t.split("|")[:-1] for t in inner_dim_names]
+    node = dict(
+        type=get_type(scop_idx),
+        type_str=get_type_str(scop_idx),
         num_children=num_children,
-        parent=None,
+        children=[-1 for _ in range(num_children)],
+        parent=parent,
         dim_names=dim_names,
-        expr=get_expr(i),
+        expr=get_expr(scop_idx),
     )
-    print(f"{result=}")
-    r.append(result)
-    if result["type"] == 6:  # 6 = LEAF
+    print(f"{node=}")
+    parent_idx = len(nodes)
+    nodes.append(node)
+    if node["type"] == 6:  # 6 = LEAF
         return
     else:
         for c in range(num_children):
-            goto_child(i, c)
-            traverse(i, r)
-            goto_parent(i)
+            goto_child(scop_idx, c)
+            node["children"][c] = len(nodes)
+            traverse(scop_idx, nodes, parent_idx)
+            goto_parent(scop_idx)
 
 
-def get_schedule_tree(i):
-    result = []
-    traverse(i, result)
-    print(result)
-    return result
+def get_schedule_tree(scop_idx):
+    nodes = []
+    traverse(scop_idx, nodes, parent=-1)
+    print(nodes)
+    return nodes
 
 
 schedules_trees = []
