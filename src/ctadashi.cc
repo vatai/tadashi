@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <isl/aff.h>
 #include <isl/set.h>
 #include <map>
 
@@ -118,7 +119,30 @@ void free_scops() {
   isl_ctx_free(ctx);
 }
 
-size_t num_children(size_t node_idx) {
+int get_type(size_t node_idx) {
+  return isl_schedule_node_get_type(ROOTS[node_idx]);
+}
+
+const char *get_type_str(size_t node_idx) {
+  enum isl_schedule_node_type type;
+  type = isl_schedule_node_get_type(ROOTS[node_idx]);
+  const char *type2str[11];
+
+  type2str[isl_schedule_node_band] = "BND";
+  type2str[isl_schedule_node_context] = "CTX";
+  type2str[isl_schedule_node_domain] = "DMN";
+  type2str[isl_schedule_node_expansion] = "EXP";
+  type2str[isl_schedule_node_extension] = "EXT";
+  type2str[isl_schedule_node_filter] = "FTR";
+  type2str[isl_schedule_node_leaf] = "LF";
+  type2str[isl_schedule_node_guard] = "GRD";
+  type2str[isl_schedule_node_mark] = "MRK";
+  type2str[isl_schedule_node_sequence] = "SEQ";
+  type2str[isl_schedule_node_set] = "SET";
+  return type2str[type];
+}
+
+size_t get_num_children(size_t node_idx) {
   return isl_schedule_node_n_children(ROOTS[node_idx]);
 }
 
@@ -130,12 +154,28 @@ size_t child_position(size_t node_idx) {
   return isl_schedule_node_get_child_position(ROOTS[node_idx]);
 }
 
-void child(size_t node_idx, size_t child_idx) {
+void goto_parent(size_t node_idx) {
+  ROOTS[node_idx] = isl_schedule_node_parent(ROOTS[node_idx]);
+}
+
+void goto_child(size_t node_idx, size_t child_idx) {
   ROOTS[node_idx] = isl_schedule_node_child(ROOTS[node_idx], child_idx);
 }
 
-const char *dim_names(size_t idx) {
+const char *get_expr(size_t idx) {
   isl_schedule_node *node = ROOTS[idx];
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+    return "";
+  isl_multi_union_pw_aff *mupa =
+      isl_schedule_node_band_get_partial_schedule(node);
+  printf("MUPA:%s\n", isl_multi_union_pw_aff_to_str(mupa));
+  return "read MUPA line\n";
+}
+
+const char *get_dim_names(size_t idx) {
+  isl_schedule_node *node = ROOTS[idx];
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+    return "";
   std::stringstream ss;
   const char *name;
   isl_multi_union_pw_aff *mupa;
