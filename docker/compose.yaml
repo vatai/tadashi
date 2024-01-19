@@ -1,0 +1,6 @@
+services:
+  tadashi:
+    build:
+      dockerfile: ./tadashi.dockerfile
+    volumes:
+      - ../src:/workdir
