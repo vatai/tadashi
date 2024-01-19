@@ -3,10 +3,8 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt-get install -y git python-is-python3 vim
-RUN apt-get install -y build-essential autoconf pkg-config libtool libc++-dev libyaml-dev libntl-dev libgmp-dev
-# RUN apt-get install -y llvm clang llvm-dev libclang-dev
-RUN apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
+RUN apt-get install -y git build-essential autoconf pkg-config libgmp-dev libntl-dev libtool llvm clang llvm-dev libc++-dev libclang-dev llvm-dev libyaml-dev bash-completion ninja-build cmake isl-dev
+# RUN apt-get install -y llvm-15 clang-15 llvm-15-dev libclang-15-dev
 
 RUN git clone git://repo.or.cz/barvinok.git
 WORKDIR barvinok
