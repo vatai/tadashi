@@ -112,7 +112,7 @@ def get_schedule_tree(scop_idx):
 
 
 def compare(sch_tree, sched):
-    pass
+    print("ok")
 
 
 schedules_trees = []
