@@ -4,6 +4,8 @@ from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_long,
                     c_longlong, c_size_t)
 from pathlib import Path
 
+import yaml
+
 ########################################
 
 
@@ -48,6 +50,10 @@ get_num_children.argtypes = [c_long]
 get_dim_names = _tadashi.get_dim_names
 get_dim_names.restype = c_char_p
 get_dim_names.argtypes = [c_long]
+
+get_schedule_yaml = _tadashi.get_schedule_yaml
+get_schedule_yaml.restype = c_char_p
+get_schedule_yaml.argtypes = [c_long]
 
 get_type = _tadashi.get_type
 get_type.restype = c_int
@@ -102,13 +108,19 @@ def traverse(scop_idx, nodes, parent):
 def get_schedule_tree(scop_idx):
     nodes = []
     traverse(scop_idx, nodes, parent=-1)
-    print(nodes)
     return nodes
+
+
+def compare(sch_tree, sched):
+    pass
 
 
 schedules_trees = []
 for i in range(num_scopes):
+    sched = get_schedule_yaml(i).decode()
+    sched = yaml.load(sched, Loader=yaml.SafeLoader)
     sch_tree = get_schedule_tree(i)
+    compare(sch_tree, sched)
     schedules_trees.append(sch_tree)
 
 

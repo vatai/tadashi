@@ -200,6 +200,13 @@ const char *get_dim_names(size_t idx) {
   return ss.str().c_str();
 }
 
+const char *get_schedule_yaml(size_t idx) {
+  isl_schedule *sched = pet_scop_get_schedule(SCOPS[idx]);
+  const char *ptr = isl_schedule_to_str(sched);
+  isl_schedule_free(sched);
+  return ptr;
+}
+
 } // extern "C"
 
 /***** remove BEGIN *****/
