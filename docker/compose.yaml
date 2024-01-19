@@ -3,6 +3,13 @@ services:
     user: ${UID}:${GID}
     build:
       dockerfile: ./tadashi.dockerfile
+      args:
+        - USER=${USER}
+        - UID=${UID}
+        - GROUP=${GROUP}
+        - GID=${GID}
+    # env_file:
+    #   .env
     volumes:
       - ..:/workdir
     environment:

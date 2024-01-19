@@ -16,4 +16,12 @@ WORKDIR build
 RUN cmake .. -G Ninja
 RUN cmake --build .
 RUN cmake --build . -t install
+
+ARG USER
+ARG UID
+ARG GROUP
+ARG GID
+RUN groupadd -g $GID $GROUP
+RUN useradd -u $UID -g $GID $USER
 WORKDIR /workdir
+
