@@ -23,7 +23,14 @@ docker compose run --rm -it tadashi
 The tadashi binds the host repo to `/workdir` inside the
 container. 
 
-Tadashi should be rebuilt from the container. The dependencies are
-built during the `docker compose build` command under
-`/tadashi/build/_deps` and the environment is set up that these
-dependencies are used (i.e. not rebuilt again).
+Tadashi should be rebuilt from the container:
+```bash
+mkdir /workdir/build
+cd /workdir/build
+cmake ..
+cmake --build .
+```
+The dependencies are built
+during the `docker compose build` command under `/tadashi/build/_deps`
+and the environment is set up that these dependencies are used
+(i.e. not rebuilt again).
