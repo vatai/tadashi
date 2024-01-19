@@ -30,9 +30,10 @@ FetchContent_Declare(
 
 FetchContent_Populate(libpet)
 
-find_package(PkgConfig REQUIRED)
-
 set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl")
+list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
+
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 
@@ -79,7 +80,6 @@ if(NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}/isl
   )
 
-  list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
   message("PKG_CONFIG_PATH: $ENV{PKG_CONFIG_PATH}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
