@@ -1,6 +1,8 @@
 services:
   tadashi:
-    user: ${UID}:${GID}
+    env_file:
+      .env
+    user: ${UID?error}:${GID?error}
     build:
       dockerfile: ./tadashi.dockerfile
       args:
@@ -8,8 +10,6 @@ services:
         - UID=${UID}
         - GROUP=${GROUP}
         - GID=${GID}
-    # env_file:
-    #   .env
     volumes:
       - ..:/workdir
     environment:
