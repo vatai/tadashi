@@ -32,17 +32,17 @@ FetchContent_Populate(libpet)
 
 set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl")
 list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
+list(APPEND CMAKE_INSTALL_RPATH "${libpet_BINARY_DIR}/lib")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 
 if(NOT PET_FOUND)
-  message("Package 'pet' not found, so we're building it")
+  message("Package 'pet' not found, but don't worry, I know how to build it!")
 
   set(ENV${CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
-  # list(APPEND CMAKE_INSTALL_RPATH "${libpet_BINARY_DIR}/lib")
 
   execute_process(
     # OUTPUT_QUIET
@@ -68,19 +68,6 @@ if(NOT PET_FOUND)
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}
   )
 
-  execute_process(
-    # OUTPUT_QUIET
-    COMMAND cat pet.pc
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
-  )
-
-  execute_process(
-    # OUTPUT_QUIET
-    COMMAND cat isl.pc
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}/isl
-  )
-
-  message("PKG_CONFIG_PATH: $ENV{PKG_CONFIG_PATH}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 
