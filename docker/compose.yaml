@@ -1,6 +1,10 @@
 services:
   tadashi:
+    user: ${UID}:${GID}
     build:
       dockerfile: ./tadashi.dockerfile
     volumes:
-      - ../src:/workdir
+      - ..:/workdir
+    environment:
+      - PKG_CONFIG_PATH=/tadashi/build/_deps/libpet-src:/tadashi/build/_deps/libpet-src/isl
+      - LIBRARY_PATH=/tadashi/build/_deps/libpet-build/lib

@@ -15,3 +15,5 @@ RUN mkdir build
 WORKDIR build
 RUN cmake .. -G Ninja
 RUN cmake --build .
+RUN cmake --build . -t install
+WORKDIR /workdir
