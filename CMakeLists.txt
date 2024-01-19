@@ -68,12 +68,18 @@ if(NOT PET_FOUND)
 
   execute_process(
     # OUTPUT_QUIET
+    COMMAND cat pet.pc
+    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+  )
+
+  execute_process(
+    # OUTPUT_QUIET
     COMMAND cat isl.pc
     WORKING_DIRECTORY ${libpet_SOURCE_DIR}/isl
   )
 
   list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
-
+  message("PKG_CONFIG_PATH: $ENV{PKG_CONFIG_PATH}")
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 
