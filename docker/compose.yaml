@@ -1,3 +1,6 @@
+# first run `mk_dot_env.sh`
+# build with `docker compose build`
+# run with `docker compose run --rm -it tadashi`
 services:
   tadashi:
     env_file:
