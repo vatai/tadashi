@@ -1,0 +1,19 @@
+services:
+  tadashi:
+    env_file:
+      .env
+    user: ${UID?error}:${GID?error}
+    build:
+      ssh:
+        - default
+      dockerfile: ./tadashi.dockerfile
+      args:
+        - USER=${USER}
+        - UID=${UID}
+        - GROUP=${GROUP}
+        - GID=${GID}
+    volumes:
+      - ..:/workdir
+    environment:
+      - PKG_CONFIG_PATH=/tadashi/build/_deps/libpet-src:/tadashi/build/_deps/libpet-src/isl
+      - LIBRARY_PATH=/tadashi/build/_deps/libpet-build/lib
