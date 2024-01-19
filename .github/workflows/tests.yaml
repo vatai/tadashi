@@ -31,18 +31,18 @@ jobs:
       with:
         generator: Ninja
 
-    # - name: Cache build dir
-    #   id: cache-build-dir
-    #   uses: actions/cache@v3
-    #   env:
-    #     cache-name: cache-build-dir
-    #   with:
-    #     path: /tadashi/build
-    #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tadashi/CMakeLists.txt') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-build-${{ env.cache-name }}-
-    #       ${{ runner.os }}-build-
-    #       ${{ runner.os }}-
+    - name: Cache build dir
+      id: cache-build-dir
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-build-dir
+      with:
+        path: /tadashi/build
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tadashi/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
 
     - name: Build Project
       run: cmake --build build
