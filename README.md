@@ -21,7 +21,7 @@ docker compose run --rm -it tadashi
 ```
 
 The tadashi binds the host repo to `/workdir` inside the
-container. 
+container.
 
 Tadashi should be rebuilt from the container:
 ```bash

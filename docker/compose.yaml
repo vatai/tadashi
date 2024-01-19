@@ -4,6 +4,8 @@ services:
       .env
     user: ${UID?error}:${GID?error}
     build:
+      ssh:
+        - default
       dockerfile: ./tadashi.dockerfile
       args:
         - USER=${USER}
