@@ -1,7 +1,5 @@
 name: Run tests
 on: push
-env:
-  LIBRARY_PATH: /tadashi/build/_deps/libpet-build/lib
 
 jobs:
   build-pet:
