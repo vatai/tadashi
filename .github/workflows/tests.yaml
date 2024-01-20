@@ -26,11 +26,6 @@ jobs:
     - name: Check out repo
       uses: actions/checkout@master
 
-    - name: Configure Project
-      uses: threeal/cmake-action@v1.3.0
-      with:
-        generator: Ninja
-
     - name: Cache build dir
       id: cache-build-dir
       uses: actions/cache@v3
@@ -43,6 +38,13 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - if: ${{ steps.cache-build-dir.outputs.cache-hit == 'false' }}
+      name: Configure Project
+      continue-on-error: true
+      uses: threeal/cmake-action@v1.3.0
+      with:
+        generator: Ninja
 
     - name: Build Project
       run: cmake --build build
