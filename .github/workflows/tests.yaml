@@ -37,7 +37,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: LS
-      run: ls ${{ github.workspace }}/build
+      run: ls build
 
     - if: ${{ steps.cache-build-dir.outputs.cache-hit == 'false' }}
       name: Configure Project
