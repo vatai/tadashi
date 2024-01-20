@@ -21,7 +21,6 @@ jobs:
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
         libclang-dev
-        # llvm-15 clang-15 llvm-15-dev libclang-15-dev
 
     - name: Check out repo
       uses: actions/checkout@master
@@ -38,6 +37,9 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - name: LS
+      run: ls ${{ github.workspace }}
 
     - if: ${{ steps.cache-build-dir.outputs.cache-hit == 'false' }}
       name: Configure Project
