@@ -26,12 +26,6 @@ jobs:
     - name: Check out repo
       uses: actions/checkout@master
 
-    - name: PWD
-      run: pwd
-
-    - name: LS
-      run: ls ${{ github.workspace }}
-
     - name: Configure Project
       uses: threeal/cmake-action@v1.3.0
       with:
