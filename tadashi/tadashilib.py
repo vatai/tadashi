@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 
-from ctypes import (
-    CDLL,
-    POINTER,
-    Structure,
-    c_char_p,
-    c_int,
-    c_long,
-    c_longlong,
-    c_size_t,
-)
+from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_long,
+                    c_longlong, c_size_t)
 from pathlib import Path
 
 import yaml
@@ -111,7 +103,7 @@ def traverse(scop_idx, nodes, parent):
     if node["type"] == 6:  # 6 = LEAF
         return
     else:
-        for c in range(len(node["children"]):
+        for c in range(len(node["children"])):
             goto_child(scop_idx, c)
             node["children"][c] = len(nodes)
             traverse(scop_idx, nodes, parent_idx)
