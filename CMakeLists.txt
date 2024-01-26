@@ -30,7 +30,7 @@ FetchContent_Declare(
 
 FetchContent_Populate(libpet)
 
-set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl")
+set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH")
 list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "${libpet_BINARY_DIR}/lib")
 
