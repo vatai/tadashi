@@ -1,21 +1,10 @@
 #!/usr/bin/env python
 
-from pathlib import Path
-
 import yaml
 
 from core import *
 
 ########################################
-
-scan_source(b"./examples/depnodep.c")
-num_scopes = get_num_scops(b"./examples/depnodep.c")
-print(f"{num_scopes=}")
-# child(0, 0)
-
-print(f"{get_num_children(0)=}")
-
-print(f"{get_dim_names(0)=}")
 
 
 def get_node(scop_idx, parent):
@@ -61,6 +50,12 @@ def compare(sch_tree, sched):
 
 
 def main():
+    scan_source(b"./examples/depnodep.c")
+    num_scopes = get_num_scops(b"./examples/depnodep.c")
+    print(f"{num_scopes=}")
+    # child(0, 0)
+    print(f"{get_num_children(0)=}")
+    print(f"{get_dim_names(0)=}")
     schedules_trees = []
     for i in range(num_scopes):
         sched = get_schedule_yaml(i).decode()
