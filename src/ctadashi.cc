@@ -142,8 +142,8 @@ const char *get_type_str(size_t node_idx) {
   return type2str[type];
 }
 
-size_t get_num_children(size_t node_idx) {
-  return isl_schedule_node_n_children(ROOTS[node_idx]);
+size_t get_num_children(size_t scop_idx) {
+  return isl_schedule_node_n_children(ROOTS[scop_idx]);
 }
 
 size_t depth(size_t node_idx) {
@@ -158,8 +158,8 @@ void goto_parent(size_t node_idx) {
   ROOTS[node_idx] = isl_schedule_node_parent(ROOTS[node_idx]);
 }
 
-void goto_child(size_t node_idx, size_t child_idx) {
-  ROOTS[node_idx] = isl_schedule_node_child(ROOTS[node_idx], child_idx);
+void goto_child(size_t scop_idx, size_t child_idx) {
+  ROOTS[scop_idx] = isl_schedule_node_child(ROOTS[node_idx], child_idx);
 }
 
 const char *get_expr(size_t idx) {
