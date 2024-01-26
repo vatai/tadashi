@@ -73,39 +73,53 @@ if(NOT PET_FOUND)
 
 endif()
 
-add_executable(main src/main.c)
+add_executable(main src/archive/main.c)
 target_link_libraries(main PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(poly-scan src/poly-scan.c)
+add_executable(poly-scan src/archive/poly-scan.c)
 target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(functions src/functions.c)
+add_executable(functions src/archive/functions.c)
 target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(divs src/divs.c)
+add_executable(divs src/archive/divs.c)
 target_link_libraries(divs PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(annotated_pet_loopback src/annotated_pet_loopback.c)
+add_executable(annotated_pet_loopback src/archive/annotated_pet_loopback.c)
 target_link_libraries(annotated_pet_loopback PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(depanalysis src/depanalysis.c)
+add_executable(depanalysis src/archive/depanalysis.c)
 target_link_libraries(depanalysis PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(polegality src/polegality.c)
+add_executable(polegality src/archive/polegality.c)
 target_link_libraries(polegality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(tree_manipulation src/tree_manipulation.c)
+add_executable(tree_manipulation src/archive/tree_manipulation.c)
 target_link_libraries(tree_manipulation PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(goodbadtest src/goodbadtest.c)
-
-add_executable(astgen src/astgen.c)
+add_executable(astgen src/archive/astgen.c)
 target_link_libraries(astgen PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(understanding_loopback_0 src/understanding_loopback_0.c)
+add_executable(understanding_loopback_0 src/archive/understanding_loopback_0.c)
 target_link_libraries(understanding_loopback_0 PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-include_directories(include)
+add_executable(seq_legality src/archive/seq_legality.c)
+target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(tile_and_interchange src/archive/tile_and_interchange.c)
+target_link_libraries(tile_and_interchange PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(get_dim_name src/archive/get_dim_name.c)
+target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(sink_and_order src/archive/sink_and_order.c)
+target_link_libraries(sink_and_order PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(scale_and_shift src/archive/scale_and_shift.c)
+target_link_libraries(scale_and_shift PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+
+add_executable(scratch src/archive/scratch.c)
+target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
 
 add_library(legality src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
@@ -116,32 +130,18 @@ target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_library(transformations src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(seq_legality src/seq_legality.c)
-target_link_libraries(seq_legality PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
+add_executable(goodbadtest src/goodbadtest.c)
 
-add_executable(tile_and_interchange src/tile_and_interchange.c)
-target_link_libraries(tile_and_interchange PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
-
-add_executable(get_dim_name src/get_dim_name.c)
-target_link_libraries(get_dim_name PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
-
-add_executable(sink_and_order src/sink_and_order.c)
-target_link_libraries(sink_and_order PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
-
-add_executable(scale_and_shift src/scale_and_shift.c)
-target_link_libraries(scale_and_shift PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
-
-add_executable(scratch src/scratch.c)
-target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen)
-
-enable_testing()
-include(GoogleTest)
+include_directories(include)
 
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
+
+enable_testing()
+include(GoogleTest)
 
 add_executable(legality_test tests/legality_test.cc)
 target_link_libraries(legality_test PUBLIC PkgConfig::ISL GTest::gtest_main legality)
