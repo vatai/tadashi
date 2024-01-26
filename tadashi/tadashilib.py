@@ -111,7 +111,7 @@ def traverse(scop_idx, nodes, parent):
     if node["type"] == 6:  # 6 = LEAF
         return
     else:
-        for c in range(num_children):
+        for c in range(len(node["children"]):
             goto_child(scop_idx, c)
             node["children"][c] = len(nodes)
             traverse(scop_idx, nodes, parent_idx)
