@@ -38,18 +38,22 @@ class Node:
         self.expr = expr
         self.children = [-1 for _ in range(num_children)]
 
+    def __repr__(self):
+        return f"Node type: {self.type_str}, {self.dim_names}, {self.expr}"
+
+    def is_leaf(self):
+        return self.node_type == 6
+
 
 def traverse(scop_idx, nodes, parent):
     node = get_node(scop_idx, parent)
     print(f"{node=}")
     parent_idx = len(nodes)
     nodes.append(node)
-    if node.node_type == 6:  # 6 = LEAF
-        return
-    else:
+    if not node.is_leaf():
         for c in range(node.num_children):
             goto_child(scop_idx, c)
-            node["children"][c] = len(nodes)
+            node.children[c] = len(nodes)
             traverse(scop_idx, nodes, parent_idx)
             goto_parent(scop_idx)
 
