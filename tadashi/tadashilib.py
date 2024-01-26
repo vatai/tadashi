@@ -11,11 +11,10 @@ def get_node(scop_idx, parent):
     num_children = get_num_children(scop_idx)
     inner_dim_names = get_dim_names(scop_idx).decode().split(";")[:-1]
     dim_names = [t.split("|")[:-1] for t in inner_dim_names]
-    node = dict(
-        type=get_type(scop_idx),
+    node = Node(
+        node_type=get_type(scop_idx),
         type_str=get_type_str(scop_idx),
         num_children=num_children,
-        children=[-1 for _ in range(num_children)],
         parent=parent,
         dim_names=dim_names,
         expr=get_expr(scop_idx),
@@ -23,16 +22,34 @@ def get_node(scop_idx, parent):
     return node
 
 
-# TODO: define node class :)
+class Node:
+    def __init__(
+        self,
+        node_type,
+        type_str,
+        num_children,
+        parent,
+        dim_names,
+        expr,
+    ) -> None:
+        self.node_type = node_type
+        self.type_str = type_str
+        self.num_children = num_children
+        self.parent = parent
+        self.dim_names = dim_names
+        self.expr = expr
+        self.children = [-1 for _ in range(num_children)]
+
+
 def traverse(scop_idx, nodes, parent):
     node = get_node(scop_idx, parent)
     print(f"{node=}")
     parent_idx = len(nodes)
     nodes.append(node)
-    if node["type"] == 6:  # 6 = LEAF
+    if node.node_type == 6:  # 6 = LEAF
         return
     else:
-        for c in range(len(node["children"])):
+        for c in range(node.num_children):
             goto_child(scop_idx, c)
             node["children"][c] = len(nodes)
             traverse(scop_idx, nodes, parent_idx)
@@ -50,7 +67,8 @@ def compare(sch_tree, sched):
 
 
 def main():
-    scan_source(b"./examples/depnodep.c")
+    # TODO: Emil double check if something usefull was done here and remove
+    # scan_source(b"./examples/depnodep.c")
     num_scopes = get_num_scops(b"./examples/depnodep.c")
     print(f"{num_scopes=}")
     # child(0, 0)
