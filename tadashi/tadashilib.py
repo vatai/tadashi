@@ -79,7 +79,7 @@ print(f"{get_num_children(0)=}")
 print(f"{get_dim_names(0)=}")
 
 
-def traverse(scop_idx, nodes, parent):
+def get_node(scop_idx, parent):
     num_children = get_num_children(scop_idx)
     inner_dim_names = get_dim_names(scop_idx).decode().split(";")[:-1]
     dim_names = [t.split("|")[:-1] for t in inner_dim_names]
@@ -92,6 +92,11 @@ def traverse(scop_idx, nodes, parent):
         dim_names=dim_names,
         expr=get_expr(scop_idx),
     )
+    return node
+
+
+def traverse(scop_idx, nodes, parent):
+    node = get_node(scop_idx, parent)
     print(f"{node=}")
     parent_idx = len(nodes)
     nodes.append(node)
