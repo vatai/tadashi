@@ -4,8 +4,6 @@ import yaml
 
 from core import *
 
-########################################
-
 
 def get_node(scop_idx, parent):
     num_children = get_num_children(scop_idx)
