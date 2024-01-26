@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 
-from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_long,
-                    c_longlong, c_size_t)
+from ctypes import (
+    CDLL,
+    POINTER,
+    Structure,
+    c_char_p,
+    c_int,
+    c_long,
+    c_longlong,
+    c_size_t,
+)
 from pathlib import Path
 
 import yaml
@@ -120,15 +128,17 @@ def compare(sch_tree, sched):
     print("ok")
 
 
-schedules_trees = []
-for i in range(num_scopes):
-    sched = get_schedule_yaml(i).decode()
-    sched = yaml.load(sched, Loader=yaml.SafeLoader)
-    sch_tree = get_schedule_tree(i)
-    compare(sch_tree, sched)
-    schedules_trees.append(sch_tree)
+def main():
+    schedules_trees = []
+    for i in range(num_scopes):
+        sched = get_schedule_yaml(i).decode()
+        sched = yaml.load(sched, Loader=yaml.SafeLoader)
+        sch_tree = get_schedule_tree(i)
+        compare(sch_tree, sched)
+        schedules_trees.append(sch_tree)
+    free_scops()
+    print("PYTHON DONE")
 
 
-free_scops()
-
-print("PYTHON DONE")
+if __name__ == "__main__":
+    main()
