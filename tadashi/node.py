@@ -1,7 +1,16 @@
-from core import *
+from core import (get_dim_names, get_expr, get_num_children, get_type,
+                  get_type_str, goto_child, goto_parent)
 
 
 class Scop:
+    """Class representing one SCoP
+
+    In the .so file, there is a global `std::vecto` of `isl_scop`
+    objects.  Objects of `Scop` (in python) represents a the
+    `isl_scop` object by storing its index in the `std::vecto`.
+
+    """
+
     def __init__(self, idx) -> None:
         self.idx = idx
 
@@ -11,11 +20,11 @@ class Scop:
         dim_names = [t.split("|")[:-1] for t in inner_dim_names]
         node = Node(
             node_type=get_type(self.idx),
-            type_str=get_type_str(self.idx),
+            type_str=get_type_str(self.idx).decode("utf-8"),
             num_children=num_children,
             parent=parent,
             dim_names=dim_names,
-            expr=get_expr(self.idx),
+            expr=get_expr(self.idx).decode("utf-8"),
         )
         return node
 
@@ -56,7 +65,7 @@ class Node:
         self.children = [-1 for _ in range(num_children)]
 
     def __repr__(self):
-        return f"Node type: {self.type_str}, {self.dim_names}, {self.expr}"
+        return f"Node type: {self.node_type} {self.type_str}, {self.dim_names}, {self.expr}"
 
     def is_leaf(self):
         return self.node_type == 6
