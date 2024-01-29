@@ -108,8 +108,7 @@ const char *get_expr(size_t idx) {
     return "";
   isl_multi_union_pw_aff *mupa =
       isl_schedule_node_band_get_partial_schedule(node);
-  printf("MUPA:%s\n", isl_multi_union_pw_aff_to_str(mupa));
-  return "read MUPA line\n";
+  return isl_multi_union_pw_aff_to_str(mupa);
 }
 
 const char *get_dim_names(size_t scop_idx) {
