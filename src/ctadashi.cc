@@ -24,6 +24,7 @@ extern "C" {
 
 std::vector<pet_scop *> SCOPS;
 std::vector<isl_schedule_node *> ROOTS;
+std::vector<std::string> STRINGS;
 
 __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
                                  void *user) {
