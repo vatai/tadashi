@@ -24,7 +24,6 @@ extern "C" {
 
 std::vector<pet_scop *> SCOPS;
 std::vector<isl_schedule_node *> ROOTS;
-std::vector<std::string> STRINGS;
 
 __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
                                  void *user) {
@@ -108,7 +107,9 @@ const char *get_expr(size_t idx) {
     return "";
   isl_multi_union_pw_aff *mupa =
       isl_schedule_node_band_get_partial_schedule(node);
-  return isl_multi_union_pw_aff_to_str(mupa);
+  const char *tmp = isl_multi_union_pw_aff_to_str(mupa);
+  isl_multi_union_pw_aff_free(mupa);
+  return tmp;
 }
 
 const char *get_dim_names(size_t scop_idx) {
