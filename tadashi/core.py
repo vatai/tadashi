@@ -1,3 +1,9 @@
+# Authors: Aleksandr DROZD, Emil VATAI
+# Date: 2024, January
+
+# This file is the "Python side" between the C and Python code of
+# tadashi.
+
 from ctypes import (CDLL, POINTER, Structure, c_char_p, c_int, c_long,
                     c_longlong, c_size_t)
 from pathlib import Path

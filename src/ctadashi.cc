@@ -1,3 +1,8 @@
+// Date: 2024, January
+// Author: Emil VATAI, Riken R-CCS, HPAIS
+//
+// This file is the "C side" between the C and Python code of tadashi.
+
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
