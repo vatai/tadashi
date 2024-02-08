@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-import yaml
+# import yaml
 
-from core import free_scops, get_num_scops
-from node import Node, Scop
+from node import Scops
 
 
 def compare(sch_tree, sched):
@@ -11,11 +10,7 @@ def compare(sch_tree, sched):
 
 
 def main():
-    # TODO: Emil double check if something usefull was done here and remove
-    # scan_source(b"./examples/depnodep.c")
-    scops = [Scop(i) for i in range(get_num_scops(b"./examples/depnodep.c"))]
-    # print(f"{num_scopes=}")
-    # child(0, 0)
+    scops = Scops(b"./examples/depnodep.c")
     schedules_trees = []
     for scop in scops:
         # sched = get_schedule_yaml(i).decode()
@@ -23,8 +18,7 @@ def main():
         sch_tree = scop.get_schedule_tree()
         # compare(sch_tree, sched)
         schedules_trees.append(sch_tree)
-    free_scops()
-    print("PYTHON DONE")
+    print(f"PYTHON DONE")
 
 
 if __name__ == "__main__":

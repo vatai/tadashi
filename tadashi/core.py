@@ -27,7 +27,7 @@ get_type_str.restype = c_char_p
 
 get_num_children = _tadashi.get_num_children
 get_num_children.argtypes = [c_size_t]
-get_type_str.restype = c_size_t
+get_num_children.restype = c_size_t
 
 goto_parent = _tadashi.goto_parent
 goto_parent.argtypes = [c_size_t]
@@ -36,8 +36,8 @@ goto_child = _tadashi.goto_child
 goto_child.argtypes = [c_size_t, c_size_t]
 
 get_expr = _tadashi.get_expr
-get_expr.restype = c_char_p
 get_expr.argtypes = [c_size_t]
+get_expr.restype = c_char_p
 
 get_dim_names = _tadashi.get_dim_names
 get_dim_names.argtypes = [c_size_t]
