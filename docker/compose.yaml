@@ -20,12 +20,12 @@ services:
 
   barvinok:
     build:
-      dockerfile: ./polytut.dockerfile
+      dockerfile: ./barvinok.dockerfile
     volumes:
       - ..:/workdir
 
   barvinok-arch:
     build:
-      dockerfile: ./polytut.archlinux.dockerfile
+      dockerfile: ./barvinok-arch.dockerfile
     volumes:
       - ..:/workdir
