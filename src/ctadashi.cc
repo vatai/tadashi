@@ -90,14 +90,6 @@ size_t get_num_children(size_t scop_idx) {
   return isl_schedule_node_n_children(ROOTS[scop_idx]);
 }
 
-size_t depth(size_t scop_idx) {
-  return isl_schedule_node_get_tree_depth(ROOTS[scop_idx]);
-}
-
-size_t child_position(size_t scop_idx) {
-  return isl_schedule_node_get_child_position(ROOTS[scop_idx]);
-}
-
 void goto_parent(size_t scop_idx) {
   ROOTS[scop_idx] = isl_schedule_node_parent(ROOTS[scop_idx]);
 }
@@ -150,6 +142,16 @@ const char *get_schedule_yaml(size_t scop_idx) {
   const char *ptr = isl_schedule_to_str(sched);
   isl_schedule_free(sched);
   return ptr;
+}
+
+// not needed? //
+
+size_t depth(size_t scop_idx) {
+  return isl_schedule_node_get_tree_depth(ROOTS[scop_idx]);
+}
+
+size_t child_position(size_t scop_idx) {
+  return isl_schedule_node_get_child_position(ROOTS[scop_idx]);
 }
 
 } // extern "C"
