@@ -8,7 +8,7 @@ from ctypes import CDLL, c_char_p, c_int, c_size_t
 from pathlib import Path
 
 so_path = Path(__file__).parent.parent / "build/libctadashi.so"
-_tadashi = CDLL(so_path)
+_tadashi = CDLL(str(so_path))
 
 
 get_num_scops = _tadashi.get_num_scops
