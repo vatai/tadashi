@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <isl/aff.h>
 #include <isl/set.h>
+#include <isl/val.h>
 #include <map>
 
 #include <isl/ast.h>
@@ -147,6 +148,15 @@ const char *get_schedule_yaml(size_t scop_idx) {
 
 void reset_root(size_t scop_idx) {
   CURRENT_NODE[scop_idx] = isl_schedule_node_root(CURRENT_NODE[scop_idx]);
+}
+
+void tile(size_t scop_idx, size_t tile_size) {
+  isl_schedule_node *&node = CURRENT_NODE[scop_idx];
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  node = isl_schedule_node_band_tile(
+      node, isl_multi_val_from_val_list(
+                isl_schedule_node_band_get_space(node),
+                isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
 // not needed? //

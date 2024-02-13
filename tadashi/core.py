@@ -49,3 +49,6 @@ get_schedule_yaml.restype = c_char_p
 
 reset_root = _tadashi.reset_root
 reset_root.argtypes = [c_size_t]
+
+tile = _tadashi.tile
+tile.argtypes = [c_size_t, c_size_t]

@@ -1,6 +1,6 @@
 from core import (free_scops, get_dim_names, get_expr, get_num_children,
                   get_num_scops, get_type, get_type_str, goto_child,
-                  goto_parent, reset_root)
+                  goto_parent, reset_root, tile)
 
 
 class Scop:
@@ -53,6 +53,9 @@ class Scop:
         reset_root(self.idx)
         for c in location:
             goto_child(self.idx, c)
+
+    def tile(self, tile_size):
+        tile(self.idx, tile_size)
 
 
 class Scops:
@@ -108,6 +111,6 @@ class Node:
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
 
-    def transform(self, tr, *args):
+    def tile(self, tile_size):
         self.scop.locate(self.location)
-        self.scop.transfrom()
+        self.scop.tile(tile_size)
