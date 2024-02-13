@@ -22,6 +22,7 @@ def main():
     scop = schedules_trees[0]  # select_scop()
     node = scop[0]  # model.select_node(scop)
     print(f"{node=}")
+    print(f"{schedules_trees[0][1].locate()=}")
     # tr = node.select_transform()
     # tr.do()
     print(f"PYTHON DONE")

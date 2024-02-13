@@ -49,7 +49,7 @@ class Scop:
         self.traverse(nodes, parent=-1, path=[])
         return nodes
 
-    def locate(location):
+    def locate(self, location):
         reset_root(self.idx)
         for c in location:
             goto_child(self.idx, c)
@@ -106,3 +106,4 @@ class Node:
 
     def locate(self):
         self.scop.locate(self.location)
+        return self.scop.get_current_node_from_ISL(None, None)
