@@ -15,22 +15,24 @@ class Scop:
     def __init__(self, idx) -> None:
         self.idx = idx
 
-    def get_current_node_from_ISL(self, parent):
+    def get_current_node_from_ISL(self, parent, location):
         num_children = get_num_children(self.idx)
         inner_dim_names = get_dim_names(self.idx).decode().split(";")[:-1]
         dim_names = [t.split("|")[:-1] for t in inner_dim_names]
         node = Node(
+            scop=self,
             node_type=get_type(self.idx),
             type_str=get_type_str(self.idx).decode("utf-8"),
             num_children=num_children,
             parent=parent,
+            location=location,
             dim_names=dim_names,
             expr=get_expr(self.idx).decode("utf-8"),
         )
         return node
 
-    def traverse(self, nodes, parent):
-        node = self.get_current_node_from_ISL(parent)
+    def traverse(self, nodes, parent, path):
+        node = self.get_current_node_from_ISL(parent, path)
         print(f"{node=}")
         parent_idx = len(nodes)
         nodes.append(node)
@@ -38,14 +40,19 @@ class Scop:
             for c in range(node.num_children):
                 goto_child(self.idx, c)
                 node.children[c] = len(nodes)
-                self.traverse(nodes, parent_idx)
+                self.traverse(nodes, parent_idx, path + [c])
                 goto_parent(self.idx)
 
     def get_schedule_tree(self):
-        nodes = []
         reset_root(self.idx)
-        self.traverse(nodes, parent=-1)
+        nodes = []
+        self.traverse(nodes, parent=-1, path=[])
         return nodes
+
+    def locate(location):
+        reset_root(self.idx)
+        for c in location:
+            goto_child(self.idx, c)
 
 
 class Scops:
@@ -72,13 +79,16 @@ class Node:
 
     def __init__(
         self,
+        scop,
         node_type,
         type_str,
         num_children,
         parent,
+        location,
         dim_names,
         expr,
     ) -> None:
+        self.scop = scop
         self.node_type = node_type
         self.type_str = type_str
         self.num_children = num_children
@@ -86,9 +96,13 @@ class Node:
         self.dim_names = dim_names
         self.expr = expr
         self.children = [-1] * num_children
+        self.location = location
 
     def __repr__(self):
-        return f"Node type: {self.type_str}({self.node_type}), {self.dim_names}, {self.expr}"
+        return f"Node type: {self.type_str}({self.node_type}), {self.dim_names}, {self.expr}, {self.location}"
 
     def is_leaf(self):
         return self.node_type == self.LEAF_TYPE
+
+    def locate(self):
+        self.scop.locate(self.location)
