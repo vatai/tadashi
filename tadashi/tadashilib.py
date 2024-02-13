@@ -18,6 +18,12 @@ def main():
         sch_tree = scop.get_schedule_tree()
         # compare(sch_tree, sched)
         schedules_trees.append(sch_tree)
+
+    scop = schedules_trees[0]  # select_scop()
+    node = scop[0]  # model.select_node(scop)
+    print(f"{node=}")
+    # tr = node.select_transform()
+    # tr.do()
     print(f"PYTHON DONE")
 
 

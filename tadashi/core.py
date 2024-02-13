@@ -46,3 +46,6 @@ get_dim_names.restype = c_char_p
 get_schedule_yaml = _tadashi.get_schedule_yaml
 get_schedule_yaml.argtypes = [c_size_t]
 get_schedule_yaml.restype = c_char_p
+
+reset_root = _tadashi.reset_root
+reset_root.argtypes = [c_size_t]

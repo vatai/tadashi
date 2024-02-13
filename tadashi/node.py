@@ -1,6 +1,6 @@
 from core import (free_scops, get_dim_names, get_expr, get_num_children,
                   get_num_scops, get_type, get_type_str, goto_child,
-                  goto_parent)
+                  goto_parent, reset_root)
 
 
 class Scop:
@@ -43,6 +43,7 @@ class Scop:
 
     def get_schedule_tree(self):
         nodes = []
+        reset_root(self.idx)
         self.traverse(nodes, parent=-1)
         return nodes
 
@@ -67,6 +68,8 @@ class Scops:
 
 
 class Node:
+    LEAF_TYPE = 6
+
     def __init__(
         self,
         node_type,
@@ -82,10 +85,10 @@ class Node:
         self.parent = parent
         self.dim_names = dim_names
         self.expr = expr
-        self.children = [-1 for _ in range(num_children)]
+        self.children = [-1] * num_children
 
     def __repr__(self):
         return f"Node type: {self.type_str}({self.node_type}), {self.dim_names}, {self.expr}"
 
     def is_leaf(self):
-        return self.node_type == 6
+        return self.node_type == self.LEAF_TYPE
