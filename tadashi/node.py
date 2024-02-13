@@ -107,3 +107,7 @@ class Node:
     def locate(self):
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
+
+    def transform(self, tr, *args):
+        self.scop.locate(self.location)
+        self.scop.transfrom()
