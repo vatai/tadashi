@@ -10,7 +10,9 @@ def compare(sch_tree, sched):
 
 
 def main():
-    scops = Scops(b"./examples/depnodep.c")
+    input_path = "./examples/depnodep.c"
+    output_path = "./examples/depnodep.tadashilib.c"
+    scops = Scops(input_path)
     schedules_trees = []
     for scop in scops:
         # sched = get_schedule_yaml(i).decode()
@@ -23,7 +25,7 @@ def main():
     node = scop[1]  # model.select_node(scop)
     print(f"{node=}")
     node.tile(10)
-    scops.generate_code()
+    scops.generate_code(output_path)
     print(f"PYTHON DONE")
 
 

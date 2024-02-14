@@ -234,34 +234,21 @@ struct generate_code_user_t {
 //   return p;
 // }
 
-// int main1(int argc, char *argv[]) {
-//   int r;
-//   isl_ctx *ctx;
-//   struct generate_code_user_t user;
+int generate_code(const char *output_path) {
+  int r;
+  isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
 
-//   printf("WARNING: This app should only be invoked by the python
-//   wrapper!\n"); user.opt = options_new_with_defaults(); argc =
-//   options_parse(user.opt, argc, argv, ISL_ARG_ALL); ctx =
-//   isl_ctx_alloc_with_options(&options_args, user.opt);
+  //   isl_options_set_ast_print_macro_once(ctx, 1);
+  //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
-//   isl_options_set_ast_print_macro_once(ctx, 1);
-//   pet_options_set_encapsulate_dynamic_control(ctx, 1);
-
-//   FILE *output_file = fopen(user.opt->output_file_path, "w");
-//   r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
-//                              foreach_scop_callback, &user);
-//   fprintf(stderr, "Number of scops: %lu\n", user.scop_counter);
-//   fclose(output_file);
-//   isl_ctx_free(ctx);
-//   printf("### STOP ###\n");
-//   return r;
-// }
-
-void generate_code() {
-  isl_ctx *ctx;
-  const char *input;
-  FILE *output;
-  // pet_transform_C_source(ctx, input, output, 0, 0);
+  FILE *output_file = fopen(output_path, "w");
+  //   r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
+  //                              foreach_scop_callback, &user);
+  //   fprintf(stderr, "Number of scops: %lu\n", user.scop_counter);
+  //   fclose(output_file);
+  //   isl_ctx_free(ctx);
+  //   printf("### STOP ###\n");
+  return r;
 }
 
 // not needed? //
