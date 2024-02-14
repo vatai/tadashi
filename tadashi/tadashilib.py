@@ -23,7 +23,7 @@ def main():
     node = scop[1]  # model.select_node(scop)
     print(f"{node=}")
     node.tile(10)
-    # scops.codegen()
+    scops.generate_code()
     print(f"PYTHON DONE")
 
 

@@ -1,6 +1,4 @@
-from core import (free_scops, get_dim_names, get_expr, get_num_children,
-                  get_num_scops, get_type, get_type_str, goto_child,
-                  goto_parent, reset_root, tile)
+from core import *
 
 
 class Scop:
@@ -64,8 +62,12 @@ class Scops:
     The object of type `Scops` is similar to a list."""
 
     def __init__(self, path):
+        self.path = path
         self.num_scops = get_num_scops(path)
         self.scops = [Scop(i) for i in range(self.num_scops)]
+
+    def generate_code(self):
+        generate_code()
 
     def __len__(self):
         return self.num_scops

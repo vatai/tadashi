@@ -52,3 +52,6 @@ reset_root.argtypes = [c_size_t]
 
 tile = _tadashi.tile
 tile.argtypes = [c_size_t, c_size_t]
+
+generate_code = _tadashi.generate_code
+generate_code.argtypes = []

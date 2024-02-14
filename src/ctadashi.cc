@@ -164,6 +164,8 @@ void tile(size_t scop_idx, size_t tile_size) {
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
+void generate_code() {}
+
 // not needed? //
 
 size_t depth(size_t scop_idx) {
