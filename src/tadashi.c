@@ -137,7 +137,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
     printf("Schedule not checked!\n");
     isl_union_map_free(dependencies);
   }
-  p = generate_code(ctx, p, scop, schedule);
+  p = codegen(ctx, p, scop, schedule);
   return p;
 }
 

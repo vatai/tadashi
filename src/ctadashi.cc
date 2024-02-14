@@ -26,6 +26,7 @@
 #include <isl/val.h>
 #include <pet.h>
 
+#include <codegen.h>
 #include <legality.h>
 
 extern "C" {
@@ -172,81 +173,44 @@ void tile(size_t scop_idx, size_t tile_size) {
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
-struct generate_code_user_t {
-  size_t scop_idx;
-  isl_union_map *deps;
-  isl_schedule_node *node;
-};
-
-// __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer
-// *p,
-//                                        __isl_keep struct pet_scop *scop,
-//                                        struct user_t *user) {
-//   isl_schedule *schedule;
-//   isl_union_map *dependencies;
-//   isl_printer *tmp;
-//   dependencies = get_dependencies(scop);
-//   printf("\nPrinting dependencies...\n");
-//   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
-//                     user->opt->dependencies_suffix);
-//   tmp = isl_printer_print_union_map(tmp, dependencies);
-//   delete_printer(tmp);
-
-//   schedule = get_schedule(ctx, scop, user);
-//   if (user->opt->legality_check) {
-//     if (!check_schedule_legality(ctx, schedule, dependencies)) {
-//       printf("Illegal schedule!\n");
-//       isl_schedule_free(schedule);
-//       schedule = pet_scop_get_schedule(scop);
-//     } else
-//       printf("Schedule is legal!\n");
-//   } else {
-//     printf("Schedule not checked!\n");
-//     isl_union_map_free(dependencies);
-//   }
-//   p = generate_code(ctx, p, scop, schedule);
-//   return p;
-// }
-
 static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      struct pet_scop *scop,
-                                                     void *_user) {
-  //   isl_ctx *ctx;
-  //   struct user_t *user = _user;
-  //   isl_printer *tmp;
+                                                     void *user) {
+  isl_ctx *ctx;
+  size_t *scop_idx = (size_t *)user;
 
-  //   printf("Begin processing SCOP %lu\n", user->scop_counter);
-  //   if (!scop || !p)
-  //     return isl_printer_free(p);
-  //   ctx = isl_printer_get_ctx(p);
-
-  //   print_schedule(ctx, scop->schedule, user->scop_counter);
-
-  //   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
-  //                     user->opt->original_schedule_suffix);
-  //   tmp = isl_printer_print_schedule(tmp, scop->schedule);
-  //   delete_printer(tmp);
-  //   p = transform_scop(ctx, p, scop, user);
-  //   pet_scop_free(scop);
-  //   printf("End processing SCOP %lu\n", user->scop_counter);
-  //   user->scop_counter++;
+  if (!scop || !p)
+    return isl_printer_free(p);
+  ctx = isl_printer_get_ctx(p);
+  isl_schedule *schedule =
+      isl_schedule_node_get_schedule(SCOP_ADMIN[*scop_idx].current_node);
+  isl_union_map *dependency = SCOP_ADMIN[*scop_idx].dependency;
+  if (!check_schedule_legality(ctx, schedule, dependency)) {
+    printf("Illegal schedule!\n");
+    isl_schedule_free(schedule);
+    schedule = pet_scop_get_schedule(SCOP_ADMIN[*scop_idx].scop);
+  } else
+    printf("Schedule is legal!\n");
+  // p = codegen(ctx, p, scop, schedule);
+  isl_schedule_free(schedule);
+  // pet_scop_free(scop);
+  *scop_idx++;
   return p;
 }
 
 int generate_code(const char *input_path, const char *output_path) {
   int r;
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
+  size_t scop_idx = 0;
 
   //   isl_options_set_ast_print_macro_once(ctx, 1);
   //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
   r = pet_transform_C_source(ctx, input_path, output_file,
-                             foreach_scop_callback, NULL);
-  //   fprintf(stderr, "Number of scops: %lu\n", user.scop_counter);
-  //   fclose(output_file);
-  //   isl_ctx_free(ctx);
-  //   printf("### STOP ###\n");
+                             foreach_scop_callback, &scop_idx);
+  fclose(output_file);
+  isl_ctx_free(ctx);
   return r;
 }
 

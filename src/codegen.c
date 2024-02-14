@@ -441,9 +441,9 @@ __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
   return for_node;
 }
 
-__isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
-                                      __isl_keep struct pet_scop *scop,
-                                      __isl_take isl_schedule *schedule) {
+__isl_give isl_printer *codegen(isl_ctx *ctx, __isl_take isl_printer *p,
+                                __isl_keep struct pet_scop *scop,
+                                __isl_take isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;
