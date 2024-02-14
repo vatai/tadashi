@@ -67,7 +67,7 @@ class Scops:
 
     def __init__(self, path):
         self.setup_ctadashi()
-        self.path = path
+        self.input_path = path
         self.num_scops = self.ctadashi.get_num_scops(path.encode())
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
@@ -92,10 +92,10 @@ class Scops:
         self.ctadashi.get_schedule_yaml.restype = c_char_p
         self.ctadashi.reset_root.argtypes = [c_size_t]
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
-        self.ctadashi.generate_code.argtypes = [c_char_p]
+        self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
     def generate_code(self, output_path):
-        self.ctadashi.generate_code(output_path.encode())
+        self.ctadashi.generate_code(self.input_path.encode(), output_path.encode())
 
     def __len__(self):
         return self.num_scops

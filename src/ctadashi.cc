@@ -208,33 +208,32 @@ struct generate_code_user_t {
 //   return p;
 // }
 
-// static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer
-// *p,
-//                                                      struct pet_scop *scop,
-//                                                      void *_user) {
-//   isl_ctx *ctx;
-//   struct user_t *user = _user;
-//   isl_printer *tmp;
+static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
+                                                     struct pet_scop *scop,
+                                                     void *_user) {
+  //   isl_ctx *ctx;
+  //   struct user_t *user = _user;
+  //   isl_printer *tmp;
 
-//   printf("Begin processing SCOP %lu\n", user->scop_counter);
-//   if (!scop || !p)
-//     return isl_printer_free(p);
-//   ctx = isl_printer_get_ctx(p);
+  //   printf("Begin processing SCOP %lu\n", user->scop_counter);
+  //   if (!scop || !p)
+  //     return isl_printer_free(p);
+  //   ctx = isl_printer_get_ctx(p);
 
-//   print_schedule(ctx, scop->schedule, user->scop_counter);
+  //   print_schedule(ctx, scop->schedule, user->scop_counter);
 
-//   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
-//                     user->opt->original_schedule_suffix);
-//   tmp = isl_printer_print_schedule(tmp, scop->schedule);
-//   delete_printer(tmp);
-//   p = transform_scop(ctx, p, scop, user);
-//   pet_scop_free(scop);
-//   printf("End processing SCOP %lu\n", user->scop_counter);
-//   user->scop_counter++;
-//   return p;
-// }
+  //   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
+  //                     user->opt->original_schedule_suffix);
+  //   tmp = isl_printer_print_schedule(tmp, scop->schedule);
+  //   delete_printer(tmp);
+  //   p = transform_scop(ctx, p, scop, user);
+  //   pet_scop_free(scop);
+  //   printf("End processing SCOP %lu\n", user->scop_counter);
+  //   user->scop_counter++;
+  return p;
+}
 
-int generate_code(const char *output_path) {
+int generate_code(const char *input_path, const char *output_path) {
   int r;
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
 
@@ -242,8 +241,8 @@ int generate_code(const char *output_path) {
   //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
-  //   r = pet_transform_C_source(ctx, user.opt->source_file_path, output_file,
-  //                              foreach_scop_callback, &user);
+  r = pet_transform_C_source(ctx, input_path, output_file,
+                             foreach_scop_callback, NULL);
   //   fprintf(stderr, "Number of scops: %lu\n", user.scop_counter);
   //   fclose(output_file);
   //   isl_ctx_free(ctx);
