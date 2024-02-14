@@ -1,4 +1,7 @@
-from core import *
+from ctypes import CDLL, c_char_p, c_int, c_size_t
+from pathlib import Path
+
+# from core import *
 
 
 class Scop:
@@ -10,22 +13,23 @@ class Scop:
 
     """
 
-    def __init__(self, idx) -> None:
+    def __init__(self, idx, ctadashi) -> None:
+        self.ctadashi = ctadashi
         self.idx = idx
 
     def get_current_node_from_ISL(self, parent, location):
-        num_children = get_num_children(self.idx)
-        inner_dim_names = get_dim_names(self.idx).decode().split(";")[:-1]
+        num_children = self.ctadashi.get_num_children(self.idx)
+        inner_dim_names = self.ctadashi.get_dim_names(self.idx).decode().split(";")[:-1]
         dim_names = [t.split("|")[:-1] for t in inner_dim_names]
         node = Node(
             scop=self,
-            node_type=get_type(self.idx),
-            type_str=get_type_str(self.idx).decode("utf-8"),
+            node_type=self.ctadashi.get_type(self.idx),
+            type_str=self.ctadashi.get_type_str(self.idx).decode("utf-8"),
             num_children=num_children,
             parent=parent,
             location=location,
             dim_names=dim_names,
-            expr=get_expr(self.idx).decode("utf-8"),
+            expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
         )
         return node
 
@@ -36,24 +40,24 @@ class Scop:
         nodes.append(node)
         if not node.is_leaf():
             for c in range(node.num_children):
-                goto_child(self.idx, c)
+                self.ctadashi.goto_child(self.idx, c)
                 node.children[c] = len(nodes)
                 self.traverse(nodes, parent_idx, path + [c])
-                goto_parent(self.idx)
+                self.ctadashi.goto_parent(self.idx)
 
     def get_schedule_tree(self):
-        reset_root(self.idx)
+        self.ctadashi.reset_root(self.idx)
         nodes = []
         self.traverse(nodes, parent=-1, path=[])
         return nodes
 
     def locate(self, location):
-        reset_root(self.idx)
+        self.ctadashi.reset_root(self.idx)
         for c in location:
-            goto_child(self.idx, c)
+            self.ctadashi.goto_child(self.idx, c)
 
     def tile(self, tile_size):
-        tile(self.idx, tile_size)
+        self.ctadashi.tile(self.idx, tile_size)
 
 
 class Scops:
@@ -62,12 +66,36 @@ class Scops:
     The object of type `Scops` is similar to a list."""
 
     def __init__(self, path):
+        self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
+        self.ctadashi = CDLL(str(self.so_path))
+        self.argrestypes()
         self.path = path
-        self.num_scops = get_num_scops(path)
-        self.scops = [Scop(i) for i in range(self.num_scops)]
+        self.num_scops = self.ctadashi.get_num_scops(path)
+        self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
+
+    def argrestypes(self):
+        self.ctadashi.get_num_scops.argtypes = [c_char_p]
+        self.ctadashi.get_num_scops.restype = c_int
+        self.ctadashi.get_type.argtypes = [c_size_t]
+        self.ctadashi.get_type.restype = c_int
+        self.ctadashi.get_type_str.argtypes = [c_size_t]
+        self.ctadashi.get_type_str.restype = c_char_p
+        self.ctadashi.get_num_children.argtypes = [c_size_t]
+        self.ctadashi.get_num_children.restype = c_size_t
+        self.ctadashi.goto_parent.argtypes = [c_size_t]
+        self.ctadashi.goto_child.argtypes = [c_size_t, c_size_t]
+        self.ctadashi.get_expr.argtypes = [c_size_t]
+        self.ctadashi.get_expr.restype = c_char_p
+        self.ctadashi.get_dim_names.argtypes = [c_size_t]
+        self.ctadashi.get_dim_names.restype = c_char_p
+        self.ctadashi.get_schedule_yaml.argtypes = [c_size_t]
+        self.ctadashi.get_schedule_yaml.restype = c_char_p
+        self.ctadashi.reset_root.argtypes = [c_size_t]
+        self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
+        self.ctadashi.generate_code.argtypes = []
 
     def generate_code(self):
-        generate_code()
+        self.ctadashi.generate_code()
 
     def __len__(self):
         return self.num_scops
@@ -76,7 +104,7 @@ class Scops:
         return self.scops[idx]
 
     def __del__(self):
-        free_scops()
+        self.ctadashi.free_scops()
 
 
 class Node:
