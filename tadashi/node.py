@@ -66,14 +66,14 @@ class Scops:
     The object of type `Scops` is similar to a list."""
 
     def __init__(self, path):
-        self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
-        self.ctadashi = CDLL(str(self.so_path))
-        self.argrestypes()
+        self.setup_ctadashi()
         self.path = path
         self.num_scops = self.ctadashi.get_num_scops(path)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
-    def argrestypes(self):
+    def setup_ctadashi(self):
+        self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
+        self.ctadashi = CDLL(str(self.so_path))
         self.ctadashi.get_num_scops.argtypes = [c_char_p]
         self.ctadashi.get_num_scops.restype = c_int
         self.ctadashi.get_type.argtypes = [c_size_t]
