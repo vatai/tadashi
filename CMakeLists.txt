@@ -75,14 +75,17 @@ endif()
 
 include(src/archive/CMakeLists.txt)
 
-add_library(legality src/legality.c)
+add_library(legality SHARED src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_library(codegen src/codegen.c)
+add_library(codegen SHARED src/codegen.c)
 target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_library(transformations src/transformations.c)
+add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_library(ctadashi SHARED src/ctadashi.cc)
+target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
 add_executable(goodbadtest src/goodbadtest.c)
 
@@ -90,9 +93,6 @@ include_directories(include)
 
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
-
-add_library(ctadashi SHARED src/ctadashi.cc)
-target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
 enable_testing()
 include(GoogleTest)

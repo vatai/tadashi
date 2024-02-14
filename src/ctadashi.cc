@@ -7,11 +7,13 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <isl/aff.h>
-#include <isl/set.h>
-#include <isl/val.h>
+#include <isl/union_map.h>
 #include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
+#include <isl/aff.h>
 #include <isl/ast.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
@@ -21,14 +23,15 @@
 #include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 #include <pet.h>
-#include <sstream>
-#include <string>
-#include <vector>
+
+#include <legality.h>
 
 extern "C" {
 
 std::vector<pet_scop *> SCOPS;
+std::vector<isl_union_map *> DEPENDENCIES;
 std::vector<isl_schedule_node *> CURRENT_NODE;
 
 __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
@@ -37,6 +40,7 @@ __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
   SCOPS.push_back(scop);
+  DEPENDENCIES.push_back(get_dependencies(scop));
   CURRENT_NODE.push_back(node);
   return p;
 }
@@ -57,10 +61,11 @@ void free_scops() {
   isl_set *set = pet_scop_get_context(SCOPS[0]);
   isl_ctx *ctx = isl_set_get_ctx(set);
   isl_set_free(set);
-  for (pet_scop *scop : SCOPS)
-    pet_scop_free(scop);
-  for (isl_schedule_node *root : CURRENT_NODE)
-    isl_schedule_node_free(root);
+  for (size_t i = 0; i < SCOPS.size(); ++i) {
+    isl_union_map_free(DEPENDENCIES[i]);
+    pet_scop_free(SCOPS[i]);
+    isl_schedule_node_free(CURRENT_NODE[i]);
+  }
   isl_ctx_free(ctx);
 }
 
