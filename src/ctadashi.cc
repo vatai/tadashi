@@ -184,23 +184,24 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   ctx = isl_printer_get_ctx(p);
   isl_schedule *schedule =
       isl_schedule_node_get_schedule(SCOP_ADMIN[*scop_idx].current_node);
-  isl_union_map *dependency = SCOP_ADMIN[*scop_idx].dependency;
+  isl_union_map *dependency =
+      isl_union_map_copy(SCOP_ADMIN[*scop_idx].dependency);
   if (!check_schedule_legality(ctx, schedule, dependency)) {
     printf("Illegal schedule!\n");
     isl_schedule_free(schedule);
     schedule = pet_scop_get_schedule(SCOP_ADMIN[*scop_idx].scop);
   } else
     printf("Schedule is legal!\n");
-  // p = codegen(ctx, p, scop, schedule);
+  p = codegen(ctx, p, scop, schedule);
   isl_schedule_free(schedule);
-  // pet_scop_free(scop);
+  pet_scop_free(scop);
   *scop_idx++;
   return p;
 }
 
 int generate_code(const char *input_path, const char *output_path) {
   int r;
-  isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
+  isl_ctx *ctx = isl_schedule_node_get_ctx(SCOP_ADMIN[0].current_node);
   size_t scop_idx = 0;
 
   //   isl_options_set_ast_print_macro_once(ctx, 1);
@@ -210,7 +211,6 @@ int generate_code(const char *input_path, const char *output_path) {
   r = pet_transform_C_source(ctx, input_path, output_file,
                              foreach_scop_callback, &scop_idx);
   fclose(output_file);
-  isl_ctx_free(ctx);
   return r;
 }
 
