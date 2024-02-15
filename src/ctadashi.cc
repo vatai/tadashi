@@ -195,7 +195,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
   p = codegen(ctx, p, scop, schedule);
   isl_schedule_free(schedule);
   pet_scop_free(scop);
-  *scop_idx++;
+  (*scop_idx)++;
   return p;
 }
 
