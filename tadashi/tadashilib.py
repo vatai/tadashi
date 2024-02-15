@@ -24,6 +24,11 @@ def main():
     scop = schedules_trees[0]  # select_scop()
     node = scop[1]  # model.select_node(scop)
     print(f"{node=}")
+    # for each node, extract representation,
+    # get score for how promising it looks to be transformed
+    # select node to transform accroding to scores
+    # transform the node
+    # codegen new scops and measure performance
     node.tile(10)
     scops.generate_code(output_path)
     print(f"PYTHON DONE")

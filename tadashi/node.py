@@ -17,7 +17,7 @@ class Scop:
         self.ctadashi = ctadashi
         self.idx = idx
 
-    def get_current_node_from_ISL(self, parent, location):
+    def make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
         inner_dim_names = self.ctadashi.get_dim_names(self.idx).decode().split(";")[:-1]
         dim_names = [t.split("|")[:-1] for t in inner_dim_names]
@@ -34,15 +34,15 @@ class Scop:
         return node
 
     def traverse(self, nodes, parent, path):
-        node = self.get_current_node_from_ISL(parent, path)
+        node = self.make_node(parent, path)
         print(f"{node=}")
-        parent_idx = len(nodes)
+        current_idx = len(nodes)
         nodes.append(node)
         if not node.is_leaf():
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
                 node.children[c] = len(nodes)
-                self.traverse(nodes, parent_idx, path + [c])
+                self.traverse(nodes, current_idx, path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
     def get_schedule_tree(self):
