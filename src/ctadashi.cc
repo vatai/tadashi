@@ -31,21 +31,21 @@
 
 extern "C" {
 
-struct scop_admin_t {
+struct scop_info_t {
   pet_scop *scop;
   isl_union_map *dependency;
   isl_schedule_node *current_node;
   bool modified;
 };
 
-std::vector<struct scop_admin_t> SCOP_ADMIN;
+std::vector<struct scop_info_t> SCOP_INFO;
 
 __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
                                  void *user) {
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
-  SCOP_ADMIN.push_back({scop, get_dependencies(scop), node, false});
+  SCOP_INFO.push_back({scop, get_dependencies(scop), node, false});
   return p;
 }
 
@@ -54,34 +54,34 @@ int get_num_scops(char *input) { // Entry point
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("cout.c", "w");
   // pet_options_set_autodetect(ctx, 1);
-  SCOP_ADMIN.clear();
+  SCOP_INFO.clear();
   pet_transform_C_source(ctx, input, output, get_scop, NULL);
   fclose(output);
-  return SCOP_ADMIN.size();
+  return SCOP_INFO.size();
 }
 
 void free_scops() {
-  if (SCOP_ADMIN.size() == 0)
+  if (SCOP_INFO.size() == 0)
     return;
-  isl_set *set = pet_scop_get_context(SCOP_ADMIN[0].scop);
+  isl_set *set = pet_scop_get_context(SCOP_INFO[0].scop);
   isl_ctx *ctx = isl_set_get_ctx(set);
   isl_set_free(set);
-  for (size_t i = 0; i < SCOP_ADMIN.size(); ++i) {
-    isl_union_map_free(SCOP_ADMIN[i].dependency);
-    pet_scop_free(SCOP_ADMIN[i].scop);
-    isl_schedule_node_free(SCOP_ADMIN[i].current_node);
+  for (size_t i = 0; i < SCOP_INFO.size(); ++i) {
+    isl_union_map_free(SCOP_INFO[i].dependency);
+    pet_scop_free(SCOP_INFO[i].scop);
+    isl_schedule_node_free(SCOP_INFO[i].current_node);
   }
-  SCOP_ADMIN.clear();
+  SCOP_INFO.clear();
   isl_ctx_free(ctx);
 }
 
 int get_type(size_t scop_idx) {
-  return isl_schedule_node_get_type(SCOP_ADMIN[scop_idx].current_node);
+  return isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
 }
 
 const char *get_type_str(size_t scop_idx) {
   enum isl_schedule_node_type type;
-  type = isl_schedule_node_get_type(SCOP_ADMIN[scop_idx].current_node);
+  type = isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
   const char *type2str[11];
 
   type2str[isl_schedule_node_band] = "BND";
@@ -99,21 +99,21 @@ const char *get_type_str(size_t scop_idx) {
 }
 
 size_t get_num_children(size_t scop_idx) {
-  return isl_schedule_node_n_children(SCOP_ADMIN[scop_idx].current_node);
+  return isl_schedule_node_n_children(SCOP_INFO[scop_idx].current_node);
 }
 
 void goto_parent(size_t scop_idx) {
-  SCOP_ADMIN[scop_idx].current_node =
-      isl_schedule_node_parent(SCOP_ADMIN[scop_idx].current_node);
+  SCOP_INFO[scop_idx].current_node =
+      isl_schedule_node_parent(SCOP_INFO[scop_idx].current_node);
 }
 
 void goto_child(size_t scop_idx, size_t child_idx) {
-  SCOP_ADMIN[scop_idx].current_node =
-      isl_schedule_node_child(SCOP_ADMIN[scop_idx].current_node, child_idx);
+  SCOP_INFO[scop_idx].current_node =
+      isl_schedule_node_child(SCOP_INFO[scop_idx].current_node, child_idx);
 }
 
 const char *get_expr(size_t idx) {
-  isl_schedule_node *node = SCOP_ADMIN[idx].current_node;
+  isl_schedule_node *node = SCOP_INFO[idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
@@ -124,7 +124,7 @@ const char *get_expr(size_t idx) {
 }
 
 const char *get_dim_names(size_t scop_idx) {
-  isl_schedule_node *node = SCOP_ADMIN[scop_idx].current_node;
+  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return "";
   std::stringstream ss;
@@ -152,20 +152,20 @@ const char *get_dim_names(size_t scop_idx) {
 }
 
 const char *get_schedule_yaml(size_t scop_idx) {
-  isl_schedule *sched = pet_scop_get_schedule(SCOP_ADMIN[scop_idx].scop);
+  isl_schedule *sched = pet_scop_get_schedule(SCOP_INFO[scop_idx].scop);
   const char *ptr = isl_schedule_to_str(sched);
   isl_schedule_free(sched);
   return ptr;
 }
 
 void reset_root(size_t scop_idx) {
-  SCOP_ADMIN[scop_idx].current_node =
-      isl_schedule_node_root(SCOP_ADMIN[scop_idx].current_node);
+  SCOP_INFO[scop_idx].current_node =
+      isl_schedule_node_root(SCOP_INFO[scop_idx].current_node);
 }
 
 void tile(size_t scop_idx, size_t tile_size) {
-  SCOP_ADMIN[scop_idx].modified = true;
-  isl_schedule_node *&node = SCOP_ADMIN[scop_idx].current_node;
+  SCOP_INFO[scop_idx].modified = true;
+  isl_schedule_node *&node = SCOP_INFO[scop_idx].current_node;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   node = isl_schedule_node_band_tile(
       node, isl_multi_val_from_val_list(
@@ -183,13 +183,13 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
   isl_schedule *schedule =
-      isl_schedule_node_get_schedule(SCOP_ADMIN[*scop_idx].current_node);
+      isl_schedule_node_get_schedule(SCOP_INFO[*scop_idx].current_node);
   isl_union_map *dependency =
-      isl_union_map_copy(SCOP_ADMIN[*scop_idx].dependency);
+      isl_union_map_copy(SCOP_INFO[*scop_idx].dependency);
   if (!check_schedule_legality(ctx, schedule, dependency)) {
     printf("Illegal schedule!\n");
     isl_schedule_free(schedule);
-    schedule = pet_scop_get_schedule(SCOP_ADMIN[*scop_idx].scop);
+    schedule = pet_scop_get_schedule(SCOP_INFO[*scop_idx].scop);
   } else
     printf("Schedule is legal!\n");
   p = codegen(ctx, p, scop, schedule);
@@ -200,7 +200,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
 
 int generate_code(const char *input_path, const char *output_path) {
   int r;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(SCOP_ADMIN[0].current_node);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(SCOP_INFO[0].current_node);
   size_t scop_idx = 0;
 
   //   isl_options_set_ast_print_macro_once(ctx, 1);
@@ -216,12 +216,11 @@ int generate_code(const char *input_path, const char *output_path) {
 // not needed? //
 
 size_t depth(size_t scop_idx) {
-  return isl_schedule_node_get_tree_depth(SCOP_ADMIN[scop_idx].current_node);
+  return isl_schedule_node_get_tree_depth(SCOP_INFO[scop_idx].current_node);
 }
 
 size_t child_position(size_t scop_idx) {
-  return isl_schedule_node_get_child_position(
-      SCOP_ADMIN[scop_idx].current_node);
+  return isl_schedule_node_get_child_position(SCOP_INFO[scop_idx].current_node);
 }
 
 } // extern "C"
