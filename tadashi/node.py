@@ -17,10 +17,15 @@ class Scop:
         self.ctadashi = ctadashi
         self.idx = idx
 
+    def read_dim_names(self):
+        # ctadashi return one string for the `dim_names` but there are
+        # two layers which need unpacking.
+        all_dim_names = self.ctadashi.get_dim_names(self.idx).decode()
+        outer_dim_names = all_dim_names.split(";")[:-1]
+        return [t.split("|")[:-1] for t in outer_dim_names]
+
     def make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
-        inner_dim_names = self.ctadashi.get_dim_names(self.idx).decode().split(";")[:-1]
-        dim_names = [t.split("|")[:-1] for t in inner_dim_names]
         node = Node(
             scop=self,
             node_type=self.ctadashi.get_type(self.idx),
@@ -28,7 +33,7 @@ class Scop:
             num_children=num_children,
             parent=parent,
             location=location,
-            dim_names=dim_names,
+            dim_names=self.read_dim_names(),
             expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
         )
         return node
