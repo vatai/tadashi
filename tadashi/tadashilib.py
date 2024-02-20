@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-
-# import yaml
+import subprocess
+from pathlib import Path
 
 from node import Scops
+
+# import yaml
 
 
 def compare(sch_tree, sched):
@@ -12,14 +14,26 @@ def compare(sch_tree, sched):
 
 
 class App:
-    pass
+    def compile(self):
+        pass
 
 
 class Polybench(App):
-    pass
+    def __init__(self, name):
+        self.name = name
+        while str(self.include_dir).startswith("apple"):
+            self.include_dir = self.include_dir.parents
+        self.include_dir = Path(name).parent
+
+    def compile(self):
+        cmd = ["gcc", self.name, "-I", str(self.include_dir)]
+        print(" ".join(cmd))
+        subprocess.run(cmd)
 
 
 def main():
+    pb_2mm = Polybench("./deps/polybench-c-3.2/linear-algebra/kernels/2mm/2mm.c")
+    pb_2mm.compile()
     input_path = "./examples/depnodep.c"
     output_path = "./examples/depnodep.tadashilib.c"
     scops = Scops(input_path)
