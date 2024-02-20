@@ -6,7 +6,17 @@ from node import Scops
 
 
 def compare(sch_tree, sched):
+    """Compare the schedule tree with the ISL traversal in C."""
     print("ok")
+    raise NotImplemented()
+
+
+class App:
+    pass
+
+
+class Polybench(App):
+    pass
 
 
 def main():
