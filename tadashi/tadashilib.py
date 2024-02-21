@@ -19,20 +19,31 @@ class App:
 
 
 class Polybench(App):
-    def __init__(self, name):
-        self.name = name
-        while str(self.include_dir).startswith("apple"):
-            self.include_dir = self.include_dir.parents
-        self.include_dir = Path(name).parent
+    def __init__(self, name, base):
+        self.benchmark = Path(name)
+        self.base = Path(base)
 
     def compile(self):
-        cmd = ["gcc", self.name, "-I", str(self.include_dir)]
-        print(" ".join(cmd))
+        compiler_opts_path = self.base / self.benchmark / "compiler.opts"
+        compiler_opts = compiler_opts_path.read_text().split()
+        cmd = [
+            "gcc",
+            self.base / self.benchmark / (str(self.benchmark.name) + ".c"),
+            self.base / "utilities/polybench.c",
+            "-I",
+            self.base / "utilities",
+            *compiler_opts,
+        ]
+        compiled_cmd = " ".join(map(str, cmd))
+        print(f"{compiled_cmd=}")
         subprocess.run(cmd)
 
 
 def main():
-    pb_2mm = Polybench("./deps/polybench-c-3.2/linear-algebra/kernels/2mm/2mm.c")
+    pb_2mm = Polybench(
+        name="linear-algebra/kernels/2mm",
+        base="./deps/downloads/polybench-c-3.2",
+    )
     pb_2mm.compile()
     input_path = "./examples/depnodep.c"
     output_path = "./examples/depnodep.tadashilib.c"
