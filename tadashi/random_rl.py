@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from benchmarks import Polybench
+from apps import Polybench
 from tadashilib import Scops
 
 # import yaml

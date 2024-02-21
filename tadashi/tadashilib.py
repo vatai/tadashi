@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 import os
 from ctypes import CDLL, c_char_p, c_int, c_size_t
 from pathlib import Path
 
-from benchmarks import App
+from apps import App
 
 # from core import *
 
