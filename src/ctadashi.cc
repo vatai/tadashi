@@ -39,6 +39,7 @@ struct scop_info_t {
 };
 
 std::vector<struct scop_info_t> SCOP_INFO;
+std::vector<std::string> STRINGS;
 
 __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
                                  void *user) {
@@ -72,6 +73,7 @@ void free_scops() {
     isl_schedule_node_free(SCOP_INFO[i].current_node);
   }
   SCOP_INFO.clear();
+  STRINGS.clear();
   isl_ctx_free(ctx);
 }
 
@@ -148,7 +150,8 @@ const char *get_dim_names(size_t scop_idx) {
   }
   isl_set_list_free(slist);
   isl_union_set_free(domain);
-  return ss.str().c_str();
+  STRINGS.push_back(ss.str());
+  return STRINGS.back().c_str();
 }
 
 const char *get_schedule_yaml(size_t scop_idx) {
