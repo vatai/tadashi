@@ -29,7 +29,7 @@ def main():
         schedules_trees.append(sch_tree)
 
     scop = schedules_trees[0]  # select_scop()
-    node = scop[1]  # model.select_node(scop)
+    node = scop[5]  # model.select_node(scop)
     print(f"{node=}")
     # for each node, extract representation,
     # get score for how promising it looks to be transformed
