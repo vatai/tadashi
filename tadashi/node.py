@@ -1,5 +1,8 @@
+import os
 from ctypes import CDLL, c_char_p, c_int, c_size_t
 from pathlib import Path
+
+from benchmarks import App
 
 # from core import *
 
@@ -70,13 +73,16 @@ class Scops:
 
     The object of type `Scops` is similar to a list."""
 
-    def __init__(self, path):
-        self.setup_ctadashi()
-        self.input_path = path
-        self.num_scops = self.ctadashi.get_num_scops(path.encode())
+    def __init__(self, app: App):
+        self.setup_ctadashi(app)
+        self.app = app
+        self.source_path_bytes = str(self.app.source_path).encode()
+        print(f"{self.source_path_bytes=}")
+        self.num_scops = self.ctadashi.get_num_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
-    def setup_ctadashi(self):
+    def setup_ctadashi(self, app: App):
+        os.environ["C_INCLUDE_PATH"] = ":".join(app.include_paths)
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.ctadashi = CDLL(str(self.so_path))
         self.ctadashi.get_num_scops.argtypes = [c_char_p]
@@ -100,7 +106,7 @@ class Scops:
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
     def generate_code(self, output_path):
-        self.ctadashi.generate_code(self.input_path.encode(), output_path.encode())
+        self.ctadashi.generate_code(self.source_path_bytes, output_path.encode())
 
     def __len__(self):
         return self.num_scops

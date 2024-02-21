@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-import subprocess
-from pathlib import Path
 
+from benchmarks import Polybench
 from node import Scops
 
 # import yaml
@@ -13,41 +12,14 @@ def compare(sch_tree, sched):
     raise NotImplemented()
 
 
-class App:
-    def compile(self):
-        pass
-
-
-class Polybench(App):
-    def __init__(self, name, base):
-        self.benchmark = Path(name)
-        self.base = Path(base)
-
-    def compile(self):
-        compiler_opts_path = self.base / self.benchmark / "compiler.opts"
-        compiler_opts = compiler_opts_path.read_text().split()
-        cmd = [
-            "gcc",
-            self.base / self.benchmark / (str(self.benchmark.name) + ".c"),
-            self.base / "utilities/polybench.c",
-            "-I",
-            self.base / "utilities",
-            *compiler_opts,
-        ]
-        compiled_cmd = " ".join(map(str, cmd))
-        print(f"{compiled_cmd=}")
-        subprocess.run(cmd)
-
-
 def main():
     pb_2mm = Polybench(
-        name="linear-algebra/kernels/2mm",
+        benchmark="linear-algebra/kernels/2mm",
         base="./deps/downloads/polybench-c-3.2",
     )
-    pb_2mm.compile()
     input_path = "./examples/depnodep.c"
     output_path = "./examples/depnodep.tadashilib.c"
-    scops = Scops(input_path)
+    scops = Scops(pb_2mm)
     schedules_trees = []
     for scop in scops:
         # sched = get_schedule_yaml(i).decode()
