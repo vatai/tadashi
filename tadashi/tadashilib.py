@@ -77,9 +77,9 @@ class Scops:
 
     def __init__(self, app: App):
         self.setup_ctadashi(app)
+        self.num_changes = 0
         self.app = app
         self.source_path_bytes = str(self.app.source_path).encode()
-        print(f"{self.source_path_bytes=}")
         self.num_scops = self.ctadashi.get_num_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
@@ -107,8 +107,23 @@ class Scops:
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
-    def generate_code(self, output_path):
-        self.ctadashi.generate_code(self.source_path_bytes, output_path.encode())
+    def generate_code(self):
+        file_name = self.app.source_path.with_suffix("")
+        file_ext = self.app.source_path.suffix
+
+        # find a path which doesn't exist
+        input_path = Path(f"{file_name}-{self.num_changes}{file_ext}")
+        self.num_changes += 1
+        while input_path.exists():
+            input_path = Path(f"{file_name}-{self.num_changes}{file_ext}")
+            self.num_changes += 1
+
+        # copy source_path to input_path
+        input_path.write_text(self.app.source_path.read_text())
+
+        # rewrite the original source_path file with the generated code
+        input_path_bytes = str(input_path).encode()
+        self.ctadashi.generate_code(input_path_bytes, self.source_path_bytes)
 
     def __len__(self):
         return self.num_scops

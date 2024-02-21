@@ -37,7 +37,7 @@ def main():
     # transform the node
     # codegen new scops and measure performance
     node.tile(10)
-    scops.generate_code(output_path)
+    scops.generate_code()
     print(f"PYTHON DONE")
 
 
