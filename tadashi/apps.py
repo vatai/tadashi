@@ -33,6 +33,10 @@ class Polybench(App):
         return path.with_suffix(".c")
 
     @property
+    def output_binary(self) -> str:
+        return self.benchmark.name
+
+    @property
     def utilities_path(self) -> Path:
         return self.base / "utilities"
 
@@ -49,6 +53,8 @@ class Polybench(App):
             self.utilities_path / "polybench.c",
             "-I",
             self.utilities_path,
+            "-o",
+            self.output_binary,
             *compiler_opts,
         ]
         compiled_cmd = " ".join(map(str, cmd))
