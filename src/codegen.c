@@ -43,6 +43,7 @@
  * implied, of Sven Verdoolaege.
  */
 
+#include <isl/printer.h>
 #include <string.h>
 
 #include "codegen.h"
@@ -383,7 +384,6 @@ static int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
 static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
           __isl_keep isl_ast_node *for_node, void *user) {
-  isl_ast_expr *type = isl_ast_node_for;
   isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
   isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
   isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
@@ -461,10 +461,12 @@ __isl_give isl_printer *codegen(isl_ctx *ctx, __isl_take isl_printer *p,
       isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
   print_options =
       isl_ast_print_options_set_print_for(print_options, print_for, NULL);
+  p = print_str_on_line(p, "#pragma scop");
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
+  p = print_str_on_line(p, "#pragma endscop");
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);

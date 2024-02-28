@@ -18,6 +18,10 @@ class App:
 
     @property
     def output_binary(self) -> str:
+        raise NotImplementedError()
+
+    def measure(self) -> float:
+        raise NotImplementedError()
 
 
 class Polybench(App):
@@ -37,7 +41,7 @@ class Polybench(App):
 
     @property
     def output_binary(self) -> str:
-        return self.benchmark.name
+        return self.source_path.parent / self.benchmark.name
 
     @property
     def utilities_path(self) -> Path:
@@ -59,7 +63,11 @@ class Polybench(App):
             "-o",
             self.output_binary,
             *compiler_opts,
+            "-DPOLYBENCH_TIME",
         ]
-        compiled_cmd = " ".join(map(str, cmd))
         subprocess.run(cmd)
 
+    def measure(self) -> float:
+        cmd = [self.output_binary]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE)
+        return float(result.stdout.decode().split()[0])

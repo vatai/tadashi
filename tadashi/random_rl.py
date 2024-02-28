@@ -33,7 +33,9 @@ def main():
     node.tile(10)
     scops.generate_code()
     pb_2mm.compile()
-    print(f"PYTHON DONE")
+    print(f"{pb_2mm.output_binary=}")
+    pb_2mm_time = pb_2mm.measure()
+    print(f"{pb_2mm_time=}")
 
 
 if __name__ == "__main__":
