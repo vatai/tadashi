@@ -383,6 +383,7 @@ static int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
 static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
           __isl_keep isl_ast_node *for_node, void *user) {
+  isl_ast_expr *type = isl_ast_node_for;
   isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
   isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
   isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
@@ -396,7 +397,7 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
   p = isl_printer_start_line(p);
   p = isl_printer_indent(p, 2);
-  p = isl_printer_print_str(p, "for(");
+  p = isl_printer_print_str(p, "for(int ");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
   p = isl_printer_print_ast_expr(p, init);

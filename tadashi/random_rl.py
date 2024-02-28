@@ -6,12 +6,6 @@ from tadashilib import Scops
 # import yaml
 
 
-def compare(sch_tree, sched):
-    """Compare the schedule tree with the ISL traversal in C."""
-    print("ok")
-    raise NotImplemented()
-
-
 def main():
     pb_2mm = Polybench(
         benchmark="linear-algebra/kernels/2mm",
@@ -38,6 +32,7 @@ def main():
     # codegen new scops and measure performance
     node.tile(10)
     scops.generate_code()
+    pb_2mm.compile()
     print(f"PYTHON DONE")
 
 

@@ -16,6 +16,9 @@ class App:
     def include_paths(self) -> list[str]:
         raise []
 
+    @property
+    def output_binary(self) -> str:
+
 
 class Polybench(App):
     """A single benchmark in of the Polybench suite."""
@@ -59,3 +62,4 @@ class Polybench(App):
         ]
         compiled_cmd = " ".join(map(str, cmd))
         subprocess.run(cmd)
+
