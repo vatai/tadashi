@@ -6,8 +6,6 @@ from pathlib import Path
 
 from apps import App
 
-# from core import *
-
 
 class Scop:
     """Single SCoP.
@@ -107,7 +105,7 @@ class Scops:
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
-    def generate_code(self):
+    def copy_source_to_new_input_path_with_unique_index(self):
         file_name = self.app.source_path.with_suffix("")
         file_ext = self.app.source_path.suffix
 
@@ -120,8 +118,11 @@ class Scops:
 
         # copy source_path to input_path
         input_path.write_text(self.app.source_path.read_text())
+        return input_path
 
+    def generate_code(self):
         # rewrite the original source_path file with the generated code
+        input_path = self.copy_source_to_new_input_path_with_unique_index()
         input_path_bytes = str(input_path).encode()
         self.ctadashi.generate_code(input_path_bytes, self.source_path_bytes)
 

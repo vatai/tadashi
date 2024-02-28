@@ -180,27 +180,15 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                                                      struct pet_scop *scop,
                                                      void *user) {
   isl_ctx *ctx;
+  isl_schedule *sched;
   size_t *scop_idx = (size_t *)user;
+  struct scop_info_t *scop_info = &SCOP_INFO[*scop_idx];
 
   if (!scop || !p)
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
-  isl_schedule *schedule =
-      isl_schedule_node_get_schedule(SCOP_INFO[*scop_idx].current_node);
-  // remove the region below and replace it with "if modified codegen,
-  // else emit unmodified scop
-  //
-  // begin region
-  isl_union_map *dependency =
-      isl_union_map_copy(SCOP_INFO[*scop_idx].dependency);
-  if (!check_schedule_legality(ctx, schedule, dependency)) {
-    printf("Illegal schedule!\n");
-    isl_schedule_free(schedule);
-    schedule = pet_scop_get_schedule(SCOP_INFO[*scop_idx].scop);
-  } else
-    printf("Schedule is legal!\n");
-  // end region
-  p = codegen(ctx, p, SCOP_INFO[*scop_idx].scop, schedule);
+  sched = isl_schedule_node_get_schedule(scop_info->current_node);
+  p = codegen(ctx, p, scop_info->scop, sched);
   pet_scop_free(scop);
   (*scop_idx)++;
   return p;
