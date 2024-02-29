@@ -12,7 +12,9 @@
 #include <pet.h>
 #include <string.h>
 
-isl_bool tadashi_tile_1d_check() { return isl_bool_true; }
+isl_bool tadashi_tile_1d_chk(isl_schedule_node *node) {
+  return isl_schedule_node_get_type(node) == isl_schedule_node_band;
+}
 
 isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);

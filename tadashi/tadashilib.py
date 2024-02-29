@@ -19,6 +19,7 @@ class Scop:
     def __init__(self, idx, ctadashi) -> None:
         self.ctadashi = ctadashi
         self.idx = idx
+        self.schedule_tree = self.get_schedule_tree()
 
     def read_dim_names(self):
         # ctadashi return one string for the `dim_names` but there are
