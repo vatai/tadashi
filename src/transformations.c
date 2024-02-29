@@ -12,7 +12,7 @@
 #include <pet.h>
 #include <string.h>
 
-isl_bool chk_single_tile() { return isl_bool_true; }
+isl_bool tadashi_tile_1d_check() { return isl_bool_true; }
 
 isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
@@ -21,3 +21,16 @@ isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   isl_multi_val *mv = isl_multi_val_from_val_list(space, val_list);
   return isl_schedule_node_band_tile(node, mv);
 }
+
+isl_bool tadashi_fuse_chk() { return isl_bool_true; }
+isl_schedule_node *tadashi_fuse(isl_schedule_node *node, int si) {
+  return node;
+}
+
+// interchange
+
+// scale
+
+// shift
+
+// sink & order?
