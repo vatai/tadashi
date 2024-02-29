@@ -7,13 +7,13 @@ from tadashilib import Scops
 
 
 def main():
-    pb_2mm = Polybench(
+    app = Polybench(
         benchmark="linear-algebra/kernels/2mm",
         base="./deps/downloads/polybench-c-3.2",
     )
     input_path = "./examples/depnodep.c"
     output_path = "./examples/depnodep.tadashilib.c"
-    scops = Scops(pb_2mm)
+    scops = Scops(app)
     schedules_trees = []
     for scop in scops:
         # sched = get_schedule_yaml(i).decode()
@@ -32,9 +32,9 @@ def main():
     # codegen new scops and measure performance
     node.tile(10)
     scops.generate_code()
-    pb_2mm.compile()
-    print(f"{pb_2mm.output_binary=}")
-    pb_2mm_time = pb_2mm.measure()
+    app.compile()
+    print(f"{app.output_binary=}")
+    pb_2mm_time = app.measure()
     print(f"{pb_2mm_time=}")
 
 
