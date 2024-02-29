@@ -14,7 +14,7 @@
 
 isl_bool chk_single_tile() { return isl_bool_true; }
 
-isl_schedule_node *single_tile(isl_schedule_node *node, int si) {
+isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_space *space = isl_schedule_node_band_get_space(node);
   isl_val_list *val_list = isl_val_list_from_val(isl_val_int_from_si(ctx, si));
@@ -27,7 +27,7 @@ isl_bool foreach_node(isl_schedule_node *node, void *user) {
   printf("Node:%lu\n", u->node_counter);
   if (u->node_counter == 2) {
     if (isl_schedule_node_get_type(node) == isl_schedule_node_band) {
-      node = single_tile(node, 4);
+      node = tadashi_tile_1d(node, 4);
     }
     // TODO Figure out what to do with tile which changes the tree.
     return isl_bool_false;
