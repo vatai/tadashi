@@ -51,6 +51,8 @@ __isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
   return p;
 }
 
+/******** scops constructor/descructor **********************/
+
 int get_num_scops(char *input) { // Entry point
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
@@ -78,6 +80,8 @@ void free_scops() {
   isl_ctx_free(ctx);
 }
 
+/******** node info *****************************************/
+
 int get_type(size_t scop_idx) {
   return isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
 }
@@ -103,16 +107,6 @@ const char *get_type_str(size_t scop_idx) {
 
 size_t get_num_children(size_t scop_idx) {
   return isl_schedule_node_n_children(SCOP_INFO[scop_idx].current_node);
-}
-
-void goto_parent(size_t scop_idx) {
-  SCOP_INFO[scop_idx].current_node =
-      isl_schedule_node_parent(SCOP_INFO[scop_idx].current_node);
-}
-
-void goto_child(size_t scop_idx, size_t child_idx) {
-  SCOP_INFO[scop_idx].current_node =
-      isl_schedule_node_child(SCOP_INFO[scop_idx].current_node, child_idx);
 }
 
 const char *get_expr(size_t idx) {
@@ -162,10 +156,24 @@ const char *get_schedule_yaml(size_t scop_idx) {
   return ptr;
 }
 
+/******** current node manipulation *************************/
+
 void reset_root(size_t scop_idx) {
   SCOP_INFO[scop_idx].current_node =
       isl_schedule_node_root(SCOP_INFO[scop_idx].current_node);
 }
+
+void goto_parent(size_t scop_idx) {
+  SCOP_INFO[scop_idx].current_node =
+      isl_schedule_node_parent(SCOP_INFO[scop_idx].current_node);
+}
+
+void goto_child(size_t scop_idx, size_t child_idx) {
+  SCOP_INFO[scop_idx].current_node =
+      isl_schedule_node_child(SCOP_INFO[scop_idx].current_node, child_idx);
+}
+
+/******** transformations ***********************************/
 
 int check_legality_after_transformation(size_t scop_idx) { return 0; }
 
@@ -181,9 +189,9 @@ int tile(size_t scop_idx, size_t tile_size) {
   return check_legality_after_transformation(scop_idx);
 }
 
-static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
-                                                     struct pet_scop *scop,
-                                                     void *user) {
+static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
+                                                      struct pet_scop *scop,
+                                                      void *user) {
   isl_ctx *ctx;
   isl_schedule *sched;
   size_t *scop_idx = (size_t *)user;
@@ -209,7 +217,7 @@ int generate_code(const char *input_path, const char *output_path) {
 
   FILE *output_file = fopen(output_path, "w");
   r = pet_transform_C_source(ctx, input_path, output_file,
-                             foreach_scop_callback, &scop_idx);
+                             generate_code_callback, &scop_idx);
   fclose(output_file);
   return r;
 }
