@@ -14,6 +14,7 @@ extern "C" {
 __isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
                                                __isl_keep struct pet_scop *scop,
                                                struct user_t *user);
+void tadashi_tile();
 #if defined(__cplusplus)
 }
 #endif

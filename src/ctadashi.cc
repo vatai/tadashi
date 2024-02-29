@@ -26,8 +26,9 @@
 #include <isl/val.h>
 #include <pet.h>
 
-#include <codegen.h>
-#include <legality.h>
+#include "codegen.h"
+#include "legality.h"
+#include "transformations.h"
 
 extern "C" {
 
@@ -166,14 +167,18 @@ void reset_root(size_t scop_idx) {
       isl_schedule_node_root(SCOP_INFO[scop_idx].current_node);
 }
 
-void tile(size_t scop_idx, size_t tile_size) {
+int check_legality_after_transformation(size_t scop_idx) { return 0; }
+
+int tile(size_t scop_idx, size_t tile_size) {
   SCOP_INFO[scop_idx].modified = true;
   isl_schedule_node *&node = SCOP_INFO[scop_idx].current_node;
+  // refactor to tadashi_tile
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   node = isl_schedule_node_band_tile(
       node, isl_multi_val_from_val_list(
                 isl_schedule_node_band_get_space(node),
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
+  return check_legality_after_transformation(scop_idx);
 }
 
 static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
