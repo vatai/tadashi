@@ -39,7 +39,7 @@
 #include "tadashi.h"
 #include "transformations.h"
 
-#define SCHEDULE_SOURCE_VALUES "interactive, yaml, scop"
+#define SCHEDULE_SOURCE_VALUES "yaml, scop"
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
@@ -52,7 +52,7 @@ ISL_ARG_STR(struct options, original_schedule_suffix, 's', "schedule-suffix",
 ISL_ARG_STR(struct options, dependencies_suffix, 'd', "dependencies-suffix",
             "suffix", "", "Dependencies file suffix")
 ISL_ARG_STR(struct options, schedule_source, 'x', "schedule-source", "source",
-            "interactive", "Source of schedule (" SCHEDULE_SOURCE_VALUES ")")
+            "yaml", "Source of schedule (" SCHEDULE_SOURCE_VALUES ")")
 ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
              "Check legality")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
@@ -97,9 +97,7 @@ __isl_give isl_schedule *get_schedule(isl_ctx *ctx, struct pet_scop *scop,
                                       struct user_t *user) {
   isl_schedule *schedule;
   char *sched_src = user->opt->schedule_source;
-  if (!strncmp(sched_src, "interactive", 32)) {
-    schedule = interactive_transform(ctx, scop, user);
-  } else if (!strncmp(sched_src, "yaml", 32)) {
+  if (!strncmp(sched_src, "yaml", 32)) {
     schedule = isl_schedule_read_from_file(ctx, stdin);
   } else if (!strncmp(sched_src, "scop", 32)) {
     schedule = pet_scop_get_schedule(scop);
