@@ -9,7 +9,7 @@ from tadashilib import Scops
 def main():
     app = Polybench(
         benchmark="linear-algebra/kernels/2mm",
-        base="./deps/downloads/polybench-c-3.2",
+        base="./deps/downloads/PolyBenchC-4.2.1-master/",
     )
     input_path = "./examples/depnodep.c"
     output_path = "./examples/depnodep.tadashilib.c"

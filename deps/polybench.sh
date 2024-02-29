@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 
 pushd downloads
-
-wget https://web.cse.ohio-state.edu/~pouchet.2/software/polybench/download/polybench-c-3.2.tar.gz
-tar xzf polybench-c-3.2.tar.gz
-
+wget https://github.com/MatthiasJReisinger/PolyBenchC-4.2.1/archive/refs/heads/master.zip
+unzip master.zip
 popd

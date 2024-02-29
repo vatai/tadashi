@@ -179,7 +179,7 @@ int check_legality_after_transformation(size_t scop_idx) { return 0; }
 
 int tile(size_t scop_idx, size_t tile_size) {
   SCOP_INFO[scop_idx].modified = true;
-  isl_schedule_node *&node = SCOP_INFO[scop_idx].current_node;
+  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   // refactor to tadashi_tile
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   node = isl_schedule_node_band_tile(

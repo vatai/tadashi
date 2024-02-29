@@ -52,8 +52,6 @@ class Polybench(App):
         return [str(self.utilities_path)]
 
     def compile(self):
-        compiler_opts_path = self.base / self.benchmark / "compiler.opts"
-        compiler_opts = compiler_opts_path.read_text().split()
         cmd = [
             "gcc",
             self.source_path,
@@ -62,7 +60,6 @@ class Polybench(App):
             self.utilities_path,
             "-o",
             self.output_binary,
-            *compiler_opts,
             "-DPOLYBENCH_TIME",
         ]
         subprocess.run(cmd)
