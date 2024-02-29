@@ -14,8 +14,6 @@ def main():
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")
-    pb_2mm_time = app.measure()
-    print(f"{pb_2mm_time=}")
 
 
 if __name__ == "__main__":
