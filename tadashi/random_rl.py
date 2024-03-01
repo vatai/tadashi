@@ -7,7 +7,7 @@ from tadashilib import Scops
 def main():
     app = Polybench(
         benchmark="linear-algebra/kernels/2mm",
-        base="./deps/downloads/PolyBenchC-4.2.1-master/",
+        base="build/_deps/polybench-src/",
     )
     scops = Scops(app)
     scop = scops[0]  # select_scop()
