@@ -54,3 +54,6 @@ jobs:
 
     - name: Run random_rl.py
       run: python tadashi/random_rl.py
+
+    - name: Run simple.py
+      run: python tadashi/simple.py
