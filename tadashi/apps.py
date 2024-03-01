@@ -91,6 +91,7 @@ class Polybench(App):
     def include_paths(self) -> list[str]:
         return [str(self.utilities_path)]
 
+    @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
