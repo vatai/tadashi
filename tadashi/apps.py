@@ -106,5 +106,5 @@ class Polybench(App):
         ]
 
     @staticmethod
-    def filter(stdout) -> float:
+    def extract_runtime(stdout) -> float:
         return stdout.split()[0]
