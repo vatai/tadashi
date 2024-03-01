@@ -51,3 +51,6 @@ jobs:
 
     - name: Test Project
       run: ctest --test-dir build
+
+    - name: Run random_rl.py
+      run: python tadashi/random_rl.py

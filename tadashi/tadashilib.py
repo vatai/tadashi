@@ -76,6 +76,7 @@ class Scops:
 
     def __init__(self, app: App):
         self.setup_ctadashi(app)
+        self.check_missing_file(app.source_path)
         self.num_changes = 0
         self.app = app
         self.source_path_bytes = str(self.app.source_path).encode()
@@ -85,6 +86,7 @@ class Scops:
     def setup_ctadashi(self, app: App):
         os.environ["C_INCLUDE_PATH"] = ":".join(app.include_paths)
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
+        self.check_missing_file(self.so_path)
         self.ctadashi = CDLL(str(self.so_path))
         self.ctadashi.get_num_scops.argtypes = [c_char_p]
         self.ctadashi.get_num_scops.restype = c_int
@@ -105,6 +107,11 @@ class Scops:
         self.ctadashi.reset_root.argtypes = [c_size_t]
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
+
+    @staticmethod
+    def check_missing_file(path: Path):
+        if not path.exists():
+            raise ValueError(f"{path} does not exist!")
 
     def get_input_path_bytes_and_backup_source(self):
         """Get the 'input' to `generate_code()` which is a copy of the
