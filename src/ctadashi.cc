@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
 #include <isl/union_map.h>
 #include <map>
 #include <sstream>
@@ -175,7 +176,15 @@ void goto_child(size_t scop_idx, size_t child_idx) {
 
 /******** transformations ***********************************/
 
-int check_legality_after_transformation(size_t scop_idx) { return 0; }
+int check_legality_after_transformation(size_t scop_idx) {
+  scop_info_t *scop_info = &SCOP_INFO[scop_idx];
+  // isl_bool check_schedule_legality(isl_ctx *ctx,
+  //                                  __isl_keep isl_schedule *schedule,
+  //                                  __isl_take isl_union_map *dep);
+  isl_schedule *sched = isl_schedule_node_get_schedule(scop_info->current_node);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(scop_info->current_node);
+  return check_schedule_legality(ctx, sched, scop_info->dependency);
+}
 
 int tile(size_t scop_idx, size_t tile_size) {
   scop_info_t *scop_info = &SCOP_INFO[scop_idx];
