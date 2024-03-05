@@ -18,12 +18,12 @@ def main():
     # select node to transform accroding to scores
     # transform the node
     # codegen new scops and measure performance
-    node.tile(10)
+    # node.tile(10)
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")
-    app_time = app.measure()
-    print(f"{app_time=}")
+    # app_time = app.measure()
+    # print(f"{app_time=}")
 
 
 if __name__ == "__main__":

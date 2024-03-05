@@ -195,10 +195,13 @@ static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
 
   if (!scop || !p)
     return isl_printer_free(p);
-  ctx = isl_printer_get_ctx(p);
-  sched = isl_schedule_node_get_schedule(scop_info->current_node);
-  // p = isl_printer_print_schedule_node(p, scop_info->current_node);
-  p = codegen(ctx, p, scop_info->scop, sched);
+  if (!scop_info->modified) {
+    p = pet_scop_print_original(scop, p);
+  } else {
+    ctx = isl_printer_get_ctx(p);
+    sched = isl_schedule_node_get_schedule(scop_info->current_node);
+    p = codegen(ctx, p, scop_info->scop, sched);
+  }
   pet_scop_free(scop);
   (*scop_idx)++;
   return p;
