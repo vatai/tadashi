@@ -178,9 +178,9 @@ void goto_child(size_t scop_idx, size_t child_idx) {
 int check_legality_after_transformation(size_t scop_idx) { return 0; }
 
 int tile(size_t scop_idx, size_t tile_size) {
-  SCOP_INFO[scop_idx].modified = true;
-  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
-  // refactor to tadashi_tile
+  scop_info_t *scop_info = &SCOP_INFO[scop_idx];
+  isl_schedule_node *node = scop_info->current_node;
+  scop_info->modified = true;
   node = tadashi_tile_1d(node, tile_size);
   return check_legality_after_transformation(scop_idx);
 }
@@ -197,6 +197,7 @@ static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
     return isl_printer_free(p);
   ctx = isl_printer_get_ctx(p);
   sched = isl_schedule_node_get_schedule(scop_info->current_node);
+  // p = isl_printer_print_schedule_node(p, scop_info->current_node);
   p = codegen(ctx, p, scop_info->scop, sched);
   pet_scop_free(scop);
   (*scop_idx)++;
