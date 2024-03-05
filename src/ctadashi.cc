@@ -181,11 +181,7 @@ int tile(size_t scop_idx, size_t tile_size) {
   SCOP_INFO[scop_idx].modified = true;
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   // refactor to tadashi_tile
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  node = isl_schedule_node_band_tile(
-      node, isl_multi_val_from_val_list(
-                isl_schedule_node_band_get_space(node),
-                isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
+  node = tadashi_tile_1d(node, tile_size);
   return check_legality_after_transformation(scop_idx);
 }
 
