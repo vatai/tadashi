@@ -75,9 +75,12 @@ class Node:
         self.scop.locate(self.location)
         match transformation:
             case Transformation.TILE:
-                assert len(args) == 1, "Tiling needs exactly one argument"
+                assert len(args) == 1, "Tiling needs exactly 1 argument"
                 tile_size = args[0]
                 self.scop.tile(tile_size)
+            case Transformation.INTERCHANGE:
+                assert len(args) == 0, "Interchange needs exactly 0 arguments"
+                self.scop.interchange()
 
 
 class Scop:
@@ -138,6 +141,9 @@ class Scop:
 
     def tile(self, tile_size):
         self.ctadashi.tile(self.idx, tile_size)
+
+    def interchange(self):
+        self.ctadashi.interchange(self.idx)
 
 
 class Scops:
