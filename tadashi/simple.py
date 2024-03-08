@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from apps import Simple
-from tadashilib import Scops
+from tadashilib import Scops, Transformation
 
 
 def main():
@@ -10,7 +10,7 @@ def main():
     scop = scops[0]  # select_scop()
     node = scop.schedule_tree[2]  # model.select_node(scop)
     print(f"{node=}")
-    node.tile(10)
+    node.transform(Transformation.TILE, 10)
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")

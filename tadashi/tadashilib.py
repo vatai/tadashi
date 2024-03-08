@@ -8,6 +8,14 @@ from pathlib import Path
 from apps import App
 
 
+class NodeType(Enum):
+    LEAF = 6
+
+
+class Transformation(Enum):
+    TILE = 0
+
+
 class Scop:
     """Single SCoP.
 
@@ -146,10 +154,6 @@ class Scops:
         self.ctadashi.free_scops()
 
 
-class NodeType(Enum):
-    LEAF = 6
-
-
 class Node:
     def __init__(
         self,
@@ -189,6 +193,9 @@ class Node:
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
 
-    def tile(self, tile_size):
+    def transform(self, transformation, *args):
         self.scop.locate(self.location)
-        self.scop.tile(tile_size)
+        if transformation == Transformation.TILE:
+            assert len(args) == 1, "Tiling needs exactly one argument"
+            tile_size = args[0]
+            self.scop.tile(tile_size)

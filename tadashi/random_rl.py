@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from apps import Polybench
-from tadashilib import Scops
+from tadashilib import Scops, Transformation
 
 
 def main():
@@ -12,13 +12,13 @@ def main():
     scops = Scops(app)
     scop = scops[0]  # select_scop()
     node = scop.schedule_tree[5]  # model.select_node(scop)
-    print(f"{node=}")
+    # print(f"{node=}")
     # for each node, extract representation,
     # get score for how promising it looks to be transformed
     # select node to transform accroding to scores
     # transform the node
     # codegen new scops and measure performance
-    # node.tile(10)
+    node.transform(Transformation.TILE, 10)
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")
