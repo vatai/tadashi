@@ -43,7 +43,7 @@ struct user_t {
   isl_schedule *schedule;
 };
 
-void codegen(isl_ctx *ctx, isl_schedule *schedule) {
+void code_gen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
   isl_ast_node *ast;
   build = isl_ast_build_alloc(ctx);
@@ -84,11 +84,11 @@ int main(int argc, char *argv[]) {
   struct options *options = options_new_with_defaults();
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, filename, "g");
-  codegen(ctx, scop->schedule);
+  code_gen(ctx, scop->schedule);
 
   struct user_t *user = (struct user_t *)malloc(sizeof(struct user_t));
   isl_schedule_foreach_schedule_node_top_down(scop->schedule, proc_node, user);
-  codegen(ctx, user->schedule);
+  code_gen(ctx, user->schedule);
   isl_schedule_free(user->schedule);
   pet_scop_free(scop);
   isl_ctx_free(ctx);

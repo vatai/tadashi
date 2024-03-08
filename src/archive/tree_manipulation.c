@@ -66,7 +66,7 @@ void tree_manipulation(isl_schedule *schedule) {
   // leaf = isl_schedule_node_group(leaf, isl_id_read_from_str(ctx, "t"));
 }
 
-void codegen(isl_ctx *ctx, isl_schedule *schedule) {
+void code_gen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
   isl_ast_node *ast;
   build = isl_ast_build_alloc(ctx);
