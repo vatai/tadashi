@@ -200,8 +200,6 @@ bool post_transform(size_t scop_idx) {
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
   isl_schedule_free(sched);
-  // TODO some objects still referenced with legal == false
-  legal = isl_bool_true;
   if (legal) {
     si->modified = true;
     isl_schedule_node_free(si->current_node);
