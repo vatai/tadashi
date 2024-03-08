@@ -51,7 +51,13 @@ __isl_give isl_printer *get_scop_callback(__isl_take isl_printer *p,
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
-  SCOP_INFO.push_back({scop, get_dependencies(scop), node, 0, false});
+  isl_union_map *dep = get_dependencies(scop);
+  printf("get_scop_callback::dep: %s\n", isl_union_map_to_str(dep));
+  SCOP_INFO.push_back({.scop = scop,
+                       .dependency = dep,
+                       .current_node = node,
+                       .tmp_node = NULL,
+                       .modified = false});
   return p;
 }
 
@@ -77,7 +83,7 @@ void free_scops() {
     isl_union_map_free(si->dependency);
     pet_scop_free(si->scop);
     isl_schedule_node_free(si->current_node);
-    if (si->tmp_node)
+    if (si->tmp_node != NULL)
       isl_schedule_node_free(si->tmp_node);
   }
   SCOP_INFO.clear();
@@ -190,12 +196,37 @@ int check_legality_after_transformation(size_t scop_idx) {
   return check_schedule_legality(ctx, sched, scop_info->dependency);
 }
 
-int tile(size_t scop_idx, size_t tile_size) {
-  scop_info_t *scop_info = &SCOP_INFO[scop_idx];
-  isl_schedule_node *node = scop_info->current_node;
-  scop_info->modified = true;
-  node = tadashi_tile_1d(node, tile_size);
-  return check_legality_after_transformation(scop_idx);
+scop_info_t *pre_transfomr(size_t scop_idx) {
+  scop_info_t *si = &SCOP_INFO[scop_idx];
+  si->tmp_node = isl_schedule_node_copy(si->current_node);
+  return si;
+}
+
+bool post_transform(size_t scop_idx) {
+  scop_info_t *si = &SCOP_INFO[scop_idx];
+  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
+  isl_union_map *dep = isl_union_map_copy(si->dependency);
+  isl_schedule *sched = isl_schedule_node_get_schedule(node);
+  isl_ctx *ctx = isl_schedule_get_ctx(sched);
+  isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
+  // TODO some objects still referenced with legal == false
+  legal = isl_bool_false;
+  isl_schedule_free(sched);
+  if (legal) {
+    si->modified = true;
+    isl_schedule_node_free(si->current_node);
+    si->current_node = si->tmp_node;
+  } else {
+    isl_schedule_node_free(si->tmp_node);
+    si->tmp_node = NULL;
+  }
+  return legal;
+}
+
+bool tile(size_t scop_idx, size_t tile_size) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
+  return post_transform(scop_idx);
 }
 
 static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
