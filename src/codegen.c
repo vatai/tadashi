@@ -415,7 +415,6 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_indent(p, -2);
 
   p = isl_printer_start_line(p);
-  p = isl_printer_indent(p, -2);
   p = isl_printer_print_str(p, "}");
   p = isl_printer_end_line(p);
 
@@ -463,10 +462,12 @@ __isl_give isl_printer *codegen(__isl_take isl_printer *p,
   print_options =
       isl_ast_print_options_set_print_for(print_options, print_for, NULL);
   p = print_str_on_line(p, "#pragma scop");
+  p = isl_printer_indent(p, 2);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
+  p = isl_printer_indent(p, -2);
   p = print_str_on_line(p, "#pragma endscop");
   isl_ast_node_free(node);
   isl_ast_build_free(build);
