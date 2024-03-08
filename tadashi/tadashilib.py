@@ -195,7 +195,8 @@ class Node:
 
     def transform(self, transformation, *args):
         self.scop.locate(self.location)
-        if transformation == Transformation.TILE:
-            assert len(args) == 1, "Tiling needs exactly one argument"
-            tile_size = args[0]
-            self.scop.tile(tile_size)
+        match transformation:
+            case Transformation.TILE:
+                assert len(args) == 1, "Tiling needs exactly one argument"
+                tile_size = args[0]
+                self.scop.tile(tile_size)
