@@ -44,7 +44,6 @@ class Scop:
 
     def traverse(self, nodes, parent, path):
         node = self.make_node(parent, path)
-        print(f"{node=}")
         current_idx = len(nodes)
         nodes.append(node)
         if not node.is_leaf():

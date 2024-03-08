@@ -139,6 +139,6 @@ isl_bool check_schedule_legality(isl_ctx *ctx,
   // isl_union_pw_multi_aff_free(dep_upma);
   isl_schedule_node_free(root);
   isl_union_map *map = isl_schedule_get_map(schedule);
-  printf("schedule as union map:\n%s\n", isl_union_map_to_str(map));
+  // printf("schedule as union map:\n%s\n", isl_union_map_to_str(map));
   return check_legality(ctx, map, dep);
 }
