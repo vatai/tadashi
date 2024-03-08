@@ -234,14 +234,4 @@ int generate_code(const char *input_path, const char *output_path) {
   return r;
 }
 
-// not needed? //
-
-size_t depth(size_t scop_idx) {
-  return isl_schedule_node_get_tree_depth(SCOP_INFO[scop_idx].current_node);
-}
-
-size_t child_position(size_t scop_idx) {
-  return isl_schedule_node_get_child_position(SCOP_INFO[scop_idx].current_node);
-}
-
 } // extern "C"
