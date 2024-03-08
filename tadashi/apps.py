@@ -10,7 +10,9 @@ class App:
         return []
 
     def compile(self) -> bool:
-        subprocess.run(self.compile_cmd)
+        result = subprocess.run(self.compile_cmd)
+        # raise an exception if it didn't compile
+        result.check_returncode()
 
     @property
     def compile_cmd(self) -> list[str]:
