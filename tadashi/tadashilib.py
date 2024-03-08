@@ -9,6 +9,7 @@ from apps import App
 
 
 class NodeType(Enum):
+    BAND = 0
     LEAF = 6
 
 
@@ -192,6 +193,11 @@ class Node:
     def locate(self):
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
+
+    def avaliable_transformation(self):
+        match self.node_type:
+            case NodeType.BAND:
+                return [Transformation.TILE]
 
     def transform(self, transformation, *args):
         self.scop.locate(self.location)
