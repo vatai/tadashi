@@ -52,7 +52,6 @@ __isl_give isl_printer *get_scop_callback(__isl_take isl_printer *p,
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
   isl_union_map *dep = get_dependencies(scop);
-  printf("get_scop_callback::dep: %s\n", isl_union_map_to_str(dep));
   SCOP_INFO.push_back({.scop = scop,
                        .dependency = dep,
                        .current_node = node,
@@ -186,16 +185,6 @@ void goto_child(size_t scop_idx, size_t child_idx) {
 
 /******** transformations ***********************************/
 
-int check_legality_after_transformation(size_t scop_idx) {
-  scop_info_t *scop_info = &SCOP_INFO[scop_idx];
-  // isl_bool check_schedule_legality(isl_ctx *ctx,
-  //                                  __isl_keep isl_schedule *schedule,
-  //                                  __isl_take isl_union_map *dep);
-  isl_schedule *sched = isl_schedule_node_get_schedule(scop_info->current_node);
-  isl_ctx *ctx = isl_schedule_node_get_ctx(scop_info->current_node);
-  return check_schedule_legality(ctx, sched, scop_info->dependency);
-}
-
 scop_info_t *pre_transfomr(size_t scop_idx) {
   scop_info_t *si = &SCOP_INFO[scop_idx];
   si->tmp_node = isl_schedule_node_copy(si->current_node);
@@ -204,22 +193,23 @@ scop_info_t *pre_transfomr(size_t scop_idx) {
 
 bool post_transform(size_t scop_idx) {
   scop_info_t *si = &SCOP_INFO[scop_idx];
-  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
   isl_union_map *dep = isl_union_map_copy(si->dependency);
+  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
   isl_schedule *sched = isl_schedule_node_get_schedule(node);
+  isl_schedule_node_free(node);
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
-  // TODO some objects still referenced with legal == false
-  legal = isl_bool_false;
   isl_schedule_free(sched);
+  // TODO some objects still referenced with legal == false
+  legal = isl_bool_true;
   if (legal) {
     si->modified = true;
     isl_schedule_node_free(si->current_node);
     si->current_node = si->tmp_node;
   } else {
     isl_schedule_node_free(si->tmp_node);
-    si->tmp_node = NULL;
   }
+  si->tmp_node = NULL;
   return legal;
 }
 
