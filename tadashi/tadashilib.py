@@ -2,6 +2,7 @@
 
 import os
 from ctypes import CDLL, c_char_p, c_int, c_size_t
+from enum import Enum
 from pathlib import Path
 
 from apps import App
@@ -145,9 +146,11 @@ class Scops:
         self.ctadashi.free_scops()
 
 
-class Node:
-    LEAF_TYPE = 6
+class NodeType(Enum):
+    LEAF = 6
 
+
+class Node:
     def __init__(
         self,
         scop,
@@ -170,10 +173,17 @@ class Node:
         self.location = location
 
     def __repr__(self):
-        return f"Node type: {self.type_str}({self.node_type}), {self.dim_names}, {self.expr}, {self.location}"
+        words = [
+            "Node type:",
+            f"{self.type_str}({self.node_type}),",
+            f"{self.dim_names},",
+            f"{self.expr},",
+            f"{self.location}",
+        ]
+        return " ".join(words)
 
     def is_leaf(self):
-        return self.node_type == self.LEAF_TYPE
+        return self.node_type == NodeType.LEAF.value
 
     def locate(self):
         self.scop.locate(self.location)
