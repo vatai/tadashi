@@ -18,6 +18,7 @@ def main():
     # select node to transform accroding to scores
     # transform the node
     # codegen new scops and measure performance
+    print(f"{node.avaliable_transformation=}")
     node.transform(Transformation.TILE, 10)
     scops.generate_code()
     app.compile()
