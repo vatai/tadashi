@@ -442,7 +442,7 @@ __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
   return for_node;
 }
 
-__isl_give isl_printer *codegen(isl_ctx *ctx, __isl_take isl_printer *p,
+__isl_give isl_printer *codegen(__isl_take isl_printer *p,
                                 __isl_keep struct pet_scop *scop,
                                 __isl_take isl_schedule *schedule) {
 
@@ -451,6 +451,7 @@ __isl_give isl_printer *codegen(isl_ctx *ctx, __isl_take isl_printer *p,
   isl_ast_node *node;
   isl_ast_print_options *print_options;
   isl_id_to_id *id2stmt;
+  isl_ctx *ctx = isl_printer_get_ctx(p);
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);

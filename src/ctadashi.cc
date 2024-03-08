@@ -37,22 +37,23 @@ struct scop_info_t {
   pet_scop *scop;
   isl_union_map *dependency;
   isl_schedule_node *current_node;
+  isl_schedule_node *tmp_node;
   bool modified;
 };
 
 std::vector<struct scop_info_t> SCOP_INFO;
 std::vector<std::string> STRINGS;
 
-__isl_give isl_printer *get_scop(__isl_take isl_printer *p, pet_scop *scop,
-                                 void *user) {
+/******** scops constructor/descructor **********************/
+
+__isl_give isl_printer *get_scop_callback(__isl_take isl_printer *p,
+                                          pet_scop *scop, void *user) {
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
-  SCOP_INFO.push_back({scop, get_dependencies(scop), node, false});
+  SCOP_INFO.push_back({scop, get_dependencies(scop), node, 0, false});
   return p;
 }
-
-/******** scops constructor/descructor **********************/
 
 int get_num_scops(char *input) { // Entry point
 
@@ -60,7 +61,7 @@ int get_num_scops(char *input) { // Entry point
   FILE *output = fopen("cout.c", "w");
   // pet_options_set_autodetect(ctx, 1);
   SCOP_INFO.clear();
-  pet_transform_C_source(ctx, input, output, get_scop, NULL);
+  pet_transform_C_source(ctx, input, output, get_scop_callback, NULL);
   fclose(output);
   return SCOP_INFO.size();
 }
@@ -72,9 +73,12 @@ void free_scops() {
   isl_ctx *ctx = isl_set_get_ctx(set);
   isl_set_free(set);
   for (size_t i = 0; i < SCOP_INFO.size(); ++i) {
-    isl_union_map_free(SCOP_INFO[i].dependency);
-    pet_scop_free(SCOP_INFO[i].scop);
-    isl_schedule_node_free(SCOP_INFO[i].current_node);
+    scop_info_t *si = &SCOP_INFO[i];
+    isl_union_map_free(si->dependency);
+    pet_scop_free(si->scop);
+    isl_schedule_node_free(si->current_node);
+    if (si->tmp_node)
+      isl_schedule_node_free(si->tmp_node);
   }
   SCOP_INFO.clear();
   STRINGS.clear();
@@ -207,9 +211,8 @@ static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
   if (!scop_info->modified) {
     p = pet_scop_print_original(scop, p);
   } else {
-    ctx = isl_printer_get_ctx(p);
     sched = isl_schedule_node_get_schedule(scop_info->current_node);
-    p = codegen(ctx, p, scop_info->scop, sched);
+    p = codegen(p, scop_info->scop, sched);
   }
   pet_scop_free(scop);
   (*scop_idx)++;

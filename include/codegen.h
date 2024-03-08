@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-__isl_give isl_printer *codegen(isl_ctx *ctx, __isl_take isl_printer *p,
+__isl_give isl_printer *codegen(__isl_take isl_printer *p,
                                 struct pet_scop *scop, isl_schedule *schedule);
 
 #if defined(__cplusplus)

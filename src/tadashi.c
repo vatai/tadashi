@@ -110,12 +110,13 @@ __isl_give isl_schedule *get_schedule(isl_ctx *ctx, struct pet_scop *scop,
   return schedule;
 }
 
-__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
+__isl_give isl_printer *transform_scop(__isl_take isl_printer *p,
                                        __isl_keep struct pet_scop *scop,
                                        struct user_t *user) {
   isl_schedule *schedule;
   isl_union_map *dependencies;
   isl_printer *tmp;
+  isl_ctx *ctx = isl_printer_get_ctx(p);
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
@@ -135,7 +136,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
     printf("Schedule not checked!\n");
     isl_union_map_free(dependencies);
   }
-  p = codegen(ctx, p, scop, schedule);
+  p = codegen(p, scop, schedule);
   return p;
 }
 
@@ -190,7 +191,7 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                     user->opt->original_schedule_suffix);
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
-  p = transform_scop(ctx, p, scop, user);
+  p = transform_scop(p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->scop_counter);
   user->scop_counter++;
