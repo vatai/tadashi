@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from ctypes import CDLL, c_char_p, c_int, c_size_t
+from ctypes import CDLL, c_bool, c_char_p, c_int, c_size_t
 from enum import Enum, auto
 from pathlib import Path
 
@@ -163,8 +163,6 @@ class Scops:
         self.ctadashi.get_num_scops.restype = c_int
         self.ctadashi.get_type.argtypes = [c_size_t]
         self.ctadashi.get_type.restype = c_int
-        self.ctadashi.get_type_str.argtypes = [c_size_t]
-        self.ctadashi.get_type_str.restype = c_char_p
         self.ctadashi.get_num_children.argtypes = [c_size_t]
         self.ctadashi.get_num_children.restype = c_size_t
         self.ctadashi.goto_parent.argtypes = [c_size_t]
@@ -176,7 +174,12 @@ class Scops:
         self.ctadashi.get_schedule_yaml.argtypes = [c_size_t]
         self.ctadashi.get_schedule_yaml.restype = c_char_p
         self.ctadashi.reset_root.argtypes = [c_size_t]
+        # Transformations
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
+        self.ctadashi.tile.restype = c_bool
+        self.ctadashi.interchange.argtypes = [c_size_t]
+        self.ctadashi.interchange.restype = c_bool
+        #
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
     @staticmethod

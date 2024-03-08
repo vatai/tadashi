@@ -96,25 +96,6 @@ int get_type(size_t scop_idx) {
   return isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
 }
 
-const char *get_type_str(size_t scop_idx) {
-  enum isl_schedule_node_type type;
-  type = isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
-  const char *type2str[11];
-
-  type2str[isl_schedule_node_band] = "BND";
-  type2str[isl_schedule_node_context] = "CTX";
-  type2str[isl_schedule_node_domain] = "DMN";
-  type2str[isl_schedule_node_expansion] = "EXP";
-  type2str[isl_schedule_node_extension] = "EXT";
-  type2str[isl_schedule_node_filter] = "FTR";
-  type2str[isl_schedule_node_leaf] = "LF";
-  type2str[isl_schedule_node_guard] = "GRD";
-  type2str[isl_schedule_node_mark] = "MRK";
-  type2str[isl_schedule_node_sequence] = "SEQ";
-  type2str[isl_schedule_node_set] = "SET";
-  return type2str[type];
-}
-
 size_t get_num_children(size_t scop_idx) {
   return isl_schedule_node_n_children(SCOP_INFO[scop_idx].current_node);
 }
@@ -214,6 +195,12 @@ bool post_transform(size_t scop_idx) {
 bool tile(size_t scop_idx, size_t tile_size) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
+  return post_transform(scop_idx);
+}
+
+bool interchange(size_t scop_idx) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_interchange(si->tmp_node);
   return post_transform(scop_idx);
 }
 
