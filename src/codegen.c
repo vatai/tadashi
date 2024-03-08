@@ -455,6 +455,10 @@ __isl_give isl_printer *codegen(__isl_take isl_printer *p,
       isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
   print_options =
       isl_ast_print_options_set_print_for(print_options, print_for, NULL);
+
+  // this puts stuff to the beginning of the line
+  p = isl_printer_set_indent_prefix(p, "");
+
   p = print_str_on_line(p, "#pragma scop");
   p = isl_printer_indent(p, 2);
   p = print_declarations(p, build, scop, &indent);
