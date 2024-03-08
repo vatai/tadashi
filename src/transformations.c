@@ -12,10 +12,6 @@
 #include <pet.h>
 #include <string.h>
 
-isl_bool tadashi_tile_1d_chk(isl_schedule_node *node) {
-  return isl_schedule_node_get_type(node) == isl_schedule_node_band;
-}
-
 isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_space *space = isl_schedule_node_band_get_space(node);
@@ -24,15 +20,19 @@ isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
   return isl_schedule_node_band_tile(node, mv);
 }
 
-isl_bool tadashi_fuse_chk() { return isl_bool_true; }
-isl_schedule_node *tadashi_fuse(isl_schedule_node *node, int si) {
+isl_schedule_node *tadashi_interchange(isl_schedule_node *node) {
+  isl_multi_union_pw_aff *mupa;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
   return node;
 }
 
-// interchange
+isl_schedule_node *tadashi_fuse(isl_schedule_node *node) { return node; }
 
-// scale
+isl_schedule_node *tadashi_scale(isl_schedule_node *node) { return node; }
 
-// shift
+isl_schedule_node *tadashi_shift(isl_schedule_node *node) { return node; }
 
 // sink & order?

@@ -24,6 +24,7 @@ class NodeType(Enum):
 
 class Transformation(Enum):
     TILE = 0
+    INTERCHANGE = auto()
 
 
 class Node:
@@ -62,10 +63,13 @@ class Node:
 
     @property
     def avaliable_transformation(self) -> list[Transformation]:
+        result = []
         match self.node_type:
             case NodeType.BAND:
-                return [Transformation.TILE]
-        return []
+                result.append(Transformation.TILE)
+                if self.num_children == 1:
+                    result.append(Transformation.INTERCHANGE)
+        return result
 
     def transform(self, transformation, *args):
         self.scop.locate(self.location)

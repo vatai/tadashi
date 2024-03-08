@@ -17,6 +17,8 @@ __isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
 
 isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si);
 
+isl_schedule_node *tadashi_interchange(isl_schedule_node *node);
+
 #if defined(__cplusplus)
 }
 #endif
