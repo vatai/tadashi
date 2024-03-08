@@ -2,7 +2,7 @@
 
 import os
 from ctypes import CDLL, c_char_p, c_int, c_size_t
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 
 from apps import App
@@ -10,11 +10,70 @@ from apps import App
 
 class NodeType(Enum):
     BAND = 0
-    LEAF = 6
+    CONTEXT = auto()
+    DOMAIN = auto()
+    EXPANSION = auto()
+    EXTENSION = auto()
+    FILTER = auto()
+    LEAF = auto()
+    GUARD = auto()
+    MARK = auto()
+    SEQUENCE = auto()
+    SET = auto()
 
 
 class Transformation(Enum):
     TILE = 0
+
+
+class Node:
+    def __init__(
+        self,
+        scop,
+        node_type,
+        num_children,
+        parent,
+        location,
+        dim_names,
+        expr,
+    ) -> None:
+        self.scop = scop
+        self.node_type = NodeType(node_type)
+        self.num_children = num_children
+        self.parent = parent
+        self.dim_names = dim_names
+        self.expr = expr.decode("utf-8")
+        self.children = [-1] * num_children
+        self.location = location
+
+    def __repr__(self):
+        words = [
+            "Node type:",
+            f"{self.node_type},",
+            f"{self.dim_names},",
+            f"{self.expr},",
+            f"{self.location}",
+        ]
+        return " ".join(words)
+
+    def locate(self):
+        self.scop.locate(self.location)
+        return self.scop.get_current_node_from_ISL(None, None)
+
+    @property
+    def avaliable_transformation(self) -> list[Transformation]:
+        match self.node_type:
+            case NodeType.BAND:
+                return [Transformation.TILE]
+        return []
+
+    def transform(self, transformation, *args):
+        self.scop.locate(self.location)
+        match transformation:
+            case Transformation.TILE:
+                assert len(args) == 1, "Tiling needs exactly one argument"
+                tile_size = args[0]
+                self.scop.tile(tile_size)
 
 
 class Scop:
@@ -43,12 +102,11 @@ class Scop:
         node = Node(
             scop=self,
             node_type=self.ctadashi.get_type(self.idx),
-            type_str=self.ctadashi.get_type_str(self.idx).decode("utf-8"),
             num_children=num_children,
             parent=parent,
             location=location,
             dim_names=self.read_dim_names(),
-            expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
+            expr=self.ctadashi.get_expr(self.idx),
         )
         return node
 
@@ -56,14 +114,14 @@ class Scop:
         node = self.make_node(parent, path)
         current_idx = len(nodes)
         nodes.append(node)
-        if not node.is_leaf():
+        if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
                 node.children[c] = len(nodes)
                 self.traverse(nodes, current_idx, path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
-    def get_schedule_tree(self):
+    def get_schedule_tree(self) -> list[Node]:
         self.ctadashi.reset_root(self.idx)
         nodes = []
         self.traverse(nodes, parent=-1, path=[])
@@ -153,56 +211,3 @@ class Scops:
 
     def __del__(self):
         self.ctadashi.free_scops()
-
-
-class Node:
-    def __init__(
-        self,
-        scop,
-        node_type,
-        type_str,
-        num_children,
-        parent,
-        location,
-        dim_names,
-        expr,
-    ) -> None:
-        self.scop = scop
-        self.node_type = node_type
-        self.type_str = type_str
-        self.num_children = num_children
-        self.parent = parent
-        self.dim_names = dim_names
-        self.expr = expr
-        self.children = [-1] * num_children
-        self.location = location
-
-    def __repr__(self):
-        words = [
-            "Node type:",
-            f"{self.type_str}({self.node_type}),",
-            f"{self.dim_names},",
-            f"{self.expr},",
-            f"{self.location}",
-        ]
-        return " ".join(words)
-
-    def is_leaf(self):
-        return self.node_type == NodeType.LEAF.value
-
-    def locate(self):
-        self.scop.locate(self.location)
-        return self.scop.get_current_node_from_ISL(None, None)
-
-    def avaliable_transformation(self):
-        match self.node_type:
-            case NodeType.BAND:
-                return [Transformation.TILE]
-
-    def transform(self, transformation, *args):
-        self.scop.locate(self.location)
-        match transformation:
-            case Transformation.TILE:
-                assert len(args) == 1, "Tiling needs exactly one argument"
-                tile_size = args[0]
-                self.scop.tile(tile_size)
