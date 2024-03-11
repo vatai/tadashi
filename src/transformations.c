@@ -31,8 +31,21 @@ isl_schedule_node *tadashi_interchange(isl_schedule_node *node) {
 
 isl_schedule_node *tadashi_fuse(isl_schedule_node *node) { return node; }
 
-isl_schedule_node *tadashi_scale(isl_schedule_node *node) { return node; }
+isl_schedule_node *tadashi_scale(isl_schedule_node *node, long scale) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  node = isl_schedule_node_band_scale(
+      node, isl_multi_val_from_val_list(
+                isl_schedule_node_band_get_space(node),
+                isl_val_list_from_val(isl_val_int_from_si(ctx, scale))));
+  return node;
+}
 
-isl_schedule_node *tadashi_shift(isl_schedule_node *node) { return node; }
+isl_schedule_node *tadashi_shift(isl_schedule_node *node, long shift) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  node = isl_schedule_node_band_shift(
+      node, isl_multi_union_pw_aff_read_from_str(
+                ctx, "[N] -> L_1[{ S_0[i,j] -> [(i+j)] } ]"));
+  return node;
+}
 
 // sink & order?
