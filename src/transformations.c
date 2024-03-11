@@ -12,12 +12,12 @@
 #include <pet.h>
 #include <string.h>
 
-isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si) {
+isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int tile_size) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  isl_space *space = isl_schedule_node_band_get_space(node);
-  isl_val_list *val_list = isl_val_list_from_val(isl_val_int_from_si(ctx, si));
-  isl_multi_val *mv = isl_multi_val_from_val_list(space, val_list);
-  return isl_schedule_node_band_tile(node, mv);
+  return isl_schedule_node_band_tile(
+      node, isl_multi_val_from_val_list(
+                isl_schedule_node_band_get_space(node),
+                isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
 isl_schedule_node *tadashi_interchange(isl_schedule_node *node) {

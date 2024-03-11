@@ -15,7 +15,7 @@ __isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
                                                __isl_keep struct pet_scop *scop,
                                                struct user_t *user);
 
-isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int si);
+isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int tile_size);
 
 isl_schedule_node *tadashi_interchange(isl_schedule_node *node);
 
