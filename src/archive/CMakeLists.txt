@@ -8,8 +8,8 @@ target_link_libraries(poly-scan PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_executable(functions src/archive/functions.c)
 target_link_libraries(functions PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_executable(divs src/archive/divs.c)
-target_link_libraries(divs PUBLIC PkgConfig::ISL PkgConfig::PET)
+add_executable(advanced_shift src/archive/advanced_shift.c)
+target_link_libraries(advanced_shift PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(annotated_pet_loopback src/archive/annotated_pet_loopback.c)
 target_link_libraries(annotated_pet_loopback PUBLIC PkgConfig::ISL PkgConfig::PET)

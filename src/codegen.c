@@ -43,7 +43,6 @@
  * implied, of Sven Verdoolaege.
  */
 
-#include <isl/printer.h>
 #include <string.h>
 
 #include "codegen.h"
@@ -52,6 +51,7 @@
 #include <isl/ast_build.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
+#include <isl/printer.h>
 #include <isl/val.h>
 #include <pet.h>
 
