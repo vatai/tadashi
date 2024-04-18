@@ -24,6 +24,11 @@ int main() {
   isl_ctx *ctx = isl_ctx_alloc();
 
   FILE *file;
+  // create file with:
+  // C_INCLUDE_PATH=./build/_deps/polybench-src/utilities
+  // ./build/tadashi -s tadashi.yaml
+  // build/_deps/polybench-src/linear-algebra/blas/gemm/gemm.c
+
   file = fopen("build/_deps/polybench-src/linear-algebra/blas/gemm/"
                "gemm.c.0.tadashi.yaml",
                "r");
