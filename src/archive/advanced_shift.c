@@ -24,8 +24,7 @@ int main() {
   isl_ctx *ctx = isl_ctx_alloc();
 
   FILE *file;
-  // create file with:
-  // C_INCLUDE_PATH=./build/_deps/polybench-src/utilities
+  // create file with: C_INCLUDE_PATH=./build/_deps/polybench-src/utilities
   // ./build/tadashi -s tadashi.yaml
   // build/_deps/polybench-src/linear-algebra/blas/gemm/gemm.c
 
@@ -64,14 +63,41 @@ int main() {
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (node): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 
-  space = isl_multi_union_pw_aff_get_domain_space(mupa);
-  mupa = isl_multi_union_pw_aff_zero(space);
-  printf("mupa (zero): %s\n", isl_multi_union_pw_aff_to_str(mupa));
+  space = isl_multi_union_pw_aff_get_domain_space(
+      isl_multi_union_pw_aff_copy(mupa));
+  printf("space (domain space): %s\n", isl_space_to_str(space));
+  // mupa = isl_multi_union_pw_aff_zero(space);
+  // printf("mupa (zero): %s\n", isl_multi_union_pw_aff_to_str(mupa));
+  // isl_aff.c:8768: expecting proper set space
+
+  mupa = isl_multi_union_pw_aff_from_range(isl_multi_union_pw_aff_copy(mupa));
+  printf("mupa (range): %s\n", isl_multi_union_pw_aff_to_str(mupa));
+
   space = isl_schedule_node_band_get_space(node);
   printf("space (band node): %s\n", isl_space_to_str(space));
   // mupa = isl_multi_union_pw_aff_zero(isl_space_copy(space));
   // FAILS WITH: Expectin 0D space
   // printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+  isl_union_pw_aff_list *upal = isl_multi_union_pw_aff_get_list(mupa);
+  printf("len(upal)=%d\n", isl_union_pw_aff_list_size(upal));
+  isl_union_pw_aff *upa = isl_union_pw_aff_list_get_at(upal, 0);
+  printf("upa (at 0): %s\n",
+         isl_union_pw_aff_to_str(isl_union_pw_aff_copy(upa)));
+  isl_space *space0 = isl_union_pw_aff_get_space(isl_union_pw_aff_copy(upa));
+  printf("space0: %s\n", isl_space_to_str(space));
+  isl_pw_aff_list *pal =
+      isl_union_pw_aff_get_pw_aff_list(isl_union_pw_aff_copy(upa));
+  size_t size = isl_pw_aff_list_size(pal);
+  for (size_t i = 0; i < size; ++i) {
+    printf("[%d] %s\n", i, isl_pw_aff_to_str(isl_pw_aff_list_get_at(pal, i)));
+    printf("Hi\n");
+  }
+  isl_union_pw_aff_list *upal_new;
+  upa = isl_union_pw_aff_empty_space(space0);
+  upal_new = isl_union_pw_aff_list_from_union_pw_aff(upa);
+  printf("upa (empty space): %s\n", isl_union_pw_aff_to_str(upa));
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
+  printf("mupa (from list): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 
   // ma = isl_multi_aff_identity_on_domain_space(space);
   // printf("ma: %s\n", isl_multi_aff_to_str(ma));
