@@ -50,19 +50,34 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   return node;
 }
 
-__isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) { //
-  isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
+__isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
+  isl_ctx *ctx;
   isl_union_set *domain;
   isl_space *upa_space;
   isl_val *val;
   isl_pw_aff_list *pal;
   isl_pw_aff *pa;
+  isl_set_list *slist;
+  isl_size num_sets;
+  isl_set *set;
+  ctx = isl_union_pw_aff_get_ctx(upa);
   domain = isl_union_pw_aff_domain(upa);
   printf("domain: %s\n", isl_union_set_to_str(domain));
-  // upa_space = isl_union_set_get_space(domain);
-  printf("domain space: %s\n", isl_space_to_str(upa_space));
-  val = isl_val_int_from_si(ctx, 42);
+  slist = isl_union_set_get_set_list(domain);
+  num_sets = isl_set_list_n_set(slist);
+  for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+    set = isl_set_list_get_at(slist, set_idx);
+    printf("set[%d] = %s\n", set_idx, isl_set_to_str(set));
+  }
+  val = isl_val_int_from_si(ctx, 0);
   upa = isl_union_pw_aff_val_on_domain(domain, val);
+  printf("zero upa: %s\n", isl_union_pw_aff_to_str(upa));
+  set = isl_set_list_get_at(slist, 0);
+  val = isl_val_int_from_si(ctx, 42);
+  pa = isl_pw_aff_val_on_domain(set, val);
+  printf("pa: %s\n", isl_pw_aff_to_str(pa));
+
+  printf("transformed upa: %s\n", isl_union_pw_aff_to_str(upa));
   return upa;
 
   // val = isl_val_int_from_si(ctx, 42);
