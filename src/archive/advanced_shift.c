@@ -128,14 +128,20 @@ void the_void() {
 }
 
 __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
+  isl_ctx *ctx;
   isl_space *space;
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff_list *upal, *upal_new;
   isl_union_pw_aff *upa;
   isl_space *upa_space;
-  isl_size upal_size;
-  int upal_idx;
-  isl_pw_aff_list *pal;
+  isl_size upal_size, pal_size;
+  int upal_idx, pal_idx;
+  isl_pw_aff_list *pal, *pal_new;
+  isl_pw_aff *pa;
+  isl_union_set *domain;
+  isl_val *val;
+  isl_id *id;
+  ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (node): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 
@@ -146,11 +152,14 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   upal_size = isl_union_pw_aff_list_size(upal);
   printf("len(upal)=%d\n", upal_size);
   isl_multi_union_pw_aff_free(mupa);
-  upal_new =
-      isl_union_pw_aff_list_alloc(isl_schedule_node_get_ctx(node), upal_size);
+  upal_new = isl_union_pw_aff_list_alloc(ctx, upal_size);
   for (upal_idx = 0; upal_idx < upal_size; upal_idx++) {
     upa = isl_union_pw_aff_list_get_at(upal, upal_idx);
     printf("upal[%d]=%s\n", upal_idx, isl_union_pw_aff_to_str(upa));
+    domain = isl_union_pw_aff_domain(upa);
+    // val = isl_val_int_from_si(ctx, 42);
+    // upa = isl_union_pw_aff_val_on_domain(domain, val);
+    upa = isl_union_pw_aff_param_on_domain_id(domain, id);
     upal_new = isl_union_pw_aff_list_add(upal_new, upa);
   }
   mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
@@ -170,7 +179,7 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   pal = isl_union_pw_aff_get_pw_aff_list(isl_union_pw_aff_copy(upa));
   size_t size = isl_pw_aff_list_size(pal);
   for (size_t i = 0; i < size; ++i) {
-    printf("[%d] %s\n", i, isl_pw_aff_to_str(isl_pw_aff_list_get_at(pal, i)));
+    printf("[%zu] %s\n", i, isl_pw_aff_to_str(isl_pw_aff_list_get_at(pal, i)));
     printf("Hi\n");
   }
   upa = isl_union_pw_aff_empty_space(upa_space);
