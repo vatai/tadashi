@@ -59,6 +59,7 @@ __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   isl_set_list *slist;
   isl_size num_sets;
   isl_set *set;
+  isl_id *id;
   ctx = isl_union_pw_aff_get_ctx(upa);
   domain = isl_union_pw_aff_domain(upa);
   slist = isl_union_set_get_set_list(domain);
@@ -70,8 +71,17 @@ __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   num_sets = isl_set_list_n_set(slist);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
     set = isl_set_list_get_at(slist, set_idx);
+
     val = isl_val_int_from_si(ctx, 100 + 10 * set_idx);
-    pa = isl_pw_aff_val_on_domain(set, val);
+    pa = isl_pw_aff_val_on_domain(isl_set_copy(set), val);
+
+    id = isl_set_get_dim_id(set, isl_dim_set, 0);
+    printf("set: %s\n", isl_set_to_str(set));
+    isl_pw_aff *pa2 =
+        isl_pw_aff_param_on_domain_id(set, id); // WRONG WRONG WRONG WRONG
+    printf("pa2: %s\n", isl_pw_aff_to_str(pa2));
+
+    pa = isl_pw_aff_add(pa, pa2);
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
   }
   isl_set_list_free(slist);
