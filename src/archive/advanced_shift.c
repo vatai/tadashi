@@ -132,6 +132,10 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff_list *upal, *upal_new;
   isl_union_pw_aff *upa;
+  isl_space *upa_space;
+  isl_size upal_size;
+  int upal_idx;
+  isl_pw_aff_list *pal;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (node): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 
@@ -139,25 +143,37 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   printf("space (band node): %s\n", isl_space_to_str(space));
 
   upal = isl_multi_union_pw_aff_get_list(mupa);
-  printf("len(upal)=%d\n", isl_union_pw_aff_list_size(upal));
-  upa = isl_union_pw_aff_list_get_at(upal, 0);
-  printf("upa (at 0): %s\n", isl_union_pw_aff_to_str(upa));
+  upal_size = isl_union_pw_aff_list_size(upal);
+  printf("len(upal)=%d\n", upal_size);
+  isl_multi_union_pw_aff_free(mupa);
+  upal_new =
+      isl_union_pw_aff_list_alloc(isl_schedule_node_get_ctx(node), upal_size);
+  for (upal_idx = 0; upal_idx < upal_size; upal_idx++) {
+    upa = isl_union_pw_aff_list_get_at(upal, upal_idx);
+    printf("upal[%d]=%s\n", upal_idx, isl_union_pw_aff_to_str(upa));
+    upal_new = isl_union_pw_aff_list_add(upal_new, upa);
+  }
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
+
   //////////////
-  isl_union_pw_aff_free(upa);
   isl_union_pw_aff_list_free(upal);
-  isl_space_free(space);
   return mupa;
   /////////////
-  isl_space *space0 = isl_union_pw_aff_get_space(isl_union_pw_aff_copy(upa));
-  printf("space0: %s\n", isl_space_to_str(space));
-  isl_pw_aff_list *pal =
-      isl_union_pw_aff_get_pw_aff_list(isl_union_pw_aff_copy(upa));
+
+  for (upal_idx = 0; upal_idx < upal_size; upal_idx++) {
+    upa = isl_union_pw_aff_list_get_at(upal, upal_idx);
+    printf("upa (at %d): %s\n", upal_idx, isl_union_pw_aff_to_str(upa));
+    upa_space = isl_union_pw_aff_get_space(isl_union_pw_aff_copy(upa));
+    printf("upa_space: %s\n", isl_space_to_str(space));
+  }
+  //////
+  pal = isl_union_pw_aff_get_pw_aff_list(isl_union_pw_aff_copy(upa));
   size_t size = isl_pw_aff_list_size(pal);
   for (size_t i = 0; i < size; ++i) {
     printf("[%d] %s\n", i, isl_pw_aff_to_str(isl_pw_aff_list_get_at(pal, i)));
     printf("Hi\n");
   }
-  upa = isl_union_pw_aff_empty_space(space0);
+  upa = isl_union_pw_aff_empty_space(upa_space);
   upal_new = isl_union_pw_aff_list_from_union_pw_aff(upa);
   printf("upa (empty space): %s\n", isl_union_pw_aff_to_str(upa));
   mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
