@@ -50,83 +50,6 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   return node;
 }
 
-void the_void() {
-  isl_space *space;
-  isl_union_set *domain;
-  char *mupa_str;
-  isl_multi_aff *ma;
-  isl_val *val;
-  isl_set_list *slist;
-  isl_set *set;
-  isl_multi_val *mv;
-  isl_schedule_node *node;
-  isl_multi_union_pw_aff *mupa;
-
-  // mupa = isl_multi_union_pw_aff_zero(isl_space_copy(space));
-  // FAILS WITH: Expectin 0D space
-  // printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  space = isl_multi_union_pw_aff_get_domain_space(
-      isl_multi_union_pw_aff_copy(mupa));
-  printf("space (domain space): %s\n", isl_space_to_str(space));
-  // mupa = isl_multi_union_pw_aff_zero(space);
-  // printf("mupa (zero): %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  // isl_aff.c:8768: expecting proper set space
-
-  mupa = isl_multi_union_pw_aff_from_range(isl_multi_union_pw_aff_copy(mupa));
-  printf("mupa (range): %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  // ma = isl_multi_aff_identity_on_domain_space(space);
-  // printf("ma: %s\n", isl_multi_aff_to_str(ma));
-  // isl_multi_aff_free(ma);
-  domain = isl_schedule_node_get_domain(node);
-  printf("domain: %s\n", isl_union_set_to_str(domain));
-
-  mv = isl_multi_val_zero(isl_space_copy(space));
-  printf("mv: %s\n", isl_multi_val_to_str(mv));
-  mupa = isl_multi_union_pw_aff_multi_val_on_domain(isl_union_set_copy(domain),
-                                                    mv);
-  printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  // isl_multi_val_free(mv);
-  isl_space_free(space);
-  // mupa =
-  // isl_multi_union_pw_aff_multi_aff_on_domain(isl_union_set_copy(domain), ma);
-  // FAILS WITH: "expecting parametric expression
-  // printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  space = isl_union_set_get_space(domain);
-  printf("space (domain): %s\n", isl_space_to_str(space));
-
-  // mupa = isl_multi_union_pw_aff_zero(isl_space_copy(space));
-  // FAILS WITH: expecting proper set space
-  // printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-
-  /* slist = isl_union_set_get_set_list(domain); */
-  /* set = isl_set_list_get_at(slist, 0); */
-  /* printf("set: %s\n", isl_set_to_str(set)); */
-  /* printf("dim name: %s\n", isl_set_get_dim_name(set, isl_dim_set, 0)); */
-  /* printf("tuple name: %s\n", isl_set_get_tuple_name(set)); */
-
-  /* space = isl_set_get_space(set); */
-  /* printf("space (set): %s\n", isl_space_to_str(space)); */
-  /* isl_set_free(set); */
-  /* isl_set_list_free(slist); */
-
-  // mupa = isl_multi_union_pw_aff_zero(isl_space_copy(space));
-  // FAILS WITH: Expectin 0D space
-  // printf("mupa1: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  isl_space_free(space);
-
-  // space: [this] -> L_andthis[maybe_this]
-  mupa_str = "[ni, nj] -> L_1[{ S_3[i,j] -> [(300)]; S_2[i,j]->[(400)] } ]";
-  // mupa = isl_multi_union_pw_aff_read_from_str(ctx, mupa_str);
-  // mupa = isl_multi_union_pw_aff_multi_val_on_domain(domain, mv);
-  printf("mupa0: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  /* isl_multi_union_pw_aff_free(mupa); */
-  isl_union_set_free(domain);
-}
-
 __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   isl_ctx *ctx;
   isl_space *space;
@@ -167,26 +90,6 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   //////////////
   isl_union_pw_aff_list_free(upal);
   return mupa;
-  /////////////
-
-  for (upal_idx = 0; upal_idx < upal_size; upal_idx++) {
-    upa = isl_union_pw_aff_list_get_at(upal, upal_idx);
-    printf("upa (at %d): %s\n", upal_idx, isl_union_pw_aff_to_str(upa));
-    upa_space = isl_union_pw_aff_get_space(isl_union_pw_aff_copy(upa));
-    printf("upa_space: %s\n", isl_space_to_str(space));
-  }
-  //////
-  pal = isl_union_pw_aff_get_pw_aff_list(isl_union_pw_aff_copy(upa));
-  size_t size = isl_pw_aff_list_size(pal);
-  for (size_t i = 0; i < size; ++i) {
-    printf("[%zu] %s\n", i, isl_pw_aff_to_str(isl_pw_aff_list_get_at(pal, i)));
-    printf("Hi\n");
-  }
-  upa = isl_union_pw_aff_empty_space(upa_space);
-  upal_new = isl_union_pw_aff_list_from_union_pw_aff(upa);
-  printf("upa (empty space): %s\n", isl_union_pw_aff_to_str(upa));
-  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
-  printf("mupa (from list): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 }
 
 __isl_give isl_schedule_node *
