@@ -55,7 +55,7 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
 
 __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   // params
-  long const_val = 100 + 10 * set_idx;
+  long const_val = 666;
   int id_idx = 0;
   // decls
   isl_ctx *ctx;
