@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <isl/local_space.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -6,6 +7,7 @@
 #include <isl/ctx.h>
 #include <isl/id.h>
 #include <isl/id_type.h>
+#include <isl/map.h>
 #include <isl/map_type.h>
 #include <isl/multi.h>
 #include <isl/schedule.h>
@@ -53,36 +55,45 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
 __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   isl_ctx *ctx;
   isl_union_set *domain;
-  isl_space *upa_space;
+  isl_space *space;
   isl_val *val;
   isl_pw_aff *pa;
   isl_set_list *slist;
   isl_size num_sets;
   isl_set *set;
   isl_id *id;
+  isl_multi_aff *ma;
+  isl_aff *aff;
   ctx = isl_union_pw_aff_get_ctx(upa);
   domain = isl_union_pw_aff_domain(upa);
   slist = isl_union_set_get_set_list(domain);
   val = isl_val_int_from_si(ctx, 0);
   upa = isl_union_pw_aff_val_on_domain(domain, val);
-  upa_space = isl_union_pw_aff_get_space(upa);
+  space = isl_union_pw_aff_get_space(upa);
   isl_union_pw_aff_free(upa);
-  upa = isl_union_pw_aff_empty_space(upa_space);
+  upa = isl_union_pw_aff_empty_space(space);
   num_sets = isl_set_list_n_set(slist);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+    printf("----\n");
     set = isl_set_list_get_at(slist, set_idx);
 
     val = isl_val_int_from_si(ctx, 100 + 10 * set_idx);
     pa = isl_pw_aff_val_on_domain(isl_set_copy(set), val);
-
-    id = isl_set_get_dim_id(set, isl_dim_set, 0);
-    printf("set: %s\n", isl_set_to_str(set));
-    isl_pw_aff *pa2 =
-        isl_pw_aff_param_on_domain_id(set, id); // WRONG WRONG WRONG WRONG
-    printf("pa2: %s\n", isl_pw_aff_to_str(pa2));
-
-    pa = isl_pw_aff_add(pa, pa2);
+    printf("pa: %s\n", isl_pw_aff_to_str(pa));
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
+
+    /* space = isl_set_get_space(set); */
+    space = isl_pw_aff_get_space(pa);
+    /* printf("space: %s\n", isl_space_to_str(space)); */
+    /* ma = isl_multi_aff_identity_on_domain_space(space); */
+    /* printf("ma: %s\n", isl_multi_aff_to_str(ma)); */
+    /* aff = isl_multi_aff_get_aff(ma, 0); */
+    /* printf("aff: %s\n", isl_aff_to_str(aff)); */
+    /* pa = isl_pw_aff_from_aff(aff); */
+    /* printf("pa: %s\n", isl_pw_aff_to_str(pa)); */
+
+    /* printf("ma: %s\n", isl_multi_aff_to_str(ma)); */
+    /* upa = isl_union_pw_aff_add_pw_aff(upa, pa); */
   }
   isl_set_list_free(slist);
   return upa;
