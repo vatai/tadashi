@@ -54,6 +54,10 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
 }
 
 __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
+  // params
+  long const_val = 100 + 10 * set_idx;
+  int id_idx = 0;
+  // decls
   isl_ctx *ctx;
   isl_union_set *domain;
   isl_space *space;
@@ -75,26 +79,18 @@ __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   upa = isl_union_pw_aff_empty_space(space);
   num_sets = isl_set_list_n_set(slist);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-    printf("----\n");
+    val = isl_val_int_from_si(ctx, const_val);
     set = isl_set_list_get_at(slist, set_idx);
-
-    val = isl_val_int_from_si(ctx, 100 + 10 * set_idx);
-    pa = isl_pw_aff_val_on_domain(isl_set_copy(set), val);
-    printf("pa: %s\n", isl_pw_aff_to_str(pa));
-    /* upa = isl_union_pw_aff_add_pw_aff(upa, pa); */
-
     space = isl_set_get_space(set);
-    /* space = isl_pw_aff_get_space(pa); */
-    printf("space: %s\n", isl_space_to_str(space));
+    pa = isl_pw_aff_val_on_domain(set, val);
     ma = isl_multi_aff_identity_on_domain_space(space);
-    printf("ma: %s\n", isl_multi_aff_to_str(ma));
-    aff = isl_multi_aff_get_aff(ma, 1);
+    // isl_multi_aff_identity_aff multi aff
+    aff = isl_multi_aff_get_aff(ma, id_idx);
+    ma = isl_multi_aff_free(ma);
     pa = isl_pw_aff_add(pa, isl_pw_aff_from_aff(aff));
-    printf("pa: %s\n", isl_pw_aff_to_str(pa));
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
-    printf("upa: %s\n", isl_union_pw_aff_to_str(upa));
   }
-  isl_set_list_free(slist);
+  slist = isl_set_list_free(slist);
   return upa;
 }
 
@@ -113,7 +109,7 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
 
   upal = isl_multi_union_pw_aff_get_list(mupa);
   upal_size = isl_union_pw_aff_list_size(upal);
-  isl_multi_union_pw_aff_free(mupa);
+  mupa = isl_multi_union_pw_aff_free(mupa);
   upal_new = isl_union_pw_aff_list_alloc(ctx, upal_size);
   for (upal_idx = 0; upal_idx < upal_size; upal_idx++) {
     upa = isl_union_pw_aff_list_get_at(upal, upal_idx);
@@ -121,7 +117,7 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
     upal_new = isl_union_pw_aff_list_add(upal_new, upa);
   }
   mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upal_new);
-  isl_union_pw_aff_list_free(upal);
+  upal = isl_union_pw_aff_list_free(upal);
   return mupa;
 }
 
@@ -132,7 +128,7 @@ shift_and_print(__isl_take isl_schedule_node *node,
   node = isl_schedule_node_band_shift(node, mupa);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (after shift): %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  isl_multi_union_pw_aff_free(mupa);
+  mupa = isl_multi_union_pw_aff_free(mupa);
   return node;
 }
 
@@ -143,7 +139,7 @@ int main() {
   isl_multi_union_pw_aff *mupa;
   mupa = brutus(node);
   node = shift_and_print(node, mupa);
-  isl_schedule_node_free(node);
+  node = isl_schedule_node_free(node);
   isl_ctx_free(ctx);
   printf("Bye!\n");
   return 0;
