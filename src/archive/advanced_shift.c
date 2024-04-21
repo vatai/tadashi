@@ -27,7 +27,8 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   // ./build/tadashi -s tadashi.yaml
   // build/_deps/polybench-src/linear-algebra/blas/gemm/gemm.c
 
-  file = fopen("build/_deps/polybench-src/linear-algebra/blas/gemm/"
+  file = fopen("/home/vatai/code/tadashi/build/_deps/polybench-src/"
+               "linear-algebra/blas/gemm/"
                "gemm.c.0.tadashi.yaml",
                "r");
   assert(file != 0);
@@ -80,20 +81,18 @@ __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
     val = isl_val_int_from_si(ctx, 100 + 10 * set_idx);
     pa = isl_pw_aff_val_on_domain(isl_set_copy(set), val);
     printf("pa: %s\n", isl_pw_aff_to_str(pa));
-    upa = isl_union_pw_aff_add_pw_aff(upa, pa);
-
-    /* space = isl_set_get_space(set); */
-    space = isl_pw_aff_get_space(pa);
-    /* printf("space: %s\n", isl_space_to_str(space)); */
-    /* ma = isl_multi_aff_identity_on_domain_space(space); */
-    /* printf("ma: %s\n", isl_multi_aff_to_str(ma)); */
-    /* aff = isl_multi_aff_get_aff(ma, 0); */
-    /* printf("aff: %s\n", isl_aff_to_str(aff)); */
-    /* pa = isl_pw_aff_from_aff(aff); */
-    /* printf("pa: %s\n", isl_pw_aff_to_str(pa)); */
-
-    /* printf("ma: %s\n", isl_multi_aff_to_str(ma)); */
     /* upa = isl_union_pw_aff_add_pw_aff(upa, pa); */
+
+    space = isl_set_get_space(set);
+    /* space = isl_pw_aff_get_space(pa); */
+    printf("space: %s\n", isl_space_to_str(space));
+    ma = isl_multi_aff_identity_on_domain_space(space);
+    printf("ma: %s\n", isl_multi_aff_to_str(ma));
+    aff = isl_multi_aff_get_aff(ma, 1);
+    pa = isl_pw_aff_add(pa, isl_pw_aff_from_aff(aff));
+    printf("pa: %s\n", isl_pw_aff_to_str(pa));
+    upa = isl_union_pw_aff_add_pw_aff(upa, pa);
+    printf("upa: %s\n", isl_union_pw_aff_to_str(upa));
   }
   isl_set_list_free(slist);
   return upa;
