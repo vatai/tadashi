@@ -79,7 +79,7 @@ __isl_give isl_union_pw_aff *proc_upa(isl_union_pw_aff *upa) {
   upa = isl_union_pw_aff_empty_space(space);
   num_sets = isl_set_list_n_set(slist);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-    val = isl_val_int_from_si(ctx, const_val);
+    val = isl_val_int_from_si(ctx, const_val + set_idx);
     set = isl_set_list_get_at(slist, set_idx);
     pa = isl_pw_aff_val_on_domain(set, val);
     space = isl_set_get_space(set);
@@ -104,6 +104,7 @@ __isl_give isl_multi_union_pw_aff *brutus(__isl_keep isl_schedule_node *node) {
   isl_union_pw_aff_list *upal, *upal_new;
   ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
+  printf("mupa (original): %s\n", isl_multi_union_pw_aff_to_str(mupa));
 
   space = isl_schedule_node_band_get_space(node);
 
