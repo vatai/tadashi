@@ -132,16 +132,10 @@ __isl_give isl_union_pw_aff *proc_upa2(isl_union_pw_aff *upa, int idx,
   isl_set_list *pa_domains;
   isl_size num_sets;
   isl_set *set;
-  isl_id *id;
-  isl_multi_aff *ma;
-  isl_aff *aff;
   ctx = isl_union_pw_aff_get_ctx(upa);
+  upa_space = isl_union_pw_aff_get_space(upa);
   upa_domain = isl_union_pw_aff_domain(upa);
   pa_domains = isl_union_set_get_set_list(upa_domain);
-  val = isl_val_int_from_si(ctx, 0);
-  upa = isl_union_pw_aff_val_on_domain(upa_domain, val);
-  upa_space = isl_union_pw_aff_get_space(upa);
-  isl_union_pw_aff_free(upa);
   upa = isl_union_pw_aff_empty_space(upa_space);
   num_sets = isl_set_list_n_set(pa_domains);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
