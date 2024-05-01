@@ -53,13 +53,13 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   return node;
 }
 
-__isl_give isl_pw_aff *f(__isl_take isl_set *set, long const_val) {
+__isl_give isl_pw_aff *pa_val(__isl_take isl_set *set, long val) {
   isl_ctx *ctx = isl_set_get_ctx(set);
-  isl_val *val = isl_val_int_from_si(ctx, const_val);
-  return isl_pw_aff_val_on_domain(set, val);
+  isl_val *v = isl_val_int_from_si(ctx, val);
+  return isl_pw_aff_val_on_domain(set, v);
 }
 
-__isl_give isl_pw_aff *g(__isl_take isl_set *set, long const_val) {
+__isl_give isl_pw_aff *id_pa(__isl_take isl_set *set, long id_idx) {
   isl_space *space = isl_set_get_space(set);
   set = isl_set_free(set);
   isl_size ndims = isl_space_dim(space, isl_dim_out);
@@ -71,42 +71,35 @@ __isl_give isl_pw_aff *g(__isl_take isl_set *set, long const_val) {
   const char *name = isl_space_get_tuple_name(space, isl_dim_out);
   space = isl_space_set_tuple_name(space, isl_dim_in, name);
   isl_multi_aff *ma = isl_multi_aff_identity(space);
-  isl_aff *aff = isl_multi_aff_get_at(ma, const_val);
+  isl_aff *aff = isl_multi_aff_get_at(ma, id_idx);
   ma = isl_multi_aff_free(ma);
   return isl_pw_aff_from_aff(aff);
 }
 
-__isl_give isl_multi_union_pw_aff *
-brutus2(__isl_keep isl_schedule_node *node,
-        __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
-        int idx, long const_val) {
-  int mupa_idx = 0;
-  isl_ctx *ctx;
+__isl_give isl_multi_union_pw_aff *shift_partial(
+    __isl_keep isl_schedule_node *node,
+    __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
+    int idx, long const_val) {
   isl_multi_union_pw_aff *mupa;
-  isl_size mupa_dim;
   isl_union_pw_aff *upa;
   isl_union_set *upa_domain;
   isl_set_list *pa_domains;
-  isl_set *set;
-  isl_pw_aff *pa;
   isl_id *id;
-  isl_size num_sets;
-  isl_val *val;
-  ctx = isl_schedule_node_get_ctx(node);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
-  mupa_dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
+  isl_size mupa_dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   assert(mupa_dim == 1);
-  upa = isl_multi_union_pw_aff_get_at(mupa, mupa_idx);
+  upa = isl_multi_union_pw_aff_get_at(mupa, 0);
   mupa = isl_multi_union_pw_aff_free(mupa);
   upa_domain = isl_union_pw_aff_domain(upa); // takes upa
   pa_domains = isl_union_set_get_set_list(upa_domain);
   upa_domain = isl_union_set_free(upa_domain);
   upa = isl_union_pw_aff_empty_ctx(ctx);
-  num_sets = isl_set_list_n_set(pa_domains);
+  isl_size num_sets = isl_set_list_n_set(pa_domains);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-    set = isl_set_list_get_at(pa_domains, set_idx);
-    pa = ((idx == set_idx) ? fn(set, const_val) : f(set, 0));
+    isl_set *set = isl_set_list_get_at(pa_domains, set_idx);
+    isl_pw_aff *pa = ((idx == set_idx) ? fn(set, const_val) : pa_val(set, 0));
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
   }
   pa_domains = isl_set_list_free(pa_domains);
@@ -132,7 +125,7 @@ int main() {
   isl_ctx *ctx = isl_ctx_alloc();
   isl_schedule_node *node = navigate_to_the_node(ctx);
   isl_multi_union_pw_aff *mupa;
-  mupa = brutus2(node, g, 1, 0);
+  mupa = shift_partial(node, id_pa, 1, 0);
   node = shift_and_print(node, mupa);
   node = isl_schedule_node_free(node);
   isl_ctx_free(ctx);
