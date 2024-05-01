@@ -53,6 +53,27 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   return node;
 }
 
+__isl_give isl_pw_aff *f(__isl_take isl_set *set, long const_val) {
+  isl_ctx *ctx = isl_set_get_ctx(set);
+  isl_val *val = isl_val_int_from_si(ctx, const_val);
+  return isl_pw_aff_val_on_domain(set, val);
+}
+
+__isl_give isl_pw_aff *g(__isl_take isl_set *set, long const_val) {
+  isl_space *space = isl_set_get_space(set);
+  isl_size ndims = isl_space_dim(space, isl_dim_out);
+  space = isl_space_add_dims(space, isl_dim_in, ndims);
+  for (int i = 0; i < ndims; ++i) {
+    isl_id *id = isl_space_get_dim_id(space, isl_dim_out, i);
+    space = isl_space_set_dim_id(space, isl_dim_in, i, id);
+  }
+  const char *name = isl_space_get_tuple_name(space, isl_dim_out);
+  space = isl_space_set_tuple_name(space, isl_dim_in, name);
+  isl_multi_aff *ma = isl_multi_aff_identity(space);
+  isl_aff *aff = isl_multi_aff_get_at(ma, 0);
+  return isl_pw_aff_from_aff(aff);
+}
+
 __isl_give isl_multi_union_pw_aff *brutus2(__isl_keep isl_schedule_node *node,
                                            int idx, long const_val) {
   int mupa_idx = 0;
@@ -80,9 +101,12 @@ __isl_give isl_multi_union_pw_aff *brutus2(__isl_keep isl_schedule_node *node,
   upa = isl_union_pw_aff_empty_ctx(ctx);
   num_sets = isl_set_list_n_set(pa_domains);
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-    val = isl_val_int_from_si(ctx, const_val);
     set = isl_set_list_get_at(pa_domains, set_idx);
-    pa = isl_pw_aff_val_on_domain(set, val);
+    if (idx == set_idx)
+      pa = g(set, 0);
+    else
+      pa = f(set, 0);
+
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
   }
   pa_domains = isl_set_list_free(pa_domains);
