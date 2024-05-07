@@ -76,7 +76,7 @@ __isl_give isl_pw_aff *id_pa(__isl_take isl_set *set, long id_idx) {
   return isl_pw_aff_from_aff(aff);
 }
 
-__isl_give isl_multi_union_pw_aff *shift_partial(
+__isl_give isl_schedule_node *shift_partial(
     __isl_keep isl_schedule_node *node,
     __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
     int idx, long const_val) {
@@ -107,17 +107,7 @@ __isl_give isl_multi_union_pw_aff *shift_partial(
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
   mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
   printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  return mupa;
-}
-
-__isl_give isl_schedule_node *
-shift_and_print(__isl_take isl_schedule_node *node,
-                __isl_take isl_multi_union_pw_aff *mupa) {
-  node = isl_schedule_node_band_shift(node, mupa);
-  mupa = isl_schedule_node_band_get_partial_schedule(node);
-  printf("mupa (after shift): %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  mupa = isl_multi_union_pw_aff_free(mupa);
-  return node;
+  return isl_schedule_node_band_shift(node, mupa);
 }
 
 int main() {
@@ -125,8 +115,12 @@ int main() {
   isl_ctx *ctx = isl_ctx_alloc();
   isl_schedule_node *node = navigate_to_the_node(ctx);
   isl_multi_union_pw_aff *mupa;
-  mupa = shift_partial(node, id_pa, 1, 0);
-  node = shift_and_print(node, mupa);
+
+  node = shift_partial(node, id_pa, 1, 0);
+
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  printf("mupa (after shift): %s\n", isl_multi_union_pw_aff_to_str(mupa));
+  mupa = isl_multi_union_pw_aff_free(mupa);
   node = isl_schedule_node_free(node);
   isl_ctx_free(ctx);
   printf("Bye!\n");
