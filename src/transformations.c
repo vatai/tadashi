@@ -1,16 +1,18 @@
-#include "transformations.h"
 
+#include <assert.h>
 #include <isl/aff_type.h>
 #include <isl/ctx.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/space.h>
 #include <isl/union_set.h>
 
 #include <isl/val.h>
 #include <isl/val_type.h>
 #include <pet.h>
-#include <string.h>
+
+#include "transformations.h"
 
 isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int tile_size) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
@@ -40,12 +42,66 @@ isl_schedule_node *tadashi_scale(isl_schedule_node *node, long scale) {
   return node;
 }
 
-isl_schedule_node *tadashi_shift(isl_schedule_node *node, long shift) {
+__isl_give isl_pw_aff *_pa_val(__isl_take isl_set *set, long val) {
+  isl_ctx *ctx = isl_set_get_ctx(set);
+  isl_val *v = isl_val_int_from_si(ctx, val);
+  return isl_pw_aff_val_on_domain(set, v);
+}
+
+__isl_give isl_pw_aff *_pa_id(__isl_take isl_set *set, long id_idx) {
+  isl_space *space = isl_set_get_space(set);
+  set = isl_set_free(set);
+  isl_size ndims = isl_space_dim(space, isl_dim_out);
+  space = isl_space_add_dims(space, isl_dim_in, ndims);
+  for (int i = 0; i < ndims; ++i) {
+    isl_id *id = isl_space_get_dim_id(space, isl_dim_out, i);
+    space = isl_space_set_dim_id(space, isl_dim_in, i, id);
+  }
+  const char *name = isl_space_get_tuple_name(space, isl_dim_out);
+  space = isl_space_set_tuple_name(space, isl_dim_in, name);
+  isl_multi_aff *ma = isl_multi_aff_identity(space);
+  isl_aff *aff = isl_multi_aff_get_at(ma, id_idx);
+  ma = isl_multi_aff_free(ma);
+  return isl_pw_aff_from_aff(aff);
+}
+
+__isl_give isl_schedule_node *_shift_partial(
+    __isl_take isl_schedule_node *node,
+    __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
+    int idx, long const_val) {
+  isl_multi_union_pw_aff *mupa;
+  isl_union_pw_aff *upa;
+  isl_union_set *upa_domain;
+  isl_set_list *pa_domains;
+  isl_id *id;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  node = isl_schedule_node_band_shift(
-      node, isl_multi_union_pw_aff_read_from_str(
-                ctx, "[N] -> L_1[{ S_0[i,j] -> [(i+j)] } ]"));
-  return node;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
+  isl_size mupa_dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
+  assert(mupa_dim == 1);
+  upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  upa_domain = isl_union_pw_aff_domain(upa); // takes upa
+  pa_domains = isl_union_set_get_set_list(upa_domain);
+  upa_domain = isl_union_set_free(upa_domain);
+  upa = isl_union_pw_aff_empty_ctx(ctx);
+  isl_size num_sets = isl_set_list_n_set(pa_domains);
+  for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+    isl_set *set = isl_set_list_get_at(pa_domains, set_idx);
+    isl_pw_aff *pa = ((idx == set_idx) ? fn(set, const_val) : _pa_val(set, 0));
+    upa = isl_union_pw_aff_add_pw_aff(upa, pa);
+  }
+  pa_domains = isl_set_list_free(pa_domains);
+  printf("upa: %s\n", isl_union_pw_aff_to_str(upa));
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
+  mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
+  return isl_schedule_node_band_shift(node, mupa);
+}
+
+__isl_give isl_schedule_node *
+tadashi_shift_id(__isl_take isl_schedule_node *node, int pa_idx, long id_idx) {
+  return _shift_partial(node, _pa_id, pa_idx, id_idx);
 }
 
 // sink & order?

@@ -42,6 +42,7 @@ struct scop_info_t {
 };
 
 std::vector<struct scop_info_t> SCOP_INFO;
+
 std::vector<std::string> STRINGS;
 
 /******** scops constructor/descructor **********************/
@@ -192,6 +193,14 @@ bool post_transform(size_t scop_idx) {
   return legal;
 }
 
+// #define REGISTER1(OUTER_FN, INNER_FN, arg_type, arg_name)                      \
+//   bool OUTER_FN(size_t scop_idx, arg_type arg_name) {                          \
+//     scop_info_t *si = pre_transfomr(scop_idx);                                 \
+//     si->tmp_node = INNER_FN(si->tmp_node, arg_name);                           \
+//     return post_transform(scop_idx);                                           \
+//   }
+// REGISTER1(title, tadashi_title_1d, size_t, tile_size);
+
 bool tile(size_t scop_idx, size_t tile_size) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
@@ -201,6 +210,12 @@ bool tile(size_t scop_idx, size_t tile_size) {
 bool interchange(size_t scop_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_interchange(si->tmp_node);
+  return post_transform(scop_idx);
+}
+
+bool shift_partial_id(size_t scop_idx) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_shift_id(si->tmp_node, 0, 0);
   return post_transform(scop_idx);
 }
 

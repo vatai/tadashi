@@ -15,13 +15,23 @@ __isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
                                                __isl_keep struct pet_scop *scop,
                                                struct user_t *user);
 
-isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int tile_size);
+__isl_give isl_schedule_node *
+tadashi_tile_1d(__isl_take isl_schedule_node *node, int tile_size);
 
-isl_schedule_node *tadashi_interchange(isl_schedule_node *node);
+__isl_give isl_schedule_node *
+tadashi_interchange(__isl_take isl_schedule_node *node);
 
-isl_schedule_node *tadashi_scale(isl_schedule_node *node, long scale);
+__isl_give isl_schedule_node *tadashi_scale(__isl_take isl_schedule_node *node,
+                                            long scale);
 
-isl_schedule_node *tadashi_shift(isl_schedule_node *node, long shift);
+__isl_give isl_schedule_node *
+tadashi_shift_partial_id(__isl_take isl_schedule_node *node, long shift);
+
+__isl_give isl_schedule_node *
+tadashi_shift_partial_val(__isl_take isl_schedule_node *node, long shift);
+
+__isl_give isl_schedule_node *
+tadashi_shift_id(__isl_take isl_schedule_node *node, int pa_idx, long id_idx);
 
 #if defined(__cplusplus)
 }
