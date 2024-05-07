@@ -14,7 +14,7 @@
 
 #include "transformations.h"
 
-isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node, int tile_size) {
+isl_schedule_node *tadashi_tile(isl_schedule_node *node, int tile_size) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   return isl_schedule_node_band_tile(
       node, isl_multi_val_from_val_list(
@@ -92,16 +92,21 @@ __isl_give isl_schedule_node *_shift_partial(
     upa = isl_union_pw_aff_add_pw_aff(upa, pa);
   }
   pa_domains = isl_set_list_free(pa_domains);
-  printf("upa: %s\n", isl_union_pw_aff_to_str(upa));
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
   mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
-  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
   return isl_schedule_node_band_shift(node, mupa);
 }
 
 __isl_give isl_schedule_node *
-tadashi_shift_id(__isl_take isl_schedule_node *node, int pa_idx, long id_idx) {
+tadashi_partial_shift_id(__isl_take isl_schedule_node *node, int pa_idx,
+                         long id_idx) {
   return _shift_partial(node, _pa_id, pa_idx, id_idx);
+}
+
+__isl_give isl_schedule_node *
+tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
+                          long id_idx) {
+  return _shift_partial(node, _pa_val, pa_idx, id_idx);
 }
 
 // sink & order?

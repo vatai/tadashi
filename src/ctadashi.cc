@@ -168,17 +168,26 @@ void goto_child(size_t scop_idx, size_t child_idx) {
 /******** transformations ***********************************/
 
 scop_info_t *pre_transfomr(size_t scop_idx) {
-  scop_info_t *si = &SCOP_INFO[scop_idx];
+  // Set up `tmp_node` as a copy of `current_node` because we don't
+  // want to mess with the current node if the transformation is not
+  // legal.
+  //
+  // However now that I think about it, this approach may be wrong,
+  // since we might wanna get to illegal states, temporarily of course
+  // - the only requirement is that we're in a legal state at the
+  // final output.
+  scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
   si->tmp_node = isl_schedule_node_copy(si->current_node);
   return si;
 }
 
 bool post_transform(size_t scop_idx) {
-  scop_info_t *si = &SCOP_INFO[scop_idx];
+  scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
   isl_schedule *sched = isl_schedule_node_get_schedule(node);
-  isl_schedule_node_free(node);
+  node = isl_schedule_node_free(node);
+  // Got `dep` and `sched`.
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
   isl_schedule_free(sched);
@@ -193,17 +202,9 @@ bool post_transform(size_t scop_idx) {
   return legal;
 }
 
-// #define REGISTER1(OUTER_FN, INNER_FN, arg_type, arg_name)                      \
-//   bool OUTER_FN(size_t scop_idx, arg_type arg_name) {                          \
-//     scop_info_t *si = pre_transfomr(scop_idx);                                 \
-//     si->tmp_node = INNER_FN(si->tmp_node, arg_name);                           \
-//     return post_transform(scop_idx);                                           \
-//   }
-// REGISTER1(title, tadashi_title_1d, size_t, tile_size);
-
 bool tile(size_t scop_idx, size_t tile_size) {
   scop_info_t *si = pre_transfomr(scop_idx);
-  si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
+  si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
   return post_transform(scop_idx);
 }
 
@@ -213,9 +214,15 @@ bool interchange(size_t scop_idx) {
   return post_transform(scop_idx);
 }
 
-bool shift_partial_id(size_t scop_idx) {
+bool partial_shift_id(size_t scop_idx, int pa_idx, long id_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
-  si->tmp_node = tadashi_shift_id(si->tmp_node, 0, 0);
+  si->tmp_node = tadashi_partial_shift_id(si->tmp_node, pa_idx, id_idx);
+  return post_transform(scop_idx);
+}
+
+bool partial_shift_val(size_t scop_idx, int pa_idx, long val) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
   return post_transform(scop_idx);
 }
 

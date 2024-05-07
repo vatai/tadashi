@@ -19,7 +19,8 @@ def main():
     # transform the node
     # codegen new scops and measure performance
     print(f"{node.avaliable_transformation=}")
-    node.transform(Transformation.TILE, 10)
+    # node.transform(Transformation.TILE, 10)
+    node.transform(Transformation.PARTIAL_SHIFT_ID, 0, 0)
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")

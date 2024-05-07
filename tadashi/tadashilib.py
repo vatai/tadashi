@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os
-from ctypes import CDLL, c_bool, c_char_p, c_int, c_size_t
+from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 
@@ -25,6 +26,8 @@ class NodeType(Enum):
 class Transformation(Enum):
     TILE = 0
     INTERCHANGE = auto()
+    PARTIAL_SHIFT_ID = auto()
+    PARTIAL_SHIFT_VAL = auto()
 
 
 class Node:
@@ -81,6 +84,20 @@ class Node:
             case Transformation.INTERCHANGE:
                 assert len(args) == 0, "Interchange needs exactly 0 arguments"
                 self.scop.interchange()
+            case Transformation.PARTIAL_SHIFT_ID:
+                assert len(args) == 2, (
+                    "Partial shift id needs exactly 2 args: "
+                    "index of the pw aff function, and "
+                    "index of the variable/id which should be added."
+                )
+                self.scop.partial_shift_id(*args)
+            case Transformation.PARTIAL_SHIFT_VAL:
+                assert len(args) == 2, (
+                    "Partial shift val needs exactly 2 args: "
+                    "index of the pw aff function, and "
+                    "the constant value which should be added."
+                )
+                self.scop.partial_shift_val(*args)
 
 
 class Scop:
@@ -145,6 +162,12 @@ class Scop:
     def interchange(self):
         self.ctadashi.interchange(self.idx)
 
+    def partial_shift_id(self, pa_idx, id_idx):
+        self.ctadashi.partial_shift_id(self.idx, pa_idx, id_idx)
+
+    def partial_shift_val(self, pa_idx, val):
+        self.ctadashi.partial_shift_val(self.idx, pa_idx, val)
+
 
 class Scops:
     """All SCoPs which belong to a given file.
@@ -185,6 +208,10 @@ class Scops:
         self.ctadashi.tile.restype = c_bool
         self.ctadashi.interchange.argtypes = [c_size_t]
         self.ctadashi.interchange.restype = c_bool
+        self.ctadashi.partial_shift_id.argtypes = [c_size_t, c_int, c_long]
+        self.ctadashi.partial_shift_id.restype = c_bool
+        self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
+        self.ctadashi.partial_shift_val.restype = c_bool
         #
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
