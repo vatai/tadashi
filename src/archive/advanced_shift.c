@@ -110,13 +110,21 @@ __isl_give isl_schedule_node *shift_partial(
   return isl_schedule_node_band_shift(node, mupa);
 }
 
+__isl_give isl_schedule_node *shift(__isl_take isl_schedule_node *node) {
+  isl_multi_union_pw_aff *mupa;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  return node;
+}
 int main() {
   printf("Hello\n");
   isl_ctx *ctx = isl_ctx_alloc();
   isl_schedule_node *node = navigate_to_the_node(ctx);
   isl_multi_union_pw_aff *mupa;
 
-  node = shift_partial(node, id_pa, 1, 0);
+  // node = shift_partial(node, id_pa, 1, 0);
+
+  node = shift(node);
 
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (after shift): %s\n", isl_multi_union_pw_aff_to_str(mupa));
