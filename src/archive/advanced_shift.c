@@ -116,16 +116,13 @@ __isl_give isl_schedule_node *shift(__isl_take isl_schedule_node *node) {
   isl_union_pw_aff *upa;
   isl_id *id;
   isl_union_set *domain;
-  isl_set_list *sets;
-  isl_size num_sets;
-  isl_space *space;
+  isl_union_pw_multi_aff *upma;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   upa = isl_multi_union_pw_aff_get_at(mupa, 0);
   id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   mupa = isl_multi_union_pw_aff_free(mupa);
   domain = isl_union_pw_aff_domain(upa);
-  isl_union_pw_multi_aff *upma =
-      isl_union_set_identity_union_pw_multi_aff(isl_union_set_copy(domain));
+  upma = isl_union_set_identity_union_pw_multi_aff(isl_union_set_copy(domain));
   upa = isl_union_pw_multi_aff_get_union_pw_aff(upma, 1);
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
   mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
