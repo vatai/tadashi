@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from apps import Polybench, Simple
-from tadashilib import Scops, Transformation
+from .apps import Polybench, Simple
+from .tadashilib import Scops, Transformation
 
 
 def main():
