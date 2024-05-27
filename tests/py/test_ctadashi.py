@@ -24,10 +24,11 @@ class TestCtadashi(unittest.TestCase):
         generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
         target_code = Path(outfile_gold.decode()).read_text().split("\n")
         # print(target_code)
-        diff = list(difflib.unified_diff(generated_code, target_code))
-        if diff:
-            print("\n".join(diff))
-        self.assertFalse(diff)
+        diff = difflib.unified_diff(generated_code, target_code)
+        diff_str = "\n".join(diff)
+        if diff_str:
+            print(diff_str)
+        self.assertFalse(diff_str)
 
 
 if __name__ == "__main__":
