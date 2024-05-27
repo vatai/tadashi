@@ -56,4 +56,4 @@ jobs:
       run: python -m tadashi
 
     - name: Run simple.py
-      run: python tadashi/simple.py
+      run: python -m tadashi.simple
