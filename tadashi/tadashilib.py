@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 
-from apps import App
+from .apps import App
 
 
 class NodeType(Enum):
