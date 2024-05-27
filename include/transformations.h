@@ -25,18 +25,20 @@ __isl_give isl_schedule_node *tadashi_scale(__isl_take isl_schedule_node *node,
                                             long scale);
 
 __isl_give isl_schedule_node *
-tadashi_shift_partial_id(__isl_take isl_schedule_node *node, long shift);
-
-__isl_give isl_schedule_node *
-tadashi_shift_partial_val(__isl_take isl_schedule_node *node, long shift);
-
-__isl_give isl_schedule_node *
-tadashi_partial_shift_id(__isl_take isl_schedule_node *node, int pa_idx,
-                         long id_idx);
+tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
+                          long id_idx);
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
                           long id_idx);
+
+__isl_give isl_schedule_node *
+tadashi_full_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
+                       long id_idx);
+
+__isl_give isl_schedule_node *
+tadashi_full_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
+                       long id_idx);
 
 #if defined(__cplusplus)
 }

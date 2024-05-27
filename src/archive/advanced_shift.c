@@ -111,7 +111,7 @@ __isl_give isl_schedule_node *shift_partial(
 }
 
 __isl_give isl_schedule_node *shift_var(__isl_take isl_schedule_node *node,
-                                        long coeff, long var_idx) {
+                                        long var_idx) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff *upa;
@@ -133,7 +133,7 @@ __isl_give isl_schedule_node *shift_var(__isl_take isl_schedule_node *node,
 }
 
 __isl_give isl_schedule_node *shift_val(__isl_take isl_schedule_node *node,
-                                        long coeff, long val) {
+                                        long val) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_val *v = isl_val_int_from_si(ctx, val);
   isl_multi_union_pw_aff *mupa;
@@ -162,9 +162,9 @@ int main() {
 
   long coeff = 1;
   long var_idx = 0;
-  node = shift_var(node, coeff, var_idx);
+  node = shift_var(node, var_idx);
   long val = 42;
-  node = shift_val(node, coeff, val);
+  node = shift_val(node, val);
 
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   printf("mupa (after shift): %s\n", isl_multi_union_pw_aff_to_str(mupa));
