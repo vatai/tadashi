@@ -105,7 +105,7 @@ target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code
 enable_testing()
 include(GoogleTest)
 
-add_executable(legality_test tests/legality_test.cc)
-target_link_libraries(legality_test PUBLIC PkgConfig::ISL GTest::gtest_main legality)
+add_executable(test_legality tests/cc/test_legality.cc)
+target_link_libraries(test_legality PUBLIC PkgConfig::ISL GTest::gtest_main legality)
 
-gtest_discover_tests(legality_test)
+gtest_discover_tests(test_legality)
