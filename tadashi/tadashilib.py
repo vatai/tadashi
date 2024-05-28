@@ -3,7 +3,7 @@
 import os
 from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum, StrEnum, auto
 from pathlib import Path
 
 from .apps import App
@@ -24,10 +24,10 @@ class NodeType(Enum):
 
 
 class Transformation(Enum):
-    TILE = 0
-    INTERCHANGE = auto()
-    PARTIAL_SHIFT_ID = auto()
-    PARTIAL_SHIFT_VAL = auto()
+    TILE = "TILE"
+    INTERCHANGE = "INTERCHANGE"
+    PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
+    PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
 
 
 class Node:
@@ -84,7 +84,7 @@ class Node:
             case Transformation.INTERCHANGE:
                 assert len(args) == 0, "Interchange needs exactly 0 arguments"
                 self.scop.interchange()
-            case Transformation.PARTIAL_SHIFT_ID:
+            case Transformation.PARTIAL_SHIFT_VAR:
                 assert len(args) == 2, (
                     "Partial shift id needs exactly 2 args: "
                     "index of the pw aff function, and "

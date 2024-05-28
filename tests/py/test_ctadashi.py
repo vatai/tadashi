@@ -18,22 +18,21 @@ def foobar(app):
     with open(app.source) as file:
         for line in file:
             if line.startswith(HEADER):
-                transform_str = line.split(HEADER)[1].strip().split(",")
+                transform_str = line.split(HEADER)[1].strip()
             elif line.startswith(COMMENT):
                 stripped_line = line.strip().replace(COMMENT, "")
                 if len(line) > len(COMMENT):
                     stripped_line = stripped_line[1:]
                 target_code.append(stripped_line)
-    print(transform_str)
-    # transform = ast.literal_eval(transform_str)
-    # print(transform)
-    return target_code
+    transform = list(ast.literal_eval(transform_str))
+    transform_and_args = [Transformation(transform[0])] + transform[1:]
+    return transform_and_args, target_code
 
 
 class TestCtadashi(unittest.TestCase):
     def test_lit(self):
         app = Simple(source=Path(__file__).parent.parent / "threeloop.c")
-        target_code = foobar(app)
+        transform_with_args, target_code = foobar(app)
 
         # transform
         scop_idx = 0
@@ -41,7 +40,7 @@ class TestCtadashi(unittest.TestCase):
         scops = Scops(app)
         scop = scops[scop_idx]  # select_scop()
         node = scop.schedule_tree[node_idx]  # model.select_node(scop)
-        node.transform(Transformation.TILE, 4)
+        node.transform(*transform_with_args)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             outfile = Path(tmpdir) / self._testMethodName
