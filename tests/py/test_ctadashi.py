@@ -26,10 +26,10 @@ class TestCtadashi(unittest.TestCase):
 
 void f(size_t N, double A[N][N]) {
 #pragma scop
-#define min(x,y)    ((x) < (y) ? (x) : (y))
-for(int c0 = 1; c0 < N; c0 += 1)
+  #define min(x,y)    ((x) < (y) ? (x) : (y))
+  for(int c0 = 1; c0 < N; c0 += 1)
     for(int c1 = 0; c1 < N; c1 += 4)
-    for(int c2 = 0; c2 <= min(3, N - c1 - 1); c2 += 1)
+      for(int c2 = 0; c2 <= min(3, N - c1 - 1); c2 += 1)
         {
           for(int c3 = 0; c3 < N; c3 += 1)
             A[c0][c1 + c2] = (A[c0][c1 + c2] + (A[c0 - 1][c1 + c2] * (c3)));
@@ -38,7 +38,7 @@ for(int c0 = 1; c0 < N; c0 += 1)
         }
 #pragma endscop
 }
-    """.split(
+""".split(
                 "\n"
             )
             scops.ctadashi.generate_code(scops.source_path_bytes, outfile_bytes)
@@ -64,9 +64,7 @@ for(int c0 = 1; c0 < N; c0 += 1)
         generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
         header = "/// TRANSFORM:"
         comment = "///"
-        filtered_code = [
-            line for line in generated_code if not line.startswith(comment)
-        ]
+        filtered_code = [x for x in generated_code if not x.startswith(comment)]
         target_code = []
         with open(app.source) as file:
             for line in file:

@@ -57,3 +57,6 @@ jobs:
 
     - name: Run simple.py
       run: python -m tadashi.simple
+
+    - name: Run unittests
+      run: python -m unittest
