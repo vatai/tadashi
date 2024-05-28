@@ -18,7 +18,7 @@ def foobar(app):
     with open(app.source) as file:
         for line in file:
             if line.startswith(HEADER):
-                transform_str = line.split(HEADER)[1].strip()
+                transform_str = line.replace(HEADER, "")
             elif line.startswith(COMMENT):
                 stripped_line = line.strip().replace(COMMENT, "")
                 if len(line) > len(COMMENT):
@@ -30,6 +30,14 @@ def foobar(app):
 
 
 class TestCtadashi(unittest.TestCase):
+    def get_filtered_code(self, scops):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            outfile = Path(tmpdir) / self._testMethodName
+            outfile_bytes = str(outfile).encode()
+            scops.ctadashi.generate_code(scops.source_path_bytes, outfile_bytes)
+            generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
+        return [x for x in generated_code if not x.startswith(COMMENT)]
+
     def test_lit(self):
         app = Simple(source=Path(__file__).parent.parent / "threeloop.c")
         transform_with_args, target_code = foobar(app)
@@ -42,12 +50,7 @@ class TestCtadashi(unittest.TestCase):
         node = scop.schedule_tree[node_idx]  # model.select_node(scop)
         node.transform(*transform_with_args)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            outfile = Path(tmpdir) / self._testMethodName
-            outfile_bytes = str(outfile).encode()
-            scops.ctadashi.generate_code(scops.source_path_bytes, outfile_bytes)
-            generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
-        filtered_code = [x for x in generated_code if not x.startswith(COMMENT)]
+        filtered_code = self.get_filtered_code(scops)
         diff = difflib.unified_diff(filtered_code, target_code)
         diff_str = "\n".join(diff)
         if diff_str:
