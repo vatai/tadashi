@@ -4,13 +4,7 @@ on: push
 jobs:
   build-pet:
     name: Build PET
-    # strategy:
-    #   matrix:
-    #     python: ["3.10", "3.11"]
-    #     os: [ubuntu-latest, ubuntu-22.10]
-    # runs-on: ${{ matrix.os }}
     runs-on: ubuntu-latest
-
     steps:
 
     - name: Install packages 📦
@@ -18,28 +12,17 @@ jobs:
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev
+        libclang-dev python-is-python3
+
+    - name: Set up Python 🐍
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        # cache: 'pip'
 
     - name: Check out repo
       uses: actions/checkout@master
 
-    # - name: Cache build dir
-    #   id: cache-build-dir
-    #   uses: actions/cache@v3
-    #   env:
-    #     cache-name: cache-build-dir
-    #   with:
-    #     path: ${{ github.workspace }}/build
-    #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tadashi/CMakeLists.txt') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-build-${{ env.cache-name }}-
-    #       ${{ runner.os }}-build-
-    #       ${{ runner.os }}-
-
-    # - name: LS
-    #   run: ls build
-
-    # - if: ${{ steps.cache-build-dir.outputs.cache-hit == 'false' }}
     - name: Configure Project
       # continue-on-error: true
       uses: threeal/cmake-action@v1.3.0
@@ -49,7 +32,7 @@ jobs:
     - name: Build Project
       run: cmake --build build
 
-    - name: Test Project
+    - name: Run cmake gtest
       run: ctest --test-dir build
 
     - name: Run random_rl.py
