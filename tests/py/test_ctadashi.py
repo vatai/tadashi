@@ -83,7 +83,7 @@ class TestCtadashi(unittest.TestCase):
 
 
 def setup():
-    test_dir = Path(__file__).parent.parent
+    test_dir = Path(__file__).parent
     for app_path in test_dir.glob("*.c"):
 
         def ch(app_path):
