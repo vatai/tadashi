@@ -63,7 +63,8 @@ class TestCtadashi(unittest.TestCase):
             generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
-    def _lit(self, app):
+    def _lit(self, app_file):
+        app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 
         # transform
@@ -81,8 +82,9 @@ class TestCtadashi(unittest.TestCase):
         self.assertFalse(diff_str)
 
     def test_threeloop(self):
-        app = Simple(source=Path(__file__).parent.parent / "threeloop.c")
-        self._lit(app)
+        test_dir = Path(__file__).parent.parent
+        for app_path in test_dir.glob("*.c"):
+            self._lit(app_path)
 
 
 if __name__ == "__main__":
