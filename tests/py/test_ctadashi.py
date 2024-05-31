@@ -32,31 +32,27 @@ class TestCtadashi(unittest.TestCase):
         `False` when the line is appended to the `target_code` list.
 
         """
-        TRANSFORMATION = " TRANSFORMATION: "
-        if line.startswith(COMMENT):
-            stripped_line = line.strip().replace(COMMENT, "")
-            if stripped_line.startswith(TRANSFORMATION):
-                transform_str = stripped_line.replace(TRANSFORMATION, "")
-                evaled = ast.literal_eval(transform_str)
-                transform_data.scop_idx = evaled[0]
-                transform_data.node_idx = evaled[1]
-                transform_data.transformation = Transformation(evaled[2])
-                transform_data.transformation_args = evaled[3:]
-                return True
-            else:
-                target_line = stripped_line[1:] if stripped_line else stripped_line
-                target_code.append(target_line)
         return False
 
     @classmethod
     def _read_app_comments(cls, app):
+        TRANSFORMATION = " TRANSFORMATION: "
         transforms = []
         target_code = []
         transform_data = TransformData()
         with open(app.source) as file:
-            for line in file:
-                if cls._proc_line(line, transform_data, target_code):
-                    transforms.append(transform_data)
+            for commented_line in file:
+                if not commented_line.startswith(COMMENT):
+                    continue
+                line = commented_line.strip().replace(COMMENT, "")
+                if line.startswith(TRANSFORMATION):
+                    transform_str = line.replace(TRANSFORMATION, "")
+                    lits = ast.literal_eval(transform_str)
+                    td = TransformData(*lits[:2], Transformation(lits[2]), lits[3:])
+                    transforms.append(td)
+                else:
+                    target_line = line[1:] if line else line
+                    target_code.append(target_line)
         return transforms, target_code
 
     def _get_filtered_code(self, scops):
