@@ -163,7 +163,7 @@ class Scop:
         self.ctadashi.interchange(self.idx)
 
     def partial_shift_id(self, pa_idx, id_idx):
-        self.ctadashi.partial_shift_id(self.idx, pa_idx, id_idx)
+        self.ctadashi.partial_shift_var(self.idx, pa_idx, id_idx)
 
     def partial_shift_val(self, pa_idx, val):
         self.ctadashi.partial_shift_val(self.idx, pa_idx, val)
