@@ -37,7 +37,7 @@ isl_schedule_node *tadashi_fuse(isl_schedule_node *node, int idx1, int idx2) {
   isl_union_set *filter;
   isl_multi_union_pw_aff *mupa;
   isl_size size = isl_schedule_node_n_children(node) - 1;
-  printf("size = %d\n", size);
+  printf("fuse size: %d\n", size);
   filters = isl_union_set_list_alloc(ctx, size);
   node = isl_schedule_node_child(node, idx1);
   filter = isl_schedule_node_filter_get_filter(node);
@@ -61,12 +61,15 @@ isl_schedule_node *tadashi_fuse(isl_schedule_node *node, int idx1, int idx2) {
     }
     filters = isl_union_set_list_insert(filters, i, f);
   }
-  node = isl_schedule_node_insert_sequence(node, filters);
-  node = isl_schedule_node_first_child(node);
-  node = isl_schedule_node_first_child(node);
 
-  node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_next_sibling(node);
+  if (size == 1) {
+    filters = isl_union_set_list_free(filters);
+    return node;
+  }
+  printf("MARK0:\n%s\n\n", isl_schedule_node_to_str(node));
+  node = isl_schedule_node_insert_sequence(node, filters);
+  printf("MARK1:\n%s\n\n", isl_schedule_node_to_str(node));
+  node = isl_schedule_node_child(node, idx1);
   node = isl_schedule_node_first_child(node);
 
   node = isl_schedule_node_child(node, idx1);
