@@ -215,8 +215,8 @@ class Scops:
         self.ctadashi.tile.restype = c_bool
         self.ctadashi.interchange.argtypes = [c_size_t]
         self.ctadashi.interchange.restype = c_bool
-        self.ctadashi.tile.argtypes = [c_size_t, c_int, c_int]
-        self.ctadashi.tile.restype = c_bool
+        self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
+        self.ctadashi.fuse.restype = c_bool
         self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_var.restype = c_bool
         self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
