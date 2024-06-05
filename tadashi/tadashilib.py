@@ -26,6 +26,7 @@ class NodeType(Enum):
 class Transformation(Enum):
     TILE = "TILE"
     INTERCHANGE = "INTERCHANGE"
+    FUSE = "FUSE"
     PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
     PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
 
@@ -84,6 +85,9 @@ class Node:
             case Transformation.INTERCHANGE:
                 assert len(args) == 0, "Interchange needs exactly 0 arguments"
                 self.scop.interchange()
+            case Transformation.FUSE:
+                assert len(args) == 2, "Fuse needs exactly 2 arguments"
+                self.scop.fuse(*args)
             case Transformation.PARTIAL_SHIFT_VAR:
                 assert len(args) == 2, (
                     "Partial shift id needs exactly 2 args: "
@@ -162,6 +166,9 @@ class Scop:
     def interchange(self):
         self.ctadashi.interchange(self.idx)
 
+    def fuse(self, idx1, idx2):
+        self.ctadashi.fuse(self.idx, idx1, idx2)
+
     def partial_shift_id(self, pa_idx, id_idx):
         self.ctadashi.partial_shift_var(self.idx, pa_idx, id_idx)
 
@@ -208,6 +215,8 @@ class Scops:
         self.ctadashi.tile.restype = c_bool
         self.ctadashi.interchange.argtypes = [c_size_t]
         self.ctadashi.interchange.restype = c_bool
+        self.ctadashi.tile.argtypes = [c_size_t, c_int, c_int]
+        self.ctadashi.tile.restype = c_bool
         self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_var.restype = c_bool
         self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]

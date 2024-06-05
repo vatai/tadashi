@@ -31,7 +31,70 @@ isl_schedule_node *tadashi_interchange(isl_schedule_node *node) {
   return node;
 }
 
-isl_schedule_node *tadashi_fuse(isl_schedule_node *node) { return node; }
+isl_schedule_node *tadashi_fuse(isl_schedule_node *node, int idx1, int idx2) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_union_set_list *filters;
+  isl_union_set *filter;
+  isl_multi_union_pw_aff *mupa;
+  isl_size size = isl_schedule_node_n_children(node) - 1;
+  printf("size = %d\n", size);
+  filters = isl_union_set_list_alloc(ctx, size);
+  node = isl_schedule_node_child(node, idx1);
+  filter = isl_schedule_node_filter_get_filter(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_child(node, idx2);
+  filter =
+      isl_union_set_union(filter, isl_schedule_node_filter_get_filter(node));
+  node = isl_schedule_node_parent(node);
+  for (int i = 0; i < size; i++) {
+    isl_union_set *f;
+    if (i >= idx2) {
+      node = isl_schedule_node_child(node, i + 1);
+      f = isl_schedule_node_filter_get_filter(node);
+      node = isl_schedule_node_parent(node);
+    } else if (i == idx1) {
+      f = filter;
+    } else { // i < idx2
+      node = isl_schedule_node_child(node, i);
+      f = isl_schedule_node_filter_get_filter(node);
+      node = isl_schedule_node_parent(node);
+    }
+    filters = isl_union_set_list_insert(filters, i, f);
+  }
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_first_child(node);
+
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_next_sibling(node);
+  node = isl_schedule_node_first_child(node);
+
+  node = isl_schedule_node_child(node, idx1);
+  filter = isl_schedule_node_filter_get_filter(node);
+  filters = isl_union_set_list_from_union_set(isl_union_set_copy(filter));
+  node = isl_schedule_node_first_child(node);
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  mupa = isl_multi_union_pw_aff_intersect_domain(mupa, filter);
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+
+  node = isl_schedule_node_child(node, idx2);
+  filter = isl_schedule_node_filter_get_filter(node);
+  filters = isl_union_set_list_insert(filters, 1, isl_union_set_copy(filter));
+  node = isl_schedule_node_first_child(node);
+  mupa = isl_multi_union_pw_aff_union_add(
+      mupa, isl_multi_union_pw_aff_intersect_domain(
+                isl_schedule_node_band_get_partial_schedule(node), filter));
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+
+  return node;
+}
 
 isl_schedule_node *tadashi_scale(isl_schedule_node *node, long scale) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);

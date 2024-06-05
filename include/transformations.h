@@ -21,6 +21,9 @@ __isl_give isl_schedule_node *tadashi_tile(__isl_take isl_schedule_node *node,
 __isl_give isl_schedule_node *
 tadashi_interchange(__isl_take isl_schedule_node *node);
 
+__isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
+                                           int idx1, int idx2);
+
 __isl_give isl_schedule_node *tadashi_scale(__isl_take isl_schedule_node *node,
                                             long scale);
 

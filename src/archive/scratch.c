@@ -50,7 +50,7 @@ int main() {
       isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 3 }"));
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
-  // printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
+  printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
 
   // TODO: idx1 = min(pos1, pos2);
   // TODO: idx2 = max(pos1, pos2)
