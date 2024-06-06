@@ -63,6 +63,7 @@ insert_outer_shorter_sequence(__isl_take isl_schedule_node *node, int idx1,
   node = isl_schedule_node_insert_sequence(node, filters);
   return node;
 }
+
 struct result_t {
   isl_union_set *filter;
   isl_union_set_list *filters;
@@ -72,17 +73,9 @@ struct result_t {
 __isl_give isl_schedule_node *
 get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
                     struct result_t *result, isl_union_set_list **filters) {
-  // - Go to the inner sequence node.
-  //
-  // - Go down to first non-empty filter.
-  //
-  // - Get the filter.
-  //
-  // - Go down to the schedule node.
-  //
-  // - Get mupa and restrict it to filter.
-  //
-  // - Go back up 2x (to the original node)
+  // Go down to first merged/non-empty filter and get the filter; Go
+  // further down to the schedule node to get the schedule mupa and
+  // restrict it to the filter. Go back up 2x (to the original node).
   isl_union_set *tmp;
   node = isl_schedule_node_child(node, idx);
   result->filter = isl_schedule_node_filter_get_filter(node);
@@ -98,8 +91,8 @@ get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
   return node;
 }
 
-__isl_give isl_schedule_node *fuse(__isl_take isl_schedule_node *node, int idx1,
-                                   int idx2) {
+__isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
+                                           int idx1, int idx2) {
   isl_union_set_list *filters;
   isl_multi_union_pw_aff *mupa;
   isl_union_set *tmp;
@@ -155,7 +148,7 @@ int main() {
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
   // printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
-  node = fuse(node, idx1, idx2);
+  node = tadashi_fuse(node, idx1, idx2);
   // printf("AFTER:\n%s\n\n", isl_schedule_node_to_str(node));
   // TODO ///////////////////////////////////
   // GROUP
