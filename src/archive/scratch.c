@@ -23,7 +23,6 @@ __isl_give isl_union_set_list *get_filters(isl_schedule_node **node,
   isl_union_set_list *filters;
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
   isl_size size = isl_schedule_node_n_children(*node) - 1;
-  printf("size = %d\n", size);
   filters = isl_union_set_list_alloc(ctx, size);
   for (int i = 0; i < size; i++) {
     isl_union_set *f;
@@ -66,12 +65,13 @@ insert_outer_shorter_sequence(__isl_take isl_schedule_node *node, int idx1,
 }
 struct result_t {
   isl_union_set *filter;
+  isl_union_set_list *filters;
   isl_multi_union_pw_aff *mupa;
 };
 
 __isl_give isl_schedule_node *
 get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
-                    struct result_t *result) {
+                    struct result_t *result, isl_union_set_list **filters) {
   // - Go to the inner sequence node.
   //
   // - Go down to first non-empty filter.
@@ -83,6 +83,7 @@ get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
   // - Get mupa and restrict it to filter.
   //
   // - Go back up 2x (to the original node)
+  isl_union_set *tmp;
   node = isl_schedule_node_child(node, idx);
   result->filter = isl_schedule_node_filter_get_filter(node);
   node = isl_schedule_node_first_child(node);
@@ -91,35 +92,28 @@ get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
       isl_multi_union_pw_aff_intersect_domain(result->mupa, result->filter);
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
+  tmp = isl_union_set_copy(result->filter);
+  isl_size pos = isl_union_set_list_size(*filters);
+  *filters = isl_union_set_list_insert(*filters, pos, tmp);
   return node;
 }
 
 __isl_give isl_schedule_node *fuse(__isl_take isl_schedule_node *node, int idx1,
                                    int idx2) {
-  printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
-
   isl_union_set_list *filters;
-  isl_union_set *filter;
   isl_multi_union_pw_aff *mupa;
+  isl_union_set *tmp;
   struct result_t result1, result2;
-
-  // printf("MARK0:\n%s\n\n", isl_schedule_node_to_str(node));
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
 
   node = insert_outer_shorter_sequence(node, idx1, idx2);
-
+  // go to original, inner, longer sequence
   node = isl_schedule_node_child(node, idx1);
   node = isl_schedule_node_first_child(node);
-
-  node = get_filter_and_mupa(node, idx1, &result1);
-  filter = isl_union_set_copy(result1.filter);
-  filters = isl_union_set_list_from_union_set(filter);
-
-  node = get_filter_and_mupa(node, idx2, &result2);
-  filter = isl_union_set_copy(result2.filter);
-  filters = isl_union_set_list_insert(filters, 1, filter);
-
+  filters = isl_union_set_list_alloc(ctx, 2);
+  node = get_filter_and_mupa(node, idx1, &result1, &filters);
+  node = get_filter_and_mupa(node, idx2, &result2, &filters);
   mupa = isl_multi_union_pw_aff_union_add(result1.mupa, result2.mupa);
-
   node = isl_schedule_node_insert_sequence(node, filters);
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
   return node;
@@ -160,8 +154,9 @@ int main() {
       isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 3 }"));
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
+  // printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
   node = fuse(node, idx1, idx2);
-  printf("AFTER:\n%s\n\n", isl_schedule_node_to_str(node));
+  // printf("AFTER:\n%s\n\n", isl_schedule_node_to_str(node));
   // TODO ///////////////////////////////////
   // GROUP
   // node = isl_schedule_node_group(node, isl_id_read_from_str(ctx, "S_0"));
