@@ -17,50 +17,22 @@
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 
-int main() {
-  printf("Hello\n");
-  isl_ctx *ctx = isl_ctx_alloc();
+__isl_give isl_union_set_list *get_filters(__isl_take isl_schedule_node *node) {
+  isl_union_set_list *filters;
+  isl_union_set *filter;
+  return filters;
+}
 
-  FILE *file;
-  file = fopen("./examples/depnodep.c.0.tadashi.isl", "r");
-  assert(file != 0);
-  isl_union_map *umap = isl_union_map_read_from_file(ctx, file);
-  // isl_union_map_dump(umap);
-  fclose(file);
-  file = fopen("./examples/depnodep.c.0.tadashi.yaml", "r");
-  assert(file != 0);
-  isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
-  // isl_schedule_dump(schedule);
-  fclose(file);
-  isl_schedule_node *node = isl_schedule_get_root(schedule);
-  node = isl_schedule_node_first_child(node);
-
-  // ORDER_BEFORE
-  node = isl_schedule_node_order_before(
-      node,
-      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 0 }"));
-  node = isl_schedule_node_order_before(
-      node,
-      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 1 }"));
-  node = isl_schedule_node_order_before(
-      node,
-      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 2 }"));
-  node = isl_schedule_node_order_before(
-      node,
-      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 3 }"));
-  node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_parent(node);
+__isl_give isl_schedule_node *fuse(__isl_take isl_schedule_node *node, int idx1,
+                                   int idx2) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   printf("BEFORE:\n%s\n\n", isl_schedule_node_to_str(node));
 
-  // TODO: idx1 = min(pos1, pos2);
-  // TODO: idx2 = max(pos1, pos2)
-  int idx1 = 1, idx2 = 3;
   isl_union_set_list *filters;
   isl_union_set *filter;
   isl_multi_union_pw_aff *mupa1, *mupa2;
   isl_size size = isl_schedule_node_n_children(node) - 1;
   printf("size = %d\n", size);
-  filters = isl_union_set_list_alloc(ctx, size);
   node = isl_schedule_node_child(node, idx1);
   filter = isl_schedule_node_filter_get_filter(node);
   node = isl_schedule_node_parent(node);
@@ -68,6 +40,7 @@ int main() {
   filter =
       isl_union_set_union(filter, isl_schedule_node_filter_get_filter(node));
   node = isl_schedule_node_parent(node);
+  filters = isl_union_set_list_alloc(ctx, size);
   for (int i = 0; i < size; i++) {
     isl_union_set *f;
     if (i >= idx2) {
@@ -128,7 +101,45 @@ int main() {
 
   node = isl_schedule_node_insert_sequence(node, filters);
   node = isl_schedule_node_insert_partial_schedule(node, mupa1);
+  return node;
+}
 
+int main() {
+  printf("Hello\n");
+  isl_ctx *ctx = isl_ctx_alloc();
+
+  FILE *file;
+  file = fopen("./examples/depnodep.c.0.tadashi.isl", "r");
+  assert(file != 0);
+  isl_union_map *umap = isl_union_map_read_from_file(ctx, file);
+  // isl_union_map_dump(umap);
+  fclose(file);
+  file = fopen("./examples/depnodep.c.0.tadashi.yaml", "r");
+  assert(file != 0);
+  isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
+  // isl_schedule_dump(schedule);
+  fclose(file);
+  isl_schedule_node *node = isl_schedule_get_root(schedule);
+
+  int idx1 = 1, idx2 = 3;
+  node = isl_schedule_node_first_child(node);
+
+  // ORDER_BEFORE
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 0 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 1 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 2 }"));
+  node = isl_schedule_node_order_before(
+      node,
+      isl_union_set_read_from_str(ctx, "[N] -> {S_0[i,j] : i mod 5 = 3 }"));
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+  node = fuse(node, idx1, idx2);
   printf("AFTER:\n%s\n\n", isl_schedule_node_to_str(node));
   // TODO ///////////////////////////////////
   // GROUP
