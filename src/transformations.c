@@ -109,6 +109,11 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
   return node;
 }
 
+__isl_give isl_schedule_node *
+tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
+  return node;
+}
+
 __isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
                                            int idx1, int idx2) {
   isl_union_set_list *filters;
