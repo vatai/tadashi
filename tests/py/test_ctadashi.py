@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-
 import ast
 import difflib
+import logging
 import tempfile
 import unittest
 from dataclasses import dataclass, field
@@ -64,21 +64,27 @@ class TestCtadashi(unittest.TestCase):
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
     def check(self, app_file):
+        logger = logging.getLogger(self._testMethodName)
+        logging.basicConfig(level=logging.INFO)
         app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 
         # transform
         scops = Scops(app)
+        logger.info("Start test")
         for transform in transforms:
             scop = scops[transform.scop_idx]  # select_scop()
             node = scop.schedule_tree[transform.node_idx]  # model.select_node(scop)
             node.transform(transform.transformation, *transform.transformation_args)
 
+        logger.info("Transformations done")
         filtered_code = self._get_filtered_code(scops)
+        logger.info("Code generated")
         diff = difflib.unified_diff(filtered_code, target_code)
         diff_str = "\n".join(diff)
         if diff_str:
             print(diff_str)
+        logger.info("Test finished")
         self.assertFalse(diff_str)
 
 
