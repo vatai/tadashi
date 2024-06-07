@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
-#include <isl/union_map.h>
 #include <map>
 #include <sstream>
 #include <string>
@@ -23,6 +22,7 @@
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <isl/set.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
