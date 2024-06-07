@@ -46,3 +46,6 @@ target_link_libraries(scale_and_shift PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_executable(scratch src/archive/scratch.c)
 target_link_libraries(scratch PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(fuse src/archive/fuse.c)
+target_link_libraries(fuse PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
