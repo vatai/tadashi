@@ -123,6 +123,12 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
 
 __isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
                                            int idx1, int idx2) {
+  // If you don't want to fuse all the children of a sequence, you
+  // first need to isolate those that you do want to fuse.  Take the
+  // filters of the children of the original sequence node, collect
+  // them in an isl_union_set_list, replacing the filters of the nodes
+  // you want to fuse by a single (union) filter.  Insert a new
+  // sequence node on top of the original sequence node.
   isl_union_set_list *filters;
   isl_multi_union_pw_aff *mupa;
   isl_union_set *tmp;
