@@ -111,6 +111,13 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
 
 __isl_give isl_schedule_node *
 tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
+  // To merge all band node children of a sequence, take their partial
+  // schedules, intersect them with the corresponding filters and take
+  // the union.  Introduce a new band node on top of the sequence
+  // using isl_schedule_insert_partial_schedule.  If you want, you can
+  // then also delete the original band nodes, but this is not
+  // strictly required since they will mostly be ignored during AST
+  // generation.
   return node;
 }
 
