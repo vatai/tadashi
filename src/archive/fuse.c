@@ -22,7 +22,7 @@ static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
 int main(int argc, char *argv[]) {
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
-  char input[] = "./tests/py/test_fuse.c";
+  char input[] = "./tests/py/fuse_partial.c";
   FILE *output = fopen("cout.c", "w");
   // pet_options_set_autodetect(ctx, 1);
   pet_transform_C_source(ctx, input, output, scop_callback, NULL);
@@ -39,8 +39,8 @@ static __isl_give isl_printer *scop_callback(__isl_take isl_printer *p,
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
-  // node = tadashi_fuse(node, 0, 1);
-  node = tadashi_complete_fuse(node);
+  node = tadashi_fuse(node, 1, 2);
+  // node = tadashi_complete_fuse(node);
   // isl_union_map *dep = get_dependencies(scop);
   p = codegen(p, scop, sched);
   pet_scop_free(scop);

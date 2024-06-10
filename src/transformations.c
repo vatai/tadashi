@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <isl/aff.h>
 #include <isl/aff_type.h>
@@ -142,37 +141,16 @@ __isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
   /* node = isl_schedule_node_parent(node); */
   /* return node; */
   //  go to original, inner, longer sequence
-  //// printf("mark1\n");
-  node = isl_schedule_node_child(node, idx1);
-  node = isl_schedule_node_first_child(node);
-  //// printf("mark2\n");
-  filters = isl_union_set_list_alloc(ctx, 2);
-  node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
-  node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
-  printf("mark3\n");
-
-  /* isl_id *id = isl_multi_union_pw_aff_get_tuple_id(result[0].mupa,
-   * isl_dim_out); */
-  /* result[1].mupa = */
-  /*     isl_multi_union_pw_aff_set_tuple_id(result[1].mupa, isl_dim_out, id);
-   */
-  // isl_space *model = isl_multi_union_pw_aff_get_space(result[0].mupa);
-  // result[2].mupa = isl_multi_union_pw_aff_align_params(result[2].mupa,
-  // model);
-
-  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(result[0].mupa));
-  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(result[1].mupa));
-  mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
-  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  printf("mark4\n");
-  node = isl_schedule_node_insert_sequence(node, filters);
-  printf("mark5\n");
-  node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  printf("mark6\n");
-  printf("AFTER: %s\n", isl_schedule_node_to_str(node));
-  node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_parent(node);
-  printf("mark7\n");
+  // node = isl_schedule_node_child(node, idx1);
+  // node = isl_schedule_node_first_child(node);
+  // filters = isl_union_set_list_alloc(ctx, 2);
+  // node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
+  // node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
+  // mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
+  // node = isl_schedule_node_insert_sequence(node, filters);
+  // node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  // node = isl_schedule_node_parent(node);
+  // node = isl_schedule_node_parent(node);
   return node;
 }
 
