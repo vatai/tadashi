@@ -1,4 +1,5 @@
 
+#include <isl/ast_build.h>
 #include <stdio.h>
 
 #include <isl/ctx.h>
@@ -6,19 +7,11 @@
 #include <isl/schedule_node.h>
 #include <pet.h>
 
-#include "codegen.h"
-#include "legality.h"
 #include "transformations.h"
 
 static __isl_give isl_printer *scop_callback(__isl_take isl_printer *p,
                                              pet_scop *scop, void *user);
 
-static int generate_code(const char *input_path, const char *output_path,
-                         isl_ctx *ctx);
-
-static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
-                                                      struct pet_scop *scop,
-                                                      void *user);
 int main(int argc, char *argv[]) {
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
@@ -40,9 +33,13 @@ static __isl_give isl_printer *scop_callback(__isl_take isl_printer *p,
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
   node = tadashi_fuse(node, 1, 2);
-  // node = tadashi_complete_fuse(node);
-  // isl_union_map *dep = get_dependencies(scop);
-  p = codegen(p, scop, sched);
+
+  isl_ctx *ctx = isl_schedule_get_ctx(sched);
+  isl_ast_build *build = isl_ast_build_alloc(ctx);
+  isl_ast_node *ast_node = isl_ast_build_node_from_schedule(build, sched);
+  isl_ast_print_options *print_options = isl_ast_print_options_alloc(ctx);
+  p = isl_ast_node_print(ast_node, p, print_options);
+  isl_ast_build_free(build);
   pet_scop_free(scop);
   return p;
 }
