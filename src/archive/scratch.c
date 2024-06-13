@@ -17,6 +17,8 @@
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 
+#include "transformations.h"
+
 __isl_give isl_union_set_list *
 _fuse_get_filters(isl_schedule_node **node, __isl_take isl_union_set *filter,
                   int idx1, int idx2) {
@@ -69,53 +71,6 @@ struct _fuse_result_t {
   isl_union_set_list *filters;
   isl_multi_union_pw_aff *mupa;
 };
-
-__isl_give isl_schedule_node *
-_fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
-                          struct _fuse_result_t *result,
-                          isl_union_set_list **filters) {
-  // Go down to first merged/non-empty filter and get the filter; Go
-  // further down to the schedule node to get the schedule mupa and
-  // restrict it to the filter. Go back up 2x (to the original node).
-  isl_union_set *tmp;
-  node = isl_schedule_node_child(node, idx);
-  result->filter = isl_schedule_node_filter_get_filter(node);
-  node = isl_schedule_node_first_child(node);
-  result->mupa = isl_schedule_node_band_get_partial_schedule(node);
-  result->mupa =
-      isl_multi_union_pw_aff_intersect_domain(result->mupa, result->filter);
-  node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_parent(node);
-  tmp = isl_union_set_copy(result->filter);
-  isl_size pos = isl_union_set_list_size(*filters);
-  *filters = isl_union_set_list_insert(*filters, pos, tmp);
-  return node;
-}
-
-__isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
-                                           int idx1, int idx2) {
-  isl_union_set_list *filters;
-  isl_multi_union_pw_aff *mupa;
-  isl_union_set *tmp;
-  struct _fuse_result_t result1, result2;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-
-  node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
-  // return node;
-  // go to original, inner, longer sequence
-  node = isl_schedule_node_child(node, idx1);
-  node = isl_schedule_node_first_child(node);
-  filters = isl_union_set_list_alloc(ctx, 2);
-  node = _fuse_get_filter_and_mupa(node, idx1, &result1, &filters);
-  node = _fuse_get_filter_and_mupa(node, idx2, &result2, &filters);
-  mupa = isl_multi_union_pw_aff_union_add(result1.mupa, result2.mupa);
-  printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
-  node = isl_schedule_node_insert_sequence(node, filters);
-  node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_parent(node);
-  return node;
-}
 
 int main() {
   printf("Hello\n");
