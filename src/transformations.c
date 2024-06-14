@@ -125,7 +125,7 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
   // If you want, you can then also delete the original band nodes,
   // but this is not strictly required since they will mostly be
   // ignored during AST generation.
-  printf("%s\n", isl_schedule_node_to_str(node));
+  //// printf("%s\n", isl_schedule_node_to_str(node));
   isl_size num_children = isl_schedule_node_n_children(node);
   node = isl_schedule_node_first_child(node);
   isl_multi_union_pw_aff *mupa = NULL;
@@ -135,7 +135,7 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
     assert(isl_schedule_node_get_type(node) == isl_schedule_node_filter);
     filter = isl_schedule_node_filter_get_filter(node);
     node = isl_schedule_node_first_child(node);
-    printf("f: %s\n", isl_union_set_to_str(filter));
+    //// printf("f: %s\n", isl_union_set_to_str(filter));
     assert(isl_schedule_node_get_type(node) == isl_schedule_node_band);
     tmp = isl_schedule_node_band_get_partial_schedule(node);
     tmp = isl_multi_union_pw_aff_intersect_domain(tmp, filter);
@@ -158,7 +158,7 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
   /* sched = isl_schedule_insert_partial_schedule(sched, mupa); */
   /* node = isl_schedule_get_root(sched); */
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  printf("%s\n", isl_schedule_node_to_str(node));
+  //// printf("%s\n", isl_schedule_node_to_str(node));
   return node;
 }
 
