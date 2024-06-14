@@ -6,6 +6,7 @@
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <isl/space.h>
+#include <isl/space_type.h>
 #include <isl/union_set.h>
 
 #include <isl/val.h>
@@ -119,20 +120,45 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
   // take the union.
 
   // Introduce a new band node on top of the sequence
-  // using isl_schedule_insert_partial_schedule.
+  // using
 
   // If you want, you can then also delete the original band nodes,
   // but this is not strictly required since they will mostly be
   // ignored during AST generation.
+  printf("%s\n", isl_schedule_node_to_str(node));
   isl_size num_children = isl_schedule_node_n_children(node);
   node = isl_schedule_node_first_child(node);
+  isl_multi_union_pw_aff *mupa = NULL;
   for (isl_size i = 0; i < num_children; i++) {
+    isl_union_set *filter;
+    isl_multi_union_pw_aff *tmp;
     assert(isl_schedule_node_get_type(node) == isl_schedule_node_filter);
-    isl_union_set *filter = isl_schedule_node_filter_get_filter(node);
+    filter = isl_schedule_node_filter_get_filter(node);
     node = isl_schedule_node_first_child(node);
+    printf("f: %s\n", isl_union_set_to_str(filter));
     assert(isl_schedule_node_get_type(node) == isl_schedule_node_band);
+    tmp = isl_schedule_node_band_get_partial_schedule(node);
+    tmp = isl_multi_union_pw_aff_intersect_domain(tmp, filter);
+    tmp = isl_multi_union_pw_aff_reset_tuple_id(tmp, isl_dim_out);
+    if (mupa == NULL) {
+      mupa = tmp;
+    } else {
+      mupa = isl_multi_union_pw_aff_union_add(mupa, tmp);
+    }
+    node = isl_schedule_node_delete(node);
     node = isl_schedule_node_parent(node);
+    if (i == num_children - 1)
+      node = isl_schedule_node_parent(node);
+    else
+      node = isl_schedule_node_next_sibling(node);
   }
+  mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, "Fused");
+  /* isl_schedule *sched; */
+  /* sched = isl_schedule_node_get_schedule(node); */
+  /* sched = isl_schedule_insert_partial_schedule(sched, mupa); */
+  /* node = isl_schedule_get_root(sched); */
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  printf("%s\n", isl_schedule_node_to_str(node));
   return node;
 }
 

@@ -32,7 +32,7 @@ static __isl_give isl_printer *scop_callback(__isl_take isl_printer *p,
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
-  node = tadashi_fuse(node, 1, 2);
+  node = tadashi_complete_fuse(node);
 
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_ast_build *build = isl_ast_build_alloc(ctx);
