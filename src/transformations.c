@@ -127,6 +127,11 @@ tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
   isl_size num_children = isl_schedule_node_n_children(node);
   node = isl_schedule_node_first_child(node);
   for (isl_size i = 0; i < num_children; i++) {
+    assert(isl_schedule_node_get_type(node) == isl_schedule_node_filter);
+    isl_union_set *filter = isl_schedule_node_filter_get_filter(node);
+    node = isl_schedule_node_first_child(node);
+    assert(isl_schedule_node_get_type(node) == isl_schedule_node_band);
+    node = isl_schedule_node_parent(node);
   }
   return node;
 }
