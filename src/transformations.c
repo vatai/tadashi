@@ -178,21 +178,16 @@ __isl_give isl_schedule_node *tadashi_fuse(__isl_take isl_schedule_node *node,
 
   isl_size size = isl_schedule_node_n_children(node);
   node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
-  printf("BEFORE: %s\n", isl_schedule_node_to_str(node));
-  /* node = isl_schedule_node_parent(node); */
-  /* node = isl_schedule_node_parent(node); */
-  /* return node; */
-  //  go to original, inner, longer sequence
-  // node = isl_schedule_node_child(node, idx1);
-  // node = isl_schedule_node_first_child(node);
-  // filters = isl_union_set_list_alloc(ctx, 2);
-  // node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
-  // node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
-  // mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
-  // node = isl_schedule_node_insert_sequence(node, filters);
-  // node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  // node = isl_schedule_node_parent(node);
-  // node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_child(node, idx1);
+  node = isl_schedule_node_first_child(node);
+  filters = isl_union_set_list_alloc(ctx, 2);
+  node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
+  node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
+  mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
   return node;
 }
 

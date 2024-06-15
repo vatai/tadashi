@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     node = complete_fuse(node);
   isl_schedule_node_dump(node);
 
+  sched = isl_schedule_node_get_schedule(node);
   isl_ast_build *build = isl_ast_build_alloc(ctx);
   isl_ast_node *ast_node = isl_ast_build_node_from_schedule(build, sched);
   isl_ast_print_options *print_options = isl_ast_print_options_alloc(ctx);

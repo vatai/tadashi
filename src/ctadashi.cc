@@ -191,13 +191,9 @@ bool post_transform(size_t scop_idx) {
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
   isl_schedule_free(sched);
-  if (legal) {
-    si->modified = true;
-    isl_schedule_node_free(si->current_node);
-    si->current_node = si->tmp_node;
-  } else {
-    isl_schedule_node_free(si->tmp_node);
-  }
+  si->modified = true;
+  isl_schedule_node_free(si->current_node);
+  si->current_node = si->tmp_node;
   si->tmp_node = NULL;
   return legal;
 }
