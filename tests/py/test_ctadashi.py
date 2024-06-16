@@ -68,6 +68,7 @@ class TestCtadashi(unittest.TestCase):
         logger = logging.getLogger(self._testMethodName)
         if "-v" in sys.argv:
             logging.basicConfig(level=logging.INFO)
+            print()
         app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 

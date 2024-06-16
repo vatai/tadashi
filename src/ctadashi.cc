@@ -228,17 +228,29 @@ bool partial_shift_val(size_t scop_idx, int pa_idx, long val) {
   return post_transform(scop_idx);
 }
 
-bool full_shift_var(size_t scop_idx, int pa_idx, long var_idx) {
+// bool partial_shift_param(size_t scop_idx, int pa_idx, long param_idx) {
+// scop_info_t *si = pre_transfomr(scop_idx);
+// si->tmp_node = tadashi_partial_shift_param(si->tmp_node, pa_idx, param_idx);
+// return post_transform(scop_idx);
+// }
+
+bool full_shift_var(size_t scop_idx, long var_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
-  si->tmp_node = tadashi_full_shift_var(si->tmp_node, pa_idx, var_idx);
+  si->tmp_node = tadashi_full_shift_var(si->tmp_node, var_idx);
   return post_transform(scop_idx);
 }
 
-bool full_shift_val(size_t scop_idx, int pa_idx, long val) {
+bool full_shift_val(size_t scop_idx, long val) {
   scop_info_t *si = pre_transfomr(scop_idx);
-  si->tmp_node = tadashi_full_shift_val(si->tmp_node, pa_idx, val);
+  si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
   return post_transform(scop_idx);
 }
+
+// bool full_shift_param(size_t scop_idx, int pa_idx, long param_idx) {
+// scop_info_t *si = pre_transfomr(scop_idx);
+// si->tmp_node = tadashi_full_shift_param(si->tmp_node, pa_idx, param_idx);
+// return post_transform(scop_idx);
+// }
 
 static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
                                                       struct pet_scop *scop,
