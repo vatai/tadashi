@@ -2,6 +2,7 @@
 import ast
 import difflib
 import logging
+import sys
 import tempfile
 import unittest
 from dataclasses import dataclass, field
@@ -55,7 +56,7 @@ class TestCtadashi(unittest.TestCase):
                     target_code.append(target_line)
         return transforms, target_code
 
-    def _get_filtered_code(self, scops):
+    def _get_generated_code(self, scops):
         with tempfile.TemporaryDirectory() as tmpdir:
             outfile = Path(tmpdir) / self._testMethodName
             outfile_bytes = str(outfile).encode()
@@ -65,24 +66,29 @@ class TestCtadashi(unittest.TestCase):
 
     def check(self, app_file):
         logger = logging.getLogger(self._testMethodName)
-        logging.basicConfig(level=logging.INFO)
+        if "-v" in sys.argv:
+            logging.basicConfig(level=logging.INFO)
         app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 
         # transform
         scops = Scops(app)
         logger.info("Start test")
-        for transform in transforms:
-            scop = scops[transform.scop_idx]  # select_scop()
-            node = scop.schedule_tree[transform.node_idx]  # model.select_node(scop)
-            node.transform(transform.transformation, *transform.transformation_args)
+        legality = []
+        for tr in transforms:
+            scop = scops[tr.scop_idx]  # select_scop()
+            node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
+            legal = node.transform(tr.transformation, *tr.transformation_args)
+            legality.append(f"legality={legal}")
 
         logger.info("Transformations done")
-        filtered_code = self._get_filtered_code(scops)
+        generated_code = self._get_generated_code(scops)
         logger.info("Code generated")
-        diff = difflib.unified_diff(filtered_code, target_code)
+        generated_code += legality
+        diff = difflib.unified_diff(generated_code, target_code)
         diff_str = "\n".join(diff)
         if diff_str:
+            print(f"\n{Path(__file__).parent/self._testMethodName}:1:1")
             print(diff_str)
         logger.info("Test finished")
         self.assertFalse(diff_str)

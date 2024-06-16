@@ -13,6 +13,7 @@
 /// #pragma endscop
 /// }
 ///
+/// legality=False
 #include <stdlib.h>
 
 void f(size_t N, double A[N][N]) {

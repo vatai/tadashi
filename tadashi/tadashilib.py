@@ -80,28 +80,35 @@ class Node:
         match transformation:
             case Transformation.TILE:
                 assert len(args) == 1, "Tiling needs exactly 1 argument"
-                tile_size = args[0]
-                self.scop.tile(tile_size)
+                fun = self.scop.ctadashi.tile
+                return self.call_ctadashi(fun, *args)
             case Transformation.INTERCHANGE:
                 assert len(args) == 0, "Interchange needs exactly 0 arguments"
-                self.scop.interchange()
+                fun = self.scop.ctadashi.interchange
+                self.call_ctadashi(fun)
             case Transformation.FUSE:
                 assert len(args) == 2, "Fuse needs exactly 2 arguments"
-                self.scop.fuse(*args)
+                fun = self.scop.ctadashi.fuse
+                return self.call_ctadashi(fun, *args)
             case Transformation.PARTIAL_SHIFT_VAR:
                 assert len(args) == 2, (
                     "Partial shift id needs exactly 2 args: "
                     "index of the pw aff function, and "
                     "index of the variable/id which should be added."
                 )
-                self.scop.partial_shift_id(*args)
+                fun = self.scop.ctadashi.partial_shift_var
+                self.call_ctadashi(fun, *args)
             case Transformation.PARTIAL_SHIFT_VAL:
                 assert len(args) == 2, (
                     "Partial shift val needs exactly 2 args: "
                     "index of the pw aff function, and "
                     "the constant value which should be added."
                 )
-                self.scop.partial_shift_val(*args)
+                fun = self.scop.ctadashi.partial_shift_val
+                return self.call_ctadashi(fun, *args)
+
+    def call_ctadashi(self, fun, *args, **kwargs):
+        return fun(self.scop.idx, *args, **kwargs)
 
 
 class Scop:
@@ -159,21 +166,6 @@ class Scop:
         self.ctadashi.reset_root(self.idx)
         for c in location:
             self.ctadashi.goto_child(self.idx, c)
-
-    def tile(self, tile_size):
-        self.ctadashi.tile(self.idx, tile_size)
-
-    def interchange(self):
-        self.ctadashi.interchange(self.idx)
-
-    def fuse(self, idx1, idx2):
-        self.ctadashi.fuse(self.idx, idx1, idx2)
-
-    def partial_shift_id(self, pa_idx, id_idx):
-        self.ctadashi.partial_shift_var(self.idx, pa_idx, id_idx)
-
-    def partial_shift_val(self, pa_idx, val):
-        self.ctadashi.partial_shift_val(self.idx, pa_idx, val)
 
 
 class Scops:
