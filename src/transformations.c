@@ -285,6 +285,10 @@ tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
 
 __isl_give isl_schedule_node *
 tadashi_full_shift_var(__isl_take isl_schedule_node *node, long var_idx) {
+  isl_multi_union_pw_aff *mupa;
+  isl_id *id;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   return node;
 }
 
