@@ -85,7 +85,7 @@ class Node:
             case Transformation.INTERCHANGE:
                 assert len(args) == 0, "Interchange needs exactly 0 arguments"
                 fun = self.scop.ctadashi.interchange
-                self.call_ctadashi(fun)
+                return self.call_ctadashi(fun)
             case Transformation.FUSE:
                 assert len(args) == 2, "Fuse needs exactly 2 arguments"
                 fun = self.scop.ctadashi.fuse
