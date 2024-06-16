@@ -228,6 +228,8 @@ class Scops:
         self.ctadashi.full_shift_var.restype = c_bool
         self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
         self.ctadashi.full_shift_val.restype = c_bool
+        self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long]
+        self.ctadashi.full_shift_param.restype = c_bool
         #
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 

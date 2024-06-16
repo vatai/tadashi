@@ -246,11 +246,11 @@ bool full_shift_val(size_t scop_idx, long val) {
   return post_transform(scop_idx);
 }
 
-// bool full_shift_param(size_t scop_idx, int pa_idx, long param_idx) {
-// scop_info_t *si = pre_transfomr(scop_idx);
-// si->tmp_node = tadashi_full_shift_param(si->tmp_node, pa_idx, param_idx);
-// return post_transform(scop_idx);
-// }
+bool full_shift_param(size_t scop_idx, int pa_idx, long param_idx) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_full_shift_param(si->tmp_node, param_idx);
+  return post_transform(scop_idx);
+}
 
 static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
                                                       struct pet_scop *scop,

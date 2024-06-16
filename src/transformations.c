@@ -289,7 +289,12 @@ tadashi_full_shift_var(__isl_take isl_schedule_node *node, long var_idx) {
 }
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val_idx) {
+tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
+  return node;
+}
+
+__isl_give isl_schedule_node *
+tadashi_full_shift_param(__isl_take isl_schedule_node *node, long param_idx) {
   return node;
 }
 
