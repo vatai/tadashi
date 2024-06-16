@@ -1,22 +1,29 @@
-/// TRANSFORMATION: 0, 5, "PARTIAL_SHIFT_VAR", 0, 0
-/// TRANSFORMATION: 0, 5, "PARTIAL_SHIFT_VAR", 0, 0
+/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, 0
+/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, 0
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
+///   #define max(x,y)    ((x) > (y) ? (x) : (y))
 ///   for(int c0 = 1; c0 < N; c0 += 1)
-///     for(int c1 = 0; c1 < N; c1 += 1)
-///       {
-///         for(int c2 = 2 * c0; c2 < N + 2 * c0; c2 += 1)
-///           A[c0][c1] = (A[c0][c1] + (A[c0 - 1][c1] * (-2 * c0 + c2)));
+///     {
+///       for(int c1 = 0; c1 < N; c1 += 1)
+///         {
+///           if (c1 >= 2 * c0)
+///             for(int c2 = 0; c2 < N; c2 += 1)
+///               A[c0][-2 * c0 + c1] = (A[c0][-2 * c0 + c1] + (A[c0 - 1][-2 * c0 + c1] * (c2)));
+///           for(int c2 = 0; c2 < N; c2 += 1)
+///             A[c0][c1] = ((A[c0][c1] + A[c0 - 1][c1]) + (c2));
+///         }
+///       for(int c1 = max(N, 2 * c0); c1 < N + 2 * c0; c1 += 1)
 ///         for(int c2 = 0; c2 < N; c2 += 1)
-///           A[c0][c1] = ((A[c0][c1] + A[c0 - 1][c1]) + (c2));
-///       }
+///           A[c0][-2 * c0 + c1] = (A[c0][-2 * c0 + c1] + (A[c0 - 1][-2 * c0 + c1] * (c2)));
+///     }
 /// #pragma endscop
 /// }
 ///
-/// legality=None
-/// legality=None
+/// legality=False
+/// legality=False
 #include <stdlib.h>
 
 void f(size_t N, double A[N][N]) {

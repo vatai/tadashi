@@ -97,7 +97,7 @@ class Node:
                     "index of the variable/id which should be added."
                 )
                 fun = self.scop.ctadashi.partial_shift_var
-                self.call_ctadashi(fun, *args)
+                return self.call_ctadashi(fun, *args)
             case Transformation.PARTIAL_SHIFT_VAL:
                 assert len(args) == 2, (
                     "Partial shift val needs exactly 2 args: "
