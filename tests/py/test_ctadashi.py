@@ -95,7 +95,7 @@ def setup():
         def ch(app_path):
             return lambda self: self.check(app_path)
 
-        setattr(TestCtadashi, f"test_{app_path.name}", ch(app_path))
+        setattr(TestCtadashi, app_path.name, ch(app_path))
 
 
 setup()
