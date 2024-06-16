@@ -5,6 +5,7 @@
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/set.h>
 #include <isl/space.h>
 #include <isl/space_type.h>
 #include <isl/union_set.h>
@@ -223,6 +224,15 @@ __isl_give isl_pw_aff *_pa_var(__isl_take isl_set *set, long id_idx) {
   return isl_pw_aff_from_aff(aff);
 }
 
+__isl_give isl_pw_aff *_pa_param(__isl_take isl_set *set, long param_idx) {
+  isl_id *id;
+  isl_space *space;
+  space = isl_set_get_space(set);
+  id = isl_space_get_dim_id(space, isl_dim_param, param_idx);
+  space = isl_space_free(space);
+  return isl_pw_aff_param_on_domain_id(set, id);
+}
+
 __isl_give isl_schedule_node *_shift_partial(
     __isl_take isl_schedule_node *node,
     __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
@@ -263,8 +273,14 @@ tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
-                          long id_idx) {
-  return _shift_partial(node, _pa_val, pa_idx, id_idx);
+                          long val) {
+  return _shift_partial(node, _pa_val, pa_idx, val);
+}
+
+__isl_give isl_schedule_node *
+tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
+                            long param_idx) {
+  return _shift_partial(node, _pa_param, pa_idx, param_idx);
 }
 
 __isl_give isl_schedule_node *

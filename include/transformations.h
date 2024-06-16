@@ -36,7 +36,11 @@ tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
-                          long id_idx);
+                          long val);
+
+__isl_give isl_schedule_node *
+tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
+                            long param_idx);
 
 __isl_give isl_schedule_node *
 tadashi_full_shift_var(__isl_take isl_schedule_node *node, long id_idx);
