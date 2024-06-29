@@ -8,6 +8,7 @@
 #include <isl/set.h>
 #include <isl/space.h>
 #include <isl/space_type.h>
+#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 
 #include <isl/val.h>
@@ -286,10 +287,20 @@ tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
 __isl_give isl_schedule_node *
 tadashi_full_shift_var(__isl_take isl_schedule_node *node, long var_idx) {
   isl_multi_union_pw_aff *mupa;
+  isl_union_pw_aff *upa;
+  isl_union_pw_multi_aff *upma;
+  isl_union_set *domain;
   isl_id *id;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
-  return node;
+  upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  domain = isl_union_pw_aff_domain(upa);
+  upma = isl_union_set_identity_union_pw_multi_aff(isl_union_set_copy(domain));
+  upa = isl_union_pw_multi_aff_get_union_pw_aff(upma, 1);
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
+  mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  return isl_schedule_node_band_shift(node, mupa);
 }
 
 __isl_give isl_schedule_node *
