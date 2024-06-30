@@ -102,7 +102,11 @@ def setup():
         def ch(app_path):
             return lambda self: self.check(app_path)
 
-        setattr(TestCtadashi, app_path.name, ch(app_path))
+        test_name = app_path.with_suffix("").name
+        setattr(TestCtadashi, test_name, ch(app_path))
 
 
 setup()
+
+if __name__ == "__main__":
+    TestCtadashi().test_full_shift_val()

@@ -30,6 +30,9 @@ class Transformation(Enum):
     PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
     PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
     PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
+    FULL_SHIFT_VAR = "FULL_SHIFT_VAR"
+    FULL_SHIFT_VAL = "FULL_SHIFT_VAL"
+    FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
 
 
 class Node:
@@ -94,7 +97,7 @@ class Node:
             case Transformation.PARTIAL_SHIFT_VAR:
                 assert len(args) == 2, (
                     "Partial shift id needs exactly 2 args: "
-                    "index of the pw aff function, and "
+                    "index of the loop, and "
                     "index of the variable/id which should be added."
                 )
                 fun = self.scop.ctadashi.partial_shift_var
@@ -102,7 +105,7 @@ class Node:
             case Transformation.PARTIAL_SHIFT_VAL:
                 assert len(args) == 2, (
                     "Partial shift val needs exactly 2 args: "
-                    "index of the pw aff function, and "
+                    "index of the loop, and "
                     "the constant value which should be added."
                 )
                 fun = self.scop.ctadashi.partial_shift_val
@@ -110,11 +113,35 @@ class Node:
             case Transformation.PARTIAL_SHIFT_PARAM:
                 assert len(args) == 2, (
                     "Partial shift param needs exactly 2 args: "
-                    "index of the pw aff function, and "
+                    "index of the loop, and "
                     "the index of the param which should be added."
                 )
                 fun = self.scop.ctadashi.partial_shift_param
                 return self.call_ctadashi(fun, *args)
+            case Transformation.FULL_SHIFT_VAR:
+                assert len(args) == 1, (
+                    "Full shift id needs exactly 1 args: "
+                    "index of the variable/id which should be added."
+                )
+                fun = self.scop.ctadashi.full_shift_var
+                return self.call_ctadashi(fun, *args)
+            case Transformation.FULL_SHIFT_VAL:
+                assert len(args) == 1, (
+                    "Full shift val needs exactly 1 args: "
+                    "the constant value which should be added."
+                )
+                fun = self.scop.ctadashi.full_shift_val
+                return self.call_ctadashi(fun, *args)
+            case Transformation.FULL_SHIFT_PARAM:
+                assert len(args) == 1, (
+                    "Partial shift param needs exactly 1 args: "
+                    "the index of the param which should be added."
+                )
+                fun = self.scop.ctadashi.full_shift_param
+                return self.call_ctadashi(fun, *args)
+            case _:
+                msg = "Odd?! Looks like the developer didn't cover all cases!"
+                raise ValueError(msg)
 
     def call_ctadashi(self, fun, *args, **kwargs):
         return fun(self.scop.idx, *args, **kwargs)
