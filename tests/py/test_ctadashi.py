@@ -107,6 +107,3 @@ def setup():
 
 
 setup()
-
-if __name__ == "__main__":
-    TestCtadashi().test_full_shift_val()
