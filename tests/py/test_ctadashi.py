@@ -89,7 +89,7 @@ class TestCtadashi(unittest.TestCase):
         diff = difflib.unified_diff(generated_code, target_code)
         diff_str = "\n".join(diff)
         if diff_str:
-            print(f"\n{Path(__file__).parent/self._testMethodName}:1:1")
+            print(f"\n{Path(__file__).parent/self._testMethodName}.c:1:1")
             print(diff_str)
         logger.info("Test finished")
         self.assertFalse(diff_str)
