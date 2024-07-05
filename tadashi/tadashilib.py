@@ -143,8 +143,10 @@ class Node:
                 msg = "Odd?! Looks like the developer didn't cover all cases!"
                 raise ValueError(msg)
 
-    def call_ctadashi(self, fun, *args, **kwargs):
-        return fun(self.scop.idx, *args, **kwargs)
+    def call_ctadashi(self, fun, *args):
+        if len(args) != len(fun.argtypes) - 1:
+            raise ValueError("Incorrect number of args!")
+        return fun(self.scop.idx, *args)
 
 
 class Scop:
