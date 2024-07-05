@@ -11,10 +11,6 @@
 extern "C" {
 #endif
 
-__isl_give isl_schedule *interactive_transform(isl_ctx *ctx,
-                                               __isl_keep struct pet_scop *scop,
-                                               struct user_t *user);
-
 __isl_give isl_schedule_node *tadashi_tile(__isl_take isl_schedule_node *node,
                                            int tile_size);
 
