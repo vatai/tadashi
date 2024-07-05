@@ -216,6 +216,12 @@ bool fuse(size_t scop_idx, int idx1, int idx2) {
   return post_transform(scop_idx);
 }
 
+bool full_fuse(size_t scop_idx) {
+  scop_info_t *si = pre_transfomr(scop_idx);
+  si->tmp_node = tadashi_full_fuse(si->tmp_node);
+  return post_transform(scop_idx);
+}
+
 bool partial_shift_var(size_t scop_idx, int pa_idx, long var_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_partial_shift_var(si->tmp_node, pa_idx, var_idx);

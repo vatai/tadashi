@@ -27,6 +27,7 @@ class Transformation(Enum):
     TILE = "TILE"
     INTERCHANGE = "INTERCHANGE"
     FUSE = "FUSE"
+    FULL_FUSE = "FULL_FUSE"
     PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
     PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
     PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
@@ -93,6 +94,10 @@ class Node:
             case Transformation.FUSE:
                 assert len(args) == 2, "Fuse needs exactly 2 arguments"
                 fun = self.scop.ctadashi.fuse
+                return self.call_ctadashi(fun, *args)
+            case Transformation.FULL_FUSE:
+                assert len(args) == 0, "Fuse needs exactly 0 arguments"
+                fun = self.scop.ctadashi.full_fuse
                 return self.call_ctadashi(fun, *args)
             case Transformation.PARTIAL_SHIFT_VAR:
                 assert len(args) == 2, (
@@ -247,6 +252,8 @@ class Scops:
         self.ctadashi.interchange.restype = c_bool
         self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
         self.ctadashi.fuse.restype = c_bool
+        self.ctadashi.full_fuse.argtypes = [c_size_t]
+        self.ctadashi.full_fuse.restype = c_bool
         self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_var.restype = c_bool
         self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]

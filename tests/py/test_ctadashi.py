@@ -92,6 +92,7 @@ class TestCtadashi(unittest.TestCase):
             print(f"\n{Path(__file__).parent/self._testMethodName}.c:1:1")
             print(diff_str)
         logger.info("Test finished")
+        del scops
         self.assertFalse(diff_str)
 
 

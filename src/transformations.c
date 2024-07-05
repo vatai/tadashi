@@ -113,7 +113,7 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
 }
 
 __isl_give isl_schedule_node *
-tadashi_complete_fuse(__isl_take isl_schedule_node *node) {
+tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   // To merge all band node children of a sequence,
   //
   // take their partial schedules,
