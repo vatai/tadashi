@@ -12,6 +12,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   polybench
+  DOWNLOAD_EXTRACT_TIMESTAMP On
   URL https://github.com/MatthiasJReisinger/PolyBenchC-4.2.1/archive/refs/heads/master.zip
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -20,6 +21,7 @@ FetchContent_MakeAvailable(polybench)
 
 FetchContent_Declare(
   googletest
+  DOWNLOAD_EXTRACT_TIMESTAMP On
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -36,7 +38,7 @@ FetchContent_Declare(
   # UPDATE_DISCONNECTED ON
 )
 
-FetchContent_Populate(libpet)
+FetchContent_MakeAvailable(libpet)
 
 set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
