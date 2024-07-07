@@ -1,5 +1,5 @@
-/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, 0
-/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, 0
+/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, 42, 0
+/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_VAR", 0, -13, 0
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {

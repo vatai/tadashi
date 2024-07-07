@@ -1,4 +1,4 @@
-/// TRANSFORMATION: 0, 2, "FULL_SHIFT_VAR", 1
+/// TRANSFORMATION: 0, 2, "FULL_SHIFT_VAR", 42, 1
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {

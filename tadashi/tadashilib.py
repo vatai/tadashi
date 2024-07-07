@@ -100,7 +100,7 @@ class Node:
                 fun = self.scop.ctadashi.full_fuse
                 return self.call_ctadashi(fun, *args)
             case Transformation.PARTIAL_SHIFT_VAR:
-                assert len(args) == 2, (
+                assert len(args) == 3, (
                     "Partial shift id needs exactly 2 args: "
                     "index of the loop, and "
                     "index of the variable/id which should be added."
@@ -124,7 +124,7 @@ class Node:
                 fun = self.scop.ctadashi.partial_shift_param
                 return self.call_ctadashi(fun, *args)
             case Transformation.FULL_SHIFT_VAR:
-                assert len(args) == 1, (
+                assert len(args) == 2, (
                     "Full shift id needs exactly 1 args: "
                     "index of the variable/id which should be added."
                 )
@@ -254,13 +254,13 @@ class Scops:
         self.ctadashi.fuse.restype = c_bool
         self.ctadashi.full_fuse.argtypes = [c_size_t]
         self.ctadashi.full_fuse.restype = c_bool
-        self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long]
+        self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long, c_long]
         self.ctadashi.partial_shift_var.restype = c_bool
         self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_val.restype = c_bool
         self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_param.restype = c_bool
-        self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long]
+        self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
         self.ctadashi.full_shift_var.restype = c_bool
         self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
         self.ctadashi.full_shift_val.restype = c_bool
