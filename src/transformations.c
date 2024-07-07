@@ -292,19 +292,37 @@ tadashi_full_shift_var(__isl_take isl_schedule_node *node, long coeff,
   isl_union_pw_multi_aff *upma;
   isl_union_set *domain;
   isl_id *id;
+  isl_size num_pa;
+  isl_pw_aff_list *pa_list;
+  isl_ctx *ctx;
+  isl_val *v;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  // printf("mupa: %s\n", isl_multi_union_pw_aff_to_str(mupa));
   id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  ctx = isl_union_pw_aff_get_ctx(upa);
+  v = isl_val_int_from_si(ctx, coeff);
   mupa = isl_multi_union_pw_aff_free(mupa);
   domain = isl_union_pw_aff_domain(upa);
   upma = isl_union_set_identity_union_pw_multi_aff(domain);
   upa = isl_union_pw_multi_aff_get_union_pw_aff(upma, var_idx);
   upma = isl_union_pw_multi_aff_free(upma);
+  pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+  num_pa = isl_pw_aff_list_size(pa_list);
+  upa = isl_union_pw_aff_free(upa);
+  upa = isl_union_pw_aff_empty_ctx(ctx);
+  for (isl_size i = 0; i < num_pa; i++) {
+    isl_pw_aff *pa = isl_pw_aff_list_get_at(pa_list, i);
+    isl_set *domain = isl_pw_aff_domain(isl_pw_aff_copy(pa));
+    pa = isl_pw_aff_mul(pa, isl_pw_aff_val_on_domain(domain, isl_val_copy(v)));
+    upa = isl_union_pw_aff_add_pw_aff(upa, pa);
+  }
+  pa_list = isl_pw_aff_list_free(pa_list);
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
   mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  v = isl_val_free(v);
   node = isl_schedule_node_band_shift(node, mupa);
+  isl_schedule_node_dump(node);
   return node;
 }
 
