@@ -48,10 +48,18 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 
+if(ISL_FOUND)
+  message("ISL found")
+  set(PET_CONFIGURE_WITH_ISL system)
+else()
+  message("ISL NOT found")
+  set(PET_CONFIGURE_WITH_ISL build)
+endif()
+
 if(NOT PET_FOUND)
   message("Package 'pet' not found, but don't worry, I know how to build it!")
 
-  set(ENV${CC} ${CMAKE_C_COMPILER})
+  set(ENV{CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
 
   execute_process(
@@ -62,7 +70,7 @@ if(NOT PET_FOUND)
 
   execute_process(
     # OUTPUT_QUIET
-    COMMAND ./configure --prefix=${pet_BINARY_DIR} --with-isl=system
+    COMMAND ./configure --prefix=${pet_BINARY_DIR} --with-isl=${PET_CONFIGURE_WITH_ISL}
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
 
