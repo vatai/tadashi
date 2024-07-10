@@ -29,7 +29,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 FetchContent_Declare(
-  libpet
+  pet
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG master
   GIT_SHALLOW ON
@@ -38,11 +38,11 @@ FetchContent_Declare(
   # UPDATE_DISCONNECTED ON
 )
 
-FetchContent_MakeAvailable(libpet)
+FetchContent_MakeAvailable(pet)
 
-set(ENV{PKG_CONFIG_PATH} "${libpet_SOURCE_DIR}:${libpet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
-list(APPEND CMAKE_LIBRARY_PATH "${libpet_BINARY_DIR}/lib")
-list(APPEND CMAKE_INSTALL_RPATH "${libpet_BINARY_DIR}/lib")
+set(ENV{PKG_CONFIG_PATH} "${pet_SOURCE_DIR}:${pet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
+list(APPEND CMAKE_LIBRARY_PATH "${pet_BINARY_DIR}/lib")
+list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(ISL IMPORTED_TARGET isl)
@@ -57,25 +57,25 @@ if(NOT PET_FOUND)
   execute_process(
     # OUTPUT_QUIET
     COMMAND ./autogen.sh
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+    WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
 
   execute_process(
     # OUTPUT_QUIET
-    COMMAND ./configure --prefix=${libpet_BINARY_DIR}
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+    COMMAND ./configure --prefix=${pet_BINARY_DIR} --with-isl=system
+    WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
 
   execute_process(
     # OUTPUT_QUIET
     COMMAND make -j
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+    WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
 
   execute_process(
     # OUTPUT_QUIET
     COMMAND make -j install
-    WORKING_DIRECTORY ${libpet_SOURCE_DIR}
+    WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
 
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
