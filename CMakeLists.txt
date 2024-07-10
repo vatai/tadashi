@@ -31,7 +31,7 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(
   libpet
   GIT_REPOSITORY https://repo.or.cz/pet.git
-  GIT_TAG pet-0.11.7
+  GIT_TAG master
   GIT_SHALLOW ON
   # GIT_SUBMODULES ""
   # GIT_SUBMODULES_RECURSE False
