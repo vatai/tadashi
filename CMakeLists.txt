@@ -53,7 +53,7 @@ if(ISL_FOUND)
   set(PET_CONFIGURE_WITH_ISL system)
 else()
   message("ISL NOT found")
-  set(PET_CONFIGURE_WITH_ISL build)
+  set(PET_CONFIGURE_WITH_ISL bundled)
 endif()
 
 if(NOT PET_FOUND)
