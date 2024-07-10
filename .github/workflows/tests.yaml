@@ -12,7 +12,7 @@ jobs:
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev python-is-python3 libisl
+        libclang-dev python-is-python3 libisl-dev
 
     - name: Set up Python 🐍
       uses: actions/setup-python@v5
