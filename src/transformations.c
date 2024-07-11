@@ -333,6 +333,26 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
 
 __isl_give isl_schedule_node *
 tadashi_full_shift_param(__isl_take isl_schedule_node *node, long param_idx) {
+  isl_multi_union_pw_aff *mupa;
+  isl_union_pw_aff *upa;
+  isl_union_pw_multi_aff *upma;
+  isl_union_set *domain;
+  isl_id *id;
+  isl_size num_pa;
+  isl_pw_aff_list *pa_list;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
+  assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
+  upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  domain = isl_union_pw_aff_domain(upa);
+  upma = isl_union_set_identity_union_pw_multi_aff(domain);
+  upa = isl_union_pw_multi_aff_get_union_pw_aff(upma, param_idx);
+  upma = isl_union_pw_multi_aff_free(upma);
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
+  mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  node = isl_schedule_node_band_shift(node, mupa);
+  isl_schedule_node_dump(node);
   return node;
 }
 
