@@ -238,26 +238,6 @@ __isl_give isl_pw_aff *_partial_pa_var(__isl_take isl_set_list *sets,
   return isl_pw_aff_from_aff(aff);
 }
 
-__isl_give isl_pw_aff *_pa_param(__isl_take isl_set *set, long param_idx) {
-  isl_id *id;
-  isl_space *space;
-  space = isl_set_get_space(set);
-  id = isl_space_get_dim_id(space, isl_dim_param, param_idx);
-  space = isl_space_free(space);
-  return isl_pw_aff_param_on_domain_id(set, id);
-}
-
-__isl_give isl_pw_aff *_partial_pa_param(__isl_keep isl_set_list *sets,
-                                         isl_size set_loop_idx, int pa_idx,
-                                         long coeff, long param_idx) {
-  isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
-  if (set_loop_idx != pa_idx) {
-    isl_val *zero = isl_val_zero(isl_set_get_ctx(set));
-    return isl_pw_aff_val_on_domain(set, zero);
-  }
-  return _pa_param(set, param_idx);
-}
-
 __isl_give isl_schedule_node *
 _shift_partial(__isl_take isl_schedule_node *node,
                __isl_give isl_pw_aff *(*fn)(__isl_keep isl_set_list *sets,
@@ -300,12 +280,6 @@ __isl_give isl_schedule_node *
 tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
                           long val) {
   return _shift_partial(node, _partial_pa_val, pa_idx, val, 0);
-}
-
-__isl_give isl_schedule_node *
-tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
-                            long param_idx) {
-  return _shift_partial(node, _partial_pa_param, pa_idx, 42, param_idx);
 }
 
 __isl_give isl_schedule_node *
@@ -353,16 +327,41 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   return isl_schedule_node_band_shift(node, mupa);
 }
 
-__isl_give isl_pw_aff *_full_pa_param(__isl_take isl_set_list *sets,
-                                      isl_size set_loop_idx, int pa_idx,
-                                      long coeff, long param_idx) {
+static __isl_give isl_pw_aff *_full_pa_param(__isl_take isl_set_list *sets,
+                                             isl_size set_loop_idx, int pa_idx,
+                                             long coeff, long param_idx) {
   isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
-  return _pa_param(set, param_idx);
+  isl_space *space = isl_set_get_space(set);
+  isl_id *id = isl_space_get_dim_id(space, isl_dim_param, param_idx);
+  space = isl_space_free(space);
+  isl_pw_aff *pa = isl_pw_aff_param_on_domain_id(isl_set_copy(set), id);
+  return isl_pw_aff_mul(
+      pa, isl_pw_aff_val_on_domain(
+              set, isl_val_int_from_si(isl_pw_aff_get_ctx(pa), coeff)));
 }
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_param(__isl_take isl_schedule_node *node, long param_idx) {
-  return _shift_partial(node, _full_pa_param, 0, 42, param_idx);
+tadashi_full_shift_param(__isl_take isl_schedule_node *node, long coeff,
+                         long param_idx) {
+  return _shift_partial(node, _full_pa_param, 0, coeff, param_idx);
+}
+
+static __isl_give isl_pw_aff *_partial_pa_param(__isl_keep isl_set_list *sets,
+                                                isl_size set_loop_idx,
+                                                int pa_idx, long coeff,
+                                                long param_idx) {
+  if (set_loop_idx != pa_idx) {
+    isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
+    isl_val *zero = isl_val_zero(isl_set_get_ctx(set));
+    return isl_pw_aff_val_on_domain(set, zero);
+  }
+  return _full_pa_param(sets, set_loop_idx, pa_idx, coeff, param_idx);
+}
+
+__isl_give isl_schedule_node *
+tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
+                            long coeff, long param_idx) {
+  return _shift_partial(node, _partial_pa_param, pa_idx, coeff, param_idx);
 }
 
 // sink & order?

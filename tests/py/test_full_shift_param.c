@@ -1,5 +1,5 @@
-/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", 0
-/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", 0
+/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", 42, 0
+/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", -13, 0
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
@@ -7,8 +7,8 @@
 ///   for(int c0 = 1; c0 < N; c0 += 1)
 ///     for(int c1 = 0; c1 < N; c1 += 1)
 ///       {
-///         for(int c2 = 2 * N; c2 < 3 * N; c2 += 1)
-///           A[c0][c1] = (A[c0][c1] + (A[c0 - 1][c1] * (-2 * N + c2)));
+///         for(int c2 = 29 * N; c2 < 30 * N; c2 += 1)
+///           A[c0][c1] = (A[c0][c1] + (A[c0 - 1][c1] * (-29 * N + c2)));
 ///         for(int c2 = 0; c2 < N; c2 += 1)
 ///           A[c0][c1] = ((A[c0][c1] + A[c0 - 1][c1]) + (c2));
 ///       }

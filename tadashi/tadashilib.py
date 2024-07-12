@@ -30,10 +30,10 @@ class Transformation(Enum):
     FULL_FUSE = "FULL_FUSE"
     PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
     PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
-    PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
     FULL_SHIFT_VAR = "FULL_SHIFT_VAR"
     FULL_SHIFT_VAL = "FULL_SHIFT_VAL"
     FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
+    PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
 
 
 class Node:
@@ -115,14 +115,6 @@ class Node:
                 )
                 fun = self.scop.ctadashi.partial_shift_val
                 return self.call_ctadashi(fun, *args)
-            case Transformation.PARTIAL_SHIFT_PARAM:
-                assert len(args) == 2, (
-                    "Partial shift param needs exactly 2 args: "
-                    "index of the loop, and "
-                    "the index of the param which should be added."
-                )
-                fun = self.scop.ctadashi.partial_shift_param
-                return self.call_ctadashi(fun, *args)
             case Transformation.FULL_SHIFT_VAR:
                 assert len(args) == 2, (
                     "Full shift id needs exactly 1 args: "
@@ -138,11 +130,19 @@ class Node:
                 fun = self.scop.ctadashi.full_shift_val
                 return self.call_ctadashi(fun, *args)
             case Transformation.FULL_SHIFT_PARAM:
-                assert len(args) == 1, (
+                assert len(args) == 2, (
                     "Partial shift param needs exactly 1 args: "
                     "the index of the param which should be added."
                 )
                 fun = self.scop.ctadashi.full_shift_param
+                return self.call_ctadashi(fun, *args)
+            case Transformation.PARTIAL_SHIFT_PARAM:
+                assert len(args) == 3, (
+                    "Partial shift param needs exactly 2 args: "
+                    "index of the loop, and "
+                    "the index of the param which should be added."
+                )
+                fun = self.scop.ctadashi.partial_shift_param
                 return self.call_ctadashi(fun, *args)
             case _:
                 msg = "Odd?! Looks like the developer didn't cover all cases!"
@@ -258,14 +258,15 @@ class Scops:
         self.ctadashi.partial_shift_var.restype = c_bool
         self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
         self.ctadashi.partial_shift_val.restype = c_bool
-        self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long]
-        self.ctadashi.partial_shift_param.restype = c_bool
         self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
         self.ctadashi.full_shift_var.restype = c_bool
         self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
         self.ctadashi.full_shift_val.restype = c_bool
-        self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long]
+
+        self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
         self.ctadashi.full_shift_param.restype = c_bool
+        self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
+        self.ctadashi.partial_shift_param.restype = c_bool
         #
         self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
 
