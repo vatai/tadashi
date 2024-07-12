@@ -327,6 +327,14 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   return isl_schedule_node_band_shift(node, mupa);
 }
 
+static __isl_give isl_pw_aff *_add_int_to_pa(__isl_take isl_pw_aff *pa,
+                                             long coeff) {
+  isl_ctx *ctx = isl_pw_aff_get_ctx(pa);
+  isl_set *set = isl_pw_aff_domain(isl_pw_aff_copy(pa));
+  isl_val *v = isl_val_int_from_si(ctx, coeff);
+  return isl_pw_aff_mul(pa, isl_pw_aff_val_on_domain(set, v));
+}
+
 static __isl_give isl_pw_aff *_full_pa_param(__isl_take isl_set_list *sets,
                                              isl_size set_loop_idx, int pa_idx,
                                              long coeff, long param_idx) {
@@ -334,10 +342,8 @@ static __isl_give isl_pw_aff *_full_pa_param(__isl_take isl_set_list *sets,
   isl_space *space = isl_set_get_space(set);
   isl_id *id = isl_space_get_dim_id(space, isl_dim_param, param_idx);
   space = isl_space_free(space);
-  isl_pw_aff *pa = isl_pw_aff_param_on_domain_id(isl_set_copy(set), id);
-  return isl_pw_aff_mul(
-      pa, isl_pw_aff_val_on_domain(
-              set, isl_val_int_from_si(isl_pw_aff_get_ctx(pa), coeff)));
+  isl_pw_aff *pa = isl_pw_aff_param_on_domain_id(set, id);
+  return _add_int_to_pa(pa, coeff);
 }
 
 __isl_give isl_schedule_node *
