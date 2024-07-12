@@ -204,16 +204,6 @@ isl_schedule_node *tadashi_scale(isl_schedule_node *node, long scale) {
   return node;
 }
 
-__isl_give isl_pw_aff *_partial_pa_val(__isl_take isl_set_list *sets,
-                                       isl_size set_loop_idx, int pa_idx,
-                                       long val, long _) {
-  isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
-  isl_ctx *ctx = isl_set_get_ctx(set);
-  if (set_loop_idx != pa_idx)
-    val = 0;
-  return isl_pw_aff_val_on_domain(set, isl_val_int_from_si(ctx, val));
-}
-
 __isl_give isl_pw_aff *_partial_pa_var(__isl_take isl_set_list *sets,
                                        isl_size set_loop_idx, int pa_idx,
                                        long coeff, long id_idx) {
@@ -277,12 +267,6 @@ tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
 }
 
 __isl_give isl_schedule_node *
-tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
-                          long val) {
-  return _shift_partial(node, _partial_pa_val, pa_idx, val, 0);
-}
-
-__isl_give isl_schedule_node *
 tadashi_full_shift_var(__isl_take isl_schedule_node *node, long coeff,
                        long var_idx) {
   isl_multi_union_pw_aff *mupa;
@@ -308,6 +292,26 @@ tadashi_full_shift_var(__isl_take isl_schedule_node *node, long coeff,
   return node;
 }
 
+static __isl_give isl_pw_aff *_full_pa_val(__isl_take isl_set_list *sets,
+                                           isl_size set_loop_idx, int pa_idx,
+                                           long val, long _) {
+  isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
+  isl_ctx *ctx = isl_set_get_ctx(set);
+  if (set_loop_idx != pa_idx)
+    val = 0;
+  return isl_pw_aff_val_on_domain(set, isl_val_int_from_si(ctx, val));
+}
+
+static __isl_give isl_pw_aff *_partial_pa_val(__isl_take isl_set_list *sets,
+                                              isl_size set_loop_idx, int pa_idx,
+                                              long val, long _) {
+  isl_set *set = isl_set_list_get_at(sets, set_loop_idx);
+  isl_ctx *ctx = isl_set_get_ctx(set);
+  if (set_loop_idx != pa_idx)
+    val = 0;
+  return isl_pw_aff_val_on_domain(set, isl_val_int_from_si(ctx, val));
+}
+
 __isl_give isl_schedule_node *
 tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   isl_multi_union_pw_aff *mupa;
@@ -325,6 +329,12 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
   mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
   return isl_schedule_node_band_shift(node, mupa);
+}
+
+__isl_give isl_schedule_node *
+tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
+                          long val) {
+  return _shift_partial(node, _partial_pa_val, pa_idx, val, 0);
 }
 
 static __isl_give isl_pw_aff *_add_int_to_pa(__isl_take isl_pw_aff *pa,
@@ -346,12 +356,6 @@ static __isl_give isl_pw_aff *_full_pa_param(__isl_take isl_set_list *sets,
   return _add_int_to_pa(pa, coeff);
 }
 
-__isl_give isl_schedule_node *
-tadashi_full_shift_param(__isl_take isl_schedule_node *node, long coeff,
-                         long param_idx) {
-  return _shift_partial(node, _full_pa_param, 0, coeff, param_idx);
-}
-
 static __isl_give isl_pw_aff *_partial_pa_param(__isl_keep isl_set_list *sets,
                                                 isl_size set_loop_idx,
                                                 int pa_idx, long coeff,
@@ -362,6 +366,12 @@ static __isl_give isl_pw_aff *_partial_pa_param(__isl_keep isl_set_list *sets,
     return isl_pw_aff_val_on_domain(set, zero);
   }
   return _full_pa_param(sets, set_loop_idx, pa_idx, coeff, param_idx);
+}
+
+__isl_give isl_schedule_node *
+tadashi_full_shift_param(__isl_take isl_schedule_node *node, long coeff,
+                         long param_idx) {
+  return _shift_partial(node, _full_pa_param, 0, coeff, param_idx);
 }
 
 __isl_give isl_schedule_node *
