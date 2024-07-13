@@ -4,18 +4,13 @@
 #include <isl/ctx.h>
 #include <isl/id.h>
 #include <isl/local_space.h>
-#include <isl/map_type.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space.h>
-#include <isl/space_type.h>
-#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 
 #include <isl/val.h>
-#include <isl/val_type.h>
 #include <pet.h>
 
 #include "transformations.h"
