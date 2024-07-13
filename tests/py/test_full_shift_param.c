@@ -1,21 +1,19 @@
-/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", 42, 0
-/// TRANSFORMATION: 0, 5, "FULL_SHIFT_PARAM", -13, 0
+/// TRANSFORMATION: 0, 2, "FULL_SHIFT_PARAM", 42, 0
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   for(int c0 = 1; c0 < N; c0 += 1)
-///     for(int c1 = 0; c1 < N; c1 += 1)
+///     for(int c1 = 42 * N; c1 < 43 * N; c1 += 1)
 ///       {
-///         for(int c2 = 29 * N; c2 < 30 * N; c2 += 1)
-///           A[c0][c1] = (A[c0][c1] + (A[c0 - 1][c1] * (-29 * N + c2)));
 ///         for(int c2 = 0; c2 < N; c2 += 1)
-///           A[c0][c1] = ((A[c0][c1] + A[c0 - 1][c1]) + (c2));
+///           A[c0][-42 * N + c1] = (A[c0][-42 * N + c1] + (A[c0 - 1][-42 * N + c1] * (c2)));
+///         for(int c2 = 0; c2 < N; c2 += 1)
+///           A[c0][-42 * N + c1] = ((A[c0][-42 * N + c1] + A[c0 - 1][-42 * N + c1]) + (c2));
 ///       }
 /// #pragma endscop
 /// }
 ///
-/// legality=True
 /// legality=True
 #include <stdlib.h>
 

@@ -1,5 +1,4 @@
 /// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_PARAM", 0, 42, 0
-/// TRANSFORMATION: 0, 2, "PARTIAL_SHIFT_PARAM", 0, -13, 0
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
@@ -9,14 +8,13 @@
 ///       for(int c1 = 0; c1 < N; c1 += 1)
 ///         for(int c2 = 0; c2 < N; c2 += 1)
 ///           A[c0][c1] = ((A[c0][c1] + A[c0 - 1][c1]) + (c2));
-///       for(int c1 = 29 * N; c1 < 30 * N; c1 += 1)
+///       for(int c1 = 42 * N; c1 < 43 * N; c1 += 1)
 ///         for(int c2 = 0; c2 < N; c2 += 1)
-///           A[c0][-29 * N + c1] = (A[c0][-29 * N + c1] + (A[c0 - 1][-29 * N + c1] * (c2)));
+///           A[c0][-42 * N + c1] = (A[c0][-42 * N + c1] + (A[c0 - 1][-42 * N + c1] * (c2)));
 ///     }
 /// #pragma endscop
 /// }
 ///
-/// legality=False
 /// legality=False
 #include <stdlib.h>
 
