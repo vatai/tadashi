@@ -37,7 +37,8 @@ get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop) {
+__isl_give isl_union_map *
+get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
   flow = get_flow_from_scop(scop);
@@ -57,8 +58,9 @@ get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
 }
 
-isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
-                        __isl_take isl_union_map *dep) {
+isl_bool
+check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
+               __isl_take isl_union_map *dep) {
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
 
@@ -77,7 +79,8 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
+isl_stat
+delta_set_lexpos(__isl_take isl_set *set, void *user) {
   isl_val *val;
   set = isl_set_lexmin(set);
   isl_size dim = isl_set_dim(set, isl_dim_set);
@@ -95,8 +98,9 @@ isl_stat delta_set_lexpos(__isl_take isl_set *set, void *user) {
   return is_pos ? isl_stat_ok : isl_stat_error;
 }
 
-__isl_give isl_union_set *calculate_delta(__isl_keep isl_schedule_node *node,
-                                          __isl_keep isl_union_map *dep) {
+__isl_give isl_union_set *
+calculate_delta(__isl_keep isl_schedule_node *node,
+                __isl_keep isl_union_map *dep) {
   isl_multi_union_pw_aff *mupa;
   isl_union_map *domain, *range;
   isl_union_set *delta;
@@ -110,7 +114,8 @@ __isl_give isl_union_set *calculate_delta(__isl_keep isl_schedule_node *node,
   return delta;
 }
 
-isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
+isl_bool
+legality_test(__isl_keep isl_schedule_node *node, void *user) {
   enum isl_schedule_node_type type;
   isl_union_map *le;
   isl_union_set *delta;
@@ -127,9 +132,9 @@ isl_bool legality_test(__isl_keep isl_schedule_node *node, void *user) {
   return isl_bool_true;
 }
 
-isl_bool check_schedule_legality(isl_ctx *ctx,
-                                 __isl_keep isl_schedule *schedule,
-                                 __isl_take isl_union_map *dep) {
+isl_bool
+check_schedule_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+                        __isl_take isl_union_map *dep) {
   isl_bool legal;
   isl_schedule_node *root;
   isl_union_pw_multi_aff *dep_upma;
