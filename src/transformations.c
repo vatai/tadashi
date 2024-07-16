@@ -113,31 +113,27 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
 
 __isl_give isl_schedule_node *
 tadashi_full_fuse(__isl_take isl_schedule_node *node) {
-  // To merge all band node children of a sequence,
-  //
-  // take their partial schedules,
-  //
-  // intersect them with the corresponding filters and
-  //
-  // take the union.
+  // To merge all band node children of a sequence, take their partial
+  // schedules, intersect them with the corresponding filters and take
+  // the union.
 
-  // Introduce a new band node on top of the sequence
-  // using
-
-  // If you want, you can then also delete the original band nodes,
-  // but this is not strictly required since they will mostly be
-  // ignored during AST generation.
-  //// printf("%s\n", isl_schedule_node_to_str(node));
+  // Introduce a new band node on top of the sequence using If you
+  // want, you can then also delete the original band nodes, but this
+  // is not strictly required since they will mostly be ignored during
+  // AST generation.  // printf("%s\n",
+  // isl_schedule_node_to_str(node));
+  enum isl_schedule_node_type node_type = isl_schedule_node_get_type(node);
+  assert(node_type == isl_schedule_node_sequence ||
+         node_type == isl_schedule_node_set);
   isl_size num_children = isl_schedule_node_n_children(node);
   node = isl_schedule_node_first_child(node);
   isl_multi_union_pw_aff *mupa = NULL;
   for (isl_size i = 0; i < num_children; i++) {
+    assert(isl_schedule_node_get_type(node) == isl_schedule_node_filter);
     isl_union_set *filter;
     isl_multi_union_pw_aff *tmp;
-    assert(isl_schedule_node_get_type(node) == isl_schedule_node_filter);
     filter = isl_schedule_node_filter_get_filter(node);
     node = isl_schedule_node_first_child(node);
-    //// printf("f: %s\n", isl_union_set_to_str(filter));
     assert(isl_schedule_node_get_type(node) == isl_schedule_node_band);
     tmp = isl_schedule_node_band_get_partial_schedule(node);
     tmp = isl_multi_union_pw_aff_intersect_domain(tmp, filter);
@@ -155,12 +151,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
       node = isl_schedule_node_next_sibling(node);
   }
   mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, "Fused");
-  /* isl_schedule *sched; */
-  /* sched = isl_schedule_node_get_schedule(node); */
-  /* sched = isl_schedule_insert_partial_schedule(sched, mupa); */
-  /* node = isl_schedule_get_root(sched); */
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  //// printf("%s\n", isl_schedule_node_to_str(node));
   return node;
 }
 
