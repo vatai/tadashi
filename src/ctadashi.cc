@@ -47,8 +47,8 @@ std::vector<std::string> STRINGS;
 
 /******** scops constructor/descructor **********************/
 
-__isl_give isl_printer *get_scop_callback(__isl_take isl_printer *p,
-                                          pet_scop *scop, void *user) {
+__isl_give isl_printer *
+get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
@@ -61,7 +61,8 @@ __isl_give isl_printer *get_scop_callback(__isl_take isl_printer *p,
   return p;
 }
 
-int get_num_scops(char *input) { // Entry point
+int
+get_num_scops(char *input) { // Entry point
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("cout.c", "w");
@@ -72,7 +73,8 @@ int get_num_scops(char *input) { // Entry point
   return SCOP_INFO.size();
 }
 
-void free_scops() {
+void
+free_scops() {
   if (SCOP_INFO.size() == 0)
     return;
   isl_set *set = pet_scop_get_context(SCOP_INFO[0].scop);
@@ -93,15 +95,18 @@ void free_scops() {
 
 /******** node info *****************************************/
 
-int get_type(size_t scop_idx) {
+int
+get_type(size_t scop_idx) {
   return isl_schedule_node_get_type(SCOP_INFO[scop_idx].current_node);
 }
 
-size_t get_num_children(size_t scop_idx) {
+size_t
+get_num_children(size_t scop_idx) {
   return isl_schedule_node_n_children(SCOP_INFO[scop_idx].current_node);
 }
 
-const char *get_expr(size_t idx) {
+const char *
+get_expr(size_t idx) {
   isl_schedule_node *node = SCOP_INFO[idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return "";
@@ -112,7 +117,8 @@ const char *get_expr(size_t idx) {
   return tmp;
 }
 
-const char *get_dim_names(size_t scop_idx) {
+const char *
+get_dim_names(size_t scop_idx) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return "";
@@ -141,7 +147,8 @@ const char *get_dim_names(size_t scop_idx) {
   return STRINGS.back().c_str();
 }
 
-const char *get_schedule_yaml(size_t scop_idx) {
+const char *
+get_schedule_yaml(size_t scop_idx) {
   isl_schedule *sched = pet_scop_get_schedule(SCOP_INFO[scop_idx].scop);
   const char *ptr = isl_schedule_to_str(sched);
   isl_schedule_free(sched);
@@ -150,24 +157,28 @@ const char *get_schedule_yaml(size_t scop_idx) {
 
 /******** current node manipulation *************************/
 
-void reset_root(size_t scop_idx) {
+void
+reset_root(size_t scop_idx) {
   SCOP_INFO[scop_idx].current_node =
       isl_schedule_node_root(SCOP_INFO[scop_idx].current_node);
 }
 
-void goto_parent(size_t scop_idx) {
+void
+goto_parent(size_t scop_idx) {
   SCOP_INFO[scop_idx].current_node =
       isl_schedule_node_parent(SCOP_INFO[scop_idx].current_node);
 }
 
-void goto_child(size_t scop_idx, size_t child_idx) {
+void
+goto_child(size_t scop_idx, size_t child_idx) {
   SCOP_INFO[scop_idx].current_node =
       isl_schedule_node_child(SCOP_INFO[scop_idx].current_node, child_idx);
 }
 
 /******** transformations ***********************************/
 
-scop_info_t *pre_transfomr(size_t scop_idx) {
+scop_info_t *
+pre_transfomr(size_t scop_idx) {
   // Set up `tmp_node` as a copy of `current_node` because we don't
   // want to mess with the current node if the transformation is not
   // legal.
@@ -181,7 +192,8 @@ scop_info_t *pre_transfomr(size_t scop_idx) {
   return si;
 }
 
-bool post_transform(size_t scop_idx) {
+bool
+post_transform(size_t scop_idx) {
   scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
@@ -189,7 +201,7 @@ bool post_transform(size_t scop_idx) {
   node = isl_schedule_node_free(node);
   // Got `dep` and `sched`.
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
-  isl_bool legal = check_schedule_legality(ctx, sched, si->dependency);
+  isl_bool legal = tadashi_check_legality(ctx, sched, si->dependency);
   isl_schedule_free(sched);
   si->modified = true;
   isl_schedule_node_free(si->current_node);
@@ -198,72 +210,81 @@ bool post_transform(size_t scop_idx) {
   return legal;
 }
 
-bool tile(size_t scop_idx, size_t tile_size) {
+bool
+tile(size_t scop_idx, size_t tile_size) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
   return post_transform(scop_idx);
 }
 
-bool interchange(size_t scop_idx) {
+bool
+interchange(size_t scop_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_interchange(si->tmp_node);
   return post_transform(scop_idx);
 }
 
-bool fuse(size_t scop_idx, int idx1, int idx2) {
+bool
+fuse(size_t scop_idx, int idx1, int idx2) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
   return post_transform(scop_idx);
 }
 
-bool full_fuse(size_t scop_idx) {
+bool
+full_fuse(size_t scop_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_full_fuse(si->tmp_node);
   return post_transform(scop_idx);
 }
 
-bool partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
+bool
+partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
   return post_transform(scop_idx);
 }
 
-bool partial_shift_val(size_t scop_idx, int pa_idx, long val) {
+bool
+partial_shift_val(size_t scop_idx, int pa_idx, long val) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
   return post_transform(scop_idx);
 }
 
-bool full_shift_var(size_t scop_idx, long coeff, long var_idx) {
+bool
+full_shift_var(size_t scop_idx, long coeff, long var_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
   return post_transform(scop_idx);
 }
 
-bool full_shift_val(size_t scop_idx, long val) {
+bool
+full_shift_val(size_t scop_idx, long val) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
   return post_transform(scop_idx);
 }
 
-bool full_shift_param(size_t scop_idx, long coeff, long param_idx) {
+bool
+full_shift_param(size_t scop_idx, long coeff, long param_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
   return post_transform(scop_idx);
 }
 
-bool partial_shift_param(size_t scop_idx, int pa_idx, long coeff,
-                         long param_idx) {
+bool
+partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
   scop_info_t *si = pre_transfomr(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(scop_idx);
 }
 
-static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
-                                                      struct pet_scop *scop,
-                                                      void *user) {
+static __isl_give isl_printer *
+generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
+                       void *user) {
   isl_ctx *ctx;
   isl_schedule *sched;
   size_t *scop_idx = (size_t *)user;
@@ -282,7 +303,8 @@ static __isl_give isl_printer *generate_code_callback(__isl_take isl_printer *p,
   return p;
 }
 
-int generate_code(const char *input_path, const char *output_path) {
+int
+generate_code(const char *input_path, const char *output_path) {
   int r;
   isl_ctx *ctx = isl_schedule_node_get_ctx(SCOP_INFO[0].current_node);
   size_t scop_idx = 0;

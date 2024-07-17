@@ -49,7 +49,8 @@ ISL_ARGS_END
 
 ISL_ARG_DEF(options, struct options, options_args)
 
-__isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
+__isl_give isl_union_flow *
+get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
   isl_union_access_info *access;
   isl_schedule *schedule;
@@ -70,7 +71,8 @@ __isl_give isl_union_flow *get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *get_dependencies(pet_scop *scop) {
+__isl_give isl_union_map *
+get_dependencies(pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
   flow = get_flow_from_scop(scop);
@@ -90,8 +92,9 @@ get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   return isl_union_set_from_set(isl_set_from_multi_aff(ma));
 }
 
-isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
-                        __isl_take isl_union_map *dep) {
+isl_bool
+_check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
+                __isl_take isl_union_map *dep) {
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
 
@@ -107,12 +110,14 @@ isl_bool check_legality(isl_ctx *ctx, __isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-isl_bool check_schedule_legality(isl_ctx *ctx, isl_schedule *schedule,
-                                 __isl_take isl_union_map *dep) {
-  return check_legality(ctx, isl_schedule_get_map(schedule), dep);
+isl_bool
+tadashi_check_legality(isl_ctx *ctx, isl_schedule *schedule,
+                       __isl_take isl_union_map *dep) {
+  return _check_legality(ctx, isl_schedule_get_map(schedule), dep);
 }
 
-isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
+isl_bool
+schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
   // printf(">>> callback Node: %s\n", isl_schedule_node_to_str(node));
   isl_union_map *deps = (isl_union_map *)user;
   enum isl_schedule_node_type type;
@@ -218,7 +223,8 @@ isl_bool schedule_tree_node_cb(__isl_keep isl_schedule_node *node, void *user) {
   return 1;
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   int return_value = 0;
   struct options *options = options_new_with_defaults();
   options_parse(options, argc, argv, ISL_ARG_ALL);
@@ -236,7 +242,7 @@ int main(int argc, char *argv[]) {
     FILE *file = fopen(options->schedule, "r");
     isl_schedule *schedule = isl_schedule_read_from_file(ctx, file);
     fclose(file);
-    if (check_schedule_legality(ctx, schedule, dependencies)) {
+    if (tadashi_check_legality(ctx, schedule, dependencies)) {
       printf("The schedule is legal!\n");
     } else {
       printf("The schedule is not correct!\n");
