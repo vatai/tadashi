@@ -1,5 +1,4 @@
 /// TRANSFORMATION: 0, 2, "FULL_SHIFT_VAR", 42, 0
-/// TRANSFORMATION: 0, 2, "PRINT_SCHEDULE"
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
