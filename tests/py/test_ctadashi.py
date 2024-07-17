@@ -80,7 +80,8 @@ class TestCtadashi(unittest.TestCase):
             scop = scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
             legal = node.transform(tr.transformation, *tr.transformation_args)
-            legality.append(f"legality={legal}")
+            if legal is not None:
+                legality.append(f"legality={legal}")
 
         logger.info("Transformations done")
         generated_code = self._get_generated_code(scops)

@@ -34,6 +34,7 @@ class Transformation(Enum):
     FULL_SHIFT_VAL = "FULL_SHIFT_VAL"
     FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
     PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
+    PRINT_SCHEDULE = "PRINT_SCHEDULE"
 
 
 class Node:
@@ -144,6 +145,9 @@ class Node:
                 )
                 fun = self.scop.ctadashi.partial_shift_param
                 return self.call_ctadashi(fun, *args)
+            case Transformation.PRINT_SCHEDULE:
+                fun = self.scop.ctadashi.print_schedule_node
+                return self.call_ctadashi(fun, *args)
             case _:
                 msg = "Odd?! Looks like the developer didn't cover all cases!"
                 raise ValueError(msg)
@@ -242,8 +246,8 @@ class Scops:
         self.ctadashi.get_expr.restype = c_char_p
         self.ctadashi.get_dim_names.argtypes = [c_size_t]
         self.ctadashi.get_dim_names.restype = c_char_p
-        self.ctadashi.get_schedule_yaml.argtypes = [c_size_t]
-        self.ctadashi.get_schedule_yaml.restype = c_char_p
+        self.ctadashi.print_schedule_node.argtypes = [c_size_t]
+        self.ctadashi.print_schedule_node.restype = None
         self.ctadashi.reset_root.argtypes = [c_size_t]
         # Transformations
         self.ctadashi.tile.argtypes = [c_size_t, c_size_t]

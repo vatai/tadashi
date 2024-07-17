@@ -147,12 +147,10 @@ get_dim_names(size_t scop_idx) {
   return STRINGS.back().c_str();
 }
 
-const char *
-get_schedule_yaml(size_t scop_idx) {
-  isl_schedule *sched = pet_scop_get_schedule(SCOP_INFO[scop_idx].scop);
-  const char *ptr = isl_schedule_to_str(sched);
-  isl_schedule_free(sched);
-  return ptr;
+void
+print_schedule_node(size_t scop_idx) {
+  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
+  isl_schedule_node_dump(node);
 }
 
 /******** current node manipulation *************************/
