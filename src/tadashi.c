@@ -39,7 +39,7 @@
 #include "tadashi.h"
 #include "transformations.h"
 
-#define SCHEDULE_SOURCE_VALUES "interactive, yaml, scop"
+#define SCHEDULE_SOURCE_VALUES "yaml, scop"
 
 ISL_ARGS_START(struct options, options_args)
 ISL_ARG_CHILD(struct options, isl, "isl", &isl_options_args, "isl options")
@@ -52,13 +52,14 @@ ISL_ARG_STR(struct options, original_schedule_suffix, 's', "schedule-suffix",
 ISL_ARG_STR(struct options, dependencies_suffix, 'd', "dependencies-suffix",
             "suffix", "", "Dependencies file suffix")
 ISL_ARG_STR(struct options, schedule_source, 'x', "schedule-source", "source",
-            "interactive", "Source of schedule (" SCHEDULE_SOURCE_VALUES ")")
+            "yaml", "Source of schedule (" SCHEDULE_SOURCE_VALUES ")")
 ISL_ARG_BOOL(struct options, legality_check, 0, "legality-check", isl_bool_true,
              "Check legality")
 ISL_ARGS_END ISL_ARG_DEF(options, struct options, options_args);
 
-void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
-                    size_t counter) {
+void
+print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+               size_t counter) {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
   printf("### sched[%lu] begin ###\n", counter);
@@ -67,8 +68,8 @@ void print_schedule(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
   isl_schedule_node_free(root);
 }
 
-__isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
-                                    size_t count, const char *suffix) {
+__isl_give isl_printer *
+new_printer(isl_ctx *ctx, const char *path, size_t count, const char *suffix) {
   FILE *file;
   isl_printer *p;
   size_t path_len = strnlen(path, 1024);
@@ -85,7 +86,8 @@ __isl_give isl_printer *new_printer(isl_ctx *ctx, const char *path,
   return isl_printer_start_line(p);
 }
 
-void delete_printer(__isl_take isl_printer *p) {
+void
+delete_printer(__isl_take isl_printer *p) {
   FILE *file = isl_printer_get_file(p);
   isl_printer_end_line(p);
   isl_printer_free(p);
@@ -93,13 +95,11 @@ void delete_printer(__isl_take isl_printer *p) {
     fclose(file);
 }
 
-__isl_give isl_schedule *get_schedule(isl_ctx *ctx, struct pet_scop *scop,
-                                      struct user_t *user) {
+__isl_give isl_schedule *
+get_schedule(isl_ctx *ctx, struct pet_scop *scop, struct user_t *user) {
   isl_schedule *schedule;
   char *sched_src = user->opt->schedule_source;
-  if (!strncmp(sched_src, "interactive", 32)) {
-    schedule = interactive_transform(ctx, scop, user);
-  } else if (!strncmp(sched_src, "yaml", 32)) {
+  if (!strncmp(sched_src, "yaml", 32)) {
     schedule = isl_schedule_read_from_file(ctx, stdin);
   } else if (!strncmp(sched_src, "scop", 32)) {
     schedule = pet_scop_get_schedule(scop);
@@ -112,12 +112,13 @@ __isl_give isl_schedule *get_schedule(isl_ctx *ctx, struct pet_scop *scop,
   return schedule;
 }
 
-__isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
-                                       __isl_keep struct pet_scop *scop,
-                                       struct user_t *user) {
+__isl_give isl_printer *
+transform_scop(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
+               struct user_t *user) {
   isl_schedule *schedule;
   isl_union_map *dependencies;
   isl_printer *tmp;
+  isl_ctx *ctx = isl_printer_get_ctx(p);
   dependencies = get_dependencies(scop);
   printf("\nPrinting dependencies...\n");
   tmp = new_printer(ctx, user->opt->source_file_path, user->scop_counter,
@@ -127,7 +128,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
 
   schedule = get_schedule(ctx, scop, user);
   if (user->opt->legality_check) {
-    if (!check_schedule_legality(ctx, schedule, dependencies)) {
+    if (!tadashi_check_legality(ctx, schedule, dependencies)) {
       printf("Illegal schedule!\n");
       isl_schedule_free(schedule);
       schedule = pet_scop_get_schedule(scop);
@@ -137,7 +138,7 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
     printf("Schedule not checked!\n");
     isl_union_map_free(dependencies);
   }
-  p = generate_code(ctx, p, scop, schedule);
+  p = codegen(p, scop, schedule);
   return p;
 }
 
@@ -174,9 +175,9 @@ __isl_give isl_printer *transform_scop(isl_ctx *ctx, __isl_take isl_printer *p,
  * Finally, close any scope that may have been opened
  * to print variable declarations.
  */
-static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
-                                                     struct pet_scop *scop,
-                                                     void *_user) {
+static __isl_give isl_printer *
+foreach_scop_callback(__isl_take isl_printer *p, struct pet_scop *scop,
+                      void *_user) {
   isl_ctx *ctx;
   struct user_t *user = _user;
   isl_printer *tmp;
@@ -192,14 +193,15 @@ static __isl_give isl_printer *foreach_scop_callback(__isl_take isl_printer *p,
                     user->opt->original_schedule_suffix);
   tmp = isl_printer_print_schedule(tmp, scop->schedule);
   delete_printer(tmp);
-  p = transform_scop(ctx, p, scop, user);
+  p = transform_scop(p, scop, user);
   pet_scop_free(scop);
   printf("End processing SCOP %lu\n", user->scop_counter);
   user->scop_counter++;
   return p;
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   int r;
   isl_ctx *ctx;
   struct user_t user;

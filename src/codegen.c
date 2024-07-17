@@ -51,6 +51,7 @@
 #include <isl/ast_build.h>
 #include <isl/id.h>
 #include <isl/id_to_id.h>
+#include <isl/printer.h>
 #include <isl/val.h>
 #include <pet.h>
 
@@ -396,7 +397,7 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
   p = isl_printer_start_line(p);
   p = isl_printer_indent(p, 2);
-  p = isl_printer_print_str(p, "for(");
+  p = isl_printer_print_str(p, "for(int ");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
   p = isl_printer_print_ast_expr(p, init);
@@ -406,17 +407,10 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " += ");
   p = isl_printer_print_ast_expr(p, inc);
-  p = isl_printer_print_str(p, "){");
+  p = isl_printer_print_str(p, ")");
   p = isl_printer_end_line(p);
-
-  p = isl_printer_start_line(p);
   p = isl_ast_node_print(body, p, options);
   p = isl_printer_indent(p, -2);
-
-  p = isl_printer_start_line(p);
-  p = isl_printer_indent(p, -2);
-  p = isl_printer_print_str(p, "}");
-  p = isl_printer_end_line(p);
 
   isl_ast_expr_free(iter);
   isl_ast_expr_free(init);
@@ -441,15 +435,16 @@ __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
   return for_node;
 }
 
-__isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
-                                      __isl_keep struct pet_scop *scop,
-                                      __isl_take isl_schedule *schedule) {
+__isl_give isl_printer *codegen(__isl_take isl_printer *p,
+                                __isl_keep struct pet_scop *scop,
+                                __isl_take isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;
   isl_ast_node *node;
   isl_ast_print_options *print_options;
   isl_id_to_id *id2stmt;
+  isl_ctx *ctx = isl_printer_get_ctx(p);
   id2stmt = set_up_id2stmt(scop);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
@@ -460,10 +455,18 @@ __isl_give isl_printer *generate_code(isl_ctx *ctx, __isl_take isl_printer *p,
       isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
   print_options =
       isl_ast_print_options_set_print_for(print_options, print_for, NULL);
+
+  // this puts stuff to the beginning of the line
+  p = isl_printer_set_indent_prefix(p, "");
+
+  p = print_str_on_line(p, "#pragma scop");
+  p = isl_printer_indent(p, 2);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);
   p = print_end_declarations(p, indent);
+  p = isl_printer_indent(p, -2);
+  p = print_str_on_line(p, "#pragma endscop");
   isl_ast_node_free(node);
   isl_ast_build_free(build);
   isl_id_to_id_free(id2stmt);

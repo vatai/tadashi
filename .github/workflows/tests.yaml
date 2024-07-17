@@ -1,18 +1,10 @@
 name: Run tests
 on: push
-env:
-  LIBRARY_PATH: /tadashi/build/_deps/libpet-build/lib
 
 jobs:
   build-pet:
     name: Build PET
-    # strategy:
-    #   matrix:
-    #     python: ["3.10", "3.11"]
-    #     os: [ubuntu-latest, ubuntu-22.10]
-    # runs-on: ${{ matrix.os }}
     runs-on: ubuntu-latest
-
     steps:
 
     - name: Install packages 📦
@@ -20,22 +12,34 @@ jobs:
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev
-        # llvm-15 clang-15 llvm-15-dev libclang-15-dev
+        libclang-dev python-is-python3
+
+    - name: Set up Python 🐍
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        # cache: 'pip'
 
     - name: Check out repo
       uses: actions/checkout@master
 
     - name: Configure Project
+      # continue-on-error: true
       uses: threeal/cmake-action@v1.3.0
       with:
         generator: Ninja
 
-    - name: Get current working dir
-      run: pwd
-
     - name: Build Project
       run: cmake --build build
 
-    - name: Test Project
+    - name: Run cmake gtest
       run: ctest --test-dir build
+
+    - name: Run random_rl.py
+      run: python -m tadashi
+
+    - name: Run simple.py
+      run: python -m tadashi.simple
+
+    - name: Run unittests
+      run: python -m unittest

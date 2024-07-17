@@ -17,3 +17,15 @@ services:
     environment:
       - PKG_CONFIG_PATH=/tadashi/build/_deps/libpet-src:/tadashi/build/_deps/libpet-src/isl
       - LIBRARY_PATH=/tadashi/build/_deps/libpet-build/lib
+
+  barvinok:
+    build:
+      dockerfile: ./barvinok.dockerfile
+    volumes:
+      - ..:/workdir
+
+  barvinok-arch:
+    build:
+      dockerfile: ./barvinok-arch.dockerfile
+    volumes:
+      - ..:/workdir

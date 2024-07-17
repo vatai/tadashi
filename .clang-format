@@ -1,0 +1,5 @@
+# -*- mode:yaml -*-
+BasedOnStyle: LLVM
+# BreakAfterReturnType: ExceptShortType
+# AlwaysBreakAfterDefinitionReturnType: DRTBS_TopLevel
+AlwaysBreakAfterDefinitionReturnType: true

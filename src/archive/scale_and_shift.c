@@ -50,7 +50,7 @@ int main() {
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_band_shift(
       node, isl_multi_union_pw_aff_read_from_str(
-                ctx, "[N] -> L_1[{ S_0[i,j] -> [(i+j)] } ]"));
+                ctx, "[N] -> L_1[{ S_0[i,j] -> [(i+j+3)] } ]"));
   printf("SHIFT:\n%s\n\n", isl_schedule_node_to_str(node));
 
   isl_schedule_node_free(node);
