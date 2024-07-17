@@ -6,6 +6,7 @@ deps/patches
 _minted-presentation/
 ltximg/
 *.pdf
+.cache
 .ccls-cache
 _minted*
 build
