@@ -3,8 +3,9 @@
 import os
 from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from dataclasses import dataclass
-from enum import Enum, StrEnum, auto
+from enum import Enum, auto
 from pathlib import Path
+from typing import Tuple
 
 from .apps import App
 
@@ -23,6 +24,22 @@ class NodeType(Enum):
     SET = auto()
 
 
+@dataclass
+class TransformationInfo:
+    scop: "Scop"
+    args: list[Tuple[None, str]]
+    # 1. return types 2. arg types 3. arg help 4. valid
+
+    def valid(self):
+        raise NotImplemented("Method not implemented for abstract base class")
+
+
+# transformations = {
+#     "FUSE": TransformationInfo(scop=scop, args=[]),
+#     "FULL_FUSE": TransformationInfo(scop=scop, args=[]),
+# }
+
+
 class Transformation(Enum):
     TILE = "TILE"
     INTERCHANGE = "INTERCHANGE"
@@ -37,25 +54,16 @@ class Transformation(Enum):
     PRINT_SCHEDULE = "PRINT_SCHEDULE"
 
 
+@dataclass
 class Node:
-    def __init__(
-        self,
-        scop,
-        node_type,
-        num_children,
-        parent,
-        location,
-        dim_names,
-        expr,
-    ) -> None:
-        self.scop = scop
-        self.node_type = NodeType(node_type)
-        self.num_children = num_children
-        self.parent = parent
-        self.dim_names = dim_names
-        self.expr = expr.decode("utf-8")
-        self.children = [-1] * num_children
-        self.location = location
+    scop: "Scop"
+    node_type: NodeType
+    num_children: int
+    parent: int
+    location: int
+    dim_names: str
+    expr: str
+    children: list[str]
 
     def __repr__(self):
         words = [
@@ -81,8 +89,23 @@ class Node:
                     result.append(Transformation.INTERCHANGE)
         return result
 
+    def transfrom_new(self, transformation, *args):
+        num_args = len(tr.fun.argtypes) - 1
+        if len(args) != num_args:
+            msg = "Incorrect number of args!\n"
+            assert num_args == tr.arg_helps
+            raise ValueError(msg)
+        return None  # ctadashi.fun
+
     def transform(self, transformation, *args):
         self.scop.locate(self.location)
+        # info = dict[transformation]
+        # func = info["func"]
+        # num_args = len(func.arglist) - 1
+        # if len(args) != num_args:
+        #   assert num_args == len(info["args help"])
+        #   printf(f"Transfomation {transfomation} takes exactly {num_args} number of arguments!")
+        #   assert num_
         match transformation:
             case Transformation.TILE:
                 assert len(args) == 1, "Tiling needs exactly 1 argument"
@@ -183,12 +206,13 @@ class Scop:
         num_children = self.ctadashi.get_num_children(self.idx)
         node = Node(
             scop=self,
-            node_type=self.ctadashi.get_type(self.idx),
+            node_type=NodeType(self.ctadashi.get_type(self.idx)),
             num_children=num_children,
             parent=parent,
             location=location,
             dim_names=self.read_dim_names(),
-            expr=self.ctadashi.get_expr(self.idx),
+            expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
+            children=[-1] * num_children,
         )
         return node
 
@@ -200,12 +224,12 @@ class Scop:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
                 node.children[c] = len(nodes)
-                self.traverse(nodes, current_idx, path + [c])
+                self.traverse(nodes=nodes, parent=current_idx, path=path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
     def get_schedule_tree(self) -> list[Node]:
         self.ctadashi.reset_root(self.idx)
-        nodes = []
+        nodes: list[Node] = []
         self.traverse(nodes, parent=-1, path=[])
         return nodes
 
@@ -230,7 +254,7 @@ class Scops:
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
     def setup_ctadashi(self, app: App):
-        os.environ["C_INCLUDE_PATH"] = ":".join(app.include_paths)
+        os.environ["C_INCLUDE_PATH"] = ":".join(map(str, app.include_paths))
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.check_missing_file(self.so_path)
         self.ctadashi = CDLL(str(self.so_path))
