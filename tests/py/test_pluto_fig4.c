@@ -1,6 +1,6 @@
-/// TRANSFORMATION: 0, 8, "FULL_FUSE"
-/// TRANSFORMATION: 0, 8, "FULL_SHIFT_VAR",  2, 0
-/// TRANSFORMATION: 0, 8, "PARTIAL_SHIFT_VAL",  0, 1
+/// TRANSFORMATION: 0, 9, "FULL_FUSE"
+/// TRANSFORMATION: 0, 9, "FULL_SHIFT_VAR",  2, 0
+/// TRANSFORMATION: 0, 9, "PARTIAL_SHIFT_VAL",  0, 1
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, size_t T, double a[N], double b[N]) {

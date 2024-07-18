@@ -7,8 +7,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <exception>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -17,14 +15,18 @@
 #include <isl/ast.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
+#include <isl/map_type.h>
 #include <isl/printer.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
 #include <isl/set.h>
+#include <isl/space.h>
+#include <isl/space_type.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
+
 #include <pet.h>
 
 #include "codegen.h"
@@ -51,8 +53,22 @@ __isl_give isl_printer *
 get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   isl_schedule *sched = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(sched);
+  // BEGIN
+  node = isl_schedule_node_first_child(node);
+  // isl_schedule_node_dump(node);
+  // isl_union_set *domain = isl_schedule_node_domain_get_domain(node);
+  // isl_space *space = isl_union_set_get_space(domain);
+  // isl_id *N_id = isl_space_get_dim_id(space, isl_dim_param, 1);
+  isl_set *context = isl_set_read_from_str(isl_schedule_node_get_ctx(node),
+                                           "{ [N] : 0 <= N < 10; }");
+  // isl_set_dump(context);
+  node = isl_schedule_node_insert_context(node, context);
+  // isl_schedule_node_dump(node);
+  node = isl_schedule_node_parent(node);
+  // END
   isl_schedule_free(sched);
   isl_union_map *dep = get_dependencies(scop);
+
   SCOP_INFO.push_back({.scop = scop,
                        .dependency = dep,
                        .current_node = node,
