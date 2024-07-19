@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <isl/ast_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -15,14 +16,11 @@
 #include <isl/ast.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
-#include <isl/map_type.h>
 #include <isl/printer.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space.h>
-#include <isl/space_type.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
@@ -59,10 +57,10 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   // isl_union_set *domain = isl_schedule_node_domain_get_domain(node);
   // isl_space *space = isl_union_set_get_space(domain);
   // isl_id *N_id = isl_space_get_dim_id(space, isl_dim_param, 1);
-  isl_set *context = isl_set_read_from_str(isl_schedule_node_get_ctx(node),
-                                           "{ [N] : 0 <= N < 10; }");
+  // isl_set *context = isl_set_read_from_str(isl_schedule_node_get_ctx(node),
+  //                                          "{ [N] : 0 <= N < 10; }");
   // isl_set_dump(context);
-  node = isl_schedule_node_insert_context(node, context);
+  // node = isl_schedule_node_insert_context(node, context);
   // isl_schedule_node_dump(node);
   node = isl_schedule_node_parent(node);
   // END
@@ -294,6 +292,14 @@ partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(scop_idx);
+}
+
+void
+set_loop_opt(size_t scop_idx, int pos, int opt) {
+  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
+  node = isl_schedule_node_band_member_set_ast_loop_type(
+      node, pos, (enum isl_ast_loop_type)opt);
+  SCOP_INFO[scop_idx].current_node = node;
 }
 
 static __isl_give isl_printer *
