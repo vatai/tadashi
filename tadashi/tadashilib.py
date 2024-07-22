@@ -75,25 +75,63 @@ TRANSFORMATIONS = {
         restype=ctypes.c_bool,
         valid=lambda t: t.node_type == NodeType.SEQUENCE,
     ),
+    Transformation.FULL_FUSE: TransformationInfo(
+        func_name="full_fuse",
+        argtypes=[],
+        arg_help=[],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.SEQUENCE,
+    ),
+    Transformation.FULL_SHIFT_VAL: TransformationInfo(
+        func_name="full_shift_val",
+        argtypes=[ctypes.c_long],
+        arg_help=["Value"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND,
+    ),
+    Transformation.PARTIAL_SHIFT_VAL: TransformationInfo(
+        func_name="partial_shift_val",
+        argtypes=[ctypes.c_int, ctypes.c_long],
+        arg_help=["Statement index", "Value"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND or True,
+    ),
+    Transformation.FULL_SHIFT_VAR: TransformationInfo(
+        func_name="full_shift_var",
+        argtypes=[ctypes.c_long, ctypes.c_long],
+        arg_help=["Coefficient", "Variable index"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND or True,
+    ),
+    Transformation.PARTIAL_SHIFT_VAR: TransformationInfo(
+        func_name="partial_shift_var",
+        argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
+        arg_help=["Statement index", "Coefficient", "Variable index"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND or True,
+    ),
+    Transformation.FULL_SHIFT_PARAM: TransformationInfo(
+        func_name="full_shift_param",
+        argtypes=[ctypes.c_long, ctypes.c_long],
+        arg_help=["Coefficient", "Parameter index"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND,
+    ),
+    Transformation.PARTIAL_SHIFT_PARAM: TransformationInfo(
+        func_name="partial_shift_param",
+        argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
+        arg_help=["Statement index", "Coefficient", "Parameter index"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND,
+    ),
+    Transformation.SET_LOOP_OPT: TransformationInfo(
+        func_name="set_loop_opt",
+        argtypes=[ctypes.c_int, ctypes.c_int],
+        arg_help=["Iterator index", "Option"],
+        restype=None,
+        valid=lambda t: t.node_type == NodeType.BAND or True,
+    ),
 }
-# self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
-# self.ctadashi.fuse.restype = c_bool
-# self.ctadashi.full_fuse.argtypes = [c_size_t]
-# self.ctadashi.full_fuse.restype = c_bool
-# self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long, c_long]
-# self.ctadashi.partial_shift_var.restype = c_bool
-# self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
-# self.ctadashi.partial_shift_val.restype = c_bool
-# self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
-# self.ctadashi.full_shift_var.restype = c_bool
-# self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
-# self.ctadashi.full_shift_val.restype = c_bool
-# self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
-# self.ctadashi.set_loop_opt.restype = None
-# self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
-# self.ctadashi.full_shift_param.restype = c_bool
-# self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
-# self.ctadashi.partial_shift_param.restype = c_bool
 
 
 @dataclass
@@ -141,10 +179,14 @@ class Node:
 
     def transform(self, transformation, *args):
         if transformation not in TRANSFORMATIONS:
-            raise ValueError
+            msg = f"{transformation} does not exists"
+            raise ValueError(msg)
         tr = TRANSFORMATIONS[transformation]
         if len(args) != len(tr.arg_help):
             raise ValueError("Incorrect number of args!")
+        if not tr.valid(self):
+            msg = f"Not a valid transformation: {transformation}"
+            raise ValueError(msg)
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
