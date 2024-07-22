@@ -373,7 +373,7 @@ class Scops:
         self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #
         for tr_name, tr_info in TRANSFORMATIONS.items():
-            msg = f"The transfomation {tr_name} is not specified correctly!"
+            msg = f"The transformation {tr_name} is not specified correctly!"
             assert len(tr_info.arg_help) == len(tr_info.argtypes), msg
             func = getattr(self.ctadashi, tr_info.func_name)
             func.argtypes = [ctypes.c_size_t] + tr_info.argtypes

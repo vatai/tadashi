@@ -178,7 +178,7 @@ goto_child(size_t scop_idx, size_t child_idx) {
 /******** transformations ***********************************/
 
 scop_info_t *
-pre_transfomr(size_t scop_idx) {
+pre_transform(size_t scop_idx) {
   // Set up `tmp_node` as a copy of `current_node` because we don't
   // want to mess with the current node if the transformation is not
   // legal.
@@ -212,35 +212,35 @@ post_transform(size_t scop_idx) {
 
 bool
 tile(size_t scop_idx, size_t tile_size) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
   return post_transform(scop_idx);
 }
 
 bool
 interchange(size_t scop_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_interchange(si->tmp_node);
   return post_transform(scop_idx);
 }
 
 bool
 fuse(size_t scop_idx, int idx1, int idx2) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
   return post_transform(scop_idx);
 }
 
 bool
 full_fuse(size_t scop_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_fuse(si->tmp_node);
   return post_transform(scop_idx);
 }
 
 bool
 partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
   return post_transform(scop_idx);
@@ -248,35 +248,35 @@ partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
 
 bool
 partial_shift_val(size_t scop_idx, int pa_idx, long val) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
   return post_transform(scop_idx);
 }
 
 bool
 full_shift_var(size_t scop_idx, long coeff, long var_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
   return post_transform(scop_idx);
 }
 
 bool
 full_shift_val(size_t scop_idx, long val) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
   return post_transform(scop_idx);
 }
 
 bool
 full_shift_param(size_t scop_idx, long coeff, long param_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
   return post_transform(scop_idx);
 }
 
 bool
 partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(scop_idx);
