@@ -1,27 +1,22 @@
 #include <assert.h>
-#include <isl/local_space.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
-#include <isl/aff_type.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
-#include <isl/id_type.h>
+#include <isl/local_space.h>
 #include <isl/map.h>
-#include <isl/map_type.h>
 #include <isl/multi.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space.h>
-#include <isl/space_type.h>
 #include <isl/union_map.h>
-#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 
-__isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
+__isl_give isl_schedule_node *
+navigate_to_the_node(isl_ctx *ctx) {
   FILE *file;
   // create file with: C_INCLUDE_PATH=./build/_deps/polybench-src/utilities
   // ./build/tadashi -s tadashi.yaml
@@ -53,13 +48,15 @@ __isl_give isl_schedule_node *navigate_to_the_node(isl_ctx *ctx) {
   return node;
 }
 
-__isl_give isl_pw_aff *pa_val(__isl_take isl_set *set, long val) {
+__isl_give isl_pw_aff *
+pa_val(__isl_take isl_set *set, long val) {
   isl_ctx *ctx = isl_set_get_ctx(set);
   isl_val *v = isl_val_int_from_si(ctx, val);
   return isl_pw_aff_val_on_domain(set, v);
 }
 
-__isl_give isl_pw_aff *id_pa(__isl_take isl_set *set, long id_idx) {
+__isl_give isl_pw_aff *
+id_pa(__isl_take isl_set *set, long id_idx) {
   isl_space *space = isl_set_get_space(set);
   set = isl_set_free(set);
   isl_size ndims = isl_space_dim(space, isl_dim_out);
@@ -76,10 +73,11 @@ __isl_give isl_pw_aff *id_pa(__isl_take isl_set *set, long id_idx) {
   return isl_pw_aff_from_aff(aff);
 }
 
-__isl_give isl_schedule_node *shift_partial(
-    __isl_keep isl_schedule_node *node,
-    __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set, long const_val),
-    int idx, long const_val) {
+__isl_give isl_schedule_node *
+shift_partial(__isl_keep isl_schedule_node *node,
+              __isl_give isl_pw_aff *(*fn)(__isl_take isl_set *set,
+                                           long const_val),
+              int idx, long const_val) {
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff *upa;
   isl_union_set *upa_domain;
@@ -110,8 +108,8 @@ __isl_give isl_schedule_node *shift_partial(
   return isl_schedule_node_band_shift(node, mupa);
 }
 
-__isl_give isl_schedule_node *shift_var(__isl_take isl_schedule_node *node,
-                                        long var_idx) {
+__isl_give isl_schedule_node *
+shift_var(__isl_take isl_schedule_node *node, long var_idx) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff *upa;
@@ -132,8 +130,8 @@ __isl_give isl_schedule_node *shift_var(__isl_take isl_schedule_node *node,
   return node;
 }
 
-__isl_give isl_schedule_node *shift_val(__isl_take isl_schedule_node *node,
-                                        long val) {
+__isl_give isl_schedule_node *
+shift_val(__isl_take isl_schedule_node *node, long val) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_val *v = isl_val_int_from_si(ctx, val);
   isl_multi_union_pw_aff *mupa;
@@ -152,7 +150,8 @@ __isl_give isl_schedule_node *shift_val(__isl_take isl_schedule_node *node,
   return node;
 }
 
-int main() {
+int
+main() {
   printf("Hello\n");
   isl_ctx *ctx = isl_ctx_alloc();
   isl_schedule_node *node = navigate_to_the_node(ctx);

@@ -5,11 +5,9 @@
  *
  */
 #include <assert.h>
-#include <isl/val_type.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
-#include <isl/aff_type.h>
 #include <isl/arg.h>
 #include <isl/ast.h>
 #include <isl/ctx.h>
@@ -20,12 +18,9 @@
 #include <isl/point.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/set.h>
 #include <isl/space.h>
-#include <isl/space_type.h>
 #include <isl/union_map.h>
-#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 

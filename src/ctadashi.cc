@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <isl/ast_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
