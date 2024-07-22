@@ -66,9 +66,6 @@ class TestCtadashi(unittest.TestCase):
 
     def check(self, app_file):
         logger = logging.getLogger(self._testMethodName)
-        if "-v" in sys.argv:
-            logging.basicConfig(level=logging.INFO)
-            print()
         app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 
@@ -96,8 +93,33 @@ class TestCtadashi(unittest.TestCase):
         del scops
         self.assertTrue(generated_code == target_code)
 
+    @staticmethod
+    def _get_node(idx):
+        app = Simple("tests/py/dummy.c")
+        scops = Scops(app)
+        node = scops[0].schedule_tree[idx]
+        return node
+
+    @classmethod
+    def _get_band_node(cls):
+        return cls._get_node(1)
+
+    @classmethod
+    def _get_sequence_node(cls):
+        return cls._get_node(3)
+
+    def test_wrong_number_of_args(self):
+        node = self._get_band_node()
+        self.assertRaises(ValueError, node.transform, Transformation.TILE, 2, 3)
+
+    def test_nonexisting_transformation(self):
+        node = self._get_band_node()
+        self.assertRaises(ValueError, node.transform, None)
+
 
 def setup():
+    if "-v" in sys.argv:
+        logging.basicConfig(level=logging.INFO)
     test_dir = Path(__file__).parent
     for app_path in test_dir.glob("test_*.c"):
 

@@ -58,13 +58,24 @@ TRANSFORMATIONS = {
         arg_help=["Tile size"],
         restype=ctypes.c_bool,
         valid=lambda t: t.node_type == NodeType.BAND,
-    )
+    ),
+    Transformation.INTERCHANGE: TransformationInfo(
+        func_name="interchange",
+        argtypes=[],
+        arg_help=[],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND
+        and len(t.children) == 1
+        and t.children[0].node_type == NodeType.BAND,
+    ),
+    Transformation.FUSE: TransformationInfo(
+        func_name="fuse",
+        argtypes=[ctypes.c_int, ctypes.c_int],
+        arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.SEQUENCE,
+    ),
 }
-# # Transformations
-# self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
-# self.ctadashi.tile.restype = c_bool
-# self.ctadashi.interchange.argtypes = [c_size_t]
-# self.ctadashi.interchange.restype = c_bool
 # self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
 # self.ctadashi.fuse.restype = c_bool
 # self.ctadashi.full_fuse.argtypes = [c_size_t]
@@ -79,16 +90,10 @@ TRANSFORMATIONS = {
 # self.ctadashi.full_shift_val.restype = c_bool
 # self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
 # self.ctadashi.set_loop_opt.restype = None
-
 # self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
 # self.ctadashi.full_shift_param.restype = c_bool
 # self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
 # self.ctadashi.partial_shift_param.restype = c_bool
-
-# transformations = {
-#     "FUSE": TransformationInfo(scop=scop, args=[]),
-#     "FULL_FUSE": TransformationInfo(scop=scop, args=[]),
-# }
 
 
 @dataclass
@@ -100,11 +105,15 @@ class Node:
     location: int
     dim_names: str
     expr: str
-    children: list[str]
+    children_idx: list[str]
 
     @property
     def parent(self):
         return self.scop.schedule_tree[self.parent_idx]
+
+    @property
+    def children(self):
+        return [self.scop.schedule_tree[i] for i in self.children_idx]
 
     def __repr__(self):
         words = [
@@ -131,8 +140,11 @@ class Node:
         return result
 
     def transform(self, transformation, *args):
+        if transformation not in TRANSFORMATIONS:
+            raise ValueError
         tr = TRANSFORMATIONS[transformation]
-        print(f"{tr.valid(self)=}")
+        if len(args) != len(tr.arg_help):
+            raise ValueError("Incorrect number of args!")
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
@@ -255,7 +267,7 @@ class Scop:
             location=location,
             dim_names=self.read_dim_names(),
             expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
-            children=[-1] * num_children,
+            children_idx=[-1] * num_children,
         )
         return node
 
@@ -266,7 +278,7 @@ class Scop:
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
-                node.children[c] = len(nodes)
+                node.children_idx[c] = len(nodes)
                 self.traverse(nodes=nodes, parent=current_idx, path=path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
@@ -316,12 +328,13 @@ class Scops:
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
         self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]
-        #
         self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #
-        for tr_info in TRANSFORMATIONS.values():
+        for tr_name, tr_info in TRANSFORMATIONS.items():
+            msg = f"The transfomation {tr_name} is not specified correctly!"
+            assert len(tr_info.arg_help) == len(tr_info.argtypes), msg
             func = getattr(self.ctadashi, tr_info.func_name)
-            func.argtypes = tr_info.argtypes
+            func.argtypes = [ctypes.c_size_t] + tr_info.argtypes
             func.restype = tr_info.restype
 
     @staticmethod
