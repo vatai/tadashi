@@ -94,7 +94,7 @@ class TestCtadashi(unittest.TestCase):
             print(diff_str)
         logger.info("Test finished")
         del scops
-        self.assertEqual(generated_code, target_code)
+        self.assertTrue(generated_code == target_code)
 
 
 def setup():

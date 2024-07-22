@@ -1,6 +1,6 @@
 #include <assert.h>
+
 #include <isl/aff.h>
-#include <isl/aff_type.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
 #include <isl/local_space.h>
