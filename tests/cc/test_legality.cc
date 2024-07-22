@@ -4,12 +4,7 @@
  * Date: 2023-11-24
  */
 
-#include <isl/schedule.h>
-#include <isl/schedule_node.h>
-#include <isl/union_map.h>
-#include <isl/union_set.h>
 #include <string>
-#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -18,10 +13,11 @@
 #include <isl/ctx.h>
 #include <isl/options.h>
 #include <isl/point.h>
-#include <isl/schedule_type.h>
+#include <isl/schedule.h>
+#include <isl/schedule_node.h>
 #include <isl/set.h>
-#include <isl/space_type.h>
-#include <isl/union_map_type.h>
+#include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <isl/val.h>
 
 #include "legality.h"

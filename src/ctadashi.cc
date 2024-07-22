@@ -7,8 +7,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <exception>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -20,11 +18,12 @@
 #include <isl/printer.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/set.h>
+#include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
+
 #include <pet.h>
 
 #include "codegen.h"
@@ -53,6 +52,7 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   isl_schedule_node *node = isl_schedule_get_root(sched);
   isl_schedule_free(sched);
   isl_union_map *dep = get_dependencies(scop);
+
   SCOP_INFO.push_back({.scop = scop,
                        .dependency = dep,
                        .current_node = node,
@@ -67,6 +67,8 @@ get_num_scops(char *input) { // Entry point
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("cout.c", "w");
   // pet_options_set_autodetect(ctx, 1);
+  // pet_options_set_signed_overflow(ctx, 1);
+  // pet_options_set_encapsulate_dynamic_control(ctx, 1);
   SCOP_INFO.clear();
   pet_transform_C_source(ctx, input, output, get_scop_callback, NULL);
   fclose(output);
@@ -278,6 +280,14 @@ partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(scop_idx);
+}
+
+void
+set_loop_opt(size_t scop_idx, int pos, int opt) {
+  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
+  node = isl_schedule_node_band_member_set_ast_loop_type(
+      node, pos, (enum isl_ast_loop_type)opt);
+  SCOP_INFO[scop_idx].current_node = node;
 }
 
 static __isl_give isl_printer *

@@ -1,19 +1,18 @@
 #include <assert.h>
-#include <isl/aff.h>
-#include <isl/aff_type.h>
-#include <isl/id.h>
-#include <isl/space.h>
-#include <isl/space_type.h>
-#include <isl/val.h>
 #include <stdio.h>
 
+#include <isl/aff.h>
 #include <isl/ctx.h>
+#include <isl/id.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
+#include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 
-int main() {
+int
+main() {
   printf("Hello\n");
   isl_ctx *ctx = isl_ctx_alloc();
 

@@ -7,7 +7,6 @@
 #include <isl/printer.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <pet.h>
 
 __isl_give isl_schedule_node *
@@ -92,7 +91,8 @@ char unfused_str[] =
 static __isl_give isl_printer *scop_callback(__isl_take isl_printer *p,
                                              pet_scop *scop, void *user);
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   char *node_str = unfused_str;

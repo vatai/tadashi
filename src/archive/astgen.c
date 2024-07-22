@@ -4,20 +4,17 @@
  * Emil Vatai
  *
  */
-
-#include <isl/ast_type.h>
-#include <isl/id.h>
-#include <isl/printer.h>
-#include <isl/schedule.h>
-#include <isl/schedule_node.h>
-#include <isl/set.h>
-#include <isl/space_type.h>
 #include <stdio.h>
 
 #include <isl/ast.h>
 #include <isl/ast_build.h>
 #include <isl/ctx.h>
+#include <isl/id.h>
 #include <isl/options.h>
+#include <isl/printer.h>
+#include <isl/schedule.h>
+#include <isl/schedule_node.h>
+#include <isl/set.h>
 #include <isl/space.h>
 #include <isl/union_set.h>
 #include <pet.h>
@@ -26,7 +23,8 @@ static char file[] = "../examples/depnodep.c";
 void astgen(isl_ctx *ctx, isl_printer *p, pet_scop *scop);
 isl_set *get_domain(isl_ctx *ctx);
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   isl_ctx *ctx;
   pet_scop *scop;
   isl_printer *p;
@@ -44,7 +42,8 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void astgen(isl_ctx *ctx, isl_printer *p, pet_scop *scop) {
+void
+astgen(isl_ctx *ctx, isl_printer *p, pet_scop *scop) {
   isl_schedule *schedule;
   isl_schedule_node *root;
   isl_set *domain = 0;
@@ -97,7 +96,8 @@ void astgen(isl_ctx *ctx, isl_printer *p, pet_scop *scop) {
   isl_schedule_free(schedule);
 }
 
-isl_set *get_domain(isl_ctx *ctx) {
+isl_set *
+get_domain(isl_ctx *ctx) {
   isl_space *space;
   isl_set *domain;
   space = isl_space_alloc(ctx, 1, 0, 0);

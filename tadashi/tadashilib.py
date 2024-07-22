@@ -52,6 +52,7 @@ class Transformation(Enum):
     FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
     PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
     PRINT_SCHEDULE = "PRINT_SCHEDULE"
+    SET_LOOP_OPT = "SET_LOOP_OPT"
 
 
 @dataclass
@@ -170,6 +171,9 @@ class Node:
                 return self.call_ctadashi(fun, *args)
             case Transformation.PRINT_SCHEDULE:
                 fun = self.scop.ctadashi.print_schedule_node
+                return self.call_ctadashi(fun, *args)
+            case Transformation.SET_LOOP_OPT:
+                fun = self.scop.ctadashi.set_loop_opt
                 return self.call_ctadashi(fun, *args)
             case _:
                 msg = "Odd?! Looks like the developer didn't cover all cases!"
@@ -290,6 +294,8 @@ class Scops:
         self.ctadashi.full_shift_var.restype = c_bool
         self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
         self.ctadashi.full_shift_val.restype = c_bool
+        self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
+        self.ctadashi.set_loop_opt.restype = None
 
         self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
         self.ctadashi.full_shift_param.restype = c_bool

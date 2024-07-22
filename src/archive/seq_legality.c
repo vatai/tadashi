@@ -2,9 +2,7 @@
 #include <isl/ctx.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/union_map.h>
-#include <isl/union_map_type.h>
 #include <isl/union_set.h>
 #include <stdio.h>
 
@@ -12,7 +10,8 @@
 
 #include <isl/set.h>
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
 
   printf("Hello\n");

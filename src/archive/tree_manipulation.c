@@ -8,14 +8,12 @@
 #include <stdio.h>
 
 #include <isl/aff.h>
-#include <isl/aff_type.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
+#include <isl/options.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/union_map.h>
-
-#include <isl/options.h>
 #include <pet.h>
 
 struct options {
@@ -39,7 +37,8 @@ ISL_ARG_DEF(options, struct options, options_args)
 
 #define PRN(label, type, obj) printf("%s : %s\n", label, type##_to_str(obj))
 
-void tree_manipulation(isl_schedule *schedule) {
+void
+tree_manipulation(isl_schedule *schedule) {
   // experimenting with ../examples/depnodep.cc
 
   isl_ctx *ctx = isl_schedule_get_ctx(schedule);
@@ -66,7 +65,8 @@ void tree_manipulation(isl_schedule *schedule) {
   // leaf = isl_schedule_node_group(leaf, isl_id_read_from_str(ctx, "t"));
 }
 
-void code_gen(isl_ctx *ctx, isl_schedule *schedule) {
+void
+code_gen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build *build;
   isl_ast_node *ast;
   build = isl_ast_build_alloc(ctx);
@@ -77,7 +77,8 @@ void code_gen(isl_ctx *ctx, isl_schedule *schedule) {
   isl_ast_build_free(build);
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   struct options *options = options_new_with_defaults();
   argc = options_parse(options, argc, argv, ISL_ARG_ALL);
   isl_ctx *ctx = isl_ctx_alloc_with_options(&options_args, options);

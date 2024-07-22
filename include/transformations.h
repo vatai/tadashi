@@ -2,7 +2,6 @@
 #define _TRANSFORMATIONS_H_
 
 #include <isl/schedule.h>
-#include <isl/schedule_type.h>
 #include <pet.h>
 
 #include "tadashi.h"
