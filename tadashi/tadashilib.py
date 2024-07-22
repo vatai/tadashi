@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+# from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
+from __future__ import annotations
+
+import ctypes
 import os
-from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Tuple
+from typing import Callable
 
 from .apps import App
 
@@ -26,18 +29,11 @@ class NodeType(Enum):
 
 @dataclass
 class TransformationInfo:
-    scop: "Scop"
-    args: list[Tuple[None, str]]
-    # 1. return types 2. arg types 3. arg help 4. valid
-
-    def valid(self):
-        raise NotImplemented("Method not implemented for abstract base class")
-
-
-# transformations = {
-#     "FUSE": TransformationInfo(scop=scop, args=[]),
-#     "FULL_FUSE": TransformationInfo(scop=scop, args=[]),
-# }
+    func_name: str
+    argtypes: list[type]
+    arg_help: list[str]
+    restype: type
+    valid: Callable[[Node], bool]
 
 
 class Transformation(Enum):
@@ -55,16 +51,60 @@ class Transformation(Enum):
     SET_LOOP_OPT = "SET_LOOP_OPT"
 
 
+TRANSFORMATIONS = {
+    Transformation.TILE: TransformationInfo(
+        func_name="tile",
+        argtypes=[ctypes.c_size_t],
+        arg_help=["Tile size"],
+        restype=ctypes.c_bool,
+        valid=lambda t: t.node_type == NodeType.BAND,
+    )
+}
+# # Transformations
+# self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
+# self.ctadashi.tile.restype = c_bool
+# self.ctadashi.interchange.argtypes = [c_size_t]
+# self.ctadashi.interchange.restype = c_bool
+# self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
+# self.ctadashi.fuse.restype = c_bool
+# self.ctadashi.full_fuse.argtypes = [c_size_t]
+# self.ctadashi.full_fuse.restype = c_bool
+# self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long, c_long]
+# self.ctadashi.partial_shift_var.restype = c_bool
+# self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
+# self.ctadashi.partial_shift_val.restype = c_bool
+# self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
+# self.ctadashi.full_shift_var.restype = c_bool
+# self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
+# self.ctadashi.full_shift_val.restype = c_bool
+# self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
+# self.ctadashi.set_loop_opt.restype = None
+
+# self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
+# self.ctadashi.full_shift_param.restype = c_bool
+# self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
+# self.ctadashi.partial_shift_param.restype = c_bool
+
+# transformations = {
+#     "FUSE": TransformationInfo(scop=scop, args=[]),
+#     "FULL_FUSE": TransformationInfo(scop=scop, args=[]),
+# }
+
+
 @dataclass
 class Node:
     scop: "Scop"
     node_type: NodeType
     num_children: int
-    parent: int
+    parent_idx: int
     location: int
     dim_names: str
     expr: str
     children: list[str]
+
+    @property
+    def parent(self):
+        return self.scop.schedule_tree[self.parent_idx]
 
     def __repr__(self):
         words = [
@@ -90,15 +130,14 @@ class Node:
                     result.append(Transformation.INTERCHANGE)
         return result
 
-    def transfrom_new(self, transformation, *args):
-        num_args = len(tr.fun.argtypes) - 1
-        if len(args) != num_args:
-            msg = "Incorrect number of args!\n"
-            assert num_args == tr.arg_helps
-            raise ValueError(msg)
-        return None  # ctadashi.fun
-
     def transform(self, transformation, *args):
+        tr = TRANSFORMATIONS[transformation]
+        print(f"{tr.valid(self)=}")
+        func = getattr(self.scop.ctadashi, tr.func_name)
+        self.scop.locate(self.location)
+        return func(self.scop.idx, *args)
+
+    def transform_(self, transformation, *args):
         self.scop.locate(self.location)
         # info = dict[transformation]
         # func = info["func"]
@@ -212,7 +251,7 @@ class Scop:
             scop=self,
             node_type=NodeType(self.ctadashi.get_type(self.idx)),
             num_children=num_children,
-            parent=parent,
+            parent_idx=parent,
             location=location,
             dim_names=self.read_dim_names(),
             expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
@@ -261,48 +300,29 @@ class Scops:
         os.environ["C_INCLUDE_PATH"] = ":".join(map(str, app.include_paths))
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.check_missing_file(self.so_path)
-        self.ctadashi = CDLL(str(self.so_path))
-        self.ctadashi.get_num_scops.argtypes = [c_char_p]
-        self.ctadashi.get_num_scops.restype = c_int
-        self.ctadashi.get_type.argtypes = [c_size_t]
-        self.ctadashi.get_type.restype = c_int
-        self.ctadashi.get_num_children.argtypes = [c_size_t]
-        self.ctadashi.get_num_children.restype = c_size_t
-        self.ctadashi.goto_parent.argtypes = [c_size_t]
-        self.ctadashi.goto_child.argtypes = [c_size_t, c_size_t]
-        self.ctadashi.get_expr.argtypes = [c_size_t]
-        self.ctadashi.get_expr.restype = c_char_p
-        self.ctadashi.get_dim_names.argtypes = [c_size_t]
-        self.ctadashi.get_dim_names.restype = c_char_p
-        self.ctadashi.print_schedule_node.argtypes = [c_size_t]
+        self.ctadashi = ctypes.CDLL(str(self.so_path))
+        self.ctadashi.get_num_scops.argtypes = [ctypes.c_char_p]
+        self.ctadashi.get_num_scops.restype = ctypes.c_int
+        self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_type.restype = ctypes.c_int
+        self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_num_children.restype = ctypes.c_size_t
+        self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t]
+        self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        self.ctadashi.get_expr.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_expr.restype = ctypes.c_char_p
+        self.ctadashi.get_dim_names.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_dim_names.restype = ctypes.c_char_p
+        self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
-        self.ctadashi.reset_root.argtypes = [c_size_t]
-        # Transformations
-        self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
-        self.ctadashi.tile.restype = c_bool
-        self.ctadashi.interchange.argtypes = [c_size_t]
-        self.ctadashi.interchange.restype = c_bool
-        self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
-        self.ctadashi.fuse.restype = c_bool
-        self.ctadashi.full_fuse.argtypes = [c_size_t]
-        self.ctadashi.full_fuse.restype = c_bool
-        self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long, c_long]
-        self.ctadashi.partial_shift_var.restype = c_bool
-        self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
-        self.ctadashi.partial_shift_val.restype = c_bool
-        self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
-        self.ctadashi.full_shift_var.restype = c_bool
-        self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
-        self.ctadashi.full_shift_val.restype = c_bool
-        self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
-        self.ctadashi.set_loop_opt.restype = None
-
-        self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
-        self.ctadashi.full_shift_param.restype = c_bool
-        self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
-        self.ctadashi.partial_shift_param.restype = c_bool
+        self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]
         #
-        self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
+        self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+        #
+        for tr_info in TRANSFORMATIONS.values():
+            func = getattr(self.ctadashi, tr_info.func_name)
+            func.argtypes = tr_info.argtypes
+            func.restype = tr_info.restype
 
     @staticmethod
     def check_missing_file(path: Path):
