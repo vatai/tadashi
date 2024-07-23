@@ -94,21 +94,21 @@ TRANSFORMATIONS = {
         argtypes=[ctypes.c_int, ctypes.c_long],
         arg_help=["Statement index", "Value"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND or True,
+        valid=lambda t: t.node_type == NodeType.BAND,
     ),
     Transformation.FULL_SHIFT_VAR: TransformationInfo(
         func_name="full_shift_var",
         argtypes=[ctypes.c_long, ctypes.c_long],
         arg_help=["Coefficient", "Variable index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND or True,
+        valid=lambda t: t.node_type == NodeType.BAND,
     ),
     Transformation.PARTIAL_SHIFT_VAR: TransformationInfo(
         func_name="partial_shift_var",
         argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
         arg_help=["Statement index", "Coefficient", "Variable index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND or True,
+        valid=lambda t: t.node_type == NodeType.BAND,
     ),
     Transformation.FULL_SHIFT_PARAM: TransformationInfo(
         func_name="full_shift_param",
@@ -129,7 +129,7 @@ TRANSFORMATIONS = {
         argtypes=[ctypes.c_int, ctypes.c_int],
         arg_help=["Iterator index", "Option"],
         restype=None,
-        valid=lambda t: t.node_type == NodeType.BAND or True,
+        valid=lambda t: t.node_type == NodeType.BAND,
     ),
 }
 
@@ -204,7 +204,6 @@ class Scop:
     def __init__(self, idx, ctadashi) -> None:
         self.ctadashi = ctadashi
         self.idx = idx
-        self.schedule_tree = self.get_schedule_tree()
 
     def read_dim_names(self):
         # ctadashi return one string for the `dim_names` but there are
@@ -238,7 +237,8 @@ class Scop:
                 self.traverse(nodes=nodes, parent=current_idx, path=path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
-    def get_schedule_tree(self) -> list[Node]:
+    @property
+    def schedule_tree(self) -> list[Node]:
         self.ctadashi.reset_root(self.idx)
         nodes: list[Node] = []
         self.traverse(nodes, parent=-1, path=[])
