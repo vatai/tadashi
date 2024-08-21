@@ -57,79 +57,80 @@ TRANSFORMATIONS = {
         argtypes=[ctypes.c_size_t],
         arg_help=["Tile size"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.INTERCHANGE: TransformationInfo(
         func_name="interchange",
         argtypes=[],
         arg_help=[],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND
-        and len(t.children) == 1
-        and t.children[0].node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND
+        and len(node.children) == 1
+        and node.children[0].node_type == NodeType.BAND,
     ),
     Transformation.FUSE: TransformationInfo(
         func_name="fuse",
         argtypes=[ctypes.c_int, ctypes.c_int],
         arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.SEQUENCE,
+        valid=lambda node: node.node_type == NodeType.SEQUENCE,
+        # to generte valid params, we need read it from the node
     ),
     Transformation.FULL_FUSE: TransformationInfo(
         func_name="full_fuse",
         argtypes=[],
         arg_help=[],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.SEQUENCE,
+        valid=lambda node: node.node_type == NodeType.SEQUENCE,
     ),
     Transformation.FULL_SHIFT_VAL: TransformationInfo(
         func_name="full_shift_val",
         argtypes=[ctypes.c_long],
         arg_help=["Value"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.PARTIAL_SHIFT_VAL: TransformationInfo(
         func_name="partial_shift_val",
         argtypes=[ctypes.c_int, ctypes.c_long],
         arg_help=["Statement index", "Value"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.FULL_SHIFT_VAR: TransformationInfo(
         func_name="full_shift_var",
         argtypes=[ctypes.c_long, ctypes.c_long],
         arg_help=["Coefficient", "Variable index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.PARTIAL_SHIFT_VAR: TransformationInfo(
         func_name="partial_shift_var",
         argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
         arg_help=["Statement index", "Coefficient", "Variable index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.FULL_SHIFT_PARAM: TransformationInfo(
         func_name="full_shift_param",
         argtypes=[ctypes.c_long, ctypes.c_long],
         arg_help=["Coefficient", "Parameter index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.PARTIAL_SHIFT_PARAM: TransformationInfo(
         func_name="partial_shift_param",
         argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
         arg_help=["Statement index", "Coefficient", "Parameter index"],
         restype=ctypes.c_bool,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
     Transformation.SET_LOOP_OPT: TransformationInfo(
         func_name="set_loop_opt",
         argtypes=[ctypes.c_int, ctypes.c_int],
         arg_help=["Iterator index", "Option"],
         restype=None,
-        valid=lambda t: t.node_type == NodeType.BAND,
+        valid=lambda node: node.node_type == NodeType.BAND,
     ),
 }
 
