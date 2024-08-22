@@ -6,7 +6,7 @@ from __future__ import annotations
 import ctypes
 import os
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Callable
 
@@ -36,19 +36,19 @@ class TransformationInfo:
     valid: Callable[[Node], bool]
 
 
-class Transformation(Enum):
-    TILE = "TILE"
-    INTERCHANGE = "INTERCHANGE"
-    FUSE = "FUSE"
-    FULL_FUSE = "FULL_FUSE"
-    PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
-    PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
-    FULL_SHIFT_VAR = "FULL_SHIFT_VAR"
-    FULL_SHIFT_VAL = "FULL_SHIFT_VAL"
-    FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
-    PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
-    PRINT_SCHEDULE = "PRINT_SCHEDULE"
-    SET_LOOP_OPT = "SET_LOOP_OPT"
+class Transformation(StrEnum):
+    TILE = auto()
+    INTERCHANGE = auto()
+    FUSE = auto()
+    FULL_FUSE = auto()
+    PARTIAL_SHIFT_VAR = auto()
+    PARTIAL_SHIFT_VAL = auto()
+    FULL_SHIFT_VAR = auto()
+    FULL_SHIFT_VAL = auto()
+    FULL_SHIFT_PARAM = auto()
+    PARTIAL_SHIFT_PARAM = auto()
+    PRINT_SCHEDULE = auto()
+    SET_LOOP_OPT = auto()
 
 
 TRANSFORMATIONS = {

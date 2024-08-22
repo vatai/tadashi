@@ -49,7 +49,9 @@ class TestCtadashi(unittest.TestCase):
                 if line.startswith(TRANSFORMATION):
                     transform_str = line.replace(TRANSFORMATION, "")
                     lits = ast.literal_eval(transform_str)
-                    td = TransformData(*lits[:2], Transformation(lits[2]), lits[3:])
+                    td = TransformData(
+                        *lits[:2], Transformation(lits[2].lower()), lits[3:]
+                    )
                     transforms.append(td)
                 else:
                     target_line = line[1:] if line else line
