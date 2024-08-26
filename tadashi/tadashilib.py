@@ -188,7 +188,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
     arg_help=["Statement index", "Value"],
     restype=ctypes.c_bool,
     valid=is_band_node,
-    args_valid=lambda stmt_idx, value: is_valid_stmt_idx(node, stmt_idx),
+    args_valid=lambda node, stmt_idx, value: is_valid_stmt_idx(node, stmt_idx),
 )
 
 
