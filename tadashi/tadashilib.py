@@ -5,12 +5,16 @@ from __future__ import annotations
 
 import ctypes
 import os
+from ast import literal_eval
+from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Callable
 
 from .apps import App
+
+LoopPrototype = namedtuple("LoopPrototype", ["params", "vars"])
 
 
 class NodeType(Enum):
@@ -59,7 +63,7 @@ class Node:
     num_children: int
     parent_idx: int
     location: int
-    dim_names: str
+    loop_prototype: str
     expr: str
     children_idx: list[str]
 
@@ -75,7 +79,7 @@ class Node:
         words = [
             "Node type:",
             f"{self.node_type},",
-            f"{self.dim_names},",
+            f"{self.loop_prototype},",
             f"{self.expr},",
             f"{self.location}",
         ]
@@ -251,12 +255,10 @@ class Scop:
         self.ctadashi = ctadashi
         self.idx = idx
 
-    def read_dim_names(self):
-        # ctadashi return one string for the `dim_names` but there are
-        # two layers which need unpacking.
-        all_dim_names = self.ctadashi.get_dim_names(self.idx).decode()
-        outer_dim_names = all_dim_names.split(";")[:-1]
-        return [t.split("|")[:-1] for t in outer_dim_names]
+    def get_loop_prototype(self):
+        loop_prototype = self.ctadashi.get_loop_prototype(self.idx).decode()
+        dict_loop_prototype = literal_eval(loop_prototype)
+        return [LoopPrototype(**lp) for lp in dict_loop_prototype]
 
     def make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
@@ -266,7 +268,7 @@ class Scop:
             num_children=num_children,
             parent_idx=parent,
             location=location,
-            dim_names=self.read_dim_names(),
+            loop_prototype=self.get_loop_prototype(),
             expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
             children_idx=[-1] * num_children,
         )
@@ -325,8 +327,8 @@ class Scops:
         self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_expr.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_expr.restype = ctypes.c_char_p
-        self.ctadashi.get_dim_names.argtypes = [ctypes.c_size_t]
-        self.ctadashi.get_dim_names.restype = ctypes.c_char_p
+        self.ctadashi.get_loop_prototype.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_loop_prototype.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
         self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]

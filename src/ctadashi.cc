@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <isl/aff_type.h>
+#include <isl/space_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -120,29 +122,41 @@ get_expr(size_t idx) {
 }
 
 const char *
-get_dim_names(size_t scop_idx) {
+get_loop_prototype(size_t scop_idx) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
-    return "";
+    return "[]";
   std::stringstream ss;
-  const char *name;
   isl_multi_union_pw_aff *mupa;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  name = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+  assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   // TODO save name
   isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
   isl_size num_sets = isl_union_set_n_set(domain);
   isl_set_list *slist = isl_union_set_get_set_list(domain);
+  ss << "[";
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+    if (set_idx)
+      ss << ", ";
     isl_set *set = isl_set_list_get_at(slist, set_idx);
-    isl_size num_dims = isl_set_dim(set, isl_dim_set);
-    for (isl_size di = 0; di < num_dims; di++) {
-      ss << isl_set_get_dim_name(set, isl_dim_set, di);
-      ss << "|";
+    isl_size num_params = isl_set_dim(set, isl_dim_param);
+    ss << "{'params' : [";
+    for (isl_size di = 0; di < num_params; di++) {
+      if (di)
+        ss << ", ";
+      ss << "'" << isl_set_get_dim_name(set, isl_dim_param, di) << "'";
     }
-    ss << ";";
+    ss << "], 'vars' :[";
+    isl_size num_vars = isl_set_dim(set, isl_dim_set);
+    for (isl_size di = 0; di < num_vars; di++) {
+      if (di)
+        ss << ", ";
+      ss << "'" << isl_set_get_dim_name(set, isl_dim_set, di) << "'";
+    }
+    ss << "]}";
     isl_set_free(set);
   }
+  ss << "]";
   isl_set_list_free(slist);
   isl_union_set_free(domain);
   STRINGS.push_back(ss.str());
