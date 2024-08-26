@@ -104,6 +104,7 @@ class Node:
             msg = f"{transformation} does not exists"
             raise ValueError(msg)
         tr = TRANSFORMATIONS[transformation]
+        # TODO proc_args
         if len(args) != len(tr.arg_help):
             raise ValueError("Incorrect number of args!")
         if not tr.valid(self):
@@ -169,17 +170,8 @@ TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
 )
 
 
-def is_valid_var_idx(node, idx):
-    raise NotImplementedError()
-    return True
-
-
 def is_valid_stmt_idx(node, idx):
-    raise NotImplementedError()
-
-
-def is_valid_param_idx(node, idx):
-    raise NotImplementedError()
+    return 0 <= idx and idx < len(node.loop_prototype)
 
 
 TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
@@ -196,7 +188,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
     arg_help=["Statement index", "Value"],
     restype=ctypes.c_bool,
     valid=lambda node: node.node_type == NodeType.BAND,
-    args_valid=lambda stmt_idx, val: True,
+    args_valid=lambda stmt_idx, value: is_valid_stmt(node, stmt_idx),
 )
 
 
@@ -206,7 +198,9 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
     arg_help=["Coefficient", "Variable index"],
     restype=ctypes.c_bool,
     valid=lambda node: node.node_type == NodeType.BAND,
-    args_valid=lambda node, coeff, var_idx: True,
+    args_valid=lambda node, coeff, var_idx: all(
+        [var_idx in stmt.vars for stmt in node.loop_prototype]
+    ),
 )
 TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     func_name="partial_shift_var",
@@ -214,7 +208,8 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     arg_help=["Statement index", "Coefficient", "Variable index"],
     restype=ctypes.c_bool,
     valid=lambda node: node.node_type == NodeType.BAND,
-    args_valid=lambda node, stmt_idx, coeff, var_idx: True,
+    args_valid=lambda node, stmt_idx, coeff, var_idx: is_valid_stmt(node, stmt_idx)
+    and var_idx in node.loop_prototype[stmt_idx],
 )
 TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     func_name="full_shift_param",
@@ -222,7 +217,9 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     arg_help=["Coefficient", "Parameter index"],
     restype=ctypes.c_bool,
     valid=lambda node: node.node_type == NodeType.BAND,
-    args_valid=lambda coeff, parm_idx: True,
+    args_valid=lambda coeff, parm_idx: all(
+        [var_idx in stmt.vars for stmt in node.loop_prototype]
+    ),
 )
 TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
     func_name="partial_shift_param",
