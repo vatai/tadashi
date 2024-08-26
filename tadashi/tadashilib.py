@@ -34,7 +34,7 @@ class TransformationInfo:
     arg_help: list[str]
     restype: type
     valid: Callable[[Node], bool]
-    args_valid: list[Callable]
+    args_valid: Callable
 
 
 class Transformation(StrEnum):
@@ -50,101 +50,6 @@ class Transformation(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     PRINT_SCHEDULE = auto()
     SET_LOOP_OPT = auto()
-
-
-TRANSFORMATIONS = {
-    Transformation.TILE: TransformationInfo(
-        func_name="tile",
-        argtypes=[ctypes.c_size_t],
-        arg_help=["Tile size"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, arg: isinstance(arg, int) and arg > 0,
-    ),
-    Transformation.INTERCHANGE: TransformationInfo(
-        func_name="interchange",
-        argtypes=[],
-        arg_help=[],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND
-        and len(node.children) == 1
-        and node.children[0].node_type == NodeType.BAND,
-        args_valid=lambda _: True,
-    ),
-    Transformation.FUSE: TransformationInfo(
-        func_name="fuse",
-        argtypes=[ctypes.c_int, ctypes.c_int],
-        arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.SEQUENCE,
-        # to generte valid params, we need read it from the node
-        args_valid=lambda node, loop_idx1, loop_idx2: True,
-    ),
-    Transformation.FULL_FUSE: TransformationInfo(
-        func_name="full_fuse",
-        argtypes=[],
-        arg_help=[],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.SEQUENCE,
-        args_valid=lambda _: True,
-    ),
-    Transformation.FULL_SHIFT_VAL: TransformationInfo(
-        func_name="full_shift_val",
-        argtypes=[ctypes.c_long],
-        arg_help=["Value"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, value: True,
-    ),
-    Transformation.PARTIAL_SHIFT_VAL: TransformationInfo(
-        func_name="partial_shift_val",
-        argtypes=[ctypes.c_int, ctypes.c_long],
-        arg_help=["Statement index", "Value"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda stmt_idx, val: True,
-    ),
-    Transformation.FULL_SHIFT_VAR: TransformationInfo(
-        func_name="full_shift_var",
-        argtypes=[ctypes.c_long, ctypes.c_long],
-        arg_help=["Coefficient", "Variable index"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, coeff, var_idx: True,
-    ),
-    Transformation.PARTIAL_SHIFT_VAR: TransformationInfo(
-        func_name="partial_shift_var",
-        argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
-        arg_help=["Statement index", "Coefficient", "Variable index"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, stmt_idx, coeff, var_idx: True,
-    ),
-    Transformation.FULL_SHIFT_PARAM: TransformationInfo(
-        func_name="full_shift_param",
-        argtypes=[ctypes.c_long, ctypes.c_long],
-        arg_help=["Coefficient", "Parameter index"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda coeff, parm_idx: True,
-    ),
-    Transformation.PARTIAL_SHIFT_PARAM: TransformationInfo(
-        func_name="partial_shift_param",
-        argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
-        arg_help=["Statement index", "Coefficient", "Parameter index"],
-        restype=ctypes.c_bool,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, stmt_idx, coeff, parm_idx: True,
-    ),
-    Transformation.SET_LOOP_OPT: TransformationInfo(
-        func_name="set_loop_opt",
-        argtypes=[ctypes.c_int, ctypes.c_int],
-        arg_help=["Iterator index", "Option"],
-        restype=None,
-        valid=lambda node: node.node_type == NodeType.BAND,
-        args_valid=lambda node, iter_idx, opt: True,
-    ),
-}
 
 
 @dataclass
@@ -203,6 +108,134 @@ class Node:
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
+
+
+TRANSFORMATIONS = {}
+
+
+def is_band_node(node: Node):
+    return node.node_type == NodeType.BAND
+
+
+def is_seq_node(node: Node):
+    return node.node_type == NodeType.SEQUENCE
+
+
+TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
+    func_name="tile",
+    argtypes=[ctypes.c_size_t],
+    arg_help=["Tile size"],
+    restype=ctypes.c_bool,
+    valid=is_band_node,
+    args_valid=lambda node, arg: arg > 0,
+)
+TRANSFORMATIONS[Transformation.INTERCHANGE] = TransformationInfo(
+    func_name="interchange",
+    argtypes=[],
+    arg_help=[],
+    restype=ctypes.c_bool,
+    valid=lambda node: is_band_node(node)
+    and len(node.children) == 1
+    and is_band_node(node.children[0]),
+    args_valid=lambda Node: True,
+)
+
+
+def is_valid_child_idx(node, idx):
+    return 0 <= idx and idx < len(node.children)
+
+
+TRANSFORMATIONS[Transformation.FUSE] = TransformationInfo(
+    func_name="fuse",
+    argtypes=[ctypes.c_int, ctypes.c_int],
+    arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
+    restype=ctypes.c_bool,
+    valid=is_seq_node,
+    # to generte valid params, we need read it from the node
+    args_valid=lambda node, loop_idx1, loop_idx2: is_valid_child_idx(node, loop_idx1)
+    and is_valid_child_idx(node, loop_idx2),
+)
+TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
+    func_name="full_fuse",
+    argtypes=[],
+    arg_help=[],
+    restype=ctypes.c_bool,
+    valid=is_seq_node,
+    args_valid=lambda Node: True,
+)
+
+
+def is_valid_var_idx(node, idx):
+    raise NotImplementedError()
+    return True
+
+
+def is_valid_stmt_idx(node, idx):
+    raise NotImplementedError()
+
+
+def is_valid_param_idx(node, idx):
+    raise NotImplementedError()
+
+
+TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
+    func_name="full_shift_val",
+    argtypes=[ctypes.c_long],
+    arg_help=["Value"],
+    restype=ctypes.c_bool,
+    valid=is_band_node,
+    args_valid=lambda node, value: True,
+)
+TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
+    func_name="partial_shift_val",
+    argtypes=[ctypes.c_int, ctypes.c_long],
+    arg_help=["Statement index", "Value"],
+    restype=ctypes.c_bool,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda stmt_idx, val: True,
+)
+
+
+TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
+    func_name="full_shift_var",
+    argtypes=[ctypes.c_long, ctypes.c_long],
+    arg_help=["Coefficient", "Variable index"],
+    restype=ctypes.c_bool,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda node, coeff, var_idx: True,
+)
+TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
+    func_name="partial_shift_var",
+    argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
+    arg_help=["Statement index", "Coefficient", "Variable index"],
+    restype=ctypes.c_bool,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda node, stmt_idx, coeff, var_idx: True,
+)
+TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
+    func_name="full_shift_param",
+    argtypes=[ctypes.c_long, ctypes.c_long],
+    arg_help=["Coefficient", "Parameter index"],
+    restype=ctypes.c_bool,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda coeff, parm_idx: True,
+)
+TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
+    func_name="partial_shift_param",
+    argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
+    arg_help=["Statement index", "Coefficient", "Parameter index"],
+    restype=ctypes.c_bool,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda node, stmt_idx, coeff, parm_idx: True,
+)
+TRANSFORMATIONS[Transformation.SET_LOOP_OPT] = TransformationInfo(
+    func_name="set_loop_opt",
+    argtypes=[ctypes.c_int, ctypes.c_int],
+    arg_help=["Iterator index", "Option"],
+    restype=None,
+    valid=lambda node: node.node_type == NodeType.BAND,
+    args_valid=lambda node, iter_idx, opt: True,
+)
 
 
 class Scop:
