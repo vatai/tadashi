@@ -128,6 +128,14 @@ def is_seq_node(node: Node):
     return node.node_type == NodeType.SEQUENCE
 
 
+def is_valid_child_idx(node, idx):
+    return 0 <= idx and idx < len(node.children)
+
+
+def is_valid_stmt_idx(node, idx):
+    return 0 <= idx and idx < len(node.loop_prototype)
+
+
 TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
     func_name="tile",
     argtypes=[ctypes.c_size_t],
@@ -136,6 +144,7 @@ TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
     valid=is_band_node,
     args_valid=lambda node, arg: arg > 0,
 )
+
 TRANSFORMATIONS[Transformation.INTERCHANGE] = TransformationInfo(
     func_name="interchange",
     argtypes=[],
@@ -147,21 +156,12 @@ TRANSFORMATIONS[Transformation.INTERCHANGE] = TransformationInfo(
     args_valid=lambda Node: True,
 )
 
-
-def is_valid_child_idx(node, idx):
-    return 0 <= idx and idx < len(node.children)
-
-
-def is_valid_stmt_idx(node, idx):
-    return 0 <= idx and idx < len(node.loop_prototype)
-
-
 TRANSFORMATIONS[Transformation.FUSE] = TransformationInfo(
     func_name="fuse",
     argtypes=[ctypes.c_int, ctypes.c_int],
     arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
     restype=ctypes.c_bool,
-    valid=lambda _: is_seq_node,
+    valid=is_seq_node,
     args_valid=lambda node, loop_idx1, loop_idx2: is_valid_child_idx(node, loop_idx1)
     and is_valid_child_idx(node, loop_idx2),
 )
