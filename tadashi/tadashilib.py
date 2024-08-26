@@ -111,6 +111,8 @@ class Node:
             msg = f"Not a valid transformation: {transformation}"
             raise ValueError(msg)
         func = getattr(self.scop.ctadashi, tr.func_name)
+        assert tr.valid(self)
+        assert tr.args_valid(self, *args)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
 
@@ -150,16 +152,20 @@ def is_valid_child_idx(node, idx):
     return 0 <= idx and idx < len(node.children)
 
 
+def is_valid_stmt_idx(node, idx):
+    return 0 <= idx and idx < len(node.loop_prototype)
+
+
 TRANSFORMATIONS[Transformation.FUSE] = TransformationInfo(
     func_name="fuse",
     argtypes=[ctypes.c_int, ctypes.c_int],
     arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
     restype=ctypes.c_bool,
-    valid=is_seq_node,
-    # to generte valid params, we need read it from the node
+    valid=lambda _: is_seq_node,
     args_valid=lambda node, loop_idx1, loop_idx2: is_valid_child_idx(node, loop_idx1)
     and is_valid_child_idx(node, loop_idx2),
 )
+
 TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
     func_name="full_fuse",
     argtypes=[],
@@ -169,11 +175,6 @@ TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
     args_valid=lambda Node: True,
 )
 
-
-def is_valid_stmt_idx(node, idx):
-    return 0 <= idx and idx < len(node.loop_prototype)
-
-
 TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
     func_name="full_shift_val",
     argtypes=[ctypes.c_long],
@@ -182,6 +183,7 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
     valid=is_band_node,
     args_valid=lambda node, value: True,
 )
+
 TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
     func_name="partial_shift_val",
     argtypes=[ctypes.c_int, ctypes.c_long],
@@ -191,7 +193,6 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
     args_valid=lambda node, stmt_idx, value: is_valid_stmt_idx(node, stmt_idx),
 )
 
-
 TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
     func_name="full_shift_var",
     argtypes=[ctypes.c_long, ctypes.c_long],
@@ -199,9 +200,10 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
     restype=ctypes.c_bool,
     valid=is_band_node,
     args_valid=lambda node, coeff, var_idx: all(
-        var_idx in stmt.vars for stmt in node.loop_prototype
+        0 <= var_idx and var_idx < len(stmt.vars) for stmt in node.loop_prototype
     ),
 )
+
 TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     func_name="partial_shift_var",
     argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
@@ -209,8 +211,11 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     restype=ctypes.c_bool,
     valid=is_band_node,
     args_valid=lambda node, stmt_idx, coeff, var_idx: is_valid_stmt_idx(node, stmt_idx)
-    and var_idx in node.loop_prototype[stmt_idx].vars,
+    and 0 <= var_idx
+    and var_idx < len(node.loop_prototype[stmt_idx].vars),
+    # args_valid=fn,
 )
+
 TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     func_name="full_shift_param",
     argtypes=[ctypes.c_long, ctypes.c_long],
@@ -218,9 +223,10 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     restype=ctypes.c_bool,
     valid=is_band_node,
     args_valid=lambda node, coeff, param_idx: all(
-        param_idx in stmt.vars for stmt in node.loop_prototype
+        0 <= param_idx and param_idx < len(stmt.vars) for stmt in node.loop_prototype
     ),
 )
+
 TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
     func_name="partial_shift_param",
     argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
@@ -230,8 +236,10 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
     args_valid=lambda node, stmt_idx, coeff, param_idx: is_valid_stmt_idx(
         node, stmt_idx
     )
-    and param_idx in node.loop_prototype[stmt_idx].params,
+    and 0 <= param_idx
+    and param_idx < len(node.loop_prototype[stmt_idx].params),
 )
+
 TRANSFORMATIONS[Transformation.SET_LOOP_OPT] = TransformationInfo(
     func_name="set_loop_opt",
     argtypes=[ctypes.c_int, ctypes.c_int],
