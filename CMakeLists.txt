@@ -4,9 +4,7 @@ project(polyhedral-tutor)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-
 # list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
-
 
 include(FetchContent)
 
@@ -88,7 +86,6 @@ if(NOT PET_FOUND)
 
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
-
 endif()
 
 include(src/archive/CMakeLists.txt)
@@ -102,12 +99,21 @@ target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+include_directories(include)
+
+find_package(Python REQUIRED COMPONENTS Development)
+find_package(SWIG) # 4.0 COMPONENTS python)
+include (UseSWIG)
+
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
+set_property(SOURCE src/ctadashi.i
+  PROPERTY CPLUSPLUS ON
+  PROPERTY SWIG_INCLUDE_DIRECTORIES )
+swig_add_library(ctadashi_py TYPE SHARED LANGUAGE python SOURCES src/ctadashi.i)
+swig_link_libraries(ctadashi_py ctadashi Python::Python) # PkgConfig::PET legality codegen transformations)
 
 add_executable(goodbadtest src/goodbadtest.c)
-
-include_directories(include)
 
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
