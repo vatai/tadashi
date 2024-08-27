@@ -122,7 +122,7 @@ get_expr(size_t idx) {
 }
 
 const char *
-get_loop_prototype(size_t scop_idx) {
+get_loop_signature(size_t scop_idx) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
     return "[]";

@@ -6,15 +6,12 @@ from __future__ import annotations
 import ctypes
 import os
 from ast import literal_eval
-from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Callable
 
 from .apps import App
-
-LoopPrototype = namedtuple("LoopPrototype", ["params", "vars"])
 
 
 class NodeType(Enum):
@@ -63,7 +60,7 @@ class Node:
     num_children: int
     parent_idx: int
     location: int
-    loop_prototype: str
+    loop_signature: list[dict]
     expr: str
     children_idx: list[str]
 
@@ -79,7 +76,7 @@ class Node:
         words = [
             "Node type:",
             f"{self.node_type},",
-            f"{self.loop_prototype},",
+            f"{self.loop_signature},",
             f"{self.expr},",
             f"{self.location}",
         ]
@@ -133,7 +130,7 @@ def is_valid_child_idx(node, idx):
 
 
 def is_valid_stmt_idx(node, idx):
-    return 0 <= idx and idx < len(node.loop_prototype)
+    return 0 <= idx and idx < len(node.loop_signature)
 
 
 TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
@@ -200,7 +197,7 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
     restype=ctypes.c_bool,
     valid=is_band_node,
     args_valid=lambda node, coeff, var_idx: all(
-        0 <= var_idx and var_idx < len(stmt.vars) for stmt in node.loop_prototype
+        0 <= var_idx and var_idx < len(stmt["vars"]) for stmt in node.loop_signature
     ),
 )
 
@@ -212,7 +209,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     valid=is_band_node,
     args_valid=lambda node, stmt_idx, coeff, var_idx: is_valid_stmt_idx(node, stmt_idx)
     and 0 <= var_idx
-    and var_idx < len(node.loop_prototype[stmt_idx].vars),
+    and var_idx < len(node.loop_signature[stmt_idx]["vars"]),
     # args_valid=fn,
 )
 
@@ -223,7 +220,8 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     restype=ctypes.c_bool,
     valid=is_band_node,
     args_valid=lambda node, coeff, param_idx: all(
-        0 <= param_idx and param_idx < len(stmt.vars) for stmt in node.loop_prototype
+        0 <= param_idx and param_idx < len(stmt["params"])
+        for stmt in node.loop_signature
     ),
 )
 
@@ -237,7 +235,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
         node, stmt_idx
     )
     and 0 <= param_idx
-    and param_idx < len(node.loop_prototype[stmt_idx].params),
+    and param_idx < len(node.loop_signature[stmt_idx]["params"]),
 )
 
 TRANSFORMATIONS[Transformation.SET_LOOP_OPT] = TransformationInfo(
@@ -263,10 +261,9 @@ class Scop:
         self.ctadashi = ctadashi
         self.idx = idx
 
-    def get_loop_prototype(self):
-        loop_prototype = self.ctadashi.get_loop_prototype(self.idx).decode()
-        dict_loop_prototype = literal_eval(loop_prototype)
-        return [LoopPrototype(**lp) for lp in dict_loop_prototype]
+    def get_loop_signature(self):
+        loop_signature = self.ctadashi.get_loop_signature(self.idx).decode()
+        return literal_eval(loop_signature)
 
     def make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
@@ -276,7 +273,7 @@ class Scop:
             num_children=num_children,
             parent_idx=parent,
             location=location,
-            loop_prototype=self.get_loop_prototype(),
+            loop_signature=self.get_loop_signature(),
             expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
             children_idx=[-1] * num_children,
         )
@@ -335,8 +332,8 @@ class Scops:
         self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_expr.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_expr.restype = ctypes.c_char_p
-        self.ctadashi.get_loop_prototype.argtypes = [ctypes.c_size_t]
-        self.ctadashi.get_loop_prototype.restype = ctypes.c_char_p
+        self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
         self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]
