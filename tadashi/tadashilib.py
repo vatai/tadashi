@@ -369,9 +369,10 @@ class Scops:
         input_path_bytes = str(input_path).encode()
         return input_path_bytes
 
-    def generate_code(self):
-        # rewrite the original source_path file with the generated code
-        input_path_bytes = self.get_input_path_bytes_and_backup_source()
+    def generate_code(self, input_path_bytes=None):
+        if input_path_bytes is None or input_path_bytes == self.source_path_bytes:
+            # rewrite the original source_path file with the generated code
+            input_path_bytes = self.get_input_path_bytes_and_backup_source()
         self.ctadashi.generate_code(input_path_bytes, self.source_path_bytes)
 
     def __len__(self):
