@@ -27,12 +27,14 @@ class App:
     def output_binary(self) -> Path:
         raise NotImplementedError()
 
+    @property
+    def run_cmd(self) -> list:
+        raise [self.output_binary]
+
     def measure(self) -> float:
-        cmd = [self.output_binary]
-        result = subprocess.run(cmd, stdout=subprocess.PIPE)
+        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE)
         stdout = result.stdout.decode()
-        runtime = self.extract_runtime(stdout)
-        return float(runtime)
+        return self.extract_runtime(stdout)
 
     @staticmethod
     def extract_runtime(stdout) -> float:
@@ -55,6 +57,10 @@ class Simple(App):
         ]
 
     @property
+    def run_cmd(self) -> list:
+        return ["bash", "-c" f"time {self.output_binary}"]
+
+    @property
     def source_path(self) -> Path:
         return self.source
 
@@ -64,7 +70,7 @@ class Simple(App):
 
     @staticmethod
     def extract_runtime(stdout):
-        return "42.0"
+        return stdout
 
 
 class Polybench(App):

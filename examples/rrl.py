@@ -67,11 +67,12 @@ def main():
     scop = scops[0]  # select_scop()
     model = Model()
 
-    for _ in range(20):
+    for _ in range(3):
         model.random_transform(scop)
         scops.generate_code()
         app.compile()
-        app.measure()
+        t = app.measure()
+        print(f">>>>>>>>>> {t} <<<<<<<<<<")
 
 
 if __name__ == "__main__":
