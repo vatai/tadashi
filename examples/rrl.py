@@ -43,21 +43,44 @@ class Model:
                 case "full_shift_val":
                     arg = random.randint(-100, 100)
                 case "partial_shift_val":
+                    num_stmts = len(node.loop_signature)
                     lb = [0, -100]
-                    ub = [len(node.loop_signature) - 1, 100]
-                    arg = random.randint(lb[pos], ub[pos])
+                    ub = [num_stmts - 1, 100]
+                    args.append(random.randint(lb[pos], ub[pos]))
                 case "full_shift_var":
-                    num_vars = [len(stmt["vars"]) for stmt in node.loop_signature]
-                    print(num_vars)
+                    max_num_vars = max(
+                        [len(stmt["vars"]) for stmt in node.loop_signature]
+                    )
+                    lb = [-10, 0]
+                    ub = [10, max_num_vars - 1]
+                    args.append(random.randint(lb[pos], ub[pos]))
                 case "partial_shift_var":
-                    print(tr.func_name)
+                    max_num_vars = max(
+                        [len(stmt["vars"]) for stmt in node.loop_signature]
+                    )
+                    num_stmts = len(node.loop_signature)
+                    lb = [0, -10, 0]
+                    ub = [num_stmts - 1, 10, max_num_vars - 1]
+                    args.append(random.randint(lb[pos], ub[pos]))
                 case "full_shift_param":
-                    print(tr.func_name)
+                    max_num_vars = max(
+                        [len(stmt["vars"]) for stmt in node.loop_signature]
+                    )
+                    lb = [-10, 0]
+                    ub = [10, max_num_vars - 1]
+                    args.append(random.randint(lb[pos], ub[pos]))
                 case "partial_shift_param":
-                    print(tr.func_name)
+                    max_num_params = max(
+                        [len(stmt["params"]) for stmt in node.loop_signature]
+                    )
+                    num_stmts = len(node.loop_signature)
+                    lb = [0, -10, 0]
+                    ub = [num_stmts - 1, 10, max_num_params - 1]
+                    args.append(random.randint(lb[pos], ub[pos]))
                 case "tile":
-                    arg = random.randint(1, 1000)
-            args.append(arg)
+                    args.append(random.randint(1, 1000))
+                case "tile":
+                    args.append(random.randint(1, 1000))
         return args
 
 
