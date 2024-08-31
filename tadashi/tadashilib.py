@@ -96,20 +96,17 @@ class Node:
                     result.append(Transformation.INTERCHANGE)
         return result
 
-    def transform(self, transformation, *args):
-        if transformation not in TRANSFORMATIONS:
-            msg = f"{transformation} does not exists"
-            raise ValueError(msg)
-        tr = TRANSFORMATIONS[transformation]
+    def transform(self, tr, *args):
         # TODO proc_args
         if len(args) != len(tr.arg_help):
             raise ValueError("Incorrect number of args!")
         if not tr.valid(self):
-            msg = f"Not a valid transformation: {transformation}"
+            msg = f"Not a valid transformation: {tr}"
+            raise ValueError(msg)
+        if not tr.args_valid(self, *args):
+            msg = f"Not valid transformation args: {args}"
             raise ValueError(msg)
         func = getattr(self.scop.ctadashi, tr.func_name)
-        assert tr.valid(self)
-        assert tr.args_valid(self, *args)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
 
