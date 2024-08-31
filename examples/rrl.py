@@ -16,16 +16,20 @@ class Model:
     def random_transform(self, scop):
         node_idx_inc = random.choice([-1, 0, 1])
         self.node_idx += node_idx_inc
-        self.node_idx = max(self.node_idx, 0)
+        self.node_idx = max(self.node_idx, 1)
         self.node_idx = min(self.node_idx, len(scop.schedule_tree) - 1)
-        tr = random.choice([k for k in TRANSFORMATIONS.keys()])
         node = scop.schedule_tree[self.node_idx]
+        tr = random.choice(list(TRANSFORMATIONS.values()))
+        while not tr.valid(node):
+            print(tr.valid(node))
+            tr = random.choice(list(TRANSFORMATIONS.values()))
+
         args = self.random_args(node, tr)
         node.transform(tr, *args)
         print(tr)
 
-    def random_args(node, tr):
-        pass
+    def random_args(self, node, tr):
+        return []
 
 
 def main():
