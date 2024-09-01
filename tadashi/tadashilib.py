@@ -101,7 +101,10 @@ class Node:
         return func(self.scop.idx, *args)
 
 
-TRANSFORMATIONS = {}
+@dataclass
+class LowerUpperBound:
+    lower: Optional[int] = None
+    upper: Optional[int] = None
 
 
 class TrInfoBase:
@@ -111,24 +114,28 @@ class TrInfoBase:
     restype: Optional[type] = ctypes.c_bool
 
     @staticmethod
-    def valid(node: Node):
+    def valid(node: Node) -> bool:
         return node.node_type == NodeType.BAND
 
     @staticmethod
-    def args_valid(node: Node, *arg, **kwargs):
+    def args_valid(node: Node, *arg, **kwargs) -> bool:
         return True
 
     @staticmethod
-    def _is_valid_stmt_idx(node: Node, idx: int):
+    def _is_valid_stmt_idx(node: Node, idx: int) -> bool:
         return 0 <= idx < len(node.loop_signature)
 
     @staticmethod
-    def _valid_idx_all_stmt(node: Node, idx: int, stmt_key: str):
+    def _valid_idx_all_stmt(node: Node, idx: int, stmt_key: str) -> bool:
         return all(0 <= idx < len(s[stmt_key]) for s in node.loop_signature)
 
     @staticmethod
     def _is_valid_child_idx(node: Node, idx):
         return 0 <= idx and idx < len(node.children)
+
+    @staticmethod
+    def lower_upper_bounds(node: Node, *args, **kwargs) -> list:
+        return []
 
 
 class TileInfo(TrInfoBase):
@@ -141,8 +148,9 @@ class TileInfo(TrInfoBase):
     def args_valid(node, arg):
         return True
 
-
-TRANSFORMATIONS[TrEnum.TILE] = TileInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, tile_size: int):
+        return [LowerUpperBound(lower=1, upper=None)]
 
 
 class InterchangeInfo(TrInfoBase):
@@ -155,9 +163,6 @@ class InterchangeInfo(TrInfoBase):
             and len(node.children) == 1
             and node.children[0].node_type == NodeType.BAND
         )
-
-
-TRANSFORMATIONS[TrEnum.INTERCHANGE] = InterchangeInfo()
 
 
 class FuseInfo(TrInfoBase):
@@ -176,8 +181,13 @@ class FuseInfo(TrInfoBase):
             and TrInfoBase._is_valid_child_idx(node, loop_idx2),
         )
 
-
-TRANSFORMATIONS[TrEnum.FUSE] = FuseInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, loop_idx1: int, loop_idx2: int):
+        nc = len(node.children)
+        return [
+            LowerUpperBound(lower=0, upper=nc - 1),
+            LowerUpperBound(lower=0, upper=nc - 1),
+        ]
 
 
 class FullFuseInfo(TrInfoBase):
@@ -188,16 +198,14 @@ class FullFuseInfo(TrInfoBase):
         return node.node_type == NodeType.SEQUENCE
 
 
-TRANSFORMATIONS[TrEnum.FULL_FUSE] = FullFuseInfo()
-
-
 class FullShiftValInfo(TrInfoBase):
     func_name = "full_shift_val"
     argtypes = [ctypes.c_long]
     arg_help = ["Value"]
 
-
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAL] = FullShiftValInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, value: int):
+        return [LowerUpperBound()]
 
 
 class PartialShiftValInfo(TrInfoBase):
@@ -209,8 +217,10 @@ class PartialShiftValInfo(TrInfoBase):
     def args_valid(node: Node, stmt_idx: int, value: int):
         return TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
 
-
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAL] = PartialShiftValInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, stmt_idx: int, value: int):
+        ns = len(node.loop_signature)
+        return [LowerUpperBound(lower=0, upper=ns - 1), LowerUpperBound()]
 
 
 class FullShiftVarInfo(TrInfoBase):
@@ -222,8 +232,10 @@ class FullShiftVarInfo(TrInfoBase):
     def args_valid(node: Node, _coeff: int, var_idx: int):
         return TrInfoBase._valid_idx_all_stmt(node, var_idx, "vars")
 
-
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAR] = FullShiftVarInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, value: int):
+        min_nv = min(s["vars"] for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv - 1)]
 
 
 class PartialShiftVarInfo(TrInfoBase):
@@ -238,8 +250,13 @@ class PartialShiftVarInfo(TrInfoBase):
             and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
         )
 
-
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAR] = PartialShiftVarInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, stmt_idx: int, coeff: int, var_idx: int):
+        return [
+            LowerUpperBound(0, len(node.loop_signature) - 1),
+            LowerUpperBound(),
+            LowerUpperBound(0, len(node.loop_signature[stmt_idx]["vars"]) - 1),
+        ]
 
 
 class FullShiftParamInfo(TrInfoBase):
@@ -251,8 +268,10 @@ class FullShiftParamInfo(TrInfoBase):
     def args_valid(node: Node, coeff: int, param_idx: int):
         return TrInfoBase._valid_idx_all_stmt(node, param_idx, "params")
 
-
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_PARAM] = FullShiftParamInfo()
+    @staticmethod
+    def lower_upper_bounds(node: Node, coeff: int, param_idx: int):
+        min_np = min(s["params"] for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(0, min_np - 1)]
 
 
 class PartialShiftParam(TrInfoBase):
@@ -268,8 +287,13 @@ class PartialShiftParam(TrInfoBase):
             and param_idx < len(node.loop_signature[stmt_idx]["params"]),
         )
 
-
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_PARAM] = PartialShiftParam()
+    @staticmethod
+    def lower_upper_bounds(node: Node, stmt_idx: int, coeff: int, param_idx: int):
+        return [
+            LowerUpperBound(0, len(node.loop_signature) - 1),
+            LowerUpperBound(),
+            LowerUpperBound(0, len(node.loop_signature[stmt_idx]["params"]) - 1),
+        ]
 
 
 class SetLoopOpt(TrInfoBase):
@@ -278,8 +302,26 @@ class SetLoopOpt(TrInfoBase):
     arg_help = ["Iterator index", "Option"]
     restype = None
 
+    @staticmethod
+    def lower_upper_bounds(node: Node, iter_idx: int, opt: int):
+        return []
 
-TRANSFORMATIONS[TrEnum.SET_LOOP_OPT] = SetLoopOpt()
+
+# TODO ^^^
+
+TRANSFORMATIONS: dict[TrEnum, TrInfoBase] = {
+    TrEnum.TILE: TileInfo(),
+    TrEnum.INTERCHANGE: InterchangeInfo(),
+    TrEnum.FUSE: FuseInfo(),
+    TrEnum.FULL_FUSE: FullFuseInfo(),
+    TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
+    TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
+    TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
+    TrEnum.PARTIAL_SHIFT_VAR: PartialShiftVarInfo(),
+    TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
+    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParam(),
+    TrEnum.SET_LOOP_OPT: SetLoopOpt(),
+}
 
 
 class Scop:
