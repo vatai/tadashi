@@ -46,6 +46,6 @@ main(int argc, char *argv[]) {
   /* for (int i = 0; i < N; ++i) { */
   /*   print_arr(N, A[i]); */
   /* } */
-  printf("WALLTIME: %lld\n", time);
+  printf("WALLTIME: %ld\n", time);
   return 0;
 }
