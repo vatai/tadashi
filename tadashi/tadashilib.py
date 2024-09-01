@@ -6,12 +6,20 @@ from __future__ import annotations
 import ctypes
 import os
 from ast import literal_eval
+from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
 from .apps import App
+
+
+class AstLoopType(Enum):
+    default = 0
+    atomic = auto()
+    unroll = auto()
+    separate = auto()
 
 
 class NodeType(Enum):
@@ -101,10 +109,9 @@ class Node:
         return func(self.scop.idx, *args)
 
 
-@dataclass
-class LowerUpperBound:
-    lower: Optional[int] = None
-    upper: Optional[int] = None
+LowerUpperBound = namedtuple(
+    "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
+)
 
 
 class TrInfoBase:
@@ -134,7 +141,7 @@ class TrInfoBase:
         return 0 <= idx and idx < len(node.children)
 
     @staticmethod
-    def lower_upper_bounds(node: Node, *args, **kwargs) -> list:
+    def lower_upper_bounds(node: Node) -> list:
         return []
 
 
@@ -149,7 +156,7 @@ class TileInfo(TrInfoBase):
         return True
 
     @staticmethod
-    def lower_upper_bounds(node: Node, tile_size: int):
+    def lower_upper_bounds(node: Node):
         return [LowerUpperBound(lower=1, upper=None)]
 
 
@@ -182,11 +189,11 @@ class FuseInfo(TrInfoBase):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node, loop_idx1: int, loop_idx2: int):
+    def lower_upper_bounds(node: Node):
         nc = len(node.children)
         return [
-            LowerUpperBound(lower=0, upper=nc - 1),
-            LowerUpperBound(lower=0, upper=nc - 1),
+            LowerUpperBound(lower=0, upper=nc),
+            LowerUpperBound(lower=0, upper=nc),
         ]
 
 
@@ -204,7 +211,7 @@ class FullShiftValInfo(TrInfoBase):
     arg_help = ["Value"]
 
     @staticmethod
-    def lower_upper_bounds(node: Node, value: int):
+    def lower_upper_bounds(node: Node):
         return [LowerUpperBound()]
 
 
@@ -218,9 +225,9 @@ class PartialShiftValInfo(TrInfoBase):
         return TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
 
     @staticmethod
-    def lower_upper_bounds(node: Node, stmt_idx: int, value: int):
+    def lower_upper_bounds(node: Node):
         ns = len(node.loop_signature)
-        return [LowerUpperBound(lower=0, upper=ns - 1), LowerUpperBound()]
+        return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
 
 
 class FullShiftVarInfo(TrInfoBase):
@@ -233,9 +240,9 @@ class FullShiftVarInfo(TrInfoBase):
         return TrInfoBase._valid_idx_all_stmt(node, var_idx, "vars")
 
     @staticmethod
-    def lower_upper_bounds(node: Node, value: int):
-        min_nv = min(s["vars"] for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv - 1)]
+    def lower_upper_bounds(node: Node):
+        min_nv = min(len(s["vars"]) for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
 
 
 class PartialShiftVarInfo(TrInfoBase):
@@ -251,11 +258,12 @@ class PartialShiftVarInfo(TrInfoBase):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node, stmt_idx: int, coeff: int, var_idx: int):
+    def lower_upper_bounds(node: Node):
+        min_nv = min(len(s["vars"]) for s in node.loop_signature)
         return [
-            LowerUpperBound(0, len(node.loop_signature) - 1),
+            LowerUpperBound(0, len(node.loop_signature)),
             LowerUpperBound(),
-            LowerUpperBound(0, len(node.loop_signature[stmt_idx]["vars"]) - 1),
+            LowerUpperBound(0, min_nv),
         ]
 
 
@@ -269,9 +277,9 @@ class FullShiftParamInfo(TrInfoBase):
         return TrInfoBase._valid_idx_all_stmt(node, param_idx, "params")
 
     @staticmethod
-    def lower_upper_bounds(node: Node, coeff: int, param_idx: int):
-        min_np = min(s["params"] for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(0, min_np - 1)]
+    def lower_upper_bounds(node: Node):
+        min_np = min(len(s["params"]) for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(0, min_np)]
 
 
 class PartialShiftParam(TrInfoBase):
@@ -288,11 +296,12 @@ class PartialShiftParam(TrInfoBase):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node, stmt_idx: int, coeff: int, param_idx: int):
+    def lower_upper_bounds(node: Node):
+        min_np = min(len(s["params"]) for s in node.loop_signature)
         return [
-            LowerUpperBound(0, len(node.loop_signature) - 1),
+            LowerUpperBound(0, len(node.loop_signature)),
             LowerUpperBound(),
-            LowerUpperBound(0, len(node.loop_signature[stmt_idx]["params"]) - 1),
+            LowerUpperBound(0, min_np),
         ]
 
 
@@ -303,11 +312,10 @@ class SetLoopOpt(TrInfoBase):
     restype = None
 
     @staticmethod
-    def lower_upper_bounds(node: Node, iter_idx: int, opt: int):
-        return []
+    def lower_upper_bounds(node: Node):
+        # TODO(vatai): The first is element is
+        return [LowerUpperBound(0, 1), AstLoopType]
 
-
-# TODO ^^^
 
 TRANSFORMATIONS: dict[TrEnum, TrInfoBase] = {
     TrEnum.TILE: TileInfo(),

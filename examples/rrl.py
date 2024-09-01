@@ -2,9 +2,10 @@
 
 import ctypes
 import random
+from enum import Enum
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import TRANSFORMATIONS, Scops, TrEnum
+from tadashi.tadashilib import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 
 
 class Model:
@@ -36,51 +37,26 @@ class Model:
         print(tr)
 
     def random_args(self, node, tr):
+        print(f"{tr=}")
+        lubs = tr.lower_upper_bounds(node)
         args = []
-        for pos, argtype in enumerate(tr.argtypes):
-            print(f"{tr.func_name=}")
-            match tr.func_name:
-                case "full_shift_val":
-                    arg = random.randint(-100, 100)
-                case "partial_shift_val":
-                    num_stmts = len(node.loop_signature)
-                    lb = [0, -100]
-                    ub = [num_stmts - 1, 100]
-                    args.append(random.randint(lb[pos], ub[pos]))
-                case "full_shift_var":
-                    max_num_vars = max(
-                        [len(stmt["vars"]) for stmt in node.loop_signature]
-                    )
-                    lb = [-10, 0]
-                    ub = [10, max_num_vars - 1]
-                    args.append(random.randint(lb[pos], ub[pos]))
-                case "partial_shift_var":
-                    max_num_vars = max(
-                        [len(stmt["vars"]) for stmt in node.loop_signature]
-                    )
-                    num_stmts = len(node.loop_signature)
-                    lb = [0, -10, 0]
-                    ub = [num_stmts - 1, 10, max_num_vars - 1]
-                    args.append(random.randint(lb[pos], ub[pos]))
-                case "full_shift_param":
-                    max_num_vars = max(
-                        [len(stmt["vars"]) for stmt in node.loop_signature]
-                    )
-                    lb = [-10, 0]
-                    ub = [10, max_num_vars - 1]
-                    args.append(random.randint(lb[pos], ub[pos]))
-                case "partial_shift_param":
-                    max_num_params = max(
-                        [len(stmt["params"]) for stmt in node.loop_signature]
-                    )
-                    num_stmts = len(node.loop_signature)
-                    lb = [0, -10, 0]
-                    ub = [num_stmts - 1, 10, max_num_params - 1]
-                    args.append(random.randint(lb[pos], ub[pos]))
-                case "tile":
-                    args.append(random.randint(1, 1000))
-                case "tile":
-                    args.append(random.randint(1, 1000))
+        for lub in lubs:
+            print(f"{lub=}")
+            if isinstance(lub, LowerUpperBound):
+                lb, ub = lub
+                if lb is None:
+                    lb = -100
+                if ub is None:
+                    ub = 100
+                print(f"{lb=} {ub=}")
+                args.append(random.randrange(lb, ub))
+            else:
+                print(f">>>{lub=} {lub}")
+                chosen_enum = random.choice(list(lub))
+                print(f"{chosen_enum.value=}")
+                args.append(chosen_enum.value)
+
+        print(f"{args=}")
         return args
 
 
