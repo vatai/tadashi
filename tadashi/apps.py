@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -43,15 +44,22 @@ class App:
 
 class Simple(App):
     source: Path
+    alt_source: Path
 
-    def __init__(self, source: str):
+    def __init__(self, source: str, alt_source: str = ""):
         self.source = Path(source)
+        if alt_source:
+            self.alt_source = Path(alt_source)
+        else:
+            ext = f".tmp{self.source.suffix}"
+            self.alt_source = self.source.with_suffix(ext)
+        shutil.copy(self.source, self.alt_source)
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            str(self.source_path),
+            str(self.alt_source),
             "-o",
             str(self.output_binary),
         ]
@@ -66,8 +74,8 @@ class Simple(App):
 
     @staticmethod
     def extract_runtime(stdout):
-        print(f"****{stdout=}*****")
-        return stdout
+        num = stdout.split()[1]
+        return float(num)
 
 
 class Polybench(App):
