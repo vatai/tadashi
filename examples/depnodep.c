@@ -41,7 +41,8 @@ main(int argc, char *argv[]) {
   }
   gettimeofday(&tv, NULL);
   time = (long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000;
-  f(N, A);
+  for (int i = 0; i < 10; i++)
+    f(N, A);
   gettimeofday(&tv, NULL);
   time = ((long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000) - time;
   printf("WALLTIME: %ld\n", time);
