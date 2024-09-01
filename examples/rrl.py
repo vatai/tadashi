@@ -12,9 +12,6 @@ class Model:
     def __init__(self):
         self.node_idx = 0
 
-    def sample(self):
-        pass
-
     def random_node(self, scop):
         node_idx_inc = random.choice([-1, 0, 1])
         self.node_idx += node_idx_inc
