@@ -54,15 +54,15 @@ def main():
 
     t = app.measure()
     print(f"Base time: {t}")
-    scops = Scops(app)
+    loop_nests = Scops(app)
     model = Model()
 
     for _ in range(10):
-        node_idx, tr_key, args = model.random_transform(scops[0])
-        print(f"node_idx: {node_idx}, tr: {tr_key}, args: {args}")
-        tr = TRANSFORMATIONS[tr_key]
-        scops[0].schedule_tree[node_idx].transform(tr, *args)
-        scops.generate_code(input_path=app.source, output_path=app.alt_source)
+        loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
+        print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
+        tr = TRANSFORMATIONS[transformation_id]
+        loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        loop_nests.generate_code(input_path=app.source, output_path=app.alt_source)
         app.compile()
         t = app.measure(timeout=20)
         print(f"WALLTIME: {t}")
