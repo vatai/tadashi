@@ -27,7 +27,6 @@ class Model:
             tr = random.choice(list(TRANSFORMATIONS.values()))
 
         args = self.random_args(node, tr)
-        node.transform(tr, *args)
         return self.node_idx, key, args
 
     def random_args(self, node, tr):
@@ -60,10 +59,13 @@ def main():
 
     for _ in range(3):
         node_idx, tr_key, args = model.random_transform(scop)
+        print(f"node_idx: {node_idx}, tr: {tr_key}, args: {args}")
+        tr = TRANSFORMATIONS[tr_key]
+        scops[0].schedule_tree[node_idx].transform(tr, *args)
         scops.generate_code(input_path=app.source, output_path=app.alt_source)
         app.compile()
         t = app.measure()
-        print(f"node_idx: {node_idx}, tr: {tr_key}, args: {args}, Measured: {t}")
+        print(f"WALLTIME: {t}")
 
 
 if __name__ == "__main__":
