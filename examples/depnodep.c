@@ -22,11 +22,9 @@ const int N = 1000;
 void
 f(int N, double A[N][N]) {
 #pragma scop
-  for (int i = 1; i < N; i++) {
-    for (int j = 0; j < N; j++) {
-      A[i][j] = A[i][j] + A[i - 1][j];
-    }
-  }
+  for (int c0 = 20 * N + 1; c0 < 21 * N; c0 += 1)
+    for (int c1 = 0; c1 < N; c1 += 1)
+      A[-20 * N + c0][c1] = (A[-20 * N + c0][c1] + A[-20 * N + c0 - 1][c1]);
 #pragma endscop
 }
 
@@ -44,7 +42,7 @@ main(int argc, char *argv[]) {
   time = (long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000;
   f(N, A);
   gettimeofday(&tv, NULL);
-  time = ((long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000 f(N, A)) - time;
+  time = ((long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000) - time;
   /* for (int i = 0; i < N; ++i) { */
   /*   print_arr(N, A[i]); */
   /* } */
