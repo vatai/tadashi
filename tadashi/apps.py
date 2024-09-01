@@ -58,7 +58,7 @@ class Simple(App):
 
     @property
     def run_cmd(self) -> list:
-        return ["bash", "-c" f"time {self.output_binary}"]
+        return ["bash", "-c", f"time {self.output_binary}"]
 
     @property
     def source_path(self) -> Path:
