@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import TRANSFORMATIONS, Scops, Transformation
+from tadashi.tadashilib import TRANSFORMATIONS, Scops, TrEnum
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -20,7 +20,7 @@ COMMENT = "///"
 class TransformData:
     scop_idx: int = -1
     node_idx: int = -1
-    transformation: Optional[Transformation] = None
+    transformation: Optional[TrEnum] = None
     transformation_args: list[int] = field(default_factory=list)
 
 
@@ -49,9 +49,7 @@ class TestCtadashi(unittest.TestCase):
                 if line.startswith(TRANSFORMATION):
                     transform_str = line.replace(TRANSFORMATION, "")
                     lits = ast.literal_eval(transform_str)
-                    td = TransformData(
-                        *lits[:2], Transformation(lits[2].lower()), lits[3:]
-                    )
+                    td = TransformData(*lits[:2], TrEnum(lits[2].lower()), lits[3:])
                     transforms.append(td)
                 else:
                     target_line = line[1:] if line else line
@@ -113,7 +111,7 @@ class TestCtadashi(unittest.TestCase):
 
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
-        trinfo = TRANSFORMATIONS[Transformation.TILE]
+        trinfo = TRANSFORMATIONS[TrEnum.TILE]
         self.assertRaises(ValueError, node.transform, trinfo, 2, 3)
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .apps import Polybench, Simple
-from .tadashilib import Scops, Transformation
+from .tadashilib import Scops, TrEnum
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     # codegen new scops and measure performance
     print(f"{node.avaliable_transformation=}")
     # node.transform(Transformation.TILE, 10)
-    node.transform(Transformation.PARTIAL_SHIFT_VAL, 0, 42)
+    node.transform(TrEnum.PARTIAL_SHIFT_VAL, 0, 42)
     scops.generate_code()
     # app.compile()
     # print(f"{app.output_binary=}")

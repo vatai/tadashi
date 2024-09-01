@@ -29,7 +29,7 @@ class NodeType(Enum):
 
 
 @dataclass
-class TransformationInfo:
+class TrInfo:
     func_name: str
     argtypes: list[type]
     arg_help: list[str]
@@ -38,7 +38,7 @@ class TransformationInfo:
     args_valid: Callable
 
 
-class Transformation(StrEnum):
+class TrEnum(StrEnum):
     TILE = auto()
     INTERCHANGE = auto()
     FUSE = auto()
@@ -87,13 +87,13 @@ class Node:
         return self.scop.get_current_node_from_ISL(None, None)
 
     @property
-    def avaliable_transformation(self) -> list[Transformation]:
+    def avaliable_transformation(self) -> list[TrEnum]:
         result = []
         match self.node_type:
             case NodeType.BAND:
-                result.append(Transformation.TILE)
+                result.append(TrEnum.TILE)
                 if self.num_children == 1:
-                    result.append(Transformation.INTERCHANGE)
+                    result.append(TrEnum.INTERCHANGE)
         return result
 
     def transform(self, tr, *args):
@@ -130,7 +130,7 @@ def is_valid_stmt_idx(node, idx):
     return 0 <= idx and idx < len(node.loop_signature)
 
 
-TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.TILE] = TrInfo(
     func_name="tile",
     argtypes=[ctypes.c_size_t],
     arg_help=["Tile size"],
@@ -139,7 +139,7 @@ TRANSFORMATIONS[Transformation.TILE] = TransformationInfo(
     args_valid=lambda node, arg: arg > 0,
 )
 
-TRANSFORMATIONS[Transformation.INTERCHANGE] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.INTERCHANGE] = TrInfo(
     func_name="interchange",
     argtypes=[],
     arg_help=[],
@@ -150,7 +150,7 @@ TRANSFORMATIONS[Transformation.INTERCHANGE] = TransformationInfo(
     args_valid=lambda Node: True,
 )
 
-TRANSFORMATIONS[Transformation.FUSE] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.FUSE] = TrInfo(
     func_name="fuse",
     argtypes=[ctypes.c_int, ctypes.c_int],
     arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
@@ -160,7 +160,7 @@ TRANSFORMATIONS[Transformation.FUSE] = TransformationInfo(
     and is_valid_child_idx(node, loop_idx2),
 )
 
-TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.FULL_FUSE] = TrInfo(
     func_name="full_fuse",
     argtypes=[],
     arg_help=[],
@@ -169,7 +169,7 @@ TRANSFORMATIONS[Transformation.FULL_FUSE] = TransformationInfo(
     args_valid=lambda Node: True,
 )
 
-TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAL] = TrInfo(
     func_name="full_shift_val",
     argtypes=[ctypes.c_long],
     arg_help=["Value"],
@@ -178,7 +178,7 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAL] = TransformationInfo(
     args_valid=lambda node, value: True,
 )
 
-TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAL] = TrInfo(
     func_name="partial_shift_val",
     argtypes=[ctypes.c_int, ctypes.c_long],
     arg_help=["Statement index", "Value"],
@@ -187,7 +187,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAL] = TransformationInfo(
     args_valid=lambda node, stmt_idx, value: is_valid_stmt_idx(node, stmt_idx),
 )
 
-TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAR] = TrInfo(
     func_name="full_shift_var",
     argtypes=[ctypes.c_long, ctypes.c_long],
     arg_help=["Coefficient", "Variable index"],
@@ -198,7 +198,7 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_VAR] = TransformationInfo(
     ),
 )
 
-TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAR] = TrInfo(
     func_name="partial_shift_var",
     argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
     arg_help=["Statement index", "Coefficient", "Variable index"],
@@ -210,7 +210,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_VAR] = TransformationInfo(
     # args_valid=fn,
 )
 
-TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_PARAM] = TrInfo(
     func_name="full_shift_param",
     argtypes=[ctypes.c_long, ctypes.c_long],
     arg_help=["Coefficient", "Parameter index"],
@@ -222,7 +222,7 @@ TRANSFORMATIONS[Transformation.FULL_SHIFT_PARAM] = TransformationInfo(
     ),
 )
 
-TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_PARAM] = TrInfo(
     func_name="partial_shift_param",
     argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
     arg_help=["Statement index", "Coefficient", "Parameter index"],
@@ -235,7 +235,7 @@ TRANSFORMATIONS[Transformation.PARTIAL_SHIFT_PARAM] = TransformationInfo(
     and param_idx < len(node.loop_signature[stmt_idx]["params"]),
 )
 
-TRANSFORMATIONS[Transformation.SET_LOOP_OPT] = TransformationInfo(
+TRANSFORMATIONS[TrEnum.SET_LOOP_OPT] = TrInfo(
     func_name="set_loop_opt",
     argtypes=[ctypes.c_int, ctypes.c_int],
     arg_help=["Iterator index", "Option"],

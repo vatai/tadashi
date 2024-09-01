@@ -4,7 +4,7 @@ import ctypes
 import random
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import TRANSFORMATIONS, Scops, Transformation
+from tadashi.tadashilib import TRANSFORMATIONS, Scops, TrEnum
 
 
 class Model:
