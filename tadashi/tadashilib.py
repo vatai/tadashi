@@ -9,7 +9,7 @@ from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
-from typing import Callable
+from typing import Optional
 
 from .apps import App
 
@@ -26,16 +26,6 @@ class NodeType(Enum):
     MARK = auto()
     SEQUENCE = auto()
     SET = auto()
-
-
-@dataclass
-class TrInfo:
-    func_name: str
-    argtypes: list[type]
-    arg_help: list[str]
-    restype: type
-    valid: Callable[[Node], bool]
-    args_valid: Callable
 
 
 class TrEnum(StrEnum):
@@ -114,135 +104,182 @@ class Node:
 TRANSFORMATIONS = {}
 
 
-def is_band_node(node: Node):
-    return node.node_type == NodeType.BAND
+class TrInfoBase:
+    func_name: str
+    argtypes: list[type] = []
+    arg_help: list[str] = []
+    restype: Optional[type] = ctypes.c_bool
+
+    @staticmethod
+    def valid(node: Node):
+        return node.node_type == NodeType.BAND
+
+    @staticmethod
+    def args_valid(node: Node, *arg, **kwargs):
+        return True
+
+    @staticmethod
+    def _is_valid_stmt_idx(node: Node, idx: int):
+        return 0 <= idx < len(node.loop_signature)
+
+    @staticmethod
+    def _valid_idx_all_stmt(node: Node, idx: int, stmt_key: str):
+        return all(0 <= idx < len(s[stmt_key]) for s in node.loop_signature)
+
+    @staticmethod
+    def _is_valid_child_idx(node: Node, idx):
+        return 0 <= idx and idx < len(node.children)
 
 
-def is_seq_node(node: Node):
-    return node.node_type == NodeType.SEQUENCE
+class TileInfo(TrInfoBase):
+    func_name = "tile"
+    argtypes = [ctypes.c_size_t]
+    arg_help = ["Tile size"]
+    restype = ctypes.c_bool
+
+    @staticmethod
+    def args_valid(node, arg):
+        return True
 
 
-def is_valid_child_idx(node, idx):
-    return 0 <= idx and idx < len(node.children)
+TRANSFORMATIONS[TrEnum.TILE] = TileInfo()
 
 
-def is_valid_stmt_idx(node, idx):
-    return 0 <= idx and idx < len(node.loop_signature)
+class InterchangeInfo(TrInfoBase):
+    func_name = "interchange"
+
+    @staticmethod
+    def valid(node: Node):
+        return (
+            node.node_type == NodeType.BAND
+            and len(node.children) == 1
+            and node.children[0].node_type == NodeType.BAND
+        )
 
 
-TRANSFORMATIONS[TrEnum.TILE] = TrInfo(
-    func_name="tile",
-    argtypes=[ctypes.c_size_t],
-    arg_help=["Tile size"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, arg: arg > 0,
-)
+TRANSFORMATIONS[TrEnum.INTERCHANGE] = InterchangeInfo()
 
-TRANSFORMATIONS[TrEnum.INTERCHANGE] = TrInfo(
-    func_name="interchange",
-    argtypes=[],
-    arg_help=[],
-    restype=ctypes.c_bool,
-    valid=lambda node: is_band_node(node)
-    and len(node.children) == 1
-    and is_band_node(node.children[0]),
-    args_valid=lambda Node: True,
-)
 
-TRANSFORMATIONS[TrEnum.FUSE] = TrInfo(
-    func_name="fuse",
-    argtypes=[ctypes.c_int, ctypes.c_int],
-    arg_help=["Index of first loop to fuse", "Index of second loop to fuse"],
-    restype=ctypes.c_bool,
-    valid=is_seq_node,
-    args_valid=lambda node, loop_idx1, loop_idx2: is_valid_child_idx(node, loop_idx1)
-    and is_valid_child_idx(node, loop_idx2),
-)
+class FuseInfo(TrInfoBase):
+    func_name = "fuse"
+    argtypes = [ctypes.c_int, ctypes.c_int]
+    arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
 
-TRANSFORMATIONS[TrEnum.FULL_FUSE] = TrInfo(
-    func_name="full_fuse",
-    argtypes=[],
-    arg_help=[],
-    restype=ctypes.c_bool,
-    valid=is_seq_node,
-    args_valid=lambda Node: True,
-)
+    @staticmethod
+    def valid(node: Node):
+        return node.node_type == NodeType.SEQUENCE
 
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAL] = TrInfo(
-    func_name="full_shift_val",
-    argtypes=[ctypes.c_long],
-    arg_help=["Value"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, value: True,
-)
+    @staticmethod
+    def args_valid(node: Node, loop_idx1: int, loop_idx2: int):
+        return (
+            TrInfoBase._is_valid_child_idx(node, loop_idx1)
+            and TrInfoBase._is_valid_child_idx(node, loop_idx2),
+        )
 
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAL] = TrInfo(
-    func_name="partial_shift_val",
-    argtypes=[ctypes.c_int, ctypes.c_long],
-    arg_help=["Statement index", "Value"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, stmt_idx, value: is_valid_stmt_idx(node, stmt_idx),
-)
 
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAR] = TrInfo(
-    func_name="full_shift_var",
-    argtypes=[ctypes.c_long, ctypes.c_long],
-    arg_help=["Coefficient", "Variable index"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, coeff, var_idx: all(
-        0 <= var_idx and var_idx < len(stmt["vars"]) for stmt in node.loop_signature
-    ),
-)
+TRANSFORMATIONS[TrEnum.FUSE] = FuseInfo()
 
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAR] = TrInfo(
-    func_name="partial_shift_var",
-    argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
-    arg_help=["Statement index", "Coefficient", "Variable index"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, stmt_idx, coeff, var_idx: is_valid_stmt_idx(node, stmt_idx)
-    and 0 <= var_idx
-    and var_idx < len(node.loop_signature[stmt_idx]["vars"]),
-    # args_valid=fn,
-)
 
-TRANSFORMATIONS[TrEnum.FULL_SHIFT_PARAM] = TrInfo(
-    func_name="full_shift_param",
-    argtypes=[ctypes.c_long, ctypes.c_long],
-    arg_help=["Coefficient", "Parameter index"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, coeff, param_idx: all(
-        0 <= param_idx and param_idx < len(stmt["params"])
-        for stmt in node.loop_signature
-    ),
-)
+class FullFuseInfo(TrInfoBase):
+    func_name = "full_fuse"
 
-TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_PARAM] = TrInfo(
-    func_name="partial_shift_param",
-    argtypes=[ctypes.c_int, ctypes.c_long, ctypes.c_long],
-    arg_help=["Statement index", "Coefficient", "Parameter index"],
-    restype=ctypes.c_bool,
-    valid=is_band_node,
-    args_valid=lambda node, stmt_idx, coeff, param_idx: is_valid_stmt_idx(
-        node, stmt_idx
-    )
-    and 0 <= param_idx
-    and param_idx < len(node.loop_signature[stmt_idx]["params"]),
-)
+    @staticmethod
+    def valid(node: Node):
+        return node.node_type == NodeType.SEQUENCE
 
-TRANSFORMATIONS[TrEnum.SET_LOOP_OPT] = TrInfo(
-    func_name="set_loop_opt",
-    argtypes=[ctypes.c_int, ctypes.c_int],
-    arg_help=["Iterator index", "Option"],
-    restype=None,
-    valid=is_band_node,
-    args_valid=lambda node, iter_idx, opt: True,
-)
+
+TRANSFORMATIONS[TrEnum.FULL_FUSE] = FullFuseInfo()
+
+
+class FullShiftValInfo(TrInfoBase):
+    func_name = "full_shift_val"
+    argtypes = [ctypes.c_long]
+    arg_help = ["Value"]
+
+
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAL] = FullShiftValInfo()
+
+
+class PartialShiftValInfo(TrInfoBase):
+    func_name = "partial_shift_val"
+    argtypes = [ctypes.c_int, ctypes.c_long]
+    arg_help = ["Statement index", "Value"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, value: int):
+        return TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+
+
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAL] = PartialShiftValInfo()
+
+
+class FullShiftVarInfo(TrInfoBase):
+    func_name = "full_shift_var"
+    argtypes = [ctypes.c_long, ctypes.c_long]
+    arg_help = ["Coefficient", "Variable index"]
+
+    @staticmethod
+    def args_valid(node: Node, _coeff: int, var_idx: int):
+        return TrInfoBase._valid_idx_all_stmt(node, var_idx, "vars")
+
+
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_VAR] = FullShiftVarInfo()
+
+
+class PartialShiftVarInfo(TrInfoBase):
+    func_name = "partial_shift_var"
+    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
+    arg_help = ["Statement index", "Coefficient", "Variable index"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, coeff: int, var_idx: int):
+        return (
+            TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+            and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
+        )
+
+
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_VAR] = PartialShiftVarInfo()
+
+
+class FullShiftParamInfo(TrInfoBase):
+    func_name = "full_shift_param"
+    argtypes = [ctypes.c_long, ctypes.c_long]
+    arg_help = ["Coefficient", "Parameter index"]
+
+    @staticmethod
+    def args_valid(node: Node, coeff: int, param_idx: int):
+        return TrInfoBase._valid_idx_all_stmt(node, param_idx, "params")
+
+
+TRANSFORMATIONS[TrEnum.FULL_SHIFT_PARAM] = FullShiftParamInfo()
+
+
+class PartialShiftParam(TrInfoBase):
+    func_name = "partial_shift_param"
+    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
+    arg_help = ["Statement index", "Coefficient", "Parameter index"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, coeff: int, param_idx: int):
+        return (
+            TrInfoBase._is_valid_stmt_idx(node, param_idx)
+            and 0 <= param_idx
+            and param_idx < len(node.loop_signature[stmt_idx]["params"]),
+        )
+
+
+TRANSFORMATIONS[TrEnum.PARTIAL_SHIFT_PARAM] = PartialShiftParam()
+
+
+class SetLoopOpt(TrInfoBase):
+    func_name = "set_loop_opt"
+    argtypes = [ctypes.c_int, ctypes.c_int]
+    arg_help = ["Iterator index", "Option"]
+    restype = None
+
+
+TRANSFORMATIONS[TrEnum.SET_LOOP_OPT] = SetLoopOpt()
 
 
 class Scop:
