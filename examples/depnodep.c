@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 void
 print_arr(int N, double *A) {
@@ -31,15 +32,22 @@ f(int N, double A[N][N]) {
 
 int
 main(int argc, char *argv[]) {
+  long time;
+  struct timeval tv;
   double A[N][N];
 
   for (int i = 0; i < N; ++i) {
     init_arr(N, A[i]);
     print_arr(N, A[i]);
   }
+  gettimeofday(&tv, NULL);
+  time = (long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000 f(N, A);
   f(N, A);
+  gettimeofday(&tv, NULL);
+  time = ((long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000 f(N, A)) - time;
   for (int i = 0; i < N; ++i) {
     print_arr(N, A[i]);
   }
+  printf("WALLTIME: %ll\n", time);
   return 0;
 }
