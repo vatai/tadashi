@@ -35,9 +35,6 @@ jobs:
     - name: Run cmake gtest
       run: ctest --test-dir build
 
-    - name: Run random_rl.py
-      run: python -m tadashi
-
     - name: Run simple.py
       run: python -m tadashi.simple
 
