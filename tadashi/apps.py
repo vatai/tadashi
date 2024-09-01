@@ -66,6 +66,7 @@ class Simple(App):
 
     @staticmethod
     def extract_runtime(stdout):
+        print(f"****{stdout=}*****")
         return stdout
 
 

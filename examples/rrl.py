@@ -25,38 +25,28 @@ class Model:
     def random_transform(self, scop):
         node = self.random_node(scop)
         tr = random.choice(list(TRANSFORMATIONS.values()))
-        print(tr.valid(node))
         while not tr.valid(node):
             node = self.random_node(scop)
             tr = random.choice(list(TRANSFORMATIONS.values()))
-            print(tr.valid(node))
 
-        print(tr)
         args = self.random_args(node, tr)
         node.transform(tr, *args)
-        print(tr)
 
     def random_args(self, node, tr):
-        print(f"{tr=}")
         lubs = tr.lower_upper_bounds(node)
         args = []
         for lub in lubs:
-            print(f"{lub=}")
             if isinstance(lub, LowerUpperBound):
                 lb, ub = lub
                 if lb is None:
                     lb = -100
                 if ub is None:
                     ub = 100
-                print(f"{lb=} {ub=}")
                 args.append(random.randrange(lb, ub))
             else:
-                print(f">>>{lub=} {lub}")
                 chosen_enum = random.choice(list(lub))
-                print(f"{chosen_enum.value=}")
                 args.append(chosen_enum.value)
 
-        print(f"{args=}")
         return args
 
 
