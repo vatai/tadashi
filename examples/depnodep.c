@@ -17,7 +17,7 @@ init_arr(int N, double *A) {
   }
 }
 
-const int N = 10;
+const int N = 1000;
 
 void
 f(int N, double A[N][N]) {
@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
     print_arr(N, A[i]);
   }
   gettimeofday(&tv, NULL);
-  time = (long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000 f(N, A);
+  time = (long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000;
   f(N, A);
   gettimeofday(&tv, NULL);
   time = ((long)tv.tv_sec * 1000 + (long)tv.tv_usec / 1000 f(N, A)) - time;
