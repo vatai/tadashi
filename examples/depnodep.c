@@ -17,14 +17,14 @@ init_arr(int N, double *A) {
   }
 }
 
-const int N = 1100;
+const int N = 1000;
 
 void
 f(int N, double A[N][N]) {
 #pragma scop
   for (int i = 1; i < N; i++) {
     for (int j = 0; j < N; j++) {
-      A[i][j] = A[i][j] + A[i - 1][j];
+      A[i][j] = (A[i][j] + A[i - 1][j]) / 2;
     }
   }
 #pragma endscop
