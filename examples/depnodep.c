@@ -17,7 +17,7 @@ init_arr(int N, double *A) {
   }
 }
 
-const int N = 100000;
+const int N = 1100;
 
 void
 f(int N, double A[N][N]) {
