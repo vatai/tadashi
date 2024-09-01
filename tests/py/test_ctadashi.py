@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import Scops, Transformation
+from tadashi.tadashilib import TRANSFORMATIONS, Scops, TrEnum
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -20,7 +20,7 @@ COMMENT = "///"
 class TransformData:
     scop_idx: int = -1
     node_idx: int = -1
-    transformation: Optional[Transformation] = None
+    transformation: Optional[TrEnum] = None
     transformation_args: list[int] = field(default_factory=list)
 
 
@@ -49,7 +49,7 @@ class TestCtadashi(unittest.TestCase):
                 if line.startswith(TRANSFORMATION):
                     transform_str = line.replace(TRANSFORMATION, "")
                     lits = ast.literal_eval(transform_str)
-                    td = TransformData(*lits[:2], Transformation(lits[2]), lits[3:])
+                    td = TransformData(*lits[:2], TrEnum(lits[2].lower()), lits[3:])
                     transforms.append(td)
                 else:
                     target_line = line[1:] if line else line
@@ -66,9 +66,6 @@ class TestCtadashi(unittest.TestCase):
 
     def check(self, app_file):
         logger = logging.getLogger(self._testMethodName)
-        if "-v" in sys.argv:
-            logging.basicConfig(level=logging.INFO)
-            print()
         app = Simple(source=app_file)
         transforms, target_code = self._read_app_comments(app)
 
@@ -79,7 +76,8 @@ class TestCtadashi(unittest.TestCase):
         for tr in transforms:
             scop = scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
-            legal = node.transform(tr.transformation, *tr.transformation_args)
+            trinfo = TRANSFORMATIONS[tr.transformation]
+            legal = node.transform(trinfo, *tr.transformation_args)
             if legal is not None:
                 legality.append(f"legality={legal}")
 
@@ -96,8 +94,30 @@ class TestCtadashi(unittest.TestCase):
         del scops
         self.assertTrue(generated_code == target_code)
 
+    @staticmethod
+    def _get_node(idx):
+        app = Simple("tests/py/dummy.c")
+        scops = Scops(app)
+        node = scops[0].schedule_tree[idx]
+        return node
+
+    @classmethod
+    def _get_band_node(cls):
+        return cls._get_node(1)
+
+    @classmethod
+    def _get_sequence_node(cls):
+        return cls._get_node(3)
+
+    def test_wrong_number_of_args(self):
+        node = self._get_band_node()
+        trinfo = TRANSFORMATIONS[TrEnum.TILE]
+        self.assertRaises(ValueError, node.transform, trinfo, 2, 3)
+
 
 def setup():
+    if "-v" in sys.argv:
+        logging.basicConfig(level=logging.INFO)
     test_dir = Path(__file__).parent
     for app_path in test_dir.glob("test_*.c"):
 

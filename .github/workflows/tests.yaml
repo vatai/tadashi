@@ -12,12 +12,12 @@ jobs:
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev python-is-python3
+        libclang-dev python-is-python3 swig
 
     - name: Set up Python 🐍
       uses: actions/setup-python@v5
       with:
-        python-version: "3.11"
+        python-version: "3.12"
         # cache: 'pip'
 
     - name: Check out repo
@@ -34,9 +34,6 @@ jobs:
 
     - name: Run cmake gtest
       run: ctest --test-dir build
-
-    - name: Run random_rl.py
-      run: python -m tadashi
 
     - name: Run simple.py
       run: python -m tadashi.simple

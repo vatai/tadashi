@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <isl/aff_type.h>
+#include <isl/space_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -24,21 +26,12 @@
 #include <isl/union_set.h>
 #include <isl/val.h>
 
-#include <pet.h>
-
 #include "codegen.h"
 #include "legality.h"
 #include "transformations.h"
 
 extern "C" {
-
-struct scop_info_t {
-  pet_scop *scop;
-  isl_union_map *dependency;
-  isl_schedule_node *current_node;
-  isl_schedule_node *tmp_node;
-  bool modified;
-};
+#include "ctadashi.h"
 
 std::vector<struct scop_info_t> SCOP_INFO;
 
@@ -120,29 +113,41 @@ get_expr(size_t idx) {
 }
 
 const char *
-get_dim_names(size_t scop_idx) {
+get_loop_signature(size_t scop_idx) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
-    return "";
+    return "[]";
   std::stringstream ss;
-  const char *name;
   isl_multi_union_pw_aff *mupa;
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  name = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+  assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   // TODO save name
   isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
   isl_size num_sets = isl_union_set_n_set(domain);
   isl_set_list *slist = isl_union_set_get_set_list(domain);
+  ss << "[";
   for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+    if (set_idx)
+      ss << ", ";
     isl_set *set = isl_set_list_get_at(slist, set_idx);
-    isl_size num_dims = isl_set_dim(set, isl_dim_set);
-    for (isl_size di = 0; di < num_dims; di++) {
-      ss << isl_set_get_dim_name(set, isl_dim_set, di);
-      ss << "|";
+    isl_size num_params = isl_set_dim(set, isl_dim_param);
+    ss << "{'params' : [";
+    for (isl_size di = 0; di < num_params; di++) {
+      if (di)
+        ss << ", ";
+      ss << "'" << isl_set_get_dim_name(set, isl_dim_param, di) << "'";
     }
-    ss << ";";
+    ss << "], 'vars' :[";
+    isl_size num_vars = isl_set_dim(set, isl_dim_set);
+    for (isl_size di = 0; di < num_vars; di++) {
+      if (di)
+        ss << ", ";
+      ss << "'" << isl_set_get_dim_name(set, isl_dim_set, di) << "'";
+    }
+    ss << "]}";
     isl_set_free(set);
   }
+  ss << "]";
   isl_set_list_free(slist);
   isl_union_set_free(domain);
   STRINGS.push_back(ss.str());
@@ -178,7 +183,7 @@ goto_child(size_t scop_idx, size_t child_idx) {
 /******** transformations ***********************************/
 
 scop_info_t *
-pre_transfomr(size_t scop_idx) {
+pre_transform(size_t scop_idx) {
   // Set up `tmp_node` as a copy of `current_node` because we don't
   // want to mess with the current node if the transformation is not
   // legal.
@@ -192,7 +197,7 @@ pre_transfomr(size_t scop_idx) {
   return si;
 }
 
-bool
+int
 post_transform(size_t scop_idx) {
   scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
@@ -210,73 +215,73 @@ post_transform(size_t scop_idx) {
   return legal;
 }
 
-bool
+int
 tile(size_t scop_idx, size_t tile_size) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
   return post_transform(scop_idx);
 }
 
-bool
+int
 interchange(size_t scop_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_interchange(si->tmp_node);
   return post_transform(scop_idx);
 }
 
-bool
+int
 fuse(size_t scop_idx, int idx1, int idx2) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
   return post_transform(scop_idx);
 }
 
-bool
+int
 full_fuse(size_t scop_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_fuse(si->tmp_node);
   return post_transform(scop_idx);
 }
 
-bool
+int
 partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
   return post_transform(scop_idx);
 }
 
-bool
+int
 partial_shift_val(size_t scop_idx, int pa_idx, long val) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
   return post_transform(scop_idx);
 }
 
-bool
+int
 full_shift_var(size_t scop_idx, long coeff, long var_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
   return post_transform(scop_idx);
 }
 
-bool
+int
 full_shift_val(size_t scop_idx, long val) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
   return post_transform(scop_idx);
 }
 
-bool
+int
 full_shift_param(size_t scop_idx, long coeff, long param_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
   return post_transform(scop_idx);
 }
 
-bool
+int
 partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
-  scop_info_t *si = pre_transfomr(scop_idx);
+  scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(scop_idx);

@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 
+import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 
 class App:
+
     @property
-    def include_paths(self) -> list[str]:
+    def include_paths(self) -> list[Path]:
         return []
 
     def compile(self) -> bool:
         result = subprocess.run(self.compile_cmd)
         # raise an exception if it didn't compile
         result.check_returncode()
+        return result == 0
 
     @property
     def compile_cmd(self) -> list[str]:
@@ -23,34 +27,43 @@ class App:
         raise NotImplementedError()
 
     @property
-    def output_binary(self) -> str:
+    def output_binary(self) -> Path:
         raise NotImplementedError()
 
-    def measure(self) -> float:
-        cmd = [self.output_binary]
-        result = subprocess.run(cmd, stdout=subprocess.PIPE)
+    @property
+    def run_cmd(self) -> list:
+        return [self.output_binary]
+
+    def measure(self, timeout: Optional[int] = None) -> float:
+        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, timeout=timeout)
         stdout = result.stdout.decode()
-        runtime = self.extract_runtime(stdout)
-        return float(runtime)
+        return self.extract_runtime(stdout)
 
     @staticmethod
-    def extract_runtime(stdout) -> str:
+    def extract_runtime(stdout) -> float:
         raise NotImplementedError()
 
 
 class Simple(App):
     source: Path
+    alt_source: Path
 
-    def __init__(self, source: str):
+    def __init__(self, source: str, alt_source: str = ""):
         self.source = Path(source)
+        if alt_source:
+            self.alt_source = Path(alt_source)
+        else:
+            ext = f".tmp{self.source.suffix}"
+            self.alt_source = self.source.with_suffix(ext)
+        shutil.copy(self.source, self.alt_source)
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            self.source_path,
+            str(self.alt_source),
             "-o",
-            self.output_binary,
+            str(self.output_binary),
         ]
 
     @property
@@ -58,12 +71,13 @@ class Simple(App):
         return self.source
 
     @property
-    def output_binary(self) -> str:
+    def output_binary(self) -> Path:
         return self.source.with_suffix("")
 
     @staticmethod
     def extract_runtime(stdout):
-        return "42.0"
+        num = stdout.split()[1]
+        return float(num)
 
 
 class Polybench(App):
@@ -82,7 +96,7 @@ class Polybench(App):
         return path.with_suffix(".c")
 
     @property
-    def output_binary(self) -> str:
+    def output_binary(self) -> Path:
         return self.source_path.parent / self.benchmark.name
 
     @property
@@ -90,23 +104,23 @@ class Polybench(App):
         return self.base / "utilities"
 
     @property
-    def include_paths(self) -> list[str]:
-        return [str(self.utilities_path)]
+    def include_paths(self) -> list[Path]:
+        return [self.utilities_path]
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            self.source_path,
-            self.utilities_path / "polybench.c",
+            str(self.source_path),
+            str(self.utilities_path / "polybench.c"),
             "-I",
-            self.include_paths[0],
+            str(self.include_paths[0]),
             "-o",
-            self.output_binary,
+            str(self.output_binary),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
         ]
 
     @staticmethod
     def extract_runtime(stdout) -> float:
-        return stdout.split()[0]
+        return float(stdout.split()[0])

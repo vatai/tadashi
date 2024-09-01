@@ -1,12 +1,25 @@
 #!/usr/bin/env python
 
+# from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
+from __future__ import annotations
+
+import ctypes
 import os
-from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
+from ast import literal_eval
+from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
+from typing import Optional
 
 from .apps import App
+
+
+class AstLoopType(Enum):
+    DEFAULT = 0
+    ATOMIC = auto()
+    UNROLL = auto()
+    SEPARATE = auto()
 
 
 class NodeType(Enum):
@@ -23,46 +36,45 @@ class NodeType(Enum):
     SET = auto()
 
 
-class Transformation(Enum):
-    TILE = "TILE"
-    INTERCHANGE = "INTERCHANGE"
-    FUSE = "FUSE"
-    FULL_FUSE = "FULL_FUSE"
-    PARTIAL_SHIFT_VAR = "PARTIAL_SHIFT_VAR"
-    PARTIAL_SHIFT_VAL = "PARTIAL_SHIFT_VAL"
-    FULL_SHIFT_VAR = "FULL_SHIFT_VAR"
-    FULL_SHIFT_VAL = "FULL_SHIFT_VAL"
-    FULL_SHIFT_PARAM = "FULL_SHIFT_PARAM"
-    PARTIAL_SHIFT_PARAM = "PARTIAL_SHIFT_PARAM"
-    PRINT_SCHEDULE = "PRINT_SCHEDULE"
-    SET_LOOP_OPT = "SET_LOOP_OPT"
+class TrEnum(StrEnum):
+    TILE = auto()
+    INTERCHANGE = auto()
+    FUSE = auto()
+    FULL_FUSE = auto()
+    PARTIAL_SHIFT_VAR = auto()
+    PARTIAL_SHIFT_VAL = auto()
+    FULL_SHIFT_VAR = auto()
+    FULL_SHIFT_VAL = auto()
+    FULL_SHIFT_PARAM = auto()
+    PARTIAL_SHIFT_PARAM = auto()
+    PRINT_SCHEDULE = auto()
+    SET_LOOP_OPT = auto()
 
 
+@dataclass
 class Node:
-    def __init__(
-        self,
-        scop,
-        node_type,
-        num_children,
-        parent,
-        location,
-        dim_names,
-        expr,
-    ) -> None:
-        self.scop = scop
-        self.node_type = NodeType(node_type)
-        self.num_children = num_children
-        self.parent = parent
-        self.dim_names = dim_names
-        self.expr = expr.decode("utf-8")
-        self.children = [-1] * num_children
-        self.location = location
+    scop: "Scop"
+    node_type: NodeType
+    num_children: int
+    parent_idx: int
+    location: int
+    loop_signature: list[dict]
+    expr: str
+    children_idx: list[str]
+
+    @property
+    def parent(self):
+        return self.scop.schedule_tree[self.parent_idx]
+
+    @property
+    def children(self):
+        return [self.scop.schedule_tree[i] for i in self.children_idx]
 
     def __repr__(self):
         words = [
             "Node type:",
             f"{self.node_type},",
-            f"{self.dim_names},",
+            f"{self.loop_signature},",
             f"{self.expr},",
             f"{self.location}",
         ]
@@ -73,93 +85,258 @@ class Node:
         return self.scop.get_current_node_from_ISL(None, None)
 
     @property
-    def avaliable_transformation(self) -> list[Transformation]:
+    def avaliable_transformation(self) -> list[TrEnum]:
         result = []
         match self.node_type:
             case NodeType.BAND:
-                result.append(Transformation.TILE)
+                result.append(TrEnum.TILE)
                 if self.num_children == 1:
-                    result.append(Transformation.INTERCHANGE)
+                    result.append(TrEnum.INTERCHANGE)
         return result
 
-    def transform(self, transformation, *args):
+    def transform(self, tr, *args):
+        # TODO proc_args
+        if len(args) != len(tr.arg_help):
+            raise ValueError(f"Incorrect number of args for {tr}!")
+        if not tr.valid(self):
+            msg = f"Not a valid transformation: {tr}"
+            raise ValueError(msg)
+        if not tr.args_valid(self, *args):
+            msg = f"Not valid transformation args: {args}"
+            raise ValueError(msg)
+        func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
-        match transformation:
-            case Transformation.TILE:
-                assert len(args) == 1, "Tiling needs exactly 1 argument"
-                fun = self.scop.ctadashi.tile
-                return self.call_ctadashi(fun, *args)
-            case Transformation.INTERCHANGE:
-                assert len(args) == 0, "Interchange needs exactly 0 arguments"
-                fun = self.scop.ctadashi.interchange
-                return self.call_ctadashi(fun)
-            case Transformation.FUSE:
-                assert len(args) == 2, "Fuse needs exactly 2 arguments"
-                fun = self.scop.ctadashi.fuse
-                return self.call_ctadashi(fun, *args)
-            case Transformation.FULL_FUSE:
-                assert len(args) == 0, "Fuse needs exactly 0 arguments"
-                fun = self.scop.ctadashi.full_fuse
-                return self.call_ctadashi(fun, *args)
-            case Transformation.PARTIAL_SHIFT_VAR:
-                assert len(args) == 3, (
-                    "Partial shift id needs exactly 2 args: "
-                    "index of the loop, and "
-                    "index of the variable/id which should be added."
-                )
-                fun = self.scop.ctadashi.partial_shift_var
-                return self.call_ctadashi(fun, *args)
-            case Transformation.PARTIAL_SHIFT_VAL:
-                assert len(args) == 2, (
-                    "Partial shift val needs exactly 2 args: "
-                    "index of the loop, and "
-                    "the constant value which should be added."
-                )
-                fun = self.scop.ctadashi.partial_shift_val
-                return self.call_ctadashi(fun, *args)
-            case Transformation.FULL_SHIFT_VAR:
-                assert len(args) == 2, (
-                    "Full shift id needs exactly 1 args: "
-                    "index of the variable/id which should be added."
-                )
-                fun = self.scop.ctadashi.full_shift_var
-                return self.call_ctadashi(fun, *args)
-            case Transformation.FULL_SHIFT_VAL:
-                assert len(args) == 1, (
-                    "Full shift val needs exactly 1 args: "
-                    "the constant value which should be added."
-                )
-                fun = self.scop.ctadashi.full_shift_val
-                return self.call_ctadashi(fun, *args)
-            case Transformation.FULL_SHIFT_PARAM:
-                assert len(args) == 2, (
-                    "Partial shift param needs exactly 1 args: "
-                    "the index of the param which should be added."
-                )
-                fun = self.scop.ctadashi.full_shift_param
-                return self.call_ctadashi(fun, *args)
-            case Transformation.PARTIAL_SHIFT_PARAM:
-                assert len(args) == 3, (
-                    "Partial shift param needs exactly 2 args: "
-                    "index of the loop, and "
-                    "the index of the param which should be added."
-                )
-                fun = self.scop.ctadashi.partial_shift_param
-                return self.call_ctadashi(fun, *args)
-            case Transformation.PRINT_SCHEDULE:
-                fun = self.scop.ctadashi.print_schedule_node
-                return self.call_ctadashi(fun, *args)
-            case Transformation.SET_LOOP_OPT:
-                fun = self.scop.ctadashi.set_loop_opt
-                return self.call_ctadashi(fun, *args)
-            case _:
-                msg = "Odd?! Looks like the developer didn't cover all cases!"
-                raise ValueError(msg)
+        return func(self.scop.idx, *args)
 
-    def call_ctadashi(self, fun, *args):
-        if len(args) != len(fun.argtypes) - 1:
-            raise ValueError("Incorrect number of args!")
-        return fun(self.scop.idx, *args)
+
+LowerUpperBound = namedtuple(
+    "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
+)
+
+
+class TrInfoBase:
+    func_name: str
+    argtypes: list[type] = []
+    arg_help: list[str] = []
+    restype: Optional[type] = ctypes.c_bool
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        return node.node_type == NodeType.BAND
+
+    @staticmethod
+    def args_valid(node: Node, *arg, **kwargs) -> bool:
+        return True
+
+    @staticmethod
+    def _is_valid_stmt_idx(node: Node, idx: int) -> bool:
+        return 0 <= idx < len(node.loop_signature)
+
+    @staticmethod
+    def _valid_idx_all_stmt(node: Node, idx: int, stmt_key: str) -> bool:
+        return all(0 <= idx < len(s[stmt_key]) for s in node.loop_signature)
+
+    @staticmethod
+    def _is_valid_child_idx(node: Node, idx):
+        return 0 <= idx and idx < len(node.children)
+
+    @staticmethod
+    def lower_upper_bounds(node: Node) -> list:
+        return []
+
+
+class TileInfo(TrInfoBase):
+    func_name = "tile"
+    argtypes = [ctypes.c_size_t]
+    arg_help = ["Tile size"]
+    restype = ctypes.c_bool
+
+    @staticmethod
+    def args_valid(node, arg):
+        return True
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        return [LowerUpperBound(lower=1, upper=None)]
+
+
+class InterchangeInfo(TrInfoBase):
+    func_name = "interchange"
+
+    @staticmethod
+    def valid(node: Node):
+        return (
+            node.node_type == NodeType.BAND
+            and len(node.children) == 1
+            and node.children[0].node_type == NodeType.BAND
+        )
+
+
+class FuseInfo(TrInfoBase):
+    func_name = "fuse"
+    argtypes = [ctypes.c_int, ctypes.c_int]
+    arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
+
+    @staticmethod
+    def valid(node: Node):
+        return node.node_type == NodeType.SEQUENCE
+
+    @staticmethod
+    def args_valid(node: Node, loop_idx1: int, loop_idx2: int):
+        return (
+            TrInfoBase._is_valid_child_idx(node, loop_idx1)
+            and TrInfoBase._is_valid_child_idx(node, loop_idx2),
+        )
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        nc = len(node.children)
+        return [
+            LowerUpperBound(lower=0, upper=nc),
+            LowerUpperBound(lower=0, upper=nc),
+        ]
+
+
+class FullFuseInfo(TrInfoBase):
+    func_name = "full_fuse"
+
+    @staticmethod
+    def valid(node: Node):
+        return node.node_type == NodeType.SEQUENCE
+
+
+class FullShiftValInfo(TrInfoBase):
+    func_name = "full_shift_val"
+    argtypes = [ctypes.c_long]
+    arg_help = ["Value"]
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        return [LowerUpperBound()]
+
+
+class PartialShiftValInfo(TrInfoBase):
+    func_name = "partial_shift_val"
+    argtypes = [ctypes.c_int, ctypes.c_long]
+    arg_help = ["Statement index", "Value"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, value: int):
+        return TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        ns = len(node.loop_signature)
+        return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
+
+
+class FullShiftVarInfo(TrInfoBase):
+    func_name = "full_shift_var"
+    argtypes = [ctypes.c_long, ctypes.c_long]
+    arg_help = ["Coefficient", "Variable index"]
+
+    @staticmethod
+    def args_valid(node: Node, _coeff: int, var_idx: int):
+        return TrInfoBase._valid_idx_all_stmt(node, var_idx, "vars")
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        min_nv = min(len(s["vars"]) for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
+
+
+class PartialShiftVarInfo(TrInfoBase):
+    func_name = "partial_shift_var"
+    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
+    arg_help = ["Statement index", "Coefficient", "Variable index"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, coeff: int, var_idx: int):
+        return (
+            TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+            and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
+        )
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        min_nv = min(len(s["vars"]) for s in node.loop_signature)
+        return [
+            LowerUpperBound(0, len(node.loop_signature)),
+            LowerUpperBound(),
+            LowerUpperBound(0, min_nv),
+        ]
+
+
+class FullShiftParamInfo(TrInfoBase):
+    func_name = "full_shift_param"
+    argtypes = [ctypes.c_long, ctypes.c_long]
+    arg_help = ["Coefficient", "Parameter index"]
+
+    @staticmethod
+    def args_valid(node: Node, coeff: int, param_idx: int):
+        return TrInfoBase._valid_idx_all_stmt(node, param_idx, "params")
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        min_np = min(len(s["params"]) for s in node.loop_signature)
+        return [LowerUpperBound(), LowerUpperBound(0, min_np)]
+
+
+class PartialShiftParam(TrInfoBase):
+    func_name = "partial_shift_param"
+    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
+    arg_help = ["Statement index", "Coefficient", "Parameter index"]
+
+    @staticmethod
+    def args_valid(node: Node, stmt_idx: int, coeff: int, param_idx: int):
+        return (
+            TrInfoBase._is_valid_stmt_idx(node, param_idx)
+            and 0 <= param_idx
+            and param_idx < len(node.loop_signature[stmt_idx]["params"]),
+        )
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        min_np = min(len(s["params"]) for s in node.loop_signature)
+        return [
+            LowerUpperBound(0, len(node.loop_signature)),
+            LowerUpperBound(),
+            LowerUpperBound(0, min_np),
+        ]
+
+
+class SetLoopOpt(TrInfoBase):
+    func_name = "set_loop_opt"
+    argtypes = [ctypes.c_int, ctypes.c_int]
+    arg_help = ["Iterator index", "Option"]
+    restype = None
+
+    @staticmethod
+    def lower_upper_bounds(node: Node):
+        # TODO(vatai): I don't know the first element
+        return [
+            LowerUpperBound(0, 1),
+            [
+                AstLoopType.DEFAULT,
+                AstLoopType.ATOMIC,
+                AstLoopType.SEPARATE,
+            ],
+        ]
+
+
+TRANSFORMATIONS: dict[TrEnum, TrInfoBase] = {
+    TrEnum.TILE: TileInfo(),
+    TrEnum.INTERCHANGE: InterchangeInfo(),
+    TrEnum.FUSE: FuseInfo(),
+    TrEnum.FULL_FUSE: FullFuseInfo(),
+    TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
+    TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
+    TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
+    TrEnum.PARTIAL_SHIFT_VAR: PartialShiftVarInfo(),
+    TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
+    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParam(),
+    TrEnum.SET_LOOP_OPT: SetLoopOpt(),
+}
 
 
 class Scop:
@@ -174,25 +351,22 @@ class Scop:
     def __init__(self, idx, ctadashi) -> None:
         self.ctadashi = ctadashi
         self.idx = idx
-        self.schedule_tree = self.get_schedule_tree()
 
-    def read_dim_names(self):
-        # ctadashi return one string for the `dim_names` but there are
-        # two layers which need unpacking.
-        all_dim_names = self.ctadashi.get_dim_names(self.idx).decode()
-        outer_dim_names = all_dim_names.split(";")[:-1]
-        return [t.split("|")[:-1] for t in outer_dim_names]
+    def get_loop_signature(self):
+        loop_signature = self.ctadashi.get_loop_signature(self.idx).decode()
+        return literal_eval(loop_signature)
 
     def make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
         node = Node(
             scop=self,
-            node_type=self.ctadashi.get_type(self.idx),
+            node_type=NodeType(self.ctadashi.get_type(self.idx)),
             num_children=num_children,
-            parent=parent,
+            parent_idx=parent,
             location=location,
-            dim_names=self.read_dim_names(),
-            expr=self.ctadashi.get_expr(self.idx),
+            loop_signature=self.get_loop_signature(),
+            expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
+            children_idx=[-1] * num_children,
         )
         return node
 
@@ -203,13 +377,14 @@ class Scop:
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
-                node.children[c] = len(nodes)
-                self.traverse(nodes, current_idx, path + [c])
+                node.children_idx[c] = len(nodes)
+                self.traverse(nodes=nodes, parent=current_idx, path=path + [c])
                 self.ctadashi.goto_parent(self.idx)
 
-    def get_schedule_tree(self) -> list[Node]:
+    @property
+    def schedule_tree(self) -> list[Node]:
         self.ctadashi.reset_root(self.idx)
-        nodes = []
+        nodes: list[Node] = []
         self.traverse(nodes, parent=-1, path=[])
         return nodes
 
@@ -234,51 +409,33 @@ class Scops:
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
     def setup_ctadashi(self, app: App):
-        os.environ["C_INCLUDE_PATH"] = ":".join(app.include_paths)
+        os.environ["C_INCLUDE_PATH"] = ":".join(map(str, app.include_paths))
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.check_missing_file(self.so_path)
-        self.ctadashi = CDLL(str(self.so_path))
-        self.ctadashi.get_num_scops.argtypes = [c_char_p]
-        self.ctadashi.get_num_scops.restype = c_int
-        self.ctadashi.get_type.argtypes = [c_size_t]
-        self.ctadashi.get_type.restype = c_int
-        self.ctadashi.get_num_children.argtypes = [c_size_t]
-        self.ctadashi.get_num_children.restype = c_size_t
-        self.ctadashi.goto_parent.argtypes = [c_size_t]
-        self.ctadashi.goto_child.argtypes = [c_size_t, c_size_t]
-        self.ctadashi.get_expr.argtypes = [c_size_t]
-        self.ctadashi.get_expr.restype = c_char_p
-        self.ctadashi.get_dim_names.argtypes = [c_size_t]
-        self.ctadashi.get_dim_names.restype = c_char_p
-        self.ctadashi.print_schedule_node.argtypes = [c_size_t]
+        self.ctadashi = ctypes.CDLL(str(self.so_path))
+        self.ctadashi.get_num_scops.argtypes = [ctypes.c_char_p]
+        self.ctadashi.get_num_scops.restype = ctypes.c_int
+        self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_type.restype = ctypes.c_int
+        self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_num_children.restype = ctypes.c_size_t
+        self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t]
+        self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        self.ctadashi.get_expr.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_expr.restype = ctypes.c_char_p
+        self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
+        self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
-        self.ctadashi.reset_root.argtypes = [c_size_t]
-        # Transformations
-        self.ctadashi.tile.argtypes = [c_size_t, c_size_t]
-        self.ctadashi.tile.restype = c_bool
-        self.ctadashi.interchange.argtypes = [c_size_t]
-        self.ctadashi.interchange.restype = c_bool
-        self.ctadashi.fuse.argtypes = [c_size_t, c_int, c_int]
-        self.ctadashi.fuse.restype = c_bool
-        self.ctadashi.full_fuse.argtypes = [c_size_t]
-        self.ctadashi.full_fuse.restype = c_bool
-        self.ctadashi.partial_shift_var.argtypes = [c_size_t, c_int, c_long, c_long]
-        self.ctadashi.partial_shift_var.restype = c_bool
-        self.ctadashi.partial_shift_val.argtypes = [c_size_t, c_int, c_long]
-        self.ctadashi.partial_shift_val.restype = c_bool
-        self.ctadashi.full_shift_var.argtypes = [c_size_t, c_long, c_long]
-        self.ctadashi.full_shift_var.restype = c_bool
-        self.ctadashi.full_shift_val.argtypes = [c_size_t, c_long]
-        self.ctadashi.full_shift_val.restype = c_bool
-        self.ctadashi.set_loop_opt.argtypes = [c_size_t, c_int, c_int]
-        self.ctadashi.set_loop_opt.restype = None
-
-        self.ctadashi.full_shift_param.argtypes = [c_size_t, c_long, c_long]
-        self.ctadashi.full_shift_param.restype = c_bool
-        self.ctadashi.partial_shift_param.argtypes = [c_size_t, c_int, c_long, c_long]
-        self.ctadashi.partial_shift_param.restype = c_bool
+        self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]
+        self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #
-        self.ctadashi.generate_code.argtypes = [c_char_p, c_char_p]
+        for tr_name, tr_info in TRANSFORMATIONS.items():
+            msg = f"The transformation {tr_name} is not specified correctly!"
+            assert len(tr_info.arg_help) == len(tr_info.argtypes), msg
+            func = getattr(self.ctadashi, tr_info.func_name)
+            func.argtypes = [ctypes.c_size_t] + tr_info.argtypes
+            func.restype = tr_info.restype
 
     @staticmethod
     def check_missing_file(path: Path):
@@ -303,10 +460,15 @@ class Scops:
         input_path_bytes = str(input_path).encode()
         return input_path_bytes
 
-    def generate_code(self):
-        # rewrite the original source_path file with the generated code
-        input_path_bytes = self.get_input_path_bytes_and_backup_source()
-        self.ctadashi.generate_code(input_path_bytes, self.source_path_bytes)
+    def generate_code(self, input_path="", output_path=""):
+        output_path_bytes = str(output_path).encode()
+        if not output_path:
+            output_path_bytes = self.source_path_bytes
+        input_path_bytes = str(input_path).encode()
+        if not input_path:
+            # rewrite the original source_path file with the generated code
+            input_path_bytes = self.get_input_path_bytes_and_backup_source()
+        self.ctadashi.generate_code(input_path_bytes, output_path_bytes)
 
     def __len__(self):
         return self.num_scops
