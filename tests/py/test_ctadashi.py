@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import Scops, Transformation
+from tadashi.tadashilib import TRANSFORMATIONS, Scops, Transformation
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -78,7 +78,8 @@ class TestCtadashi(unittest.TestCase):
         for tr in transforms:
             scop = scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
-            legal = node.transform(tr.transformation, *tr.transformation_args)
+            trinfo = TRANSFORMATIONS[tr.transformation]
+            legal = node.transform(trinfo, *tr.transformation_args)
             if legal is not None:
                 legality.append(f"legality={legal}")
 
@@ -112,11 +113,8 @@ class TestCtadashi(unittest.TestCase):
 
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
-        self.assertRaises(ValueError, node.transform, Transformation.TILE, 2, 3)
-
-    def test_nonexisting_transformation(self):
-        node = self._get_band_node()
-        self.assertRaises(ValueError, node.transform, None)
+        trinfo = TRANSFORMATIONS[Transformation.TILE]
+        self.assertRaises(ValueError, node.transform, trinfo, 2, 3)
 
 
 def setup():
