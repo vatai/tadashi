@@ -5,7 +5,8 @@ import random
 from enum import Enum
 
 from tadashi.apps import Simple
-from tadashi.tadashilib import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
+from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
+                                Scops, TrEnum)
 
 
 class Model:
@@ -24,13 +25,15 @@ class Model:
         key, tr = random.choice(list(TRANSFORMATIONS.items()))
         while not tr.valid(node):
             node = self.random_node(scop)
-            tr = random.choice(list(TRANSFORMATIONS.values()))
+            key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
         args = self.random_args(node, tr)
         return self.node_idx, key, args
 
     def random_args(self, node, tr):
+        print(f"{tr=}")
         lubs = tr.lower_upper_bounds(node)
+        print(f"{lubs=}")
         args = []
         for lub in lubs:
             if isinstance(lub, LowerUpperBound):
@@ -54,17 +57,16 @@ def main():
     t = app.measure()
     print(f"Base time: {t}")
     scops = Scops(app)
-    scop = scops[0]  # select_scop()
     model = Model()
 
     for _ in range(3):
-        node_idx, tr_key, args = model.random_transform(scop)
+        node_idx, tr_key, args = model.random_transform(scops[0])
         print(f"node_idx: {node_idx}, tr: {tr_key}, args: {args}")
         tr = TRANSFORMATIONS[tr_key]
         scops[0].schedule_tree[node_idx].transform(tr, *args)
         scops.generate_code(input_path=app.source, output_path=app.alt_source)
         app.compile()
-        t = app.measure()
+        t = app.measure(timeout=20)
         print(f"WALLTIME: {t}")
 
 

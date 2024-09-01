@@ -3,9 +3,11 @@
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 
 class App:
+
     @property
     def include_paths(self) -> list[Path]:
         return []
@@ -32,8 +34,8 @@ class App:
     def run_cmd(self) -> list:
         return [self.output_binary]
 
-    def measure(self) -> float:
-        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE)
+    def measure(self, timeout: Optional[int] = None) -> float:
+        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, timeout=timeout)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 

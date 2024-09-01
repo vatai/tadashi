@@ -16,10 +16,10 @@ from .apps import App
 
 
 class AstLoopType(Enum):
-    default = 0
-    atomic = auto()
-    unroll = auto()
-    separate = auto()
+    DEFAULT = 0
+    ATOMIC = auto()
+    UNROLL = auto()
+    SEPARATE = auto()
 
 
 class NodeType(Enum):
@@ -97,7 +97,7 @@ class Node:
     def transform(self, tr, *args):
         # TODO proc_args
         if len(args) != len(tr.arg_help):
-            raise ValueError("Incorrect number of args!")
+            raise ValueError(f"Incorrect number of args for {tr}!")
         if not tr.valid(self):
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
@@ -313,8 +313,15 @@ class SetLoopOpt(TrInfoBase):
 
     @staticmethod
     def lower_upper_bounds(node: Node):
-        # TODO(vatai): The first is element is
-        return [LowerUpperBound(0, 1), AstLoopType]
+        # TODO(vatai): I don't know the first element
+        return [
+            LowerUpperBound(0, 1),
+            [
+                AstLoopType.DEFAULT,
+                AstLoopType.ATOMIC,
+                AstLoopType.SEPARATE,
+            ],
+        ]
 
 
 TRANSFORMATIONS: dict[TrEnum, TrInfoBase] = {
