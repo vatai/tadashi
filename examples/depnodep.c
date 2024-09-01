@@ -22,9 +22,11 @@ const int N = 100000;
 void
 f(int N, double A[N][N]) {
 #pragma scop
-  for (int c0 = 20 * N + 1; c0 < 21 * N; c0 += 1)
-    for (int c1 = 0; c1 < N; c1 += 1)
-      A[-20 * N + c0][c1] = (A[-20 * N + c0][c1] + A[-20 * N + c0 - 1][c1]);
+  for (int i = 1; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      A[i][j] = A[i][j] + A[i - 1][j];
+    }
+  }
 #pragma endscop
 }
 
