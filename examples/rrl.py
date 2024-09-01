@@ -31,6 +31,9 @@ class Model:
         return self.node_idx, key, args
 
     def random_args(self, node, tr):
+        if tr == TRANSFORMATIONS[TrEnum.TILE]:
+            tile_size = random.choice([2**x for x in range(5, 20)])
+            return [tile_size]
         lubs = tr.lower_upper_bounds(node)
         args = []
         for lub in lubs:
@@ -61,7 +64,8 @@ def main():
         loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
         print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
         tr = TRANSFORMATIONS[transformation_id]
-        loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        print(f"{legal=}")
         loop_nests.generate_code(input_path=app.source, output_path=app.alt_source)
         app.compile()
         t = app.measure(timeout=20)
