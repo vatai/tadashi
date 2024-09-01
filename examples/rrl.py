@@ -39,9 +39,9 @@ class Model:
             if isinstance(lub, LowerUpperBound):
                 lb, ub = lub
                 if lb is None:
-                    lb = -100
+                    lb = -64
                 if ub is None:
-                    ub = 100
+                    ub = 64
                 args.append(random.randrange(lb, ub))
             else:
                 chosen_enum = random.choice(list(lub))
