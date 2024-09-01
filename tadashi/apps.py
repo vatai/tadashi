@@ -29,7 +29,7 @@ class App:
 
     @property
     def run_cmd(self) -> list:
-        raise [self.output_binary]
+        return [self.output_binary]
 
     def measure(self) -> float:
         result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE)
@@ -55,10 +55,6 @@ class Simple(App):
             "-o",
             str(self.output_binary),
         ]
-
-    @property
-    def run_cmd(self) -> list:
-        return ["bash", "-c", f"time {self.output_binary}"]
 
     @property
     def source_path(self) -> Path:
