@@ -163,7 +163,7 @@ print_schedule_node(size_t scop_idx) {
 /******** current node manipulation *************************/
 
 void
-reset_root(size_t scop_idx) {
+goto_root(size_t scop_idx) {
   SCOP_INFO[scop_idx].current_node =
       isl_schedule_node_root(SCOP_INFO[scop_idx].current_node);
 }

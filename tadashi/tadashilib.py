@@ -383,13 +383,13 @@ class Scop:
 
     @property
     def schedule_tree(self) -> list[Node]:
-        self.ctadashi.reset_root(self.idx)
+        self.ctadashi.goto_root(self.idx)
         nodes: list[Node] = []
         self.traverse(nodes, parent=-1, path=[])
         return nodes
 
     def locate(self, location):
-        self.ctadashi.reset_root(self.idx)
+        self.ctadashi.goto_root(self.idx)
         for c in location:
             self.ctadashi.goto_child(self.idx, c)
 
@@ -427,7 +427,7 @@ class Scops:
         self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = None
-        self.ctadashi.reset_root.argtypes = [ctypes.c_size_t]
+        self.ctadashi.goto_root.argtypes = [ctypes.c_size_t]
         self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #
         for tr_name, tr_info in TRANSFORMATIONS.items():

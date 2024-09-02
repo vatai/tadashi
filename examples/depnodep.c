@@ -22,8 +22,8 @@ const int N = 1000;
 void
 f(int N, double A[N][N]) {
 #pragma scop
-  for (int i = 1; i < N; i++) {
-    for (int j = 0; j < N; j++) {
+  for (int j = 0; j < N; j++) {
+    for (int i = 1; i < N; i++) {
       A[i][j] = (A[i][j] + A[i - 1][j]) / 2;
     }
   }
