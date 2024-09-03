@@ -114,7 +114,7 @@ LowerUpperBound = namedtuple(
 )
 
 
-class TrInfoBase:
+class TransformInfo:
     func_name: str
     argtypes: list[type] = []
     arg_help: list[str] = []
@@ -145,7 +145,7 @@ class TrInfoBase:
         return []
 
 
-class TileInfo(TrInfoBase):
+class TileInfo(TransformInfo):
     func_name = "tile"
     argtypes = [ctypes.c_size_t]
     arg_help = ["Tile size"]
@@ -160,7 +160,7 @@ class TileInfo(TrInfoBase):
         return [LowerUpperBound(lower=1, upper=None)]
 
 
-class InterchangeInfo(TrInfoBase):
+class InterchangeInfo(TransformInfo):
     func_name = "interchange"
 
     @staticmethod
@@ -172,7 +172,7 @@ class InterchangeInfo(TrInfoBase):
         )
 
 
-class FuseInfo(TrInfoBase):
+class FuseInfo(TransformInfo):
     func_name = "fuse"
     argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
@@ -184,8 +184,8 @@ class FuseInfo(TrInfoBase):
     @staticmethod
     def args_valid(node: Node, loop_idx1: int, loop_idx2: int):
         return (
-            TrInfoBase._is_valid_child_idx(node, loop_idx1)
-            and TrInfoBase._is_valid_child_idx(node, loop_idx2),
+            TransformInfo._is_valid_child_idx(node, loop_idx1)
+            and TransformInfo._is_valid_child_idx(node, loop_idx2),
         )
 
     @staticmethod
@@ -197,7 +197,7 @@ class FuseInfo(TrInfoBase):
         ]
 
 
-class FullFuseInfo(TrInfoBase):
+class FullFuseInfo(TransformInfo):
     func_name = "full_fuse"
 
     @staticmethod
@@ -205,7 +205,7 @@ class FullFuseInfo(TrInfoBase):
         return node.node_type == NodeType.SEQUENCE
 
 
-class FullShiftValInfo(TrInfoBase):
+class FullShiftValInfo(TransformInfo):
     func_name = "full_shift_val"
     argtypes = [ctypes.c_long]
     arg_help = ["Value"]
@@ -215,14 +215,14 @@ class FullShiftValInfo(TrInfoBase):
         return [LowerUpperBound()]
 
 
-class PartialShiftValInfo(TrInfoBase):
+class PartialShiftValInfo(TransformInfo):
     func_name = "partial_shift_val"
     argtypes = [ctypes.c_int, ctypes.c_long]
     arg_help = ["Statement index", "Value"]
 
     @staticmethod
     def args_valid(node: Node, stmt_idx: int, value: int):
-        return TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+        return TransformInfo._is_valid_stmt_idx(node, stmt_idx)
 
     @staticmethod
     def lower_upper_bounds(node: Node):
@@ -230,14 +230,14 @@ class PartialShiftValInfo(TrInfoBase):
         return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
 
 
-class FullShiftVarInfo(TrInfoBase):
+class FullShiftVarInfo(TransformInfo):
     func_name = "full_shift_var"
     argtypes = [ctypes.c_long, ctypes.c_long]
     arg_help = ["Coefficient", "Variable index"]
 
     @staticmethod
     def args_valid(node: Node, _coeff: int, var_idx: int):
-        return TrInfoBase._valid_idx_all_stmt(node, var_idx, "vars")
+        return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
 
     @staticmethod
     def lower_upper_bounds(node: Node):
@@ -245,7 +245,7 @@ class FullShiftVarInfo(TrInfoBase):
         return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
 
 
-class PartialShiftVarInfo(TrInfoBase):
+class PartialShiftVarInfo(TransformInfo):
     func_name = "partial_shift_var"
     argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Variable index"]
@@ -253,7 +253,7 @@ class PartialShiftVarInfo(TrInfoBase):
     @staticmethod
     def args_valid(node: Node, stmt_idx: int, coeff: int, var_idx: int):
         return (
-            TrInfoBase._is_valid_stmt_idx(node, stmt_idx)
+            TransformInfo._is_valid_stmt_idx(node, stmt_idx)
             and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
         )
 
@@ -267,14 +267,14 @@ class PartialShiftVarInfo(TrInfoBase):
         ]
 
 
-class FullShiftParamInfo(TrInfoBase):
+class FullShiftParamInfo(TransformInfo):
     func_name = "full_shift_param"
     argtypes = [ctypes.c_long, ctypes.c_long]
     arg_help = ["Coefficient", "Parameter index"]
 
     @staticmethod
     def args_valid(node: Node, coeff: int, param_idx: int):
-        return TrInfoBase._valid_idx_all_stmt(node, param_idx, "params")
+        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
 
     @staticmethod
     def lower_upper_bounds(node: Node):
@@ -282,7 +282,7 @@ class FullShiftParamInfo(TrInfoBase):
         return [LowerUpperBound(), LowerUpperBound(0, min_np)]
 
 
-class PartialShiftParam(TrInfoBase):
+class PartialShiftParam(TransformInfo):
     func_name = "partial_shift_param"
     argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Parameter index"]
@@ -290,7 +290,7 @@ class PartialShiftParam(TrInfoBase):
     @staticmethod
     def args_valid(node: Node, stmt_idx: int, coeff: int, param_idx: int):
         return (
-            TrInfoBase._is_valid_stmt_idx(node, param_idx)
+            TransformInfo._is_valid_stmt_idx(node, param_idx)
             and 0 <= param_idx
             and param_idx < len(node.loop_signature[stmt_idx]["params"]),
         )
@@ -305,7 +305,7 @@ class PartialShiftParam(TrInfoBase):
         ]
 
 
-class SetLoopOpt(TrInfoBase):
+class SetLoopOpt(TransformInfo):
     func_name = "set_loop_opt"
     argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Iterator index", "Option"]
@@ -324,7 +324,7 @@ class SetLoopOpt(TrInfoBase):
         ]
 
 
-TRANSFORMATIONS: dict[TrEnum, TrInfoBase] = {
+TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.TILE: TileInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
