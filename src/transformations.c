@@ -193,6 +193,8 @@ tadashi_fuse(__isl_take isl_schedule_node *node, int idx1, int idx2) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
 
   isl_size size = isl_schedule_node_n_children(node);
+  assert(0 <= idx1 && idx1 < size);
+  assert(0 <= idx2 && idx2 < size);
   node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
   node = isl_schedule_node_child(node, idx1);
   node = isl_schedule_node_first_child(node);

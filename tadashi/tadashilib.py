@@ -94,7 +94,7 @@ class Node:
                     result.append(TrEnum.INTERCHANGE)
         return result
 
-    def transform(self, tr, *args):
+    def transform(self, tr: "TransformInfo", *args):
         # TODO proc_args
         if len(args) != len(tr.arg_help):
             raise ValueError(f"Incorrect number of args for {tr}!")
@@ -104,6 +104,7 @@ class Node:
         if not tr.args_valid(self, *args):
             msg = f"Not valid transformation args: {args}"
             raise ValueError(msg)
+
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
@@ -179,7 +180,11 @@ class FuseInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        return node.node_type == NodeType.SEQUENCE
+        return (
+            (node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET)
+            and (len(node.children) > 1)
+            and (all(ch.children[0].node_type == NodeType.BAND for ch in node.children))
+        )
 
     @staticmethod
     def args_valid(node: Node, loop_idx1: int, loop_idx2: int):
@@ -202,7 +207,9 @@ class FullFuseInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        return node.node_type == NodeType.BAND
+        return (
+            node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET
+        ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
 
 
 class FullShiftValInfo(TransformInfo):

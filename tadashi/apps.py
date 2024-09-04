@@ -71,6 +71,10 @@ class Simple(App):
         return self.source
 
     @property
+    def alt_source_path(self) -> Path:
+        return self.alt_source
+
+    @property
     def output_binary(self) -> Path:
         return self.source.with_suffix("")
 
@@ -125,6 +129,7 @@ class Polybench(App):
             str(self.output_binary),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
+            "-lm",
         ]
 
     @staticmethod

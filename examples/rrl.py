@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-
 import random
+from pathlib import Path
+from subprocess import TimeoutExpired
 
 from tadashi.apps import Polybench, Simple
 from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
@@ -21,13 +22,18 @@ class Model:
     def random_transform(self, scop):
         node = self.random_node(scop)
         key, tr = random.choice(list(TRANSFORMATIONS.items()))
-        print(f"{key=}")
+
+        # self.node_idx = 6
+        # node = scop.schedule_tree[self.node_idx]
+        # key = TrEnum.FULL_FUSE
+        # tr = TRANSFORMATIONS[key]
+
         while not tr.valid(node):
-            print(f"{key=}")
             node = self.random_node(scop)
             key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
         args = self.random_args(node, tr)
+        # args = []
         return self.node_idx, key, args
 
     def random_args(self, node, tr):
@@ -51,7 +57,7 @@ class Model:
         return args
 
 
-def main(app):
+def run_model(app, num_steps=10):
     app.compile()
 
     t = app.measure()
@@ -59,7 +65,7 @@ def main(app):
     loop_nests = Scops(app)
     model = Model()
 
-    for _ in range(3):
+    for _ in range(num_steps):
         loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
         print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
         tr = TRANSFORMATIONS[transformation_id]
@@ -69,10 +75,20 @@ def main(app):
             input_path=app.source_path, output_path=app.alt_source_path
         )
         app.compile()
-        t = app.measure(timeout=20)
-        print(f"WALLTIME: {t}")
+        try:
+            t = app.measure(timeout=10)
+            print(f"WALLTIME: {t}")
+        except TimeoutExpired as e:
+            print(f"Timeout expired: {e=}")
+
+
+def main():
+    # run_model(Simple("./examples/depnodep.c"))
+    base = Path("build/_deps/polybench-src/")
+    for p in base.glob("**"):
+        if Path(p / (p.name + ".c")).exists():
+            run_model(Polybench(p.relative_to(base), base))
 
 
 if __name__ == "__main__":
-    # main(Simple("./examples/depnodep.c"))
-    main(Polybench("linear-algebra/blas/gemm", "build/_deps/polybench-src"))
+    main()
