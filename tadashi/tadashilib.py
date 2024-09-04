@@ -202,7 +202,7 @@ class FullFuseInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        return node.node_type == NodeType.SEQUENCE
+        return node.node_type == NodeType.BAND
 
 
 class FullShiftValInfo(TransformInfo):

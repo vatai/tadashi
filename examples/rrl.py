@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import ctypes
 import random
-from enum import Enum
 
-from tadashi.apps import Simple
+from tadashi.apps import Polybench, Simple
 from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
                                 Scops, TrEnum)
 
@@ -23,7 +21,9 @@ class Model:
     def random_transform(self, scop):
         node = self.random_node(scop)
         key, tr = random.choice(list(TRANSFORMATIONS.items()))
+        print(f"{key=}")
         while not tr.valid(node):
+            print(f"{key=}")
             node = self.random_node(scop)
             key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
@@ -51,8 +51,7 @@ class Model:
         return args
 
 
-def main():
-    app = Simple("./examples/depnodep.c")
+def main(app):
     app.compile()
 
     t = app.measure()
@@ -60,17 +59,20 @@ def main():
     loop_nests = Scops(app)
     model = Model()
 
-    for _ in range(10):
+    for _ in range(3):
         loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
         print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
         tr = TRANSFORMATIONS[transformation_id]
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
         print(f"{legal=}")
-        loop_nests.generate_code(input_path=app.source, output_path=app.alt_source)
+        loop_nests.generate_code(
+            input_path=app.source_path, output_path=app.alt_source_path
+        )
         app.compile()
         t = app.measure(timeout=20)
         print(f"WALLTIME: {t}")
 
 
 if __name__ == "__main__":
-    main()
+    # main(Simple("./examples/depnodep.c"))
+    main(Polybench("linear-algebra/blas/gemm", "build/_deps/polybench-src"))

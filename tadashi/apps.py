@@ -89,6 +89,7 @@ class Polybench(App):
     def __init__(self, benchmark: str, base: str):
         self.benchmark = Path(benchmark)
         self.base = Path(base)
+        shutil.copy(self.source_path, self.alt_source_path)
 
     @property
     def source_path(self) -> Path:
@@ -108,10 +109,15 @@ class Polybench(App):
         return [self.utilities_path]
 
     @property
+    def alt_source_path(self) -> Path:
+        ext = f".tmp{self.source_path.suffix}"
+        return self.source_path.with_suffix(ext)
+
+    @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            str(self.source_path),
+            str(self.alt_source_path),
             str(self.utilities_path / "polybench.c"),
             "-I",
             str(self.include_paths[0]),
