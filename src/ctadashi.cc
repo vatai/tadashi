@@ -291,7 +291,17 @@ bool
 set_parallel(size_t scop_idx) {
   scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_set_parallel(si->tmp_node);
-  return post_transform(scop_idx);
+  isl_union_map *dep = isl_union_map_copy(si->dependency);
+  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  node = isl_schedule_node_first_child(node);
+  isl_bool legal = tadashi_check_legality_parallel(ctx, node, si->dependency);
+  node = isl_schedule_node_free(node);
+  si->modified = true;
+  isl_schedule_node_free(si->current_node);
+  si->current_node = si->tmp_node;
+  si->tmp_node = NULL;
+  return legal;
 }
 
 void
