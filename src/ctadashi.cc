@@ -287,6 +287,13 @@ partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
   return post_transform(scop_idx);
 }
 
+bool
+set_parallel(size_t scop_idx) {
+  scop_info_t *si = pre_transform(scop_idx);
+  si->tmp_node = tadashi_set_parallel(si->tmp_node);
+  return post_transform(scop_idx);
+}
+
 void
 set_loop_opt(size_t scop_idx, int pos, int opt) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;

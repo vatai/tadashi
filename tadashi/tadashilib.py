@@ -47,8 +47,9 @@ class TrEnum(StrEnum):
     FULL_SHIFT_VAL = auto()
     FULL_SHIFT_PARAM = auto()
     PARTIAL_SHIFT_PARAM = auto()
-    PRINT_SCHEDULE = auto()
+    SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
+    PRINT_SCHEDULE_NODE = auto()
 
 
 @dataclass
@@ -289,7 +290,7 @@ class FullShiftParamInfo(TransformInfo):
         return [LowerUpperBound(), LowerUpperBound(0, min_np)]
 
 
-class PartialShiftParam(TransformInfo):
+class PartialShiftParamInfo(TransformInfo):
     func_name = "partial_shift_param"
     argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Parameter index"]
@@ -312,7 +313,11 @@ class PartialShiftParam(TransformInfo):
         ]
 
 
-class SetLoopOpt(TransformInfo):
+class SetParallelInfo(TransformInfo):
+    func_name = "set_parallel"
+
+
+class SetLoopOptInfo(TransformInfo):
     func_name = "set_loop_opt"
     argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Iterator index", "Option"]
@@ -331,6 +336,14 @@ class SetLoopOpt(TransformInfo):
         ]
 
 
+class PrintScheduleNodeInfo(TransformInfo):
+    func_name = "print_schedule_node"
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        return True
+
+
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.TILE: TileInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
@@ -341,8 +354,10 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
     TrEnum.PARTIAL_SHIFT_VAR: PartialShiftVarInfo(),
     TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
-    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParam(),
-    TrEnum.SET_LOOP_OPT: SetLoopOpt(),
+    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
+    TrEnum.SET_PARALLEL: SetParallelInfo(),
+    TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
+    TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
 }
 
 
