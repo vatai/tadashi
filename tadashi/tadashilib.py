@@ -357,7 +357,7 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
     TrEnum.SET_PARALLEL: SetParallelInfo(),
     TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
-    TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
+    # TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
 }
 
 
