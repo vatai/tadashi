@@ -13,7 +13,7 @@ struct scop_info_t {
   int modified;
 };
 
-int get_num_scops(char *input);
+int init_scops(char *input);
 
 void free_scops();
 

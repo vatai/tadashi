@@ -427,7 +427,7 @@ class Scops:
         self.num_changes = 0
         self.app = app
         self.source_path_bytes = str(self.app.source_path).encode()
-        self.num_scops = self.ctadashi.get_num_scops(self.source_path_bytes)
+        self.num_scops = self.ctadashi.init_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
     def setup_ctadashi(self, app: App):
@@ -435,8 +435,8 @@ class Scops:
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.check_missing_file(self.so_path)
         self.ctadashi = ctypes.CDLL(str(self.so_path))
-        self.ctadashi.get_num_scops.argtypes = [ctypes.c_char_p]
-        self.ctadashi.get_num_scops.restype = ctypes.c_int
+        self.ctadashi.init_scops.argtypes = [ctypes.c_char_p]
+        self.ctadashi.init_scops.restype = ctypes.c_int
         self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_type.restype = ctypes.c_int
         self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]

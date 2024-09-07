@@ -55,7 +55,7 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
 }
 
 int
-get_num_scops(char *input) { // Entry point
+init_scops(char *input) { // Entry point
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("/dev/null", "w");

@@ -81,7 +81,7 @@ class Simple(App):
 
     @property
     def output_binary(self) -> Path:
-        return self.source.with_suffix("")
+        return self.alt_source.with_suffix("")
 
     @staticmethod
     def extract_runtime(stdout):
