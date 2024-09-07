@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -47,15 +48,19 @@ class App:
 class Simple(App):
     source: Path
     alt_source: Path
+    tmpdir: tempfile.TemporaryDirectory
 
     def __init__(self, source: str, alt_source: str = ""):
         self.source = Path(source)
         if alt_source:
             self.alt_source = Path(alt_source)
         else:
-            ext = f".tmp{self.source.suffix}"
-            self.alt_source = self.source.with_suffix(ext)
-        shutil.copy(self.source, self.alt_source)
+            self.tmpdir = tempfile.TemporaryDirectory()
+            self.alt_source = Path(self.tmpdir.name) / self.source.name
+        shutil.copy(self.source, self.alt_source)  # boo
+
+    def __del__(self):
+        self.tmpdir.cleanup()
 
     @property
     def compile_cmd(self) -> list[str]:

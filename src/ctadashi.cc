@@ -58,7 +58,7 @@ int
 get_num_scops(char *input) { // Entry point
 
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
-  FILE *output = fopen("cout.c", "w");
+  FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
