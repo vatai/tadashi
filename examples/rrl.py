@@ -23,17 +23,11 @@ class Model:
         node = self.random_node(scop)
         key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
-        # self.node_idx = 6
-        # node = scop.schedule_tree[self.node_idx]
-        # key = TrEnum.FULL_FUSE
-        # tr = TRANSFORMATIONS[key]
-
         while not tr.valid(node):
             node = self.random_node(scop)
             key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
         args = self.random_args(node, tr)
-        # args = []
         return self.node_idx, key, args
 
     def random_args(self, node, tr):
@@ -70,6 +64,9 @@ def run_model(app, num_steps=10):
         print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
         tr = TRANSFORMATIONS[transformation_id]
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        if not legal:
+            loop_nests[0].schedule_tree[loop_idx].revert()
+
         print(f"{legal=}")
         loop_nests.generate_code(
             input_path=app.source_path, output_path=app.alt_source_path
