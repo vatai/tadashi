@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import random
+import time
+from datetime import timedelta
 from pathlib import Path
 from subprocess import TimeoutExpired
 
+import numpy as np
 from tadashi.apps import Polybench, Simple
 from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
                                 Scops, TrEnum)
@@ -51,7 +54,9 @@ class Model:
         return args
 
 
-def run_model(app, num_steps=10):
+def run_model(app, num_steps=3, name=""):
+    if name:
+        print(f"Running: {name}")
     app.compile()
 
     t = app.measure()
@@ -59,24 +64,36 @@ def run_model(app, num_steps=10):
     loop_nests = Scops(app)
     model = Model()
 
-    for _ in range(num_steps):
+    times = np.zeros([num_steps, 5])
+    print(f"{times.shape=}")
+    for i in range(num_steps):
+        t0 = time.monotonic()
         loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
         print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
+        t1 = time.monotonic()
+        times[i, 0] = t1 - t0
         tr = TRANSFORMATIONS[transformation_id]
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
         if not legal:
-            loop_nests[0].schedule_tree[loop_idx].revert()
-
-        print(f"{legal=}")
+            loop_nests[0].schedule_tree[loop_idx].rollback()
+        t2 = time.monotonic()
+        times[i, 1] = t2 - t1
         loop_nests.generate_code(
             input_path=app.source_path, output_path=app.alt_source_path
         )
+        t3 = time.monotonic()
+        times[i, 2] = t3 - t2
         app.compile()
+        t4 = time.monotonic()
+        times[i, 3] = t4 - t3
         try:
             t = app.measure(timeout=10)
             print(f"WALLTIME: {t}")
         except TimeoutExpired as e:
             print(f"Timeout expired: {e=}")
+        print(f"{legal=}")
+        t5 = time.monotonic()
+        times[i, 4] = t5 - t4
 
 
 def main():
@@ -84,7 +101,8 @@ def main():
     base = Path("build/_deps/polybench-src/")
     for p in base.glob("**"):
         if Path(p / (p.name + ".c")).exists():
-            run_model(Polybench(p.relative_to(base), base))
+            run_model(Polybench(p.relative_to(base), base), name=p.name)
+            print("")
 
 
 if __name__ == "__main__":

@@ -78,10 +78,10 @@ free_scops() {
   for (size_t i = 0; i < SCOP_INFO.size(); ++i) {
     scop_info_t *si = &SCOP_INFO[i];
     isl_union_map_free(si->dependency);
-    pet_scop_free(si->scop);
     isl_schedule_node_free(si->current_node);
     if (si->tmp_node != NULL)
       isl_schedule_node_free(si->tmp_node);
+    pet_scop_free(si->scop);
   }
   SCOP_INFO.clear();
   STRINGS.clear();
@@ -193,6 +193,8 @@ pre_transform(size_t scop_idx) {
   // - the only requirement is that we're in a legal state at the
   // final output.
   scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
+  if (si->tmp_node != NULL)
+    si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
   return si;
 }
@@ -201,18 +203,24 @@ int
 post_transform(size_t scop_idx) {
   scop_info_t *si = &SCOP_INFO[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
-  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
-  isl_schedule *sched = isl_schedule_node_get_schedule(node);
-  node = isl_schedule_node_free(node);
+  isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
   isl_ctx *ctx = isl_schedule_get_ctx(sched);
   isl_bool legal = tadashi_check_legality(ctx, sched, si->dependency);
   isl_schedule_free(sched);
   si->modified = true;
-  isl_schedule_node_free(si->current_node);
+  isl_schedule_node *node = si->current_node;
   si->current_node = si->tmp_node;
-  si->tmp_node = NULL;
+  si->tmp_node = node;
   return legal;
+}
+
+void
+rollback(size_t scop_idx) {
+  scop_info_t *si = &SCOP_INFO[scop_idx];
+  isl_schedule_node *tmp = si->tmp_node;
+  si->tmp_node = si->current_node;
+  si->current_node = tmp;
 }
 
 int

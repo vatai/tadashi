@@ -110,6 +110,9 @@ class Node:
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
 
+    def rollback(self):
+        self.scop.ctadashi.rollback(self.scop.idx)
+
 
 LowerUpperBound = namedtuple(
     "LowerUpperBound", ["lower", "upper"], defaults=[None, None]

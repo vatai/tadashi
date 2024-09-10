@@ -139,4 +139,9 @@ class Polybench(App):
 
     @staticmethod
     def extract_runtime(stdout) -> float:
-        return float(stdout.split()[0])
+        result = 0
+        try:
+            result = float(stdout.split()[0])
+        except IndexError as e:
+            print(f"App probaly crashed: {e}")
+        return result
