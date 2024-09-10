@@ -27,6 +27,7 @@
 /// legality=True
 /// legality=True
 /// legality=True
+/// legality=True
 #include <stdlib.h>
 
 void f(int N, int T, double a[N], double b[N]) {
