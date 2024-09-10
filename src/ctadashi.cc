@@ -295,7 +295,7 @@ partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
   return post_transform(scop_idx);
 }
 
-bool
+int
 set_parallel(size_t scop_idx) {
   scop_info_t *si = pre_transform(scop_idx);
   si->tmp_node = tadashi_set_parallel(si->tmp_node);
@@ -306,18 +306,19 @@ set_parallel(size_t scop_idx) {
   isl_bool legal = tadashi_check_legality_parallel(ctx, node, si->dependency);
   node = isl_schedule_node_free(node);
   si->modified = true;
-  isl_schedule_node_free(si->current_node);
+  node = si->current_node;
   si->current_node = si->tmp_node;
-  si->tmp_node = NULL;
+  si->tmp_node = node;
   return legal;
 }
 
-void
+int
 set_loop_opt(size_t scop_idx, int pos, int opt) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
   SCOP_INFO[scop_idx].current_node = node;
+  return 1;
 }
 
 static __isl_give isl_printer *

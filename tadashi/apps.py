@@ -134,6 +134,7 @@ class Polybench(App):
             str(self.output_binary),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
+            # "-DMEDIUM_DATASET",
             "-lm",
         ]
 

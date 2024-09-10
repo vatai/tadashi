@@ -94,14 +94,16 @@ def run_model(app, num_steps=3, name=""):
         print(f"{legal=}")
         t5 = time.monotonic()
         times[i, 4] = t5 - t4
+    np.save(f"times/{name}.npy", times)
 
 
 def main():
     # run_model(Simple("./examples/depnodep.c"))
     base = Path("build/_deps/polybench-src/")
-    for p in base.glob("**"):
+    # for p in base.glob("**"):
+    for p in list(base.glob("**"))[:10]:
         if Path(p / (p.name + ".c")).exists():
-            run_model(Polybench(p.relative_to(base), base), name=p.name)
+            run_model(Polybench(p.relative_to(base), base), num_steps=2, name=p.name)
             print("")
 
 

@@ -324,7 +324,6 @@ class SetLoopOptInfo(TransformInfo):
     func_name = "set_loop_opt"
     argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Iterator index", "Option"]
-    restype = None
 
     @staticmethod
     def lower_upper_bounds(node: Node):

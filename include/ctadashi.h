@@ -58,7 +58,7 @@ int full_shift_param(size_t scop_idx, long coeff, long param_idx);
 int partial_shift_param(size_t scop_idx, int pa_idx, long coeff,
                         long param_idx);
 
-void set_loop_opt(size_t scop_idx, int pos, int opt);
+int set_loop_opt(size_t scop_idx, int pos, int opt);
 
 void rollback(size_t scop_idx);
 
