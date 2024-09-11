@@ -13,7 +13,7 @@ def get_df(files):
     df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
     print(df.head(10))
     print(df.loc["gemm-10", :]["Random transformation"].sum())
-    # print(df.index)
+    print(df.groupby(by=["Compilation"]))
     return df
 
 
