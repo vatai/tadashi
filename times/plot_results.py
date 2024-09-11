@@ -12,7 +12,8 @@ def get_df(files):
         means[name] = json.load(open(file))
     df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
     print(df.head(10))
-    print(df.index)
+    print(df.loc["gemm-10", :]["Random transformation"].sum())
+    # print(df.index)
     return df
 
 
