@@ -31,7 +31,7 @@ class Model:
             key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
         args = self.random_args(node, tr)
-        return self.node_idx, key, args
+        return self.node_idx, key, tr, args
 
     def random_args(self, node, tr):
         if tr == TRANSFORMATIONS[TrEnum.TILE]:
@@ -54,7 +54,7 @@ class Model:
         return args
 
 
-def run_model(app, num_steps=3, name=""):
+def run_model(app, num_steps, name=""):
     if name:
         print(f"Running: {name}")
     app.compile()
@@ -68,11 +68,10 @@ def run_model(app, num_steps=3, name=""):
     print(f"{times.shape=}")
     for i in range(num_steps):
         t0 = time.monotonic()
-        loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
-        print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
+        loop_idx, tr, key, args = model.random_transform(loop_nests[0])
+        print(f"loop_idx: {loop_idx}, tr: {key}, args: {args}")
         t1 = time.monotonic()
         times[i, 0] = t1 - t0
-        tr = TRANSFORMATIONS[transformation_id]
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
         if not legal:
             loop_nests[0].schedule_tree[loop_idx].rollback()
@@ -101,9 +100,11 @@ def main():
     # run_model(Simple("./examples/depnodep.c"))
     base = Path("build/_deps/polybench-src/")
     # for p in base.glob("**"):
+    compiler_options = ["-DSMALL_DATASET"]
     for p in list(base.glob("**"))[:10]:
         if Path(p / (p.name + ".c")).exists():
-            run_model(Polybench(p.relative_to(base), base), num_steps=2, name=p.name)
+            app = Polybench(p.relative_to(base), base, compiler_options)
+            run_model(app, num_steps=2, name=p.name)
             print("")
 
 

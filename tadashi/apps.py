@@ -95,9 +95,10 @@ class Polybench(App):
     benchmark: Path  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(self, benchmark: str, base: str):
+    def __init__(self, benchmark: str, base: str, compiler_options=[]):
         self.benchmark = Path(benchmark)
         self.base = Path(base)
+        self.compiler_options = compiler_options
         shutil.copy(self.source_path, self.alt_source_path)
 
     @property
@@ -136,7 +137,7 @@ class Polybench(App):
             "-DPOLYBENCH_USE_RESTRICT",
             # "-DMEDIUM_DATASET",
             "-lm",
-        ]
+        ] + self.compiler_options
 
     @staticmethod
     def extract_runtime(stdout) -> float:

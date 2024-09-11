@@ -95,8 +95,9 @@ class Node:
                     result.append(TrEnum.INTERCHANGE)
         return result
 
-    def transform(self, tr: "TransformInfo", *args):
+    def transform(self, trkey: TrEnum, *args):
         # TODO proc_args
+        tr = TRANSFORMATIONS[trkey]
         if len(args) != len(tr.arg_help):
             raise ValueError(f"Incorrect number of args for {tr}!")
         if not tr.valid(self):
