@@ -88,7 +88,7 @@ def get_array(app: Polybench):
     return output.split("\n")
 
 
-def run_model(app, num_steps=5, name=""):
+def run_model(app, num_steps, name=""):
     model = Model()
     timer = Timer()
     app.compile()
@@ -113,25 +113,26 @@ def run_model(app, num_steps=5, name=""):
     app.compile()
     timer.time("Compilation")
     try:
-        t = app.measure(timeout=10)
+        t = app.measure(timeout=60)
         timer.time("Total walltime")
         timer.custom("Kernel walltime", t)
     except TimeoutExpired as e:
         print(f"Timeout expired: {e=}")
-    json.dump(timer.times, open(f"{name}.json"))
+    filename = f"./times/{name}-{num_steps}.json"
+    json.dump(timer.times, open(filename, "w"))
+    print(f"Written: {filename}")
 
 
 def run_simple():
     run_model(Simple("./examples/depnodep.c"), num_steps=5)
 
 
-def measure_polybench():
+def measure_polybench(num_steps):
     base, poly = get_polybench_list()
-    compiler_options = ["-DSMALL_DATASET"]
-    for p in poly[:3]:
-        app = Polybench(p, base, compiler_options)
-        run_model(app, num_steps=2, name=p.name)
-        print("")
+    for i, p in enumerate(poly):
+        print(f"Start {i+1}. {p.name}")
+        app = Polybench(p, base)
+        run_model(app, num_steps=num_steps, name=p.name)
 
 
 def verify_polybench():
@@ -157,4 +158,5 @@ def verify_polybench():
 if __name__ == "__main__":
     random.seed(42)
     # verify_polybench()
-    measure_polybench()
+    measure_polybench(num_steps=1)
+    measure_polybench(num_steps=10)

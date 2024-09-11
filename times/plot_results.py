@@ -1,45 +1,28 @@
+import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 
-def get_means_vars(files):
+def get_df(files):
     means = {}
-    vars = {}
     for file in files:
-        times = np.load(file)
-        mean = times.mean(axis=0)
-        var = times.var(axis=0)
         name = file.with_suffix("").name
-        means[name] = mean
-        vars[name] = var
-    return pd.DataFrame(means), pd.DataFrame(vars)
+        means[name] = json.load(open(file))
+    df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
+    print(df.head(10))
+    print(df.index)
+    return df
 
 
-def main():
-    files = Path("./times/").glob("*.npy")
-    means, vars = get_means_vars(files)
-    print(means)
-    print(means.index)
-    labels = [
-        "Chosing the transformations",
-        "Transforming the schedule",
-        "Generating code",
-        "Compiling",
-        "Execution time",
-    ]
-    means = means.set_axis(labels=labels)
-    means = means.transpose()
-    means = means.drop(labels=[labels[0]], axis=1)
-    # print(means[[labels[0]]])
-    print(means)
+def main(files):
+    means = get_df(list(files)[:3])
     fig, ax = plt.subplots()
     means.plot.bar(stacked=True, ax=ax)
     plt.tight_layout()
-    plt.savefig("plot.png")
+    plt.savefig("plot.pdf")
 
 
 if __name__ == "__main__":
-    main()
+    main(files=Path("./times/").glob("*-10.json"))
