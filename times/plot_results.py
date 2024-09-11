@@ -12,11 +12,24 @@ def get_df(files):
         means[name] = json.load(open(file))
     df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
     df.index.names = ["benchmark", "step"]
-    print(df.head(20))
-    print(df.loc["gemm-10", :]["Random transformation"].sum())
-    print(df.groupby(by=["benchmark"]).mean())
     # https://stackoverflow.com/questions/50976297/reduce-a-panda-dataframe-by-groups
-    return df
+    df = df.groupby(by=["benchmark"]).agg(
+        {
+            # "Random transformation": "min",
+            "Total walltime": "max",
+            "Kernel walltime": "min",
+            "Compilation": "min",
+            "Code generation": "mean",
+            "Transformation + legality": "mean",
+            "Extraction": "mean",
+        }
+    )
+    df["Total walltime"] = df["Total walltime"] - df["Kernel walltime"]
+    print(df)
+    print(df.sum(axis=1))
+    df = df.T / df.sum(axis=1)
+    print(df)
+    return df.T
 
 
 def main(files):
