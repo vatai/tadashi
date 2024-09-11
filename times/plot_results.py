@@ -11,9 +11,11 @@ def get_df(files):
         name = file.with_suffix("").name
         means[name] = json.load(open(file))
     df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
-    print(df.head(10))
+    df.index.names = ["benchmark", "step"]
+    print(df.head(20))
     print(df.loc["gemm-10", :]["Random transformation"].sum())
-    print(df.groupby(by=["Compilation"]))
+    print(df.groupby(by=["benchmark"]).mean())
+    # https://stackoverflow.com/questions/50976297/reduce-a-panda-dataframe-by-groups
     return df
 
 
