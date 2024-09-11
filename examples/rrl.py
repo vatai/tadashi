@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import random
+import subprocess
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -9,6 +10,15 @@ import numpy as np
 from tadashi.apps import Polybench, Simple
 from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
                                 Scops, TrEnum)
+
+
+def get_polybench_list():
+    base = Path("build/_deps/polybench-src/")
+    result = []
+    for p in base.glob("**"):
+        if Path(p / (p.name + ".c")).exists():
+            result.append(p.relative_to(base))
+    return base, result
 
 
 class Model:
@@ -54,7 +64,7 @@ class Model:
         return args
 
 
-def run_model(app, num_steps, name=""):
+def run_model(app, num_steps=5, name=""):
     if name:
         print(f"Running: {name}")
     app.compile()
@@ -97,23 +107,39 @@ def run_model(app, num_steps, name=""):
 
 
 def run_simple():
-    run_model(Simple("./examples/depnodep.c"))
+    run_model(Simple("./examples/depnodep.c"), num_steps=5)
 
 
 def measure_polybench():
-    base = Path("build/_deps/polybench-src/")
-    # for p in base.glob("**"):
+    base, poly = get_polybench_list()
     compiler_options = ["-DSMALL_DATASET"]
-    for p in list(base.glob("**"))[:10]:
-        if Path(p / (p.name + ".c")).exists():
-            app = Polybench(p.relative_to(base), base, compiler_options)
-            run_model(app, num_steps=2, name=p.name)
-            print("")
+    for p in poly[:3]:
+        app = Polybench(p, base, compiler_options)
+        run_model(app, num_steps=2, name=p.name)
+        print("")
 
 
-def verify_poly():
-    pass
+def get_array(app: Polybench):
+    result = subprocess.run(app.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = result.stderr.decode().split("\n")
+    print(app.source_path.with_suffix("").name)
+    print(f"{stdout[:5]=}")
+    print(f"{stdout[-5:]=}")
+
+
+def verify_polybench():
+    base, poly = get_polybench_list()
+    compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
+    for p in poly[:5]:
+        app = Polybench(p, base, compiler_options)
+        gold = get_array(app)
+        # run_model(app, num_steps=2, name=p.name)
+        print("")
 
 
 if __name__ == "__main__":
-    measure_polybench()
+    # measure_polybench()
+    verify_polybench()
+    # base, poly = get_polybench_list()
+    # print(poly)
+    # print(len(poly))
