@@ -1,15 +1,14 @@
 #!/usr/bin/env python
+import difflib
+import json
 import random
 import subprocess
 import time
-from datetime import timedelta
 from pathlib import Path
 from subprocess import TimeoutExpired
 
-import numpy as np
 from tadashi.apps import Polybench, Simple
-from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
-                                Scops, TrEnum)
+from tadashi.tadashilib import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 
 
 def get_polybench_list():
@@ -45,7 +44,7 @@ class Model:
 
     def random_args(self, node, tr):
         if tr == TRANSFORMATIONS[TrEnum.TILE]:
-            tile_size = random.choice([2**x for x in range(5, 20)])
+            tile_size = random.choice([2**x for x in range(5, 12)])
             return [tile_size]
         lubs = tr.lower_upper_bounds(node)
         args = []
@@ -64,46 +63,62 @@ class Model:
         return args
 
 
+class Timer:
+    def __init__(self):
+        self.times = [{}]
+        self.tick = time.monotonic()
+
+    def time(self, key):
+        t = time.monotonic()
+        self.times[-1][key] = t - self.tick
+        self.tick = t
+
+    def reset(self):
+        self.tick = time.monotonic()
+
+    def custom(self, key, value):
+        self.times[-1][key] = value
+
+
+def get_array(app: Polybench):
+    result = subprocess.run(
+        app.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=40
+    )
+    output = result.stderr.decode()
+    return output.split("\n")
+
+
 def run_model(app, num_steps=5, name=""):
-    if name:
-        print(f"Running: {name}")
-    app.compile()
-
-    t = app.measure()
-    print(f"Base time: {t}")
-    loop_nests = Scops(app)
     model = Model()
-
-    times = np.zeros([num_steps, 5])
-    print(f"{times.shape=}")
+    timer = Timer()
+    app.compile()
+    timer.time("Compilation")
+    app.measure()
+    t = timer.time("Total walltime")
+    loop_nests = Scops(app)
+    timer.time("Extraction")
+    timer.custom("Kernel walltime", t)
     for i in range(num_steps):
-        t0 = time.monotonic()
+        timer.times.append({})
+        timer.reset()
         loop_idx, tr, key, args = model.random_transform(loop_nests[0])
-        print(f"loop_idx: {loop_idx}, tr: {key}, args: {args}")
-        t1 = time.monotonic()
-        times[i, 0] = t1 - t0
+        timer.time("Random transformation")
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        timer.time("Transformation + legality")
         if not legal:
             loop_nests[0].schedule_tree[loop_idx].rollback()
-        t2 = time.monotonic()
-        times[i, 1] = t2 - t1
-        loop_nests.generate_code(
-            input_path=app.source_path, output_path=app.alt_source_path
-        )
-        t3 = time.monotonic()
-        times[i, 2] = t3 - t2
-        app.compile()
-        t4 = time.monotonic()
-        times[i, 3] = t4 - t3
-        try:
-            t = app.measure(timeout=10)
-            print(f"WALLTIME: {t}")
-        except TimeoutExpired as e:
-            print(f"Timeout expired: {e=}")
-        print(f"{legal=}")
-        t5 = time.monotonic()
-        times[i, 4] = t5 - t4
-    np.save(f"times/{name}.npy", times)
+    timer.reset()
+    loop_nests.generate_code(app.source_path, app.alt_source_path)
+    timer.time("Code generation")
+    app.compile()
+    timer.time("Compilation")
+    try:
+        t = app.measure(timeout=10)
+        timer.time("Total walltime")
+        timer.custom("Kernel walltime", t)
+    except TimeoutExpired as e:
+        print(f"Timeout expired: {e=}")
+    json.dump(timer.times, open(f"{name}.json"))
 
 
 def run_simple():
@@ -119,27 +134,27 @@ def measure_polybench():
         print("")
 
 
-def get_array(app: Polybench):
-    result = subprocess.run(app.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout = result.stderr.decode().split("\n")
-    print(app.source_path.with_suffix("").name)
-    print(f"{stdout[:5]=}")
-    print(f"{stdout[-5:]=}")
-
-
 def verify_polybench():
     base, poly = get_polybench_list()
     compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
-    for p in poly[:5]:
+    for p in poly:
         app = Polybench(p, base, compiler_options)
+        app.compile()
         gold = get_array(app)
-        # run_model(app, num_steps=2, name=p.name)
-        print("")
+        # print(f"{gold[:3]=}")
+        run_model(app, num_steps=3, name=p.name)
+        # app.compile()
+        mod = get_array(app)
+        print(f"{mod [:3]=}")
+        diff = "\n".join(difflib.unified_diff(gold, mod))
+        if diff:
+            print("<<<<<<<<<<<<< ERROR")
+            print(diff)
+        else:
+            print(f">>>>>>>>>>>>> OK {p}")
 
 
 if __name__ == "__main__":
-    # measure_polybench()
-    verify_polybench()
-    # base, poly = get_polybench_list()
-    # print(poly)
-    # print(len(poly))
+    random.seed(42)
+    # verify_polybench()
+    measure_polybench()

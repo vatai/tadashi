@@ -35,8 +35,8 @@ class App:
     def run_cmd(self) -> list:
         return [self.output_binary]
 
-    def measure(self, timeout: Optional[int] = None) -> float:
-        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, timeout=timeout)
+    def measure(self, *args, **kwargs) -> float:
+        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
