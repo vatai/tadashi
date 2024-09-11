@@ -96,8 +96,11 @@ def run_model(app, num_steps, name=""):
     np.save(f"times/{name}.npy", times)
 
 
-def main():
-    # run_model(Simple("./examples/depnodep.c"))
+def run_simple():
+    run_model(Simple("./examples/depnodep.c"))
+
+
+def measure_polybench():
     base = Path("build/_deps/polybench-src/")
     # for p in base.glob("**"):
     compiler_options = ["-DSMALL_DATASET"]
@@ -108,5 +111,9 @@ def main():
             print("")
 
 
+def verify_poly():
+    pass
+
+
 if __name__ == "__main__":
-    main()
+    measure_polybench()
