@@ -7,15 +7,19 @@ import pandas as pd
 # https://stackoverflow.com/questions/50976297/reduce-a-panda-dataframe-by-groups
 
 
-def get_df(files, agg_args, norm):
-    means = {}
+def get_raw_df(files):
+    data = {}
     for file in files:
         name = file.with_suffix("").name
-        means[name] = json.load(open(file))
-    df = pd.concat({k: pd.DataFrame(v) for k, v in means.items()})
-    df.index.names = ["benchmark", "step"]
-    # print(df)
-    gb = df.groupby(by=["benchmark"])
+        data[name] = json.load(open(file))
+    df = pd.concat({k: pd.DataFrame(v) for k, v in data.items()})
+    df.index.names = ["Benchmark", "Step"]
+    return df
+
+
+def get_breakdown_df(files, agg_args, norm):
+    df = get_raw_df(files)
+    gb = df.groupby(by=["Benchmark"])
     df = gb.agg(agg_args)
     if "Total walltime" in df.columns and "Kernel walltime" in df.columns:
         df["Total walltime (diff)"] = df["Total walltime"] - df["Kernel walltime"]
@@ -27,30 +31,31 @@ def get_df(files, agg_args, norm):
         "Kernel walltime": "Kernel execution",
     }
     df = df.rename(columns=rename)
-    print(df.columns)
+    df.index = df.index.str.replace("-1", "")
+    df.index = df.index.str.replace("-10", "")
     return df
 
 
-def main(files, agg_args, norm, size):
-    df = get_df(files, agg_args, norm)
+def breakdown(files, agg_args, norm, size):
+    df = get_breakdown_df(files, agg_args, norm)
     fig, ax = plt.subplots()
     df.plot.bar(stacked=True, ax=ax)
     if norm:
         plt.ylabel("% of runtime")
     else:
-        plt.ylabel("Runtime")
+        plt.ylabel("Runtime (sec)")
     plt.title(
-        f"Breakdown of {size}-long transformation seq"
-        if size > 0
-        else "Breakdown of primitive transformations"
+        f"{size}-long transformation sequence"
+        if size > 1
+        else "Primitive transformations"
     )
     plt.tight_layout()
-    filename = f"plot-{'norm' if norm else 'abs'}-{size}.pdf"
+    filename = f"plot-breakdown-{'norm' if norm else 'abs'}-{size}.pdf"
     print(filename)
     plt.savefig(filename)
 
 
-if __name__ == "__main__":
+def breakdowns():
     agg_args = {
         # "Random transformation": "min",
         "Total walltime": "min",
@@ -61,28 +66,66 @@ if __name__ == "__main__":
         "Extraction": "mean",
     }
 
-    main(
+    breakdown(
         files=Path("./times/").glob("*-10.json"),
         agg_args=agg_args,
         norm=True,
         size=10,
     )
 
-    main(
+    breakdown(
         files=Path("./times/").glob("*-10.json"),
         agg_args=agg_args,
         norm=False,
         size=10,
     )
-    main(
+    breakdown(
         files=Path("./times/").glob("*-1.json"),
         agg_args=agg_args,
         norm=True,
         size=1,
     )
-    main(
+    breakdown(
         files=Path("./times/").glob("*-1.json"),
         agg_args=agg_args,
         norm=False,
         size=1,
     )
+
+
+def get_throughput_df(files):
+    df = get_raw_df(files)
+    gb = df.groupby(by=["Benchmark"])
+    agg_args = {
+        # "Random transformation": "min",
+        # "Total walltime": "min",
+        # "Kernel walltime": "min",
+        # "Compilation": "min",
+        # "Code generation": "mean",
+        "Transformation + legality": "sum",
+        # "Extraction": "sum",
+    }
+    df = gb.agg(agg_args)
+    df["Throughput"] = 10 / df["Transformation + legality"]
+    df.index = df.index.str.replace("-10", "")
+    df = df.drop(columns=["Transformation + legality"], axis=1)
+    print(df.describe())
+    return df
+
+
+def throughput():
+    files = Path("./times/").glob("*-10.json")
+    df = get_throughput_df(files)
+    fig, ax = plt.subplots()
+    df.plot.bar(ax=ax)
+    plt.ylabel("Throughput")
+    ax.get_legend().remove()
+    plt.tight_layout()
+    filename = f"plot-throughput.pdf"
+    print(filename)
+    plt.savefig(filename)
+
+
+if __name__ == "__main__":
+    breakdowns()
+    throughput()
