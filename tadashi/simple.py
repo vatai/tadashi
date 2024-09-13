@@ -10,8 +10,7 @@ def main():
     scop = scops[0]  # select_scop()
     node = scop.schedule_tree[2]  # model.select_node(scop)
     print(f"{node=}")
-    tr = TRANSFORMATIONS[TrEnum.TILE]
-    node.transform(tr, 10)
+    node.transform(TrEnum.TILE, 10)
     scops.generate_code()
     app.compile()
     print(f"{app.output_binary=}")

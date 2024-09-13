@@ -22,9 +22,9 @@ const int N = 1000;
 void
 f(int N, double A[N][N]) {
 #pragma scop
-  for (int j = 0; j < N; j++) {
+  for (int j = 1; j < N; j++) {
     for (int i = 1; i < N; i++) {
-      A[i][j] = (A[i][j] + A[i - 1][j]) / 2;
+      A[i][j] = (A[i][j - 1] + A[i][j]) / 2;
     }
   }
 #pragma endscop

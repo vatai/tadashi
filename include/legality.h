@@ -15,6 +15,9 @@ __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);
 isl_bool tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
                                 __isl_take isl_union_map *dep);
 
+isl_bool tadashi_check_legality_parallel(isl_ctx *ctx,
+                                         __isl_keep isl_schedule_node *node,
+                                         __isl_take isl_union_map *dep);
 #if defined(__cplusplus)
 }
 #endif

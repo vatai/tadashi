@@ -1,11 +1,23 @@
 #!/usr/bin/env python
+import difflib
+import json
 import random
+import subprocess
+import time
 from pathlib import Path
 from subprocess import TimeoutExpired
 
 from tadashi.apps import Polybench, Simple
-from tadashi.tadashilib import (TRANSFORMATIONS, AstLoopType, LowerUpperBound,
-                                Scops, TrEnum)
+from tadashi.tadashilib import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
+
+
+def get_polybench_list():
+    base = Path("build/_deps/polybench-src/")
+    result = []
+    for p in base.glob("**"):
+        if Path(p / (p.name + ".c")).exists():
+            result.append(p.relative_to(base))
+    return base, result
 
 
 class Model:
@@ -23,22 +35,16 @@ class Model:
         node = self.random_node(scop)
         key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
-        # self.node_idx = 6
-        # node = scop.schedule_tree[self.node_idx]
-        # key = TrEnum.FULL_FUSE
-        # tr = TRANSFORMATIONS[key]
-
         while not tr.valid(node):
             node = self.random_node(scop)
             key, tr = random.choice(list(TRANSFORMATIONS.items()))
 
         args = self.random_args(node, tr)
-        # args = []
-        return self.node_idx, key, args
+        return self.node_idx, key, tr, args
 
     def random_args(self, node, tr):
         if tr == TRANSFORMATIONS[TrEnum.TILE]:
-            tile_size = random.choice([2**x for x in range(5, 20)])
+            tile_size = random.choice([2**x for x in range(5, 12)])
             return [tile_size]
         lubs = tr.lower_upper_bounds(node)
         args = []
@@ -57,38 +63,100 @@ class Model:
         return args
 
 
-def run_model(app, num_steps=10):
-    app.compile()
+class Timer:
+    def __init__(self):
+        self.times = [{}]
+        self.tick = time.monotonic()
 
-    t = app.measure()
-    print(f"Base time: {t}")
-    loop_nests = Scops(app)
+    def time(self, key):
+        t = time.monotonic()
+        self.times[-1][key] = t - self.tick
+        self.tick = t
+
+    def reset(self):
+        self.tick = time.monotonic()
+
+    def custom(self, key, value):
+        self.times[-1][key] = value
+
+
+def get_array(app: Polybench):
+    result = subprocess.run(
+        app.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=40
+    )
+    output = result.stderr.decode()
+    return output.split("\n")
+
+
+def run_model(app, num_steps, name=""):
     model = Model()
-
-    for _ in range(num_steps):
-        loop_idx, transformation_id, args = model.random_transform(loop_nests[0])
-        print(f"loop_idx: {loop_idx}, tr: {transformation_id}, args: {args}")
-        tr = TRANSFORMATIONS[transformation_id]
+    timer = Timer()
+    app.compile()
+    timer.time("Compilation")
+    app.measure()
+    t = timer.time("Total walltime")
+    loop_nests = Scops(app)
+    timer.time("Extraction")
+    timer.custom("Kernel walltime", t)
+    for i in range(num_steps):
+        timer.times.append({})
+        timer.reset()
+        loop_idx, tr, key, args = model.random_transform(loop_nests[0])
+        timer.time("Random transformation")
         legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
-        print(f"{legal=}")
-        loop_nests.generate_code(
-            input_path=app.source_path, output_path=app.alt_source_path
-        )
+        timer.time("Transformation + legality")
+        if not legal:
+            loop_nests[0].schedule_tree[loop_idx].rollback()
+    timer.reset()
+    loop_nests.generate_code(app.source_path, app.alt_source_path)
+    timer.time("Code generation")
+    app.compile()
+    timer.time("Compilation")
+    try:
+        t = app.measure(timeout=60)
+        timer.time("Total walltime")
+        timer.custom("Kernel walltime", t)
+    except TimeoutExpired as e:
+        print(f"Timeout expired: {e=}")
+    filename = f"./times/{name}-{num_steps}.json"
+    json.dump(timer.times, open(filename, "w"))
+    print(f"Written: {filename}")
+
+
+def run_simple():
+    run_model(Simple("./examples/depnodep.c"), num_steps=5)
+
+
+def measure_polybench(num_steps):
+    base, poly = get_polybench_list()
+    for i, p in enumerate(poly):
+        print(f"Start {i+1}. {p.name}")
+        app = Polybench(p, base)
+        run_model(app, num_steps=num_steps, name=p.name)
+
+
+def verify_polybench():
+    base, poly = get_polybench_list()
+    compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
+    for p in poly:
+        app = Polybench(p, base, compiler_options)
         app.compile()
-        try:
-            t = app.measure(timeout=10)
-            print(f"WALLTIME: {t}")
-        except TimeoutExpired as e:
-            print(f"Timeout expired: {e=}")
-
-
-def main():
-    # run_model(Simple("./examples/depnodep.c"))
-    base = Path("build/_deps/polybench-src/")
-    for p in base.glob("**"):
-        if Path(p / (p.name + ".c")).exists():
-            run_model(Polybench(p.relative_to(base), base))
+        gold = get_array(app)
+        # print(f"{gold[:3]=}")
+        run_model(app, num_steps=3, name=p.name)
+        # app.compile()
+        mod = get_array(app)
+        print(f"{mod [:3]=}")
+        diff = "\n".join(difflib.unified_diff(gold, mod))
+        if diff:
+            print("<<<<<<<<<<<<< ERROR")
+            print(diff)
+        else:
+            print(f">>>>>>>>>>>>> OK {p}")
 
 
 if __name__ == "__main__":
-    main()
+    random.seed(42)
+    # verify_polybench()
+    measure_polybench(num_steps=1)
+    measure_polybench(num_steps=10)

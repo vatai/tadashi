@@ -47,8 +47,9 @@ class TrEnum(StrEnum):
     FULL_SHIFT_VAL = auto()
     FULL_SHIFT_PARAM = auto()
     PARTIAL_SHIFT_PARAM = auto()
-    PRINT_SCHEDULE = auto()
+    SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
+    PRINT_SCHEDULE_NODE = auto()
 
 
 @dataclass
@@ -94,8 +95,9 @@ class Node:
                     result.append(TrEnum.INTERCHANGE)
         return result
 
-    def transform(self, tr: "TransformInfo", *args):
+    def transform(self, trkey: TrEnum, *args):
         # TODO proc_args
+        tr = TRANSFORMATIONS[trkey]
         if len(args) != len(tr.arg_help):
             raise ValueError(f"Incorrect number of args for {tr}!")
         if not tr.valid(self):
@@ -108,6 +110,9 @@ class Node:
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
+
+    def rollback(self):
+        self.scop.ctadashi.rollback(self.scop.idx)
 
 
 LowerUpperBound = namedtuple(
@@ -289,7 +294,7 @@ class FullShiftParamInfo(TransformInfo):
         return [LowerUpperBound(), LowerUpperBound(0, min_np)]
 
 
-class PartialShiftParam(TransformInfo):
+class PartialShiftParamInfo(TransformInfo):
     func_name = "partial_shift_param"
     argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Parameter index"]
@@ -312,11 +317,14 @@ class PartialShiftParam(TransformInfo):
         ]
 
 
-class SetLoopOpt(TransformInfo):
+class SetParallelInfo(TransformInfo):
+    func_name = "set_parallel"
+
+
+class SetLoopOptInfo(TransformInfo):
     func_name = "set_loop_opt"
     argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Iterator index", "Option"]
-    restype = None
 
     @staticmethod
     def lower_upper_bounds(node: Node):
@@ -331,6 +339,14 @@ class SetLoopOpt(TransformInfo):
         ]
 
 
+class PrintScheduleNodeInfo(TransformInfo):
+    func_name = "print_schedule_node"
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        return True
+
+
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.TILE: TileInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
@@ -341,8 +357,10 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
     TrEnum.PARTIAL_SHIFT_VAR: PartialShiftVarInfo(),
     TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
-    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParam(),
-    TrEnum.SET_LOOP_OPT: SetLoopOpt(),
+    TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
+    TrEnum.SET_PARALLEL: SetParallelInfo(),
+    TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
+    # TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
 }
 
 
@@ -412,7 +430,7 @@ class Scops:
         self.num_changes = 0
         self.app = app
         self.source_path_bytes = str(self.app.source_path).encode()
-        self.num_scops = self.ctadashi.get_num_scops(self.source_path_bytes)
+        self.num_scops = self.ctadashi.init_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
     def setup_ctadashi(self, app: App):
@@ -420,8 +438,8 @@ class Scops:
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self.check_missing_file(self.so_path)
         self.ctadashi = ctypes.CDLL(str(self.so_path))
-        self.ctadashi.get_num_scops.argtypes = [ctypes.c_char_p]
-        self.ctadashi.get_num_scops.restype = ctypes.c_int
+        self.ctadashi.init_scops.argtypes = [ctypes.c_char_p]
+        self.ctadashi.init_scops.restype = ctypes.c_int
         self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_type.restype = ctypes.c_int
         self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]

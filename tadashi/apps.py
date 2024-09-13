@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -34,8 +35,8 @@ class App:
     def run_cmd(self) -> list:
         return [self.output_binary]
 
-    def measure(self, timeout: Optional[int] = None) -> float:
-        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, timeout=timeout)
+    def measure(self, *args, **kwargs) -> float:
+        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
@@ -47,15 +48,19 @@ class App:
 class Simple(App):
     source: Path
     alt_source: Path
+    tmpdir: tempfile.TemporaryDirectory
 
     def __init__(self, source: str, alt_source: str = ""):
         self.source = Path(source)
         if alt_source:
             self.alt_source = Path(alt_source)
         else:
-            ext = f".tmp{self.source.suffix}"
-            self.alt_source = self.source.with_suffix(ext)
-        shutil.copy(self.source, self.alt_source)
+            self.tmpdir = tempfile.TemporaryDirectory()
+            self.alt_source = Path(self.tmpdir.name) / self.source.name
+        shutil.copy(self.source, self.alt_source)  # boo
+
+    def __del__(self):
+        self.tmpdir.cleanup()
 
     @property
     def compile_cmd(self) -> list[str]:
@@ -76,7 +81,7 @@ class Simple(App):
 
     @property
     def output_binary(self) -> Path:
-        return self.source.with_suffix("")
+        return self.alt_source.with_suffix("")
 
     @staticmethod
     def extract_runtime(stdout):
@@ -90,9 +95,10 @@ class Polybench(App):
     benchmark: Path  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(self, benchmark: str, base: str):
+    def __init__(self, benchmark: str, base: str, compiler_options=[]):
         self.benchmark = Path(benchmark)
         self.base = Path(base)
+        self.compiler_options = compiler_options
         shutil.copy(self.source_path, self.alt_source_path)
 
     @property
@@ -129,9 +135,15 @@ class Polybench(App):
             str(self.output_binary),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
+            # "-DMEDIUM_DATASET",
             "-lm",
-        ]
+        ] + self.compiler_options
 
     @staticmethod
     def extract_runtime(stdout) -> float:
-        return float(stdout.split()[0])
+        result = 0
+        try:
+            result = float(stdout.split()[0])
+        except IndexError as e:
+            print(f"App probaly crashed: {e}")
+        return result

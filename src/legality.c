@@ -13,6 +13,8 @@
 
 #include <pet.h>
 
+#include "legality.h"
+
 static __isl_give isl_union_flow *
 _get_flow_from_scop(__isl_keep pet_scop *scop) {
   isl_union_map *sink, *may_source, *must_source;
@@ -81,16 +83,38 @@ isl_bool
 tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
                        __isl_take isl_union_map *dep) {
   isl_bool legal;
-  isl_schedule_node *root;
   isl_union_pw_multi_aff *dep_upma;
-  root = isl_schedule_get_root(schedule);
-  // dep_upma = isl_union_pw_multi_aff_from_union_map(isl_union_map_copy(dep));
-  // legal = isl_schedule_node_every_descendant(root, legality_test, dep);
-  // isl_union_pw_multi_aff_free(dep_upma);
-  isl_schedule_node_free(root);
   isl_union_map *map = isl_schedule_get_map(schedule);
-  // printf("schedule as union map:\n%s\n", isl_union_map_to_str(map));
   return _check_legality(map, dep);
+}
+
+isl_bool
+tadashi_check_legality_parallel(isl_ctx *ctx,
+                                __isl_keep isl_schedule_node *node,
+                                __isl_take isl_union_map *dep) {
+  isl_union_map *map;
+  isl_bool retval;
+  map = isl_schedule_node_band_get_partial_schedule_union_map(node);
+  isl_union_map *domain, *cmp;
+  isl_union_set *delta, *zeros;
+
+  if (isl_union_map_is_empty(dep)) {
+    isl_union_map_free(dep);
+    isl_union_map_free(map);
+    return isl_bool_true;
+  }
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
+  domain = isl_union_map_apply_range(domain, map);
+  delta = isl_union_map_deltas(domain);
+  zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
+  cmp = isl_union_set_lex_lt_union_set(isl_union_set_copy(delta),
+                                       isl_union_set_copy(zeros));
+  isl_union_map_free(cmp);
+  retval = isl_union_map_is_empty(cmp);
+  cmp = isl_union_set_lex_gt_union_set(delta, zeros);
+  retval = retval && isl_union_map_is_empty(cmp);
+  isl_union_map_free(cmp);
+  return retval;
 }
 
 /* Efficient legality check below */

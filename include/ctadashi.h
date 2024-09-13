@@ -13,7 +13,7 @@ struct scop_info_t {
   int modified;
 };
 
-int get_num_scops(char *input);
+int init_scops(char *input);
 
 void free_scops();
 
@@ -58,7 +58,9 @@ int full_shift_param(size_t scop_idx, long coeff, long param_idx);
 int partial_shift_param(size_t scop_idx, int pa_idx, long coeff,
                         long param_idx);
 
-void set_loop_opt(size_t scop_idx, int pos, int opt);
+int set_loop_opt(size_t scop_idx, int pos, int opt);
+
+void rollback(size_t scop_idx);
 
 int generate_code(const char *input_path, const char *output_path);
 

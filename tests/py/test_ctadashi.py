@@ -77,7 +77,7 @@ class TestCtadashi(unittest.TestCase):
             scop = scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
             trinfo = TRANSFORMATIONS[tr.transformation]
-            legal = node.transform(trinfo, *tr.transformation_args)
+            legal = node.transform(tr.transformation, *tr.transformation_args)
             if legal is not None:
                 legality.append(f"legality={legal}")
 
@@ -111,8 +111,7 @@ class TestCtadashi(unittest.TestCase):
 
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
-        trinfo = TRANSFORMATIONS[TrEnum.TILE]
-        self.assertRaises(ValueError, node.transform, trinfo, 2, 3)
+        self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
 
 
 def setup():

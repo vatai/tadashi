@@ -48,6 +48,9 @@ __isl_give isl_schedule_node *
 tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
                             long coeff, long param_idx);
 
+__isl_give isl_schedule_node *
+tadashi_set_parallel(__isl_take isl_schedule_node *node);
+
 #if defined(__cplusplus)
 }
 #endif
