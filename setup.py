@@ -1,66 +1,45 @@
-#!/usr/bin/env python
-
-# IGNORE THIS FILE FOR NOW
-
-# Source:
-# https://stackoverflow.com/questions/42585210/extending-setuptools-extension-to-use-cmake-in-setup-py
-
+# from https://raw.githubusercontent.com/diegoferigo/cmake-build-extension/master/example/setup.py
+import inspect
 import os
-import pathlib
+import sys
+from pathlib import Path
 
-from setuptools import Extension, setup
-from setuptools.command.build_ext import build_ext as build_ext_orig
+import cmake_build_extension
+import setuptools
 
-
-class CMakeExtension(Extension):
-
-    def __init__(self, name):
-        # don't invoke the original build_ext for this special extension
-        super().__init__(name, sources=[])
-
-
-class build_ext(build_ext_orig):
-    def run(self):
-        for ext in self.extensions:
-            self.build_cmake(ext)
-        super().run()
-
-    def build_cmake(self, ext):
-        cwd = pathlib.Path().absolute()
-
-        # these dirs will be created in build_py, so if you don't have
-        # any python sources to bundle, the dirs will be missing
-        build_temp = pathlib.Path(self.build_temp)
-        print(f"{build_temp=}")
-        print(f"{cwd=}")
-        build_temp.mkdir(parents=True, exist_ok=True)
-        extdir = pathlib.Path(self.get_ext_fullpath(ext.name))
-        print(f"{extdir=}")
-        extdir.mkdir(parents=True, exist_ok=True)
-
-        # example of cmake args
-        config = "Debug" if self.debug else "Release"
-        cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={str(extdir.parent.absolute())}",
-            f"-DCMAKE_BUILD_TYPE={config}",
-        ]
-
-        # example of build args
-        build_args = ["--config", config, "--", "-j4"]
-
-        os.chdir(str(build_temp))
-        self.spawn(["cmake", str(cwd)] + cmake_args)
-        if not self.dry_run:
-            self.spawn(["cmake", "--build", "."] + build_args)
-        # Troubleshooting: if fail on line above then delete all possible
-        # temporary CMake files including "CMakeCache.txt" in top level dir.
-        os.chdir(str(cwd))
-
-
-setup(
-    ext_modules=[CMakeExtension(".")],
-    cmdclass={
-        "build_ext": build_ext,
-    },
-    py_limited_api=True,
+# This example is compliant with PEP517 and PEP518. It uses the setup.cfg file to store
+# most of the package metadata. However, build extensions are not supported and must be
+# configured in the setup.py.
+setuptools.setup(
+    # The resulting "mymath" archive contains two packages: mymath_swig and mymath_pybind.
+    # This approach separates the two bindings types, typically just one of them is used.
+    ext_modules=[
+        cmake_build_extension.CMakeExtension(
+            # This could be anything you like, it is used to create build folders
+            name="SwigBindings",
+            # Name of the resulting package name (import mymath_swig)
+            install_prefix="ctadashi",
+            # Exposes the binary print_answer to the environment.
+            # It requires also adding a new entry point in setup.cfg.
+            # expose_binaries=["bin/print_answer"],
+            # Writes the content to the top-level __init__.py
+            # write_top_level_init=init_py,
+            # Selects the folder where the main CMakeLists.txt is stored
+            # (it could be a subfolder)
+            source_dir=str(Path(__file__).parent.absolute()),
+            cmake_configure_options=[
+                # This option points CMake to the right Python interpreter, and helps
+                # the logic of FindPython3.cmake to find the active version
+                f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
+                "-DBUILD_SHARED_LIBS:BOOL=OFF",
+            ],
+        ),
+    ],
+    cmdclass=dict(
+        # Enable the CMakeExtension entries defined above
+        build_ext=cmake_build_extension.BuildExtension,
+        # If the setup.py or setup.cfg are in a subfolder wrt the main CMakeLists.txt,
+        # you can use the following custom command to create the source distribution.
+        # sdist=cmake_build_extension.GitSdistFolder
+    ),
 )

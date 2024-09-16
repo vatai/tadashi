@@ -1,9 +1,25 @@
 # IGNORE THIS FILE FOR NOW
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "tadashi"  # as it would appear on PyPI
 version = "0.42"
+
+[build-system]
+requires = [
+    "wheel",
+    # Check the updated version pinning requirements in:
+    # https://github.com/pypa/setuptools_scm
+    "setuptools",
+    "setuptools_scm[toml]",
+    "cmake_build_extension",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+
+[tool.setuptools.packages]
+# find = {}
+
+[tool.setuptools.packages.find]
+include = [".", "tadashi"]
+
