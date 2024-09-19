@@ -5,6 +5,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # https://stackoverflow.com/questions/50976297/reduce-a-panda-dataframe-by-groups
+# Direct input
+
+plt.rcParams["text.latex.preamble"] = (
+    r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+)
+params = {
+    "axes.titlesize": 16,
+    "axes.labelsize": 16,
+    "legend.fontsize": 16,
+    "text.usetex": True,
+    "font.size": 11,
+    "font.family": "libertine",
+    # "text.latex.unicode": True,
+}
+plt.rcParams.update(params)
 
 
 def get_raw_df(files):
@@ -39,7 +54,14 @@ def get_breakdown_df(files, agg_args, norm):
 def breakdown(files, agg_args, norm, size):
     df = get_breakdown_df(files, agg_args, norm)
     fig, ax = plt.subplots()
-    df.plot.bar(stacked=True, ax=ax)
+    df.plot(
+        kind="bar",
+        stacked=True,
+        ax=ax,
+        # color=["#eee", "#bbb", "#999", "#666", "#000"],
+        cmap="cool",
+    )
+    plt.xlabel("")
     if norm:
         plt.ylabel("% of runtime")
     else:
@@ -66,12 +88,12 @@ def breakdowns():
         "Extraction": "mean",
     }
 
-    breakdown(
-        files=Path("./times/").glob("*-10.json"),
-        agg_args=agg_args,
-        norm=True,
-        size=10,
-    )
+    # breakdown(
+    #     files=Path("./times/").glob("*-10.json"),
+    #     agg_args=agg_args,
+    #     norm=True,
+    #     size=10,
+    # )
 
     breakdown(
         files=Path("./times/").glob("*-10.json"),
@@ -79,12 +101,12 @@ def breakdowns():
         norm=False,
         size=10,
     )
-    breakdown(
-        files=Path("./times/").glob("*-1.json"),
-        agg_args=agg_args,
-        norm=True,
-        size=1,
-    )
+    # breakdown(
+    #     files=Path("./times/").glob("*-1.json"),
+    #     agg_args=agg_args,
+    #     norm=True,
+    #     size=1,
+    # )
     breakdown(
         files=Path("./times/").glob("*-1.json"),
         agg_args=agg_args,
@@ -118,7 +140,9 @@ def throughput():
     df = get_throughput_df(files)
     fig, ax = plt.subplots()
     df.plot.bar(ax=ax)
-    plt.ylabel("Throughput")
+    plt.xlabel("")
+    plt.ylabel("Iterations per second")
+    plt.title("Throughput")
     ax.get_legend().remove()
     plt.tight_layout()
     filename = f"plot-throughput.pdf"
