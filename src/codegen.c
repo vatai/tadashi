@@ -1,5 +1,5 @@
 /*
- * Modifications and additions: Emil VATAI, Riken, R-CCS, HPAIS.
+ * Modifications and additions: Emil VATAI, Riken
  *
  * All rights reserved.  Date: 2023-08-04
  *
@@ -61,10 +61,10 @@
 /* Call "fn" on each declared array in "scop" that has an exposed field
  * equal to "exposed".
  */
-static void foreach_declared_array(struct pet_scop *scop, int exposed,
-                                   void (*fn)(struct pet_array *array,
-                                              void *user),
-                                   void *user) {
+static void
+foreach_declared_array(struct pet_scop *scop, int exposed,
+                       void (*fn)(struct pet_array *array, void *user),
+                       void *user) {
   int i;
 
   for (i = 0; i < scop->n_array; ++i) {
@@ -77,7 +77,8 @@ static void foreach_declared_array(struct pet_scop *scop, int exposed,
 
 /* foreach_declared_array callback that sets "indent"
  */
-static void set_indent(struct pet_array *array, void *user) {
+static void
+set_indent(struct pet_array *array, void *user) {
   int *indent = user;
 
   *indent = 1;
@@ -102,7 +103,8 @@ struct print_array_data {
  * print all the corresponding macro definitions before printing
  * the actual declaration.
  */
-static void print_array(struct pet_array *array, void *user) {
+static void
+print_array(struct pet_array *array, void *user) {
   struct print_array_data *data = user;
   isl_val *one;
   isl_multi_pw_aff *size;
@@ -124,8 +126,8 @@ static void print_array(struct pet_array *array, void *user) {
 
 /* Print "str" to "p" on a separate line.
  */
-static __isl_give isl_printer *print_str_on_line(__isl_take isl_printer *p,
-                                                 const char *str) {
+static __isl_give isl_printer *
+print_str_on_line(__isl_take isl_printer *p, const char *str) {
   p = isl_printer_start_line(p);
   p = isl_printer_print_str(p, str);
   p = isl_printer_end_line(p);
@@ -162,8 +164,8 @@ print_declarations(__isl_take isl_printer *p, __isl_keep isl_ast_build *build,
 /* Close the scope created by print_declarations() if any,
  * i.e., if "indent" is set.
  */
-static __isl_give isl_printer *print_end_declarations(__isl_take isl_printer *p,
-                                                      int indent) {
+static __isl_give isl_printer *
+print_end_declarations(__isl_take isl_printer *p, int indent) {
   if (indent) {
     p = isl_printer_indent(p, -2);
     p = print_str_on_line(p, "}");
@@ -176,7 +178,8 @@ static __isl_give isl_printer *print_end_declarations(__isl_take isl_printer *p,
  * Each statement is attached as a user pointer to an identifier
  * with the same name as the statement.
  */
-static __isl_give isl_id_to_id *set_up_id2stmt(struct pet_scop *scop) {
+static __isl_give isl_id_to_id *
+set_up_id2stmt(struct pet_scop *scop) {
   int i;
   isl_ctx *ctx;
   isl_id_to_id *id2stmt;
@@ -208,8 +211,8 @@ static __isl_give isl_id_to_id *set_up_id2stmt(struct pet_scop *scop) {
  *
  * Extract this statement name and then look it up in "id2stmt".
  */
-static struct pet_stmt *node_stmt(__isl_keep isl_ast_node *node,
-                                  isl_id_to_id *id2stmt) {
+static struct pet_stmt *
+node_stmt(__isl_keep isl_ast_node *node, isl_id_to_id *id2stmt) {
   isl_ast_expr *expr, *arg;
   isl_id *id;
   struct pet_stmt *stmt;
@@ -244,7 +247,8 @@ pullback_index(__isl_take isl_multi_pw_aff *index, __isl_keep isl_id *ref_id,
 /* isl_id_set_free_user callback for freeing
  * a user pointer of type isl_id_to_ast_expr.
  */
-static void free_isl_id_to_ast_expr(void *user) {
+static void
+free_isl_id_to_ast_expr(void *user) {
   isl_id_to_ast_expr *id_to_ast_expr = user;
 
   isl_id_to_ast_expr_free(id_to_ast_expr);
@@ -269,9 +273,9 @@ static void free_isl_id_to_ast_expr(void *user) {
  * reference identifiers, to the AST node as an annotation.
  * This annotation will be retrieved in peek_ref2expr().
  */
-static __isl_give isl_ast_node *at_domain(__isl_take isl_ast_node *node,
-                                          __isl_keep isl_ast_build *build,
-                                          void *user) {
+static __isl_give isl_ast_node *
+at_domain(__isl_take isl_ast_node *node, __isl_keep isl_ast_build *build,
+          void *user) {
   isl_id_to_id *id2stmt = user;
   isl_id *id;
   struct pet_stmt *stmt;
@@ -312,8 +316,9 @@ peek_ref2expr(__isl_keep isl_ast_node *node) {
 /* isl_id_to_ast_expr_foreach callback that prints the definitions of the macros
  * called by "expr".
  */
-static isl_stat expr_print_macros(__isl_take isl_id *id,
-                                  __isl_take isl_ast_expr *expr, void *user) {
+static isl_stat
+expr_print_macros(__isl_take isl_id *id, __isl_take isl_ast_expr *expr,
+                  void *user) {
   isl_printer **p = user;
 
   *p = isl_ast_expr_print_macros(expr, *p);
@@ -327,7 +332,8 @@ static isl_stat expr_print_macros(__isl_take isl_id *id,
 /* If "node" is a user node, then print the definitions of the macros
  * that get called in the AST expressions attached to the node.
  */
-static isl_bool node_print_macros(__isl_keep isl_ast_node *node, void *user) {
+static isl_bool
+node_print_macros(__isl_keep isl_ast_node *node, void *user) {
   isl_id_to_ast_expr *ref2expr;
 
   if (isl_ast_node_get_type(node) != isl_ast_node_user)
@@ -344,8 +350,8 @@ static isl_bool node_print_macros(__isl_keep isl_ast_node *node, void *user) {
  * This includes any macros that get called in the AST expressions
  * attached to the user nodes.
  */
-static __isl_give isl_printer *print_macros(__isl_take isl_printer *p,
-                                            __isl_keep isl_ast_node *node) {
+static __isl_give isl_printer *
+print_macros(__isl_take isl_printer *p, __isl_keep isl_ast_node *node) {
   if (isl_ast_node_foreach_descendant_top_down(node, &node_print_macros, &p) <
       0)
     return isl_printer_free(p);
@@ -372,7 +378,8 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
-static int id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+static int
+id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
   if (!id)
     return 0;
   const char *id_name = isl_id_get_name(id);
@@ -420,9 +427,9 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
-__isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
-                                    __isl_keep isl_ast_build *build,
-                                    void *user) {
+__isl_give isl_ast_node *
+after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
+           void *user) {
   isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
   isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
   if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
@@ -435,9 +442,9 @@ __isl_give isl_ast_node *after_mark(__isl_take isl_ast_node *mark_node,
   return for_node;
 }
 
-__isl_give isl_printer *codegen(__isl_take isl_printer *p,
-                                __isl_keep struct pet_scop *scop,
-                                __isl_take isl_schedule *schedule) {
+__isl_give isl_printer *
+codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
+        __isl_take isl_schedule *schedule) {
 
   int indent;
   isl_ast_build *build;

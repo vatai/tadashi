@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Emil Vatai, Riken, R-CCS, HPAIS. All rights
+ * Copyright 2023 Emil Vatai, Riken. All rights
  * reservered.
  *
  * Date: 2023-08-04

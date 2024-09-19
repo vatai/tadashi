@@ -1,5 +1,5 @@
 // Date: 2024, January
-// Author: Emil VATAI, Riken R-CCS, HPAIS
+// Author: Emil VATAI, Riken
 //
 // This file is the "C side" between the C and Python code of tadashi.
 
