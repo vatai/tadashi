@@ -43,7 +43,6 @@ Indices and tables
 .. toctree::
    :maxdepth: 1
 
-   todos
 
 
 

@@ -2,9 +2,14 @@
 
 ## Documentation:
 
-Documentation will be made available on https://tadashi.readthedocs.io/ (or a similar website).  For now it can be built manually.
+Documentation will be made available on https://tadashi.readthedocs.io/ (or a similar website).  For now it can be built manually:
 
-[[In progress]]
+```bash
+cd docs
+make html
+```
+
+[[Docs are in progress]]
 
 
 ## Build instructions:
