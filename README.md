@@ -1,5 +1,12 @@
 # Tadashi
 
+## Documentation:
+
+Documentation will be made available on https://tadashi.readthedocs.io/ (or a similar website).  For now it can be built manually.
+
+[[In progress]]
+
+
 ## Build instructions:
 
 Before building, install LLVM and other (system) packages (check [dockerfile](docker/tadashi.dockerfile) for an exact list of `apt-get` packages).
