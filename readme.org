@@ -1,0 +1,44 @@
+* Tadashi
+
+** Documentation:
+
+Documentation will be made available on
+https://tadashi.readthedocs.io/ (after the double blind review).
+
+[Docs are in progress]
+
+
+** Build instructions:
+
+Before building, install LLVM and other (system) packages (check
+[[docker/tadashi.dockerfile][dockerfile]] for an exact list of ~apt-get~ packages).
+
+#+begin_src bash
+git clone --recursive https://github.com/vatai/tadashi.git
+mkdir tadashi/build
+cd tadashi/build
+cmake ..
+cmake --build .
+#+end_src
+
+** Run from docker
+
+#+begin_src bash
+mk_dot_env.sh  # create .env file with USER, UID, GROUP, GID
+docker compose build # build images
+docker compose run --rm -it tadashi
+#+end_src
+
+The tadashi binds the host repo to ~/workdir~ inside the container.
+
+Tadashi should be rebuilt from the container (i.e. these are
+instructions primarily for developers):
+#+begin_src bash
+mkdir /workdir/build
+cd /workdir/build
+cmake ..
+cmake --build .
+#+end_src
+The dependencies are built during the ~docker compose build~ command
+under ~/tadashi/build/_deps~ and the environment is set up that these
+dependencies are used (i.e. not rebuilt again).
