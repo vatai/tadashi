@@ -20,9 +20,10 @@ from .apps import App
 class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
 
-    `UNROLL` should be avoided unless the remarks in the :ref:`docs`.
+    `UNROLL` should be avoided unless the remarks in the :ref:`Docs`.
 
-    Docs: `ISL online user manual (AST generation options)`_.
+    ### Docs
+    `ISL online user manual (AST generation options)`_.
 
     .. _ISL online user manual (AST generation options):
        https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree
@@ -422,7 +423,7 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
 class Scop:
     """Single SCoP.
 
-    In the .so file, there is a global `std::vecto` of `isl_scop`
+    In the .so file, there is a global `std::vector` of `isl_scop`
     objects.  Objects of `Scop` (in python) represents a the
     `isl_scop` object by storing its index in the `std::vecto`.
     """
