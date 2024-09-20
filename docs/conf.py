@@ -35,15 +35,15 @@ extensions = [
     "sphinx_rtd_theme",
 ]
 
-default_role = "py:obj"
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # autoclass_content = "both"
+default_role = "py:obj"
 todo_include_todos = True
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
-
+autodoc_member_order = "bysource"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

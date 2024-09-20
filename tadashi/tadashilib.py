@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Main Tadashi package."""
+
 # from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from __future__ import annotations
 
@@ -16,6 +18,16 @@ from .apps import App
 
 
 class AstLoopType(Enum):
+    """Possible values for `SET_LOOP_OPT`.
+
+    `UNROLL` should be avoided unless the remarks in the :ref:`docs`.
+
+    Docs: `ISL online user manual (AST generation options)`_.
+
+    .. _ISL online user manual (AST generation options):
+       https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree
+    """
+
     DEFAULT = 0
     ATOMIC = auto()
     UNROLL = auto()
@@ -23,6 +35,14 @@ class AstLoopType(Enum):
 
 
 class NodeType(Enum):
+    """Type of the schedule tree node.
+
+    Details: `ISL online user manual (Schedule Trees)`_.
+
+    .. _ISL online user manual (Schedule Trees):
+       https://libisl.sourceforge.io/user.html#Schedule-Trees
+    """
+
     BAND = 0
     CONTEXT = auto()
     DOMAIN = auto()
@@ -37,6 +57,12 @@ class NodeType(Enum):
 
 
 class TrEnum(StrEnum):
+    """Enums of implemented transformations.
+
+    One of these enums needs to be passed to `Node.transform()` (with
+    args) to perform the transformation.
+    """
+
     TILE = auto()
     INTERCHANGE = auto()
     FUSE = auto()
@@ -54,21 +80,26 @@ class TrEnum(StrEnum):
 
 @dataclass
 class Node:
-    scop: "Scop"
-    node_type: NodeType
-    num_children: int
-    parent_idx: int
-    location: int
-    loop_signature: list[dict]
-    expr: str
-    children_idx: list[str]
+    """Schedule node (Python representation)."""
+
+    scop: "Scop"  #: Pointer to the `Scop` object the node belongs to.
+    node_type: NodeType  #: Type of the node in the schedule tree.
+    num_children: int  #: Number of children of the node in the schedule tree.
+    parent_idx: int  #: The index of the parent of the node in the schedule tree according to `Scop.schedule_tree`.
+    #: List of child indexes which determine the location of the node starting from the root.
+    location: list[int]
+    loop_signature: list[dict]  #: Description of the band nodes.
+    expr: str  #: The ISL expression of the schedule node.
+    children_idx: list[str]  #: Index of the children in `Scop.schedule_tree`.
 
     @property
     def parent(self):
+        """The node which is the parent of the current node."""
         return self.scop.schedule_tree[self.parent_idx]
 
     @property
     def children(self):
+        """List of nodes which are the children of the current node."""
         return [self.scop.schedule_tree[i] for i in self.children_idx]
 
     def __repr__(self):
@@ -370,7 +401,6 @@ class Scop:
     In the .so file, there is a global `std::vecto` of `isl_scop`
     objects.  Objects of `Scop` (in python) represents a the
     `isl_scop` object by storing its index in the `std::vecto`.
-
     """
 
     def __init__(self, idx, ctadashi) -> None:
@@ -395,25 +425,25 @@ class Scop:
         )
         return node
 
-    def traverse(self, nodes, parent, path):
-        node = self.make_node(parent, path)
+    def traverse(self, nodes, parent, location):
+        node = self.make_node(parent, location)
         current_idx = len(nodes)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
                 node.children_idx[c] = len(nodes)
-                self.traverse(nodes=nodes, parent=current_idx, path=path + [c])
+                self.traverse(nodes=nodes, parent=current_idx, location=location + [c])
                 self.ctadashi.goto_parent(self.idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
         self.ctadashi.goto_root(self.idx)
         nodes: list[Node] = []
-        self.traverse(nodes, parent=-1, path=[])
+        self.traverse(nodes, parent=-1, location=[])
         return nodes
 
-    def locate(self, location):
+    def locate(self, location: list[int]):
         self.ctadashi.goto_root(self.idx)
         for c in location:
             self.ctadashi.goto_child(self.idx, c)
