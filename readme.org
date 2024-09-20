@@ -5,7 +5,21 @@
 Documentation will be made available on
 https://tadashi.readthedocs.io/ (after the double blind review).
 
-[Docs are in progress]
+*** Prerequisits
+Compile Tadashi (as described below), and set the ~PYTHONPATH~
+environment variable to point to the repository root.
+
+*** Quick start
+
+#+begin_src python :dir . :results output
+  import tadashi
+  from tadashi.apps import Simple
+
+  scops = tadashi.Scops(Simple("examples/depnodep.c"))
+  node = scops[0].schedule_tree[1]
+  node.transform(tadashi.TrEnum.Interchange)
+  scops.codegen()
+#+end_src
 
 
 ** Build instructions:
