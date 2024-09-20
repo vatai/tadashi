@@ -135,7 +135,7 @@ class Node:
         return self.scop.get_current_node_from_ISL(None, None)
 
     @property
-    def avaliable_transformation(self) -> list[TrEnum]:
+    def available_transformations(self) -> list[TrEnum]:
         """List of transformations available at the `Node`."""
         result = []
         for k, tr in TRANSFORMATIONS.items():
@@ -157,7 +157,7 @@ class Node:
         if not tr.valid(self):
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
-        if not tr.args_valid(self, *args):
+        if not tr.valid_args(self, *args):
             msg = f"Not valid transformation args: {args}"
             raise ValueError(msg)
 
@@ -186,7 +186,7 @@ class TransformInfo:
         return node.node_type == NodeType.BAND
 
     @staticmethod
-    def args_valid(node: Node, *arg, **kwargs) -> bool:
+    def valid_args(node: Node, *arg, **kwargs) -> bool:
         return True
 
     @staticmethod
@@ -213,7 +213,7 @@ class TileInfo(TransformInfo):
     restype = ctypes.c_bool
 
     @staticmethod
-    def args_valid(node, arg):
+    def valid_args(node, arg):
         return True
 
     @staticmethod
@@ -247,7 +247,7 @@ class FuseInfo(TransformInfo):
         )
 
     @staticmethod
-    def args_valid(node: Node, loop_idx1: int, loop_idx2: int):
+    def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
         return (
             TransformInfo._is_valid_child_idx(node, loop_idx1)
             and TransformInfo._is_valid_child_idx(node, loop_idx2),
@@ -288,7 +288,7 @@ class PartialShiftValInfo(TransformInfo):
     arg_help = ["Statement index", "Value"]
 
     @staticmethod
-    def args_valid(node: Node, stmt_idx: int, value: int):
+    def valid_args(node: Node, stmt_idx: int, value: int):
         return TransformInfo._is_valid_stmt_idx(node, stmt_idx)
 
     @staticmethod
@@ -303,7 +303,7 @@ class FullShiftVarInfo(TransformInfo):
     arg_help = ["Coefficient", "Variable index"]
 
     @staticmethod
-    def args_valid(node: Node, _coeff: int, var_idx: int):
+    def valid_args(node: Node, _coeff: int, var_idx: int):
         return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
 
     @staticmethod
@@ -318,7 +318,7 @@ class PartialShiftVarInfo(TransformInfo):
     arg_help = ["Statement index", "Coefficient", "Variable index"]
 
     @staticmethod
-    def args_valid(node: Node, stmt_idx: int, coeff: int, var_idx: int):
+    def valid_args(node: Node, stmt_idx: int, coeff: int, var_idx: int):
         return (
             TransformInfo._is_valid_stmt_idx(node, stmt_idx)
             and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
@@ -340,7 +340,7 @@ class FullShiftParamInfo(TransformInfo):
     arg_help = ["Coefficient", "Parameter index"]
 
     @staticmethod
-    def args_valid(node: Node, coeff: int, param_idx: int):
+    def valid_args(node: Node, coeff: int, param_idx: int):
         return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
 
     @staticmethod
@@ -355,7 +355,7 @@ class PartialShiftParamInfo(TransformInfo):
     arg_help = ["Statement index", "Coefficient", "Parameter index"]
 
     @staticmethod
-    def args_valid(node: Node, stmt_idx: int, coeff: int, param_idx: int):
+    def valid_args(node: Node, stmt_idx: int, coeff: int, param_idx: int):
         return (
             TransformInfo._is_valid_stmt_idx(node, param_idx)
             and 0 <= param_idx

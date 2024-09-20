@@ -11,16 +11,34 @@ environment variable to point to the repository root.
 
 *** Quick start
 
-#+begin_src python :dir . :results output
+#+begin_src python :dir . :results output :session s1
   import tadashi
   from tadashi.apps import Simple
 
   scops = tadashi.Scops(Simple("examples/depnodep.c"))
-  node = scops[0].schedule_tree[1]
-  node.transform(tadashi.TrEnum.Interchange)
-  scops.codegen()
 #+end_src
 
+#+RESULTS:
+
+#+begin_src python :results output :session s1
+  node = scops[0].schedule_tree[1]
+  print(node)
+  tr = tadashi.TrEnum.FULL_SHIFT_VAR
+  assert tr in node.available_transformations
+#+end_src
+
+#+RESULTS:
+: Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
+
+#+begin_src python :results output :session s1
+  print(f"{tr=}")
+  print(f"{node.arg_valid(tr)=}")
+  node.transform(tadashi.TrEnum.INTERCHANGE)
+  scops.generate_code()
+#+end_src
+
+#+RESULTS:
+: tr=<TrEnum.FULL_SHIFT_VAR: 'full_shift_var'>
 
 ** Build instructions:
 
