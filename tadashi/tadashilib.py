@@ -82,15 +82,31 @@ class TrEnum(StrEnum):
 class Node:
     """Schedule node (Python representation)."""
 
-    scop: "Scop"  #: Pointer to the `Scop` object the node belongs to.
-    node_type: NodeType  #: Type of the node in the schedule tree.
-    num_children: int  #: Number of children of the node in the schedule tree.
-    parent_idx: int  #: The index of the parent of the node in the schedule tree according to `Scop.schedule_tree`.
-    #: List of child indexes which determine the location of the node starting from the root.
+    #: Pointer to the `Scop` object the node belongs to.
+    scop: "Scop"
+
+    #: Type of the node in the schedule tree.
+    node_type: NodeType
+
+    #: Number of children of the node in the schedule tree.
+    num_children: int
+
+    #: The index of the parent of the node in the schedule tree
+    #: according to `Scop.schedule_tree`.
+    parent_idx: int
+
+    #: List of child indexes which determine the location of the node
+    #: starting from the root.  See `Scop.locate`.
     location: list[int]
-    loop_signature: list[dict]  #: Description of the band nodes.
-    expr: str  #: The ISL expression of the schedule node.
-    children_idx: list[str]  #: Index of the children in `Scop.schedule_tree`.
+
+    #: .. todo:: Description of the band nodes.
+    loop_signature: list[dict]
+
+    #: The ISL expression of the schedule node.
+    expr: str
+
+    #: Index of the children in `Scop.schedule_tree`.
+    children_idx: list[str]
 
     @property
     def parent(self):
@@ -113,20 +129,27 @@ class Node:
         return " ".join(words)
 
     def locate(self):
+        """Set the `current_node` in `ctadashi` to point to the
+        current `Node`."""
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
 
     @property
     def avaliable_transformation(self) -> list[TrEnum]:
+        """List of transformations available at the `Node`."""
         result = []
-        match self.node_type:
-            case NodeType.BAND:
-                result.append(TrEnum.TILE)
-                if self.num_children == 1:
-                    result.append(TrEnum.INTERCHANGE)
+        for k, tr in TRANSFORMATIONS.items():
+            if tr.valid(self):
+                result.append(k)
         return result
 
     def transform(self, trkey: TrEnum, *args):
+        """Execute the selected transformation.
+
+        Args:
+          TrEnum trkey: Transformation `Enum`.
+          args: Arguments passed to the transformation corresponding toe `trkey`.
+        """
         # TODO proc_args
         tr = TRANSFORMATIONS[trkey]
         if len(args) != len(tr.arg_help):
@@ -143,6 +166,7 @@ class Node:
         return func(self.scop.idx, *args)
 
     def rollback(self):
+        """Roll back (revert) the last transformation."""
         self.scop.ctadashi.rollback(self.scop.idx)
 
 
@@ -359,7 +383,7 @@ class SetLoopOptInfo(TransformInfo):
 
     @staticmethod
     def lower_upper_bounds(node: Node):
-        # TODO(vatai): I don't know the first element
+        # TODO: I don't know the first element
         return [
             LowerUpperBound(0, 1),
             [

@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.abspath("../tadashi"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Tadashi"
-copyright = "2024, Riken"
-author = "Emil Vatai, Aleksandr Drozd, Mohamed Wahib"
+copyright = "2024, Anonymous org"
+author = "Anonymous authors"
 release = re.sub("^v", "", os.popen("git describe --tags").read().strip())
 
 

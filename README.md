@@ -2,12 +2,7 @@
 
 ## Documentation:
 
-Documentation will be made available on https://tadashi.readthedocs.io/ (or a similar website).  For now it can be built manually:
-
-```bash
-cd docs
-make html
-```
+Documentation will be made available on https://tadashi.readthedocs.io/ (after the double blind review).
 
 [[Docs are in progress]]
 
