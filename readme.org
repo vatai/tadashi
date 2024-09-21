@@ -37,7 +37,7 @@ Select a node and a transformation.
 : node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
 : tr in node.available_transformations=True
 
-#+begin_src python
+#+begin_src python :exports both
   print(f"{tr=}")
   lu = node.available_args(tr)
   print(f"{len(lu)=}")
@@ -52,7 +52,7 @@ Select a node and a transformation.
 : lu[1]=LowerUpperBound(lower=0, upper=2)
 
 
-#+begin_src python
+#+begin_src python :exports both
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
   node.transform(tr, *args)
@@ -62,7 +62,7 @@ Select a node and a transformation.
 #+RESULTS:
 : node.valid_args(tr, *args)=True
 
-#+begin_src python
+#+begin_src python :exports both
   app.compile()
   print(f"{app.measure()=}")
 #+end_src
