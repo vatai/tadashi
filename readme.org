@@ -3,7 +3,8 @@
 ** Documentation:
 
 Documentation will be made available on
-https://tadashi.readthedocs.io/ (after the double blind review).
+https://tadashi.readthedocs.io/ (after the double blind review and the
+request for anonymity).
 
 *** Prerequisits
 Compile Tadashi (as described below), and set the ~PYTHONPATH~
