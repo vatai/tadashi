@@ -9,11 +9,14 @@ https://tadashi.readthedocs.io/ (after the double blind review).
 Compile Tadashi (as described below), and set the ~PYTHONPATH~
 environment variable to point to the repository root.
 
-*** Quick start
+*** Quick star
+:PROPERTIES:
+:header-args: :session s1 :results output :exports both
+:END:
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py::48][Simple]]
 app.
-#+begin_src python :dir . :results output :session s1
+#+begin_src python
   import tadashi
   from tadashi.apps import Simple
   app = Simple("examples/depnodep.c")
@@ -23,7 +26,7 @@ app.
 #+RESULTS:
 
 Select a node and a transformation.
-#+begin_src python :results output :session s1
+#+begin_src python
   node = scops[0].schedule_tree[1]
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
@@ -34,7 +37,7 @@ Select a node and a transformation.
 : node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
 : tr in node.available_transformations=True
 
-#+begin_src python :results output :session s1
+#+begin_src python
   print(f"{tr=}")
   lu = node.available_args(tr)
   print(f"{len(lu)=}")
@@ -49,7 +52,7 @@ Select a node and a transformation.
 : lu[1]=LowerUpperBound(lower=0, upper=2)
 
 
-#+begin_src python :results output :session s1
+#+begin_src python
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
   node.transform(tr, *args)
@@ -59,13 +62,13 @@ Select a node and a transformation.
 #+RESULTS:
 : node.valid_args(tr, *args)=True
 
-#+begin_src python :results output :session s1
+#+begin_src python
   app.compile()
   print(f"{app.measure()=}")
 #+end_src
 
 #+RESULTS:
-: app.measure()=45.0
+: app.measure()=47.0
 
 ** Build instructions:
 
