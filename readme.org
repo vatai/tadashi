@@ -36,7 +36,7 @@ is available on the selected node.
 #+end_src
 
 #+RESULTS:
-: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
+: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['j', 'i']}], [N] -> L_0[{ S_0[j, i] -> [(j)] }], [0]
 : tr in node.available_transformations=True
 
 Check the available arguments for the given node-transformation pair.
@@ -75,7 +75,7 @@ Generate new code, compile it and measure the performance.
 #+end_src
 
 #+RESULTS:
-: app.measure()=63.0
+: app.measure()=22.0
 
 
 ** Build instructions:
