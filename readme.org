@@ -14,7 +14,7 @@ environment variable to point to the repository root.
 :header-args: :session s1 :results output :exports both
 :END:
 
-After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py::48][Simple]]
+After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
 app.
 #+begin_src python
   import tadashi
@@ -26,7 +26,7 @@ app.
 #+RESULTS:
 
 Select a node and a transformation.
-#+begin_src python
+#+begin_src python :exports both
   node = scops[0].schedule_tree[1]
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
@@ -73,7 +73,7 @@ Select a node and a transformation.
 ** Build instructions:
 
 Before building, install LLVM and other (system) packages (check
-[[docker/tadashi.dockerfile][dockerfile]] for an exact list of ~apt-get~ packages).
+[[file:./docker/tadashi.dockerfile][dockerfile]] for an exact list of ~apt-get~ packages).
 
 #+begin_src bash
 git clone --recursive https://github.com/vatai/tadashi.git
