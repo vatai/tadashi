@@ -25,7 +25,8 @@ app.
 
 #+RESULTS:
 
-Select a node and a transformation.
+Select a node and a transformation, and check that the transformation
+is available on the selected node.
 #+begin_src python :exports both
   node = scops[0].schedule_tree[1]
   print(f"{node=}")
@@ -37,6 +38,7 @@ Select a node and a transformation.
 : node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
 : tr in node.available_transformations=True
 
+Check the available arguments for the given node-transformation pair.
 #+begin_src python :exports both
   print(f"{tr=}")
   lu = node.available_args(tr)
@@ -52,23 +54,28 @@ Select a node and a transformation.
 : lu[1]=LowerUpperBound(lower=0, upper=2)
 
 
+Perform the transformation and check legality.
 #+begin_src python :exports both
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
-  node.transform(tr, *args)
-  scops.generate_code()
+  legal = node.transform(tr, *args)
+  print(f"{legal=}")
 #+end_src
 
 #+RESULTS:
 : node.valid_args(tr, *args)=True
+: legal=True
 
+Generate new code, compile it and measure the performance.
 #+begin_src python :exports both
+  scops.generate_code()
   app.compile()
   print(f"{app.measure()=}")
 #+end_src
 
 #+RESULTS:
-: app.measure()=47.0
+: app.measure()=63.0
+
 
 ** Build instructions:
 
