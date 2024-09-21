@@ -104,7 +104,7 @@ class Node:
     #: starting from the root.  See `Scop.locate`.
     location: list[int]
 
-    #: .. todo:: Description of the band nodes.
+    #: Description of the band nodes (see `Scop.get_loop_signature`).
     loop_signature: list[dict]
 
     #: The ISL expression of the schedule node.
@@ -472,10 +472,18 @@ class Scop:
         self.idx = idx
 
     def get_loop_signature(self):
+        """Extract the value for `Node.loop_signature`.
+
+        A "loop signature", contains the information which is relevant
+        for the shift transformations.  Loop signature is a list.
+        The entries in this list describes the parameters and iteration
+        variables of each statement covered by the loop/band node.
+
+        """
         loop_signature = self.ctadashi.get_loop_signature(self.idx).decode()
         return literal_eval(loop_signature)
 
-    def make_node(self, parent, location):
+    def _make_node(self, parent, location):
         num_children = self.ctadashi.get_num_children(self.idx)
         node = Node(
             scop=self,
@@ -489,25 +497,26 @@ class Scop:
         )
         return node
 
-    def traverse(self, nodes, parent, location):
-        node = self.make_node(parent, location)
+    def _traverse(self, nodes, parent, location):
+        node = self._make_node(parent, location)
         current_idx = len(nodes)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
                 self.ctadashi.goto_child(self.idx, c)
                 node.children_idx[c] = len(nodes)
-                self.traverse(nodes=nodes, parent=current_idx, location=location + [c])
+                self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
                 self.ctadashi.goto_parent(self.idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
         self.ctadashi.goto_root(self.idx)
         nodes: list[Node] = []
-        self.traverse(nodes, parent=-1, location=[])
+        self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
+        """Update the current node on the C/C++ side."""
         self.ctadashi.goto_root(self.idx)
         for c in location:
             self.ctadashi.goto_child(self.idx, c)
@@ -519,18 +528,18 @@ class Scops:
     The object of type `Scops` is similar to a list."""
 
     def __init__(self, app: App):
-        self.setup_ctadashi(app)
-        self.check_missing_file(app.source_path)
+        self._setup_ctadashi(app)
+        self._check_missing_file(app.source_path)
         self.num_changes = 0
         self.app = app
         self.source_path_bytes = str(self.app.source_path).encode()
         self.num_scops = self.ctadashi.init_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
-    def setup_ctadashi(self, app: App):
+    def _setup_ctadashi(self, app: App):
         os.environ["C_INCLUDE_PATH"] = ":".join(map(str, app.include_paths))
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
-        self.check_missing_file(self.so_path)
+        self._check_missing_file(self.so_path)
         self.ctadashi = ctypes.CDLL(str(self.so_path))
         self.ctadashi.init_scops.argtypes = [ctypes.c_char_p]
         self.ctadashi.init_scops.restype = ctypes.c_int
@@ -557,7 +566,7 @@ class Scops:
             func.restype = tr_info.restype
 
     @staticmethod
-    def check_missing_file(path: Path):
+    def _check_missing_file(path: Path):
         if not path.exists():
             raise ValueError(f"{path} does not exist!")
 
@@ -580,6 +589,13 @@ class Scops:
         return input_path_bytes
 
     def generate_code(self, input_path="", output_path=""):
+        """Generate the source code.
+
+        The transformations happen on the SCoPs (polyhedral
+        representations), and to put that into code, this method needs
+        to be called.
+
+        """
         output_path_bytes = str(output_path).encode()
         if not output_path:
             output_path_bytes = self.source_path_bytes
