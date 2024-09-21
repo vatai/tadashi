@@ -596,14 +596,14 @@ class Scops:
         to be called.
 
         """
-        output_path_bytes = str(output_path).encode()
-        if not output_path:
-            output_path_bytes = self.source_path_bytes
-        input_path_bytes = str(self.app.alt_source_path).encode()
-        # input_path_bytes = str(input_path).encode()
-        # if not input_path:
-        #     # rewrite the original source_path file with the generated code
-        #     input_path_bytes = self.get_input_path_bytes_and_backup_source()
+        output_path_bytes = str(self.app.alt_source_path).encode()
+        # output_path_bytes = str(output_path).encode()
+        # if not output_path:
+        #     output_path_bytes = self.source_path_bytes
+        input_path_bytes = str(input_path).encode()
+        if not input_path:
+            # rewrite the original source_path file with the generated code
+            input_path_bytes = self.get_input_path_bytes_and_backup_source()
         self.ctadashi.generate_code(input_path_bytes, output_path_bytes)
 
     def __len__(self):
