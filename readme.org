@@ -7,8 +7,8 @@ requirement, detailed API documentation will be uploaded to
 https://tadashi.readthedocs.io/ (or a similar URL).
 
 Until then these API docs can be downloaded as:
-- [[./apidocs.tgz][tgz-ed html]]
-- [[./tadashi.pdf][PDF]]
+- [[apidocs.tgz][tgz-ed html]]
+- [[tadashi.pdf][PDF]]
 
 ** Prerequisites
 
