@@ -11,34 +11,61 @@ environment variable to point to the repository root.
 
 *** Quick start
 
+After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py::48][Simple]]
+app.
 #+begin_src python :dir . :results output :session s1
   import tadashi
   from tadashi.apps import Simple
-
-  scops = tadashi.Scops(Simple("examples/depnodep.c"))
+  app = Simple("examples/depnodep.c")
+  scops = tadashi.Scops(app)
 #+end_src
 
 #+RESULTS:
 
+Select a node and a transformation.
 #+begin_src python :results output :session s1
   node = scops[0].schedule_tree[1]
-  print(node)
+  print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
-  assert tr in node.available_transformations
+  print(f"{tr in node.available_transformations=}")
 #+end_src
 
 #+RESULTS:
-: Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
+: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['c0', 'c1']}], [N] -> L_0[{ S_0[c0, c1] -> [(c0)] }], [0]
+: tr in node.available_transformations=True
 
 #+begin_src python :results output :session s1
   print(f"{tr=}")
-  print(f"{node.arg_valid(tr)=}")
-  node.transform(tadashi.TrEnum.INTERCHANGE)
-  scops.generate_code()
+  lu = node.available_args(tr)
+  print(f"{len(lu)=}")
+  print(f"{lu[0]=}")
+  print(f"{lu[1]=}")
 #+end_src
 
 #+RESULTS:
 : tr=<TrEnum.FULL_SHIFT_VAR: 'full_shift_var'>
+: len(lu)=2
+: lu[0]=LowerUpperBound(lower=None, upper=None)
+: lu[1]=LowerUpperBound(lower=0, upper=2)
+
+
+#+begin_src python :results output :session s1
+  args = [13, 1]
+  print(f"{node.valid_args(tr, *args)=}")
+  node.transform(tr, *args)
+  scops.generate_code()
+#+end_src
+
+#+RESULTS:
+: node.valid_args(tr, *args)=True
+
+#+begin_src python :results output :session s1
+  app.compile()
+  print(f"{app.measure()=}")
+#+end_src
+
+#+RESULTS:
+: app.measure()=45.0
 
 ** Build instructions:
 
@@ -53,6 +80,8 @@ cmake ..
 cmake --build .
 #+end_src
 
+#+RESULTS:
+
 ** Run from docker
 
 #+begin_src bash
@@ -60,6 +89,8 @@ mk_dot_env.sh  # create .env file with USER, UID, GROUP, GID
 docker compose build # build images
 docker compose run --rm -it tadashi
 #+end_src
+
+#+RESULTS:
 
 The tadashi binds the host repo to ~/workdir~ inside the container.
 
@@ -71,6 +102,9 @@ cd /workdir/build
 cmake ..
 cmake --build .
 #+end_src
+
+#+RESULTS:
+
 The dependencies are built during the ~docker compose build~ command
 under ~/tadashi/build/_deps~ and the environment is set up that these
 dependencies are used (i.e. not rebuilt again).

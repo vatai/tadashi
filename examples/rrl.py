@@ -46,7 +46,7 @@ class Model:
         if tr == TRANSFORMATIONS[TrEnum.TILE]:
             tile_size = random.choice([2**x for x in range(5, 12)])
             return [tile_size]
-        lubs = tr.lower_upper_bounds(node)
+        lubs = tr.available_args(node)
         args = []
         for lub in lubs:
             if isinstance(lub, LowerUpperBound):

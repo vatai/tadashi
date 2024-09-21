@@ -170,6 +170,12 @@ class Node:
         """Roll back (revert) the last transformation."""
         self.scop.ctadashi.rollback(self.scop.idx)
 
+    def valid_args(self, tr: TrEnum, *args):
+        return TRANSFORMATIONS[tr].valid_args(self, *args)
+
+    def available_args(self, tr: TrEnums):
+        return TRANSFORMATIONS[tr].available_args(self)
+
 
 LowerUpperBound = namedtuple(
     "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
@@ -203,7 +209,7 @@ class TransformInfo:
         return 0 <= idx and idx < len(node.children)
 
     @staticmethod
-    def lower_upper_bounds(node: Node) -> list:
+    def available_args(node: Node) -> list:
         return []
 
 
@@ -218,7 +224,7 @@ class TileInfo(TransformInfo):
         return True
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         return [LowerUpperBound(lower=1, upper=None)]
 
 
@@ -255,7 +261,7 @@ class FuseInfo(TransformInfo):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         nc = len(node.children)
         return [
             LowerUpperBound(lower=0, upper=nc),
@@ -279,7 +285,7 @@ class FullShiftValInfo(TransformInfo):
     arg_help = ["Value"]
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         return [LowerUpperBound()]
 
 
@@ -293,7 +299,7 @@ class PartialShiftValInfo(TransformInfo):
         return TransformInfo._is_valid_stmt_idx(node, stmt_idx)
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         ns = len(node.loop_signature)
         return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
 
@@ -308,7 +314,7 @@ class FullShiftVarInfo(TransformInfo):
         return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         min_nv = min(len(s["vars"]) for s in node.loop_signature)
         return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
 
@@ -326,7 +332,7 @@ class PartialShiftVarInfo(TransformInfo):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         min_nv = min(len(s["vars"]) for s in node.loop_signature)
         return [
             LowerUpperBound(0, len(node.loop_signature)),
@@ -345,7 +351,7 @@ class FullShiftParamInfo(TransformInfo):
         return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         min_np = min(len(s["params"]) for s in node.loop_signature)
         return [LowerUpperBound(), LowerUpperBound(0, min_np)]
 
@@ -364,7 +370,7 @@ class PartialShiftParamInfo(TransformInfo):
         )
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         min_np = min(len(s["params"]) for s in node.loop_signature)
         return [
             LowerUpperBound(0, len(node.loop_signature)),
@@ -383,7 +389,7 @@ class SetLoopOptInfo(TransformInfo):
     arg_help = ["Iterator index", "Option"]
 
     @staticmethod
-    def lower_upper_bounds(node: Node):
+    def available_args(node: Node):
         # TODO: I don't know the first element
         return [
             LowerUpperBound(0, 1),
