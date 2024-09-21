@@ -20,13 +20,17 @@ from .apps import App
 class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
 
-    `UNROLL` should be avoided unless the remarks in the :ref:`Docs`.
+    `UNROLL` should be avoided unless the requirements in the
+    :ref:`ISL Docs` are satisfied.
 
-    ### Docs
+    .. _ISL Docs:
+    ISL Docs
+    ----
     `ISL online user manual (AST generation options)`_.
 
     .. _ISL online user manual (AST generation options):
        https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree
+
     """
 
     DEFAULT = 0
@@ -120,6 +124,7 @@ class Node:
         return [self.scop.schedule_tree[i] for i in self.children_idx]
 
     def __repr__(self):
+        """Textual representation of a node."""
         words = [
             "Node type:",
             f"{self.node_type},",
@@ -130,19 +135,9 @@ class Node:
         return " ".join(words)
 
     def locate(self):
-        """Set the `current_node` in `ctadashi` to point to the
-        current `Node`."""
+        """Set the `current_node` to point to `self`."""
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
-
-    @property
-    def available_transformations(self) -> list[TrEnum]:
-        """List of transformations available at the `Node`."""
-        result = []
-        for k, tr in TRANSFORMATIONS.items():
-            if tr.valid(self):
-                result.append(k)
-        return result
 
     def transform(self, trkey: TrEnum, *args):
         """Execute the selected transformation.
@@ -166,34 +161,68 @@ class Node:
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
 
-    def rollback(self):
+    def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
         self.scop.ctadashi.rollback(self.scop.idx)
 
-    def valid_args(self, tr: TrEnum, *args):
+    @property
+    def valid_transformation(self, tr: TrEnum) -> bool:
+        """Check the validity of the transformation."""
+        return TRANSFORMATIONS[tr].valid(self)
+
+    @property
+    def available_transformations(self) -> list[TrEnum]:
+        """List transformations available at the `Node`."""
+        result = []
+        for k, tr in TRANSFORMATIONS.items():
+            if tr.valid(self):
+                result.append(k)
+        return result
+
+    def valid_args(self, tr: TrEnum, *args) -> bool:
+        """Check the validity of args."""
         return TRANSFORMATIONS[tr].valid_args(self, *args)
 
-    def available_args(self, tr: TrEnums):
+    def available_args(self, tr: TrEnum) -> list:
+        """Describe available args."""
         return TRANSFORMATIONS[tr].available_args(self)
 
 
 LowerUpperBound = namedtuple(
     "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
 )
+"""Integer interval description.
+
+Lower and upper bounds for describing (integer) intervals of valid
+arguments for transformations. `None` indicates no upper/lower bound.
+
+"""
 
 
 class TransformInfo:
+    """Abstract base class used to describe transformations.
+
+    .. _ctypes:
+       https://docs.python.org/3/library/ctypes.html
+    """
+
+    #: The name of the C/C++ function in the `.so` file.
     func_name: str
+    #: Types of arguments as required by `ctypes`_.
     argtypes: list[type] = []
+    #: Help string describing the arg.
     arg_help: list[str] = []
+    #: Type of the result as required by `ctypes`_.
     restype: Optional[type] = ctypes.c_bool
 
     @staticmethod
     def valid(node: Node) -> bool:
+        """Check that the transformation is valid on the node."""
         return node.node_type == NodeType.BAND
 
     @staticmethod
     def valid_args(node: Node, *arg, **kwargs) -> bool:
+        """Check that args of the transformation is valid on node."""
         return True
 
     @staticmethod
@@ -210,6 +239,7 @@ class TransformInfo:
 
     @staticmethod
     def available_args(node: Node) -> list:
+        """Return a list describing each of the args."""
         return []
 
 
@@ -409,6 +439,8 @@ class PrintScheduleNodeInfo(TransformInfo):
         return True
 
 
+"""A dictionary which connects the simple `TrEnum` to the detailed
+`TranformInfo`."""
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.TILE: TileInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
@@ -427,11 +459,12 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
 
 
 class Scop:
-    """Single SCoP.
+    """One SCoP in `Scops`, a loop nest (to use a rough analogy).
 
     In the .so file, there is a global `std::vector` of `isl_scop`
     objects.  Objects of `Scop` (in python) represents a the
     `isl_scop` object by storing its index in the `std::vecto`.
+
     """
 
     def __init__(self, idx, ctadashi) -> None:
