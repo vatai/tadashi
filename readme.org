@@ -32,7 +32,7 @@ is available on the selected node.
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
   print(f"{tr in node.available_transformations=}")
-  # outpyt:
+  # output:
 #+end_src
 
 #+RESULTS:
@@ -46,7 +46,7 @@ Check the available arguments for the given node-transformation pair.
   print(f"{len(lu)=}")
   print(f"{lu[0]=}")
   print(f"{lu[1]=}")
-  # outpyt:
+  # output:
 #+end_src
 
 #+RESULTS:
@@ -62,7 +62,7 @@ Perform the transformation and check legality.
   print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
   print(f"{legal=}")
-  # outpyt:
+  # output:
 #+end_src
 
 #+RESULTS:
@@ -74,7 +74,7 @@ Generate new code, compile it and measure the performance.
   scops.generate_code()
   app.compile()
   print(f"{app.measure()=}")
-  # outpyt:
+  # output:
 #+end_src
 
 #+RESULTS:
