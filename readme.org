@@ -16,7 +16,7 @@ environment variable to point to the repository root.
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
 app.
-#+begin_src python :session s1 :results output :exports both
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
   import tadashi
   from tadashi.apps import Simple
   app = Simple("examples/depnodep.c")
@@ -27,7 +27,7 @@ app.
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
-#+begin_src python :exports both :session s1 :results output :exports both
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   node = scops[0].schedule_tree[1]
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
@@ -40,7 +40,7 @@ is available on the selected node.
 : tr in node.available_transformations=True
 
 Check the available arguments for the given node-transformation pair.
-#+begin_src python :exports both :session s1 :results output :exports both
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   print(f"{tr=}")
   lu = node.available_args(tr)
   print(f"{len(lu)=}")
@@ -57,7 +57,7 @@ Check the available arguments for the given node-transformation pair.
 
 
 Perform the transformation and check legality.
-#+begin_src python :exports both :session s1 :results output :exports both
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
@@ -70,7 +70,7 @@ Perform the transformation and check legality.
 : legal=True
 
 Generate new code, compile it and measure the performance.
-#+begin_src python :exports both :session s1 :results output :exports both
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   scops.generate_code()
   app.compile()
   print(f"{app.measure()=}")
