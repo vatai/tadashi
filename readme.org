@@ -2,9 +2,10 @@
 
 ** Documentation:
 
-Documentation will be made available on
-https://tadashi.readthedocs.io/ (after the double blind review and the
-request for anonymity).
+The API documentation which will be uploaded to
+https://tadashi.readthedocs.io/ (or a similar URL, after the double
+blind review and the end of need for anonymity) can be downloaded from
+https://file.io/cUaJWDvOQCbC
 
 *** Prerequisits
 Compile Tadashi (as described below), and set the ~PYTHONPATH~
