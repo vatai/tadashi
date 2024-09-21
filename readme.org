@@ -2,10 +2,13 @@
 
 * Documentation:
 
-Detailed API documentation which will be uploaded to
-https://tadashi.readthedocs.io/ (or a similar URL, after the double
-blind review and the end of need for anonymity) can be downloaded from
-https://file.io/cUaJWDvOQCbC
+After the double blind review and the end of the anonymity
+requirement, detailed API documentation will be uploaded to
+https://tadashi.readthedocs.io/ (or a similar URL).
+
+Until then these API docs can be downloaded as:
+- [[./apidocs.tgz][tgz-ed html]]
+- [[./tadashi.pdf][PDF]]
 
 ** Prerequisites
 
@@ -13,6 +16,15 @@ Compile Tadashi (as described below), and set the ~PYTHONPATH~
 environment variable to point to the repository root.
 
 ** Quick start
+
+An [[./examples/end2end.py][end-to-end]] example is provided below (split into parts with
+comments and outputs).  This example can be run from the repository
+root with the following command:
+#+begin_src bash
+  PYTHONPATH=. python examples/end2end.py
+#+end_src
+
+*** End-to-end example
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
 app.
