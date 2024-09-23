@@ -1,3 +1,4 @@
+/** @file */
 // Date: 2024, January
 // Author: Emil VATAI, Riken
 //
@@ -54,6 +55,7 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   return p;
 }
 
+/// Entry point.
 int
 init_scops(char *input) { // Entry point
 

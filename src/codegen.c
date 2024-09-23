@@ -1,3 +1,4 @@
+/** @file */
 /*
  * Modifications and additions: Emil VATAI, Riken
  *
@@ -75,7 +76,7 @@ foreach_declared_array(struct pet_scop *scop, int exposed,
   }
 }
 
-/* foreach_declared_array callback that sets "indent"
+/** foreach_declared_array callback that sets "indent"
  */
 static void
 set_indent(struct pet_array *array, void *user) {
@@ -84,9 +85,9 @@ set_indent(struct pet_array *array, void *user) {
   *indent = 1;
 }
 
-/* Internal data structure for print_array().
- * "p" is the printer to print on.
- * "build" is the build for building expressions.
+/** Internal data structure for print_array().
+ * `p` is the printer to print on.
+ * `build` is the build for building expressions.
  */
 struct print_array_data {
   isl_printer *p;
