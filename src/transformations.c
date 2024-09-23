@@ -16,12 +16,17 @@
 
 #include "transformations.h"
 
+/**
+ * Insert a context node with param_idx to be less than
+ * limit.
+ *
+ * @param node Node of the schedule tree
+ * @param param_idx Parameter index
+ * @param limit Upper limit for parameter specified by param_idx
+ * @returns Node pointing to the node below the context
+ */
 isl_schedule_node *
 limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
-  /**
-   * @brief Insert a context node with `param_idx` to be less than
-   * `limit`.
-   */
   isl_id *param;
   isl_multi_union_pw_aff *mupa;
   isl_space *space;
@@ -43,6 +48,12 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
   return isl_schedule_node_first_child(node);
 }
 
+/**
+ * 1D loop tiling.
+ *
+ * @param node The band node which represents the loop which will be tiled
+ * @param tile_size Size of (number of iterations in) one tile
+ */
 isl_schedule_node *
 tadashi_tile(isl_schedule_node *node, int tile_size) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);

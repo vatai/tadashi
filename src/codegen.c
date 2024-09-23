@@ -1,4 +1,6 @@
-/** @file */
+/** @file
+ * @author Emil Vatai
+ */
 /*
  * Modifications and additions: Emil VATAI, Riken
  *
