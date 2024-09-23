@@ -1,3 +1,4 @@
+/** @file */
 #include <assert.h>
 
 #include <isl/aff.h>
@@ -17,6 +18,10 @@
 
 isl_schedule_node *
 limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
+  /**
+   * @brief Insert a context node with `param_idx` to be less than
+   * `limit`.
+   */
   isl_id *param;
   isl_multi_union_pw_aff *mupa;
   isl_space *space;

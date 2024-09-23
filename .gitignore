@@ -16,3 +16,4 @@ compile_commands.json
 *.tadashi.yaml
 *.tadashi.isl
 __pycache__
+times/*.json
