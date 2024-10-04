@@ -53,6 +53,7 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
  *
  * @param node The band node which represents the loop which will be tiled
  * @param tile_size Size of (number of iterations in) one tile
+ * @returns Transformed schedule tree node
  */
 isl_schedule_node *
 tadashi_tile(isl_schedule_node *node, int tile_size) {
@@ -63,6 +64,12 @@ tadashi_tile(isl_schedule_node *node, int tile_size) {
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
+/**
+ * Loop interchange.
+ *
+ * @param node The band node which will be swapped with it's only child
+ * @returns Transformed schedule tree node
+ */
 isl_schedule_node *
 tadashi_interchange(isl_schedule_node *node) {
   isl_multi_union_pw_aff *mupa;
