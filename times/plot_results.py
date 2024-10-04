@@ -46,8 +46,8 @@ def get_breakdown_df(files, agg_args, norm):
         "Kernel walltime": "Kernel execution",
     }
     df = df.rename(columns=rename)
-    df.index = df.index.str.replace("-1", "")
     df.index = df.index.str.replace("-10", "")
+    df.index = df.index.str.replace("-1", "")
     return df
 
 
