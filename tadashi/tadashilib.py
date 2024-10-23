@@ -161,6 +161,12 @@ class Node:
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
 
+    @property
+    def yaml_str(self):
+        self.scop.locate(self.location)
+        encoded_result = self.scop.ctadashi.print_schedule_node(self.scop.idx)
+        return encoded_result.decode("utf8")
+
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
         self.scop.ctadashi.rollback(self.scop.idx)
@@ -554,7 +560,7 @@ class Scops:
         self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
-        self.ctadashi.print_schedule_node.restype = None
+        self.ctadashi.print_schedule_node.restype = ctypes.c_char_p
         self.ctadashi.goto_root.argtypes = [ctypes.c_size_t]
         self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #
