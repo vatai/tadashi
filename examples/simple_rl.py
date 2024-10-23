@@ -260,10 +260,6 @@ def main():
 
     steps_done = env.steps_done
     episode_durations = []
-    ### End COPY ###
-
-    ### Begin COPY2 ###
-
     for i_episode in range(args.num_episodes):
         print(f"{i_episode=}")
         # Initialize the environment and get its state
@@ -296,9 +292,9 @@ def main():
             target_net_state_dict = target_net.state_dict()
             policy_net_state_dict = policy_net.state_dict()
             for key in policy_net_state_dict:
-                target_net_state_dict[key] = policy_net_state_dict[
-                    key
-                ] * args.tau + target_net_state_dict[key] * (1 - args.tau)
+                ps = policy_net_state_dict[key]
+                ts = target_net_state_dict[key]
+                target_net_state_dict[key] = ps * args.tau + ts * (1 - args.tau)
             target_net.load_state_dict(target_net_state_dict)
 
             if done:
@@ -310,7 +306,7 @@ def main():
     plot_durations(episode_durations, show_result=True)
     plt.ioff()
     plt.show()
-    ### End COPY2 ###
+    ### End COPY ###
 
     print(f"{device=}")
     print(f"{args=}")
