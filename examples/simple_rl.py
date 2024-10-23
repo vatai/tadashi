@@ -17,6 +17,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import yaml
 
+CURRENT_MARK = "CURRENT_"
+
 
 class ActionSpace:
     @property
@@ -386,7 +388,11 @@ def traverse(yaml_dict, level):
                 # print(f"{v=}")
                 result += traverse(v, level + 1)
             else:
-                result.append((level, k))
+                current = False
+                if k.startswith(CURRENT_MARK):
+                    k = k.replace(CURRENT_MARK, "")
+                    current = True
+                result.append((level, current, k))
                 result += traverse(v, level)
     if not isinstance(result, str) and level == 0:
         for r in result:
@@ -401,9 +407,11 @@ def main2():
     print(f"{gemm.benchmark=}")
     scops = tadashi.Scops(gemm)
     scop = scops[0]
-    yaml_str = scop.schedule_tree[3].yaml_str
+    node = scop.schedule_tree[5]
+    node.transform(tadashi.TrEnum.TILE, 16)
+    yaml_str = node.yaml_str
     pattern = re.compile(r"# YOU ARE HERE\n *")
-    yaml_str = re.sub(pattern, "CURRENT_", yaml_str)
+    yaml_str = re.sub(pattern, CURRENT_MARK, yaml_str)
     print(yaml_str[:800])
     yaml_dict = yaml.load(yaml_str, yaml.SafeLoader)
     traverse(yaml_dict, 0)
