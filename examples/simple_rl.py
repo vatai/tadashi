@@ -4,8 +4,10 @@
 import argparse
 import math
 import random
+import re
 from collections import deque, namedtuple
 from itertools import count
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import tadashi
@@ -13,6 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import yaml
 
 
 class ActionSpace:
@@ -311,5 +314,103 @@ def main():
     print(f"{args=}")
 
 
+def get_polybench_list():
+    base = Path("build/_deps/polybench-src/")
+    result = []
+    for p in base.glob("**"):
+        if Path(p / (p.name + ".c")).exists():
+            result.append(p.relative_to(base))
+    return base, result
+
+
+def tokenize(yaml_str):
+    tokens = [
+        "n.",
+        "i",
+        "j",
+        "k",
+        r"\d+",
+        r"\+",
+        r"\-",
+        r"\*",
+        r"\/",
+        " < ",
+        " <= ",
+        " > ",
+        " >= ",
+        "\n",
+        "# YOU ARE HERE",
+        "domain: ",
+        "child: ",
+        "sequence: ",
+        " +",
+        " and ",
+        " or ",
+        '"',
+        r"\[",
+        r"\]",
+        r" \}",
+        r"\{ ",
+        " -> ",
+        ", ",
+        "; ",
+        " : ",
+        r"S_\d+",
+        r"L_\d+",
+    ]
+    pattern = re.compile("|".join([f"^{t}" for t in tokens]))
+
+    result = []
+    match = re.match(pattern, yaml_str)
+    while yaml_str and match:
+        pos = match.span(0)[1]
+        # print(f"{match.span(0)=} {pos=}")
+        result.append(yaml_str[:pos])
+        yaml_str = yaml_str[pos:]
+        match = re.match(pattern, yaml_str)
+    print(f"remaining: |{yaml_str[:20]}|")
+    print(f"{match=}")
+    return result
+
+
+def traverse(yaml_dict, level):
+    result = []
+    if isinstance(yaml_dict, str):
+        return [(level, f"{yaml_dict[:60]}...")]
+    elif isinstance(yaml_dict, list):
+        for item in yaml_dict:
+            result += traverse(item, level + 1)
+    else:
+        for k, v in yaml_dict.items():
+            if k == "child":
+                # print(f"{v=}")
+                result += traverse(v, level + 1)
+            else:
+                result.append((level, k))
+                result += traverse(v, level)
+    if not isinstance(result, str) and level == 0:
+        for r in result:
+            print(r)
+        print("--- end ---")
+    return result
+
+
+def main2():
+    base, results = get_polybench_list()
+    gemm = tadashi.apps.Polybench(results[29], base)
+    print(f"{gemm.benchmark=}")
+    scops = tadashi.Scops(gemm)
+    scop = scops[0]
+    yaml_str = scop.schedule_tree[3].yaml_str
+    pattern = re.compile(r"# YOU ARE HERE\n *")
+    yaml_str = re.sub(pattern, "CURRENT_", yaml_str)
+    print(yaml_str[:800])
+    yaml_dict = yaml.load(yaml_str, yaml.SafeLoader)
+    traverse(yaml_dict, 0)
+    isl_expr = yaml_dict["child"]["sequence"][0]["filter"]
+    print(isl_expr)
+    print(f"{tokenize(yaml_str)=}")
+
+
 if __name__ == "__main__":
-    main()
+    main2()
