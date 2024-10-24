@@ -102,7 +102,7 @@ def get_args():
     )
     parser.add_argument(
         "--lstm_hidden_size",
-        default=256,
+        default=512,
         type=int,
         help="Size of hidden state vectors",
     )
@@ -199,9 +199,11 @@ def plot_durations(episode_durations, show_result=False):
         plt.plot(means.numpy())
 
     plt.gcf()
+    plt.show()
 
 
-def optimize_model(args, memory):
+def optimize_model(args, memory, policy_net, target_net, optimizer):
+    device = get_device()
     if len(memory) < args.batch_size:
         return
     transitions = memory.sample(args.batch_size)
@@ -232,13 +234,13 @@ def optimize_model(args, memory):
     # on the "older" target_net; selecting their best reward with max(1).values
     # This is merged based on the mask, such that we'll have either the expected
     # state value or 0 in case the state was final.
-    next_state_values = torch.zeros(BATCH_SIZE, device=device)
+    next_state_values = torch.zeros(args.batch_size, device=device)
     with torch.no_grad():
         next_state_values[non_final_mask] = (
             target_net(non_final_next_states).max(1).values
         )
     # Compute the expected Q values
-    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+    expected_state_action_values = (next_state_values * args.gamma) + reward_batch
 
     # Compute Huber loss
     criterion = nn.SmoothL1Loss()
@@ -271,7 +273,6 @@ def main():
     optimizer = optim.AdamW(policy_net.parameters(), lr=args.lr, amsgrad=True)
     memory = ReplayMemory(10000)
 
-    steps_done = env.steps_done
     episode_durations = []
     for i_episode in range(args.num_episodes):
         print(f"{i_episode=}")
@@ -298,7 +299,7 @@ def main():
             state = next_state
 
             # Perform one step of the optimization (on the policy network)
-            optimize_model(args, memory)
+            optimize_model(args, memory, policy_net, target_net, optimizer)
 
             # Soft update of the target network's weights
             # θ′ ← τ θ + (1 −τ )θ′
@@ -387,8 +388,12 @@ def tokenize_isl_str(isl_str: str):
 def traverse(yaml_dict: dict, level: int = 0) -> list:
     result = []
     if isinstance(yaml_dict, str):
+        if yaml_dict.endswith("leaf"):
+            current = yaml_dict.startswith(CURRENT_MARK)
+            if current:
+                yaml_dict = yaml_dict.replace(CURRENT_MARK, "")
+            return [(level, current, yaml_dict)]
         return [(level, False, token) for token in tokenize_isl_str(yaml_dict)]
-        # return [(level, f"{yaml_dict}|{isl_tokens}...|")]
     elif isinstance(yaml_dict, list):
         for item in yaml_dict:
             result += traverse(item, level + 1)
@@ -412,33 +417,80 @@ def tokenize(node: tadashi.Node, vocab: Optional[list] = None) -> dict:
     yaml_dict = yaml.load(yaml_str, yaml.SafeLoader)
     tokens = traverse(yaml_dict)
     if not vocab:
-        vocab = []
+        vocab = ["leaf"]
         for token in tokens:
             if token[-1] not in vocab:
                 vocab.append(token[-1])
     return dict(vocab=vocab, tokens=tokens)
 
 
+class NodeNN(nn.Module):
+    def __init__(self, scop: tadashi.Scop):
+        super().__init__()
+        self.scop = scop
+        tokenizer = tokenize(scop.schedule_tree[0])
+        self.vocab = tokenizer["vocab"]
+        self.rnn = id
+        self.embeddings = id
+
+    def forward(self, node: tadashi.Node):
+        tokens = tokenize(node, self.vocab)["tokens"]
+        indices = [self.vocab.index(token) for _, _, token in tokens]
+        return self.rnn(self.embeddings(torch.LongTensor(indices)))
+
+
+def mcts(scop: tadashi.Scop, node_nn: NodeNN, depth: int = 5):
+    for d in range(depth):
+        node_times = []
+        for node in scop.schedule_tree:
+            out = node_nn(node)
+        for node in scop.schedule_tree:
+            for tr in tadashi.TrEnum:
+                print(f"{node=}, {tr.value=}")
+
+
 def main2():
+    args = get_args()
     base, results = get_polybench_list()
     gemm = tadashi.apps.Polybench(results[29], base)
     print(f"{gemm.benchmark=}")
+
     scops = tadashi.Scops(gemm)
     scop = scops[0]
     node = scop.schedule_tree[11]
     node.transform(tadashi.TrEnum.TILE, 16)
-    tokenizer = tokenize(node)
+
+    tokenizer = tokenize(scop.schedule_tree[0])
     tokens = tokenizer["tokens"]
     vocab = tokenizer["vocab"]
-    args = get_args()
     embeddings = nn.Embedding(len(vocab), args.embedding_size)
-    nn.LSTM(args.embedding_size, args.lstm_hidden_size)
+    encoder = nn.LSTM(
+        args.embedding_size,
+        args.lstm_hidden_size,
+        num_layers=5,
+        batch_first=False,
+    )
     # level, current, token = tokens[0]
     indices = torch.LongTensor([vocab.index(token) for _, _, token in tokens])
-    emb = embeddings(indices)
+    emb: torch.Tensor = embeddings(indices)
+    print(f"{emb.shape=}")
+    # emb.unsqueeze_(1)
+    print(f"{emb.shape=}")
+    output = encoder(emb)
     print(emb.shape)
     print(f"{len(tokens)=}")
+    print(f"{(output[0].shape, (output[1][0].shape, output[1][1].shape))=}")
+
+
+def main3():
+    args = get_args()
+    base, results = get_polybench_list()
+    gemm = tadashi.apps.Polybench(results[29], base)
+    scops = tadashi.Scops(gemm)
+    scop = scops[0]
+    node_nn = NodeNN(scop)
+    mcts(scops[0], node_nn, 5)
 
 
 if __name__ == "__main__":
-    main2()
+    main3()
