@@ -96,15 +96,45 @@ def get_args():
     )
     parser.add_argument(
         "--embedding_size",
-        default=256,
+        default=64,
         type=int,
         help="Size of embeddings",
     )
     parser.add_argument(
         "--lstm_hidden_size",
-        default=512,
+        default=128,
         type=int,
         help="Size of hidden state vectors",
+    )
+    parser.add_argument(
+        "--num_lstm_layers",
+        default=5,
+        type=int,
+        help="Number of LSTM layers",
+    )
+    parser.add_argument(
+        "--num_mcts_layers",
+        default=5,
+        type=int,
+        help="Number of MCTS layers (1 layer = 3 sublayers)",
+    )
+    parser.add_argument(
+        "--node_top_k",
+        default=5,
+        type=int,
+        help="Top-k for the node (sub)layer",
+    )
+    parser.add_argument(
+        "--tr_top_k",
+        default=3,
+        type=int,
+        help="Top-k for the transformation (sub)layer",
+    )
+    parser.add_argument(
+        "--args_top_k",
+        default=5,
+        type=int,
+        help="Top-k for the args (sub)layer",
     )
     return parser.parse_args()
 
@@ -424,31 +454,6 @@ def tokenize(node: tadashi.Node, vocab: Optional[list] = None) -> dict:
     return dict(vocab=vocab, tokens=tokens)
 
 
-class NodeNN(nn.Module):
-    def __init__(self, scop: tadashi.Scop):
-        super().__init__()
-        self.scop = scop
-        tokenizer = tokenize(scop.schedule_tree[0])
-        self.vocab = tokenizer["vocab"]
-        self.rnn = id
-        self.embeddings = id
-
-    def forward(self, node: tadashi.Node):
-        tokens = tokenize(node, self.vocab)["tokens"]
-        indices = [self.vocab.index(token) for _, _, token in tokens]
-        return self.rnn(self.embeddings(torch.LongTensor(indices)))
-
-
-def mcts(scop: tadashi.Scop, node_nn: NodeNN, depth: int = 5):
-    for d in range(depth):
-        node_times = []
-        for node in scop.schedule_tree:
-            out = node_nn(node)
-        for node in scop.schedule_tree:
-            for tr in tadashi.TrEnum:
-                print(f"{node=}, {tr.value=}")
-
-
 def main2():
     args = get_args()
     base, results = get_polybench_list()
@@ -482,14 +487,102 @@ def main2():
     print(f"{(output[0].shape, (output[1][0].shape, output[1][1].shape))=}")
 
 
+class NodeNN(nn.Module):
+    def __init__(self, scop: tadashi.Scop, args: argparse.Namespace):
+        super().__init__()
+        device = get_device()
+        self.scop = scop
+        tokenizer = tokenize(scop.schedule_tree[0])
+        self.vocab = tokenizer["vocab"]
+        self.rnn = nn.LSTM(
+            input_size=args.embedding_size,
+            hidden_size=args.lstm_hidden_size,
+            num_layers=args.num_lstm_layers,
+            device=device,
+        )
+        self.embeddings = nn.Embedding(
+            len(self.vocab),
+            args.embedding_size,
+            device=device,
+        )
+        self.linear = nn.Linear(
+            in_features=args.lstm_hidden_size,
+            out_features=1,
+            device=device,
+        )
+
+    def forward(self, node: tadashi.Node):
+        device = get_device()
+        tokens = tokenize(node, self.vocab)["tokens"]
+        indices = [self.vocab.index(token) for _, _, token in tokens]
+        indices_tensor = torch.LongTensor(indices).to(device)
+        encoded, (h0, c0) = self.rnn(self.embeddings(indices_tensor))
+        return h0[-1, :]
+
+
+class NodeHeadNN(nn.Module):
+    def __init__(self, args: argparse.Namespace):
+        super().__init__()
+        self.linear = nn.Linear(
+            in_features=args.lstm_hidden_size,
+            out_features=1,
+            device=get_device(),
+        )
+
+    def forward(self, ht: torch.Tensor):
+        return self.linear(ht)
+
+
+class TranNN(nn.Module):
+    def __init__(self, node_nn: NodeNN, args: argparse.Namespace):
+        super().__init__()
+        device = get_device()
+        self.node_nn = node_nn
+        in_size = args.lstm_hidden_size + len(tadashi.TrEnum)
+        self.linear = nn.Linear(in_features=in_size, out_features=1, device=device)
+
+    def forward(self, node: tadashi.Node, tr: tadashi.TrEnum):
+        device = get_device()
+        encoded = self.node_nn(node)
+        tr_idx = torch.LongTensor([list(tadashi.TrEnum).index(tr)]).to(device)
+        one_hot = nn.functional.one_hot(tr_idx, len(tadashi.TrEnum)).squeeze(0)
+        combined = torch.hstack([encoded, one_hot]).to(device)
+        return self.linear(combined)
+
+
+def mcts(
+    scop: tadashi.Scop,
+    node_nn: NodeNN,
+    node_head_nn: NodeHeadNN,
+    tran_nns: dict[TranNN],
+    args: argparse.Namespace,
+):
+    for d in range(args.num_mcts_layers):
+        node_times = torch.vstack([node_nn(node) for node in scop.schedule_tree])
+        node_top_k = torch.topk(
+            input=node_head_nn(node_times),
+            k=args.node_top_k,
+            dim=0,
+        )
+        for node_idx in node_top_k.indices:
+            node = scop.schedule_tree[node_idx]
+            tr_times = torch.vstack([tran_nns[tr](node, tr) for tr in tadashi.TrEnum])
+            tr_top_k = torch.topk(torch.Tensor(tr_times), args.tr_top_k, dim=0)
+            for tr_idx in tr_top_k.indices:
+                tr = list(tadashi.TrEnum)[tr_idx]
+                print(f"{node.node_type.value=} {tr.value=}")
+
+
 def main3():
     args = get_args()
     base, results = get_polybench_list()
     gemm = tadashi.apps.Polybench(results[29], base)
     scops = tadashi.Scops(gemm)
     scop = scops[0]
-    node_nn = NodeNN(scop)
-    mcts(scops[0], node_nn, 5)
+    node_nn = NodeNN(scop, args)
+    node_head_nn = NodeHeadNN(args)
+    tran_nns = dict((t, TranNN(node_nn, args)) for t in tadashi.TrEnum)
+    mcts(scops[0], node_nn, node_head_nn, tran_nns, args)
 
 
 if __name__ == "__main__":
