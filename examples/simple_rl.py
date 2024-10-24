@@ -8,6 +8,7 @@ import re
 from collections import deque, namedtuple
 from itertools import count
 from pathlib import Path
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import tadashi
@@ -92,6 +93,18 @@ def get_args():
         default=1e-4,
         type=float,
         help="The learning rate of the ``AdamW`` optimizer",
+    )
+    parser.add_argument(
+        "--embedding_size",
+        default=256,
+        type=int,
+        help="Size of embeddings",
+    )
+    parser.add_argument(
+        "--lstm_hidden_size",
+        default=256,
+        type=int,
+        help="Size of hidden state vectors",
     )
     return parser.parse_args()
 
@@ -321,7 +334,7 @@ def get_polybench_list():
     return base, result
 
 
-def tokenize(isl_str: str):
+def tokenize_isl_str(isl_str: str):
     tokens = [
         r"n",
         r"ni",
@@ -365,53 +378,23 @@ def tokenize(isl_str: str):
         pos = match.span()[1]
         result.append(isl_str[:pos].strip())
         isl_str = isl_str[pos:].strip()
-        # last_match = match
         match = re.match(pattern, isl_str.strip())
-    # print(f"{last_match=}")
-    # print(f"remaining: |{isl_str[:20]}|")
     if isl_str.strip():
         raise NotImplementedError(f"ISL string not fully parsed. Remaining: {isl_str}")
     return result
 
 
-def parse_isl(isl_str: str, pos: int, result: list) -> int:
-    # open_delim = re.compile(r"^\{|^\[|^\(")
-    # match = re.match(open_delim, isl_str)
-    # match.string
-    # if match.span() != (0, 1):
-    #     raise NotImplementedError("This should not be happening!!!")
-    open_delims = "([{"
-    closed_delims = ")]}"
-    if isl_str[pos] in open_delims:
-        result.append(isl_str[pos])
-        pos += 1
-        pos = parse_isl(isl_str, pos, result)
-        result.append(isl_str[pos])
-        pos += 1
-    # else:
-    #     while isl_str[pos]
-
-    return isl_str[:100]
-
-
-def traverse(yaml_dict, level):
+def traverse(yaml_dict: dict, level: int = 0) -> list:
     result = []
     if isinstance(yaml_dict, str):
-        # isl_tokens = []
-        # pos = parse_isl(yaml_dict, 0, isl_tokens)
-        # if pos != len(yaml_dict):
-        #     raise NotImplementedError(
-        #         "yaml_dict (which should be an isl_string) was not parsed completely!"
-        #     )
-        isl_tokens = tokenize(yaml_dict)
-        return [(level, f"{yaml_dict}|{isl_tokens}...|")]
+        return [(level, False, token) for token in tokenize_isl_str(yaml_dict)]
+        # return [(level, f"{yaml_dict}|{isl_tokens}...|")]
     elif isinstance(yaml_dict, list):
         for item in yaml_dict:
             result += traverse(item, level + 1)
     else:
         for k, v in yaml_dict.items():
             if k == "child":
-                # print(f"{v=}")
                 result += traverse(v, level + 1)
             else:
                 current = False
@@ -420,11 +403,20 @@ def traverse(yaml_dict, level):
                     current = True
                 result.append((level, current, k))
                 result += traverse(v, level)
-    if not isinstance(result, str) and level == 0:
-        for r in result:
-            print(r)
-        print("--- end ---")
     return result
+
+
+def tokenize(node: tadashi.Node, vocab: Optional[list] = None) -> dict:
+    pattern = re.compile(r"# YOU ARE HERE\n *")
+    yaml_str = re.sub(pattern, CURRENT_MARK, node.yaml_str)
+    yaml_dict = yaml.load(yaml_str, yaml.SafeLoader)
+    tokens = traverse(yaml_dict)
+    if not vocab:
+        vocab = []
+        for token in tokens:
+            if token[-1] not in vocab:
+                vocab.append(token[-1])
+    return dict(vocab=vocab, tokens=tokens)
 
 
 def main2():
@@ -435,15 +427,17 @@ def main2():
     scop = scops[0]
     node = scop.schedule_tree[11]
     node.transform(tadashi.TrEnum.TILE, 16)
-    yaml_str = node.yaml_str
-    pattern = re.compile(r"# YOU ARE HERE\n *")
-    yaml_str = re.sub(pattern, CURRENT_MARK, yaml_str)
-    print(yaml_str[:800])
-    yaml_dict = yaml.load(yaml_str, yaml.SafeLoader)
-    traverse(yaml_dict, 0)
-    isl_expr = yaml_dict["child"]["sequence"][0]["filter"]
-    print(isl_expr)
-    # print(f"{tokenize(yaml_str)=}")
+    tokenizer = tokenize(node)
+    tokens = tokenizer["tokens"]
+    vocab = tokenizer["vocab"]
+    args = get_args()
+    embeddings = nn.Embedding(len(vocab), args.embedding_size)
+    nn.LSTM(args.embedding_size, args.lstm_hidden_size)
+    # level, current, token = tokens[0]
+    indices = torch.LongTensor([vocab.index(token) for _, _, token in tokens])
+    emb = embeddings(indices)
+    print(emb.shape)
+    print(f"{len(tokens)=}")
 
 
 if __name__ == "__main__":
