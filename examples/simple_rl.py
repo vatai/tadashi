@@ -321,60 +321,90 @@ def get_polybench_list():
     return base, result
 
 
-def tokenize(yaml_str):
+def tokenize(isl_str: str):
     tokens = [
-        "n.",
-        "i",
-        "j",
-        "k",
+        r"n",
+        r"ni",
+        r"nj",
+        r"nk",
+        r"i",
+        r"j",
+        r"k",
         r"\d+",
         r"\+",
-        r"\-",
+        r"\- ",
         r"\*",
         r"\/",
-        " < ",
-        " <= ",
-        " > ",
-        " >= ",
-        "\n",
-        "# YOU ARE HERE",
-        "domain: ",
-        "child: ",
-        "sequence: ",
-        " +",
-        " and ",
-        " or ",
-        '"',
+        r"=",
+        r"<",
+        r"<=",
+        r">",
+        r">=",
+        r"mod",
+        r"and",
+        r"or",
+        r'"',
+        r"\(",
+        r"\)",
         r"\[",
         r"\]",
-        r" \}",
-        r"\{ ",
-        " -> ",
-        ", ",
-        "; ",
-        " : ",
+        r"\}",
+        r"\{",
+        r"->",
+        r",",
+        r";",
+        r":",
         r"S_\d+",
         r"L_\d+",
     ]
     pattern = re.compile("|".join([f"^{t}" for t in tokens]))
 
     result = []
-    match = re.match(pattern, yaml_str)
-    while yaml_str and match:
-        pos = match.span(0)[1]
-        # print(f"{match.span(0)=} {pos=}")
-        result.append(yaml_str[:pos])
-        yaml_str = yaml_str[pos:]
-        match = re.match(pattern, yaml_str)
-    print(f"remaining: |{yaml_str[:20]}|")
-    print(f"{match=}")
+    match = re.match(pattern, isl_str.strip())
+    while isl_str and match:
+        pos = match.span()[1]
+        result.append(isl_str[:pos].strip())
+        isl_str = isl_str[pos:].strip()
+        # last_match = match
+        match = re.match(pattern, isl_str.strip())
+    # print(f"{last_match=}")
+    # print(f"remaining: |{isl_str[:20]}|")
+    if isl_str.strip():
+        raise NotImplementedError(f"ISL string not fully parsed. Remaining: {isl_str}")
     return result
+
+
+def parse_isl(isl_str: str, pos: int, result: list) -> int:
+    # open_delim = re.compile(r"^\{|^\[|^\(")
+    # match = re.match(open_delim, isl_str)
+    # match.string
+    # if match.span() != (0, 1):
+    #     raise NotImplementedError("This should not be happening!!!")
+    open_delims = "([{"
+    closed_delims = ")]}"
+    if isl_str[pos] in open_delims:
+        result.append(isl_str[pos])
+        pos += 1
+        pos = parse_isl(isl_str, pos, result)
+        result.append(isl_str[pos])
+        pos += 1
+    # else:
+    #     while isl_str[pos]
+
+    return isl_str[:100]
 
 
 def traverse(yaml_dict, level):
     result = []
     if isinstance(yaml_dict, str):
-        return [(level, f"{yaml_dict[:60]}...")]
+        # isl_tokens = []
+        # pos = parse_isl(yaml_dict, 0, isl_tokens)
+        # if pos != len(yaml_dict):
+        #     raise NotImplementedError(
+        #         "yaml_dict (which should be an isl_string) was not parsed completely!"
+        #     )
+        isl_tokens = tokenize(yaml_dict)
+        return [(level, f"{yaml_dict}|{isl_tokens}...|")]
     elif isinstance(yaml_dict, list):
         for item in yaml_dict:
             result += traverse(item, level + 1)
@@ -403,7 +433,7 @@ def main2():
     print(f"{gemm.benchmark=}")
     scops = tadashi.Scops(gemm)
     scop = scops[0]
-    node = scop.schedule_tree[5]
+    node = scop.schedule_tree[11]
     node.transform(tadashi.TrEnum.TILE, 16)
     yaml_str = node.yaml_str
     pattern = re.compile(r"# YOU ARE HERE\n *")
@@ -413,7 +443,7 @@ def main2():
     traverse(yaml_dict, 0)
     isl_expr = yaml_dict["child"]["sequence"][0]["filter"]
     print(isl_expr)
-    print(f"{tokenize(yaml_str)=}")
+    # print(f"{tokenize(yaml_str)=}")
 
 
 if __name__ == "__main__":
