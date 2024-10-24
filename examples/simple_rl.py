@@ -550,11 +550,17 @@ class TranNN(nn.Module):
         return self.linear(combined)
 
 
+class ArgsNN(nn.Module):
+    def __init__(self, node_nn: NodeNN):
+        super().__init__()
+
+
 def mcts(
     scop: tadashi.Scop,
     node_nn: NodeNN,
     node_head_nn: NodeHeadNN,
     tran_nns: dict[TranNN],
+    args_nns: dict[ArgsNN],
     args: argparse.Namespace,
 ):
     for d in range(args.num_mcts_layers):
