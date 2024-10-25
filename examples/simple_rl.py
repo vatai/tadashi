@@ -6,7 +6,7 @@ import math
 import random
 import re
 from collections import deque, namedtuple
-from itertools import count
+from itertools import count, product
 from pathlib import Path
 from typing import Optional
 
@@ -123,6 +123,26 @@ def get_device():
         if torch.cuda.is_available()
         else "mps" if torch.backends.mps.is_available() else "cpu"
     )
+
+
+def tr_args(node, tr):
+    if tr == TRANSFORMATIONS[TrEnum.TILE]:
+        tile_size = random.choice([2**x for x in range(5, 12)])
+        return [tile_size]
+    lubs = tr.available_args(node)
+    args = []
+    for lub in lubs:
+        if isinstance(lub, tadashi.LowerUpperBound):
+            lb, ub = lub
+            if lb is None:
+                lb = -5
+            if ub is None:
+                ub = 5
+            args = product(args, range(lb, ub))
+        else:
+            args = product(args, [t.value for t in lub])
+
+    return args
 
 
 class ActionSpace:
@@ -551,11 +571,30 @@ class TranNN(nn.Module):
 
 
 class ArgsNN(nn.Module):
-    def __init__(self, node_nn: NodeNN):
+    def __init__(self, node_nn: NodeNN, args: argparse.Namespace):
         super().__init__()
+        device = get_device()
+        self.node_nn = node_nn
+        max_num_args = 3
+        self.max_num_args = max(
+            len(tadashi.TRANSFORMATIONS[t].argtypes) for t in tadashi.TrEnum.FULL
+        )
+        print(f"{self.max_num_args=}")
+        in_size = args.lstm_hidden_size + self.max_num_args
+        self.linear = nn.Linear(in_features=in_size, out_features=1, device=device)
+
+    def forward(self, node: tadashi.Node, args: list):
+        device = get_device()
+        encoded = self.node_nn(node)
+        pad_size = self.max_num_args - len(args)
+        args_tensor = torch.tensor(args + [0] * pad_size)
+        print(f"{args_tensor.shape=}")
+        combined = torch.hstack([encoded, args_tensor]).to(device)
+        return self.linear(combined)
 
 
 def mcts(
+    scops: tadashi.Scops,
     scop: tadashi.Scop,
     node_nn: NodeNN,
     node_head_nn: NodeHeadNN,
@@ -569,14 +608,39 @@ def mcts(
             input=node_head_nn(node_times),
             k=args.node_top_k,
             dim=0,
+            largest=False,
         )
         for node_idx in node_top_k.indices:
             node = scop.schedule_tree[node_idx]
             tr_times = torch.vstack([tran_nns[tr](node, tr) for tr in tadashi.TrEnum])
-            tr_top_k = torch.topk(torch.Tensor(tr_times), args.tr_top_k, dim=0)
+            tr_top_k = torch.topk(
+                torch.Tensor(tr_times),
+                args.tr_top_k,
+                dim=0,
+                largest=False,
+            )
             for tr_idx in tr_top_k.indices:
                 tr = list(tadashi.TrEnum)[tr_idx]
-                print(f"{node.node_type.value=} {tr.value=}")
+                trargs = tr_args(node, tr)
+                args_times = torch.vstack([args_nns[tr](node, ta) for ta in trargs])
+                args_top_k = torch.topk(
+                    torch.Tensor(args_times),
+                    args.args_top_k,
+                    dim=0,
+                    largest=False,
+                )
+                for trarg_idx in args_top_k.indices:
+                    trarg = trargs[trarg_idx]
+                    legal = node.transform(tr, *trarg)
+                    if not legal:
+                        node.rollback()
+                        t = 1000000
+                    else:
+                        app = scops.app
+                        app.compile()
+                        t = app.measure()
+
+                    print(f"{node.node_type.value=} {tr.value=}")
 
 
 def main3():
@@ -588,7 +652,16 @@ def main3():
     node_nn = NodeNN(scop, args)
     node_head_nn = NodeHeadNN(args)
     tran_nns = dict((t, TranNN(node_nn, args)) for t in tadashi.TrEnum)
-    mcts(scops[0], node_nn, node_head_nn, tran_nns, args)
+    args_nns = dict((t, ArgsNN(node_nn, args)) for t in tadashi.TrEnum)
+    mcts(
+        scops=scops,
+        scop=scops[0],
+        node_nn=node_nn,
+        node_head_nn=node_head_nn,
+        trans_nns=tran_nns,
+        args_nns=args_nns,
+        args=args,
+    )
 
 
 if __name__ == "__main__":
