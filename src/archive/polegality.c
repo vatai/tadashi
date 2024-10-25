@@ -255,7 +255,7 @@ main(int argc, char *argv[]) {
     size_t size = isl_map_list_size(list);
     for (size_t i = 0; i < size; ++i) {
       isl_map *map = isl_map_list_get_at(list, i);
-      printf("map[%d]: %s\n", i, isl_map_to_str(map));
+      printf("map[%ld]: %s\n", i, isl_map_to_str(map));
       isl_map_free(map);
     }
     isl_map_list_free(list);
