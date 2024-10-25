@@ -21,29 +21,6 @@ import yaml
 CURRENT_MARK = "CURRENT_"
 
 
-class ActionSpace:
-    @property
-    def n(self):
-        return 42
-
-    def sample(self):
-        return [1]
-
-
-class Env:
-    steps_done = 0
-
-    def step(self, action):
-        return "obs", 0.42, True, True, None
-
-    def reset(self):
-        return [1], [2]
-
-    @property
-    def action_space(self):
-        return ActionSpace()
-
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -146,6 +123,29 @@ def get_device():
         if torch.cuda.is_available()
         else "mps" if torch.backends.mps.is_available() else "cpu"
     )
+
+
+class ActionSpace:
+    @property
+    def n(self):
+        return 42
+
+    def sample(self):
+        return [1]
+
+
+class Env:
+    steps_done = 0
+
+    def step(self, action):
+        return "obs", 0.42, True, True, None
+
+    def reset(self):
+        return [1], [2]
+
+    @property
+    def action_space(self):
+        return ActionSpace()
 
 
 Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
