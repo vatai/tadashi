@@ -646,7 +646,9 @@ def mcts(
 def main3():
     args = get_args()
     base, results = get_polybench_list()
-    gemm = tadashi.apps.Polybench(results[29], base)
+    # benchmark = results[29]
+    benchmark = "linear-algebra/solvers/durbin"
+    gemm = tadashi.apps.Polybench(benchmark=benchmark, base=base)
     scops = tadashi.Scops(gemm)
     scop = scops[0]
     print(scop.schedule_tree[0].yaml_str)
@@ -654,6 +656,7 @@ def main3():
     node_head_nn = NodeHeadNN(args)
     tran_nns = dict((t, TranNN(node_nn, args)) for t in tadashi.TrEnum)
     args_nns = dict((t, ArgsNN(node_nn, args)) for t in tadashi.TrEnum)
+    print(benchmark)
     mcts(
         scops=scops,
         scop=scops[0],
