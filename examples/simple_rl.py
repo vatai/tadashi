@@ -577,7 +577,7 @@ class ArgsNN(nn.Module):
         self.node_nn = node_nn
         max_num_args = 3
         self.max_num_args = max(
-            len(tadashi.TRANSFORMATIONS[t].argtypes) for t in tadashi.TrEnum.FULL
+            len(tadashi.TRANSFORMATIONS[t].argtypes) for t in list(tadashi.TrEnum)
         )
         print(f"{self.max_num_args=}")
         in_size = args.lstm_hidden_size + self.max_num_args
@@ -649,6 +649,7 @@ def main3():
     gemm = tadashi.apps.Polybench(results[29], base)
     scops = tadashi.Scops(gemm)
     scop = scops[0]
+    print(scop.schedule_tree[0].yaml_str)
     node_nn = NodeNN(scop, args)
     node_head_nn = NodeHeadNN(args)
     tran_nns = dict((t, TranNN(node_nn, args)) for t in tadashi.TrEnum)

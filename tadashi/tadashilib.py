@@ -80,7 +80,6 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
-    PRINT_SCHEDULE_NODE = auto()
 
 
 @dataclass
@@ -460,7 +459,6 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
     TrEnum.SET_PARALLEL: SetParallelInfo(),
     TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
-    # TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
 }
 
 
