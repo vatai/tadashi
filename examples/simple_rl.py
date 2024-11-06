@@ -623,6 +623,7 @@ def mcts(
             for tr_idx in tr_top_k.indices:
                 tr = list(tadashi.TrEnum)[tr_idx]
                 trargs = tr_args(node, tr)
+                print(f"{trargs=}")
                 args_times = torch.vstack([args_nns[tr](node, ta) for ta in trargs])
                 args_top_k = torch.topk(
                     torch.Tensor(args_times),
