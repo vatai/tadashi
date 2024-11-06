@@ -126,9 +126,10 @@ def get_device():
 
 
 def tr_args(node, tr):
-    if tr == TRANSFORMATIONS[TrEnum.TILE]:
+    if tr == tadashi.TRANSFORMATIONS[tadashi.TrEnum.TILE]:
         tile_size = random.choice([2**x for x in range(5, 12)])
         return [tile_size]
+    tr = tadashi.TRANSFORMATIONS[tr]
     lubs = tr.available_args(node)
     args = []
     for lub in lubs:
@@ -662,7 +663,7 @@ def main3():
         scop=scops[0],
         node_nn=node_nn,
         node_head_nn=node_head_nn,
-        trans_nns=tran_nns,
+        tran_nns=tran_nns,
         args_nns=args_nns,
         args=args,
     )
