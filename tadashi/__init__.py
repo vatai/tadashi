@@ -532,7 +532,7 @@ class Scops:
     The object of type `Scops` is similar to a list."""
 
     def __init__(self, app: App):
-        self._setup_ctadashi(app)
+        self._setup_ctadashi()
         self._check_missing_file(app.source_path)
         self.num_changes = 0
         self.app = app
@@ -540,8 +540,7 @@ class Scops:
         self.num_scops = self.ctadashi.init_scops(self.source_path_bytes)
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
-    def _setup_ctadashi(self, app: App):
-        os.environ["C_INCLUDE_PATH"] = ":".join(map(str, app.include_paths))
+    def _setup_ctadashi(self):
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self._check_missing_file(self.so_path)
         self.ctadashi = ctypes.CDLL(str(self.so_path))
