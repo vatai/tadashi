@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from tadashi import TRANSFORMATIONS, Scops, TrEnum
 from tadashi.apps import Simple
-from tadashi.tadashilib import TRANSFORMATIONS, Scops, TrEnum
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
