@@ -113,8 +113,8 @@ tadashi_check_legality_parallel(isl_ctx *ctx,
   zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
   cmp = isl_union_set_lex_lt_union_set(isl_union_set_copy(delta),
                                        isl_union_set_copy(zeros));
-  isl_union_map_free(cmp);
   retval = isl_union_map_is_empty(cmp);
+  cmp = isl_union_map_free(cmp);
   cmp = isl_union_set_lex_gt_union_set(delta, zeros);
   retval = retval && isl_union_map_is_empty(cmp);
   isl_union_map_free(cmp);
