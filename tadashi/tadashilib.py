@@ -80,7 +80,6 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
-    PRINT_SCHEDULE_NODE = auto()
 
 
 @dataclass
@@ -160,6 +159,12 @@ class Node:
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
         return func(self.scop.idx, *args)
+
+    @property
+    def yaml_str(self):
+        self.scop.locate(self.location)
+        encoded_result = self.scop.ctadashi.print_schedule_node(self.scop.idx)
+        return encoded_result.decode("utf8")
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
@@ -454,7 +459,6 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
     TrEnum.SET_PARALLEL: SetParallelInfo(),
     TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
-    # TrEnum.PRINT_SCHEDULE_NODE: PrintScheduleNodeInfo(),
 }
 
 
@@ -554,7 +558,7 @@ class Scops:
         self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
-        self.ctadashi.print_schedule_node.restype = None
+        self.ctadashi.print_schedule_node.restype = ctypes.c_char_p
         self.ctadashi.goto_root.argtypes = [ctypes.c_size_t]
         self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         #

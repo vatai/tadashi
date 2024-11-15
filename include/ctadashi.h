@@ -25,7 +25,7 @@ const char *get_expr(size_t idx);
 
 const char *get_loop_signature(size_t scop_idx);
 
-void print_schedule_node(size_t scop_idx);
+const char *print_schedule_node(size_t scop_idx);
 
 void goto_root(size_t scop_idx);
 

@@ -156,10 +156,10 @@ get_loop_signature(size_t scop_idx) {
   return STRINGS.back().c_str();
 }
 
-void
+const char *
 print_schedule_node(size_t scop_idx) {
   isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
-  isl_schedule_node_dump(node);
+  return isl_schedule_node_to_str(node);
 }
 
 /******** current node manipulation *************************/
