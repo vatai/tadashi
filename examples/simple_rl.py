@@ -1,6 +1,9 @@
 #! /bin/env python
 #
 # Adopted from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html#dqn-algorithm
+
+
+# THIS FILE IS NOT FINISHED!
 import argparse
 import math
 import random
