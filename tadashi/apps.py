@@ -8,41 +8,52 @@ from typing import Optional
 
 
 class App:
-
     @property
     def include_paths(self) -> list[Path]:
+        """List of include paths which will be passed to TADASHI."""
         return []
 
+    @property
+    def compile_cmd(self) -> list[str]:
+        """Command executed for compilation (list of strings)."""
+        raise NotImplementedError()
+
+    @property
+    def source_path(self) -> Path:
+        """Path of the source code examined by TADASHI."""
+        raise NotImplementedError()
+
+    @property
+    def output_binary(self) -> Path:
+        """The output binary obtained after compilation."""
+        raise NotImplementedError()
+
+    @staticmethod
+    def extract_runtime(stdout) -> float:
+        """Extract the measured runtime from the output."""
+        raise NotImplementedError()
+
+    @property
+    def run_cmd(self) -> list:
+        """The command which gets executed when we measure runtime."""
+        return [self.output_binary]
+
     def compile(self) -> bool:
+        """Compile the app so it can be measured/executed."""
         result = subprocess.run(self.compile_cmd)
         # raise an exception if it didn't compile
         result.check_returncode()
         return result == 0
 
-    @property
-    def compile_cmd(self) -> list[str]:
-        raise NotImplementedError()
-
-    @property
-    def source_path(self) -> Path:
-        raise NotImplementedError()
-
-    @property
-    def output_binary(self) -> Path:
-        raise NotImplementedError()
-
-    @property
-    def run_cmd(self) -> list:
-        return [self.output_binary]
-
     def measure(self, *args, **kwargs) -> float:
+        """Measure the runtime of the app."""
         result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
-    @staticmethod
-    def extract_runtime(stdout) -> float:
-        raise NotImplementedError()
+    @classmethod
+    def generate_code(self, scops: "Scops"):
+        pass
 
 
 class Simple(App):
