@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -8,6 +9,10 @@ from typing import Optional
 
 
 class App:
+    def __init__(self):
+        c_include_path = ":".join([str(p) for p in self.include_paths])
+        os.environ["C_INCLUDE_PATH"] = c_include_path
+
     @property
     def include_paths(self) -> list[Path]:
         """List of include paths which will be passed to TADASHI."""
@@ -62,6 +67,7 @@ class Simple(App):
     tmpdir: tempfile.TemporaryDirectory
 
     def __init__(self, source: str, alt_source: str = ""):
+        super().__init__()
         self.source = Path(source)
         if alt_source:
             self.alt_source = Path(alt_source)
@@ -107,6 +113,7 @@ class Polybench(App):
     base: Path  # the dir where polybench was unpacked
 
     def __init__(self, benchmark: str, base: str, compiler_options=[]):
+        super().__init__()
         self.benchmark = Path(benchmark)
         self.base = Path(base)
         self.compiler_options = compiler_options
