@@ -14,8 +14,6 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-from .apps import App
-
 
 class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
@@ -531,13 +529,11 @@ class Scops:
 
     The object of type `Scops` is similar to a list."""
 
-    def __init__(self, app: App):
+    def __init__(self, source_path: str):
         self._setup_ctadashi()
-        self._check_missing_file(app.source_path)
+        self._check_missing_file(source_path)
         self.num_changes = 0
-        self.app = app
-        self.source_path_bytes = str(self.app.source_path).encode()
-        self.num_scops = self.ctadashi.init_scops(self.source_path_bytes)
+        self.num_scops = self.ctadashi.init_scops(str(source_path).encode())
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
 
     def _setup_ctadashi(self):
@@ -573,25 +569,7 @@ class Scops:
         if not path.exists():
             raise ValueError(f"{path} does not exist!")
 
-    def get_input_path_bytes_and_backup_source(self):
-        """Get the 'input' to `generate_code()` which is a copy of the
-        current 'source'."""
-        file_name = self.app.source_path.with_suffix("")
-        file_ext = self.app.source_path.suffix
-
-        # find a path which doesn't exist
-        input_path = Path(f"{file_name}-{self.num_changes}{file_ext}")
-        self.num_changes += 1
-        while input_path.exists():
-            input_path = Path(f"{file_name}-{self.num_changes}{file_ext}")
-            self.num_changes += 1
-
-        # copy source_path to input_path
-        input_path.write_text(self.app.source_path.read_text())
-        input_path_bytes = str(input_path).encode()
-        return input_path_bytes
-
-    def generate_code(self, input_path="", output_path=""):
+    def generate_code(self, input_path, output_path):
         """Generate the source code.
 
         The transformations happen on the SCoPs (polyhedral
@@ -599,15 +577,10 @@ class Scops:
         to be called.
 
         """
-        output_path_bytes = str(self.app.alt_source_path).encode()
-        # output_path_bytes = str(output_path).encode()
-        # if not output_path:
-        #     output_path_bytes = self.source_path_bytes
-        input_path_bytes = str(input_path).encode()
-        if not input_path:
-            # rewrite the original source_path file with the generated code
-            input_path_bytes = self.get_input_path_bytes_and_backup_source()
-        self.ctadashi.generate_code(input_path_bytes, output_path_bytes)
+        self.ctadashi.generate_code(
+            str(input_path).encode(),
+            str(output_path).encode(),
+        )
 
     def __len__(self):
         return self.num_scops

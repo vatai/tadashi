@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import datetime
 import os
 import shutil
 import subprocess
@@ -7,11 +7,14 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
+from . import Scops
+
 
 class App:
-    def __init__(self):
+    def __init__(self, source: str):
         c_include_path = ":".join([str(p) for p in self.include_paths])
         os.environ["C_INCLUDE_PATH"] = c_include_path
+        self.scops = Scops(Path(source))
 
     @property
     def include_paths(self) -> list[Path]:
@@ -31,6 +34,10 @@ class App:
     @property
     def output_binary(self) -> Path:
         """The output binary obtained after compilation."""
+        raise NotImplementedError()
+
+    def generate_code(self):
+        """Create a transformed copy of the app object."""
         raise NotImplementedError()
 
     @staticmethod
@@ -56,34 +63,23 @@ class App:
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
-    @classmethod
-    def generate_code(self, scops: "Scops"):
-        pass
-
 
 class Simple(App):
     source: Path
-    alt_source: Path
-    tmpdir: tempfile.TemporaryDirectory
 
-    def __init__(self, source: str, alt_source: str = ""):
-        super().__init__()
+    def __init__(self, source: str):
+        super().__init__(source)
         self.source = Path(source)
-        if alt_source:
-            self.alt_source = Path(alt_source)
-        else:
-            self.tmpdir = tempfile.TemporaryDirectory()
-            self.alt_source = Path(self.tmpdir.name) / self.source.name
-        shutil.copy(self.source, self.alt_source)  # boo
 
-    def __del__(self):
-        self.tmpdir.cleanup()
+    @property
+    def output_binary(self) -> Path:
+        return self.source.with_suffix("")
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            str(self.alt_source),
+            str(self.source),
             "-o",
             str(self.output_binary),
         ]
@@ -92,18 +88,20 @@ class Simple(App):
     def source_path(self) -> Path:
         return self.source
 
-    @property
-    def alt_source_path(self) -> Path:
-        return self.alt_source
-
-    @property
-    def output_binary(self) -> Path:
-        return self.alt_source.with_suffix("")
-
     @staticmethod
     def extract_runtime(stdout):
         num = stdout.split()[1]
         return float(num)
+
+    def generate_code(self, alt_source=None):
+        now = datetime.datetime.now()
+        now_str = datetime.datetime.isoformat(now)
+        suffix = self.source_path.suffix
+        filename = self.source_path.with_suffix("")
+        new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
+        print(f"{new_file=}")
+        self.scops.generate_code(self.source, new_file)
+        return Simple(new_file)
 
 
 class Polybench(App):

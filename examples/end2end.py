@@ -1,9 +1,8 @@
 import tadashi
 from tadashi.apps import Simple
-app = Simple("examples/depnodep.c")
-scops = tadashi.Scops(app)
 
-node = scops[0].schedule_tree[1]
+app = Simple("examples/depnodep.c")
+node = app.scops[0].schedule_tree[1]
 print(f"{node=}")
 tr = tadashi.TrEnum.FULL_SHIFT_VAR
 print(f"{tr in node.available_transformations=}")
@@ -22,7 +21,9 @@ legal = node.transform(tr, *args)
 print(f"{legal=}")
 # output:
 
-scops.generate_code()
 app.compile()
 print(f"{app.measure()=}")
+transformed_app = app.generate_code()
+transformed_app.compile()
+print(f"{transformed_app.measure()=}")
 # output:
