@@ -56,11 +56,11 @@ class TestCtadashi(unittest.TestCase):
                     target_code.append(target_line)
         return transforms, target_code
 
-    def _get_generated_code(self, scops):
+    def _get_generated_code(self, app):
         with tempfile.TemporaryDirectory() as tmpdir:
             outfile = Path(tmpdir) / self._testMethodName
             outfile_bytes = str(outfile).encode()
-            scops.ctadashi.generate_code(scops.source_path_bytes, outfile_bytes)
+            app.generate_code(outfile)
             generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
@@ -70,11 +70,10 @@ class TestCtadashi(unittest.TestCase):
         transforms, target_code = self._read_app_comments(app)
 
         # transform
-        scops = Scops(app)
         logger.info("Start test")
         legality = []
         for tr in transforms:
-            scop = scops[tr.scop_idx]  # select_scop()
+            scop = app.scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
             trinfo = TRANSFORMATIONS[tr.transformation]
             legal = node.transform(tr.transformation, *tr.transformation_args)
@@ -82,7 +81,7 @@ class TestCtadashi(unittest.TestCase):
                 legality.append(f"legality={legal}")
 
         logger.info("Transformations done")
-        generated_code = self._get_generated_code(scops)
+        generated_code = self._get_generated_code(app)
         logger.info("Code generated")
         generated_code += legality
         diff = difflib.unified_diff(generated_code, target_code)
@@ -91,14 +90,13 @@ class TestCtadashi(unittest.TestCase):
             print(f"\n{Path(__file__).parent/self._testMethodName}.c:1:1")
             print(diff_str)
         logger.info("Test finished")
-        del scops
+        # del scops
         self.assertTrue(generated_code == target_code)
 
     @staticmethod
     def _get_node(idx):
         app = Simple("tests/py/dummy.c")
-        scops = Scops(app)
-        node = scops[0].schedule_tree[idx]
+        node = app.scops[0].schedule_tree[idx]
         return node
 
     @classmethod

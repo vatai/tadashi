@@ -94,11 +94,14 @@ class Simple(App):
         return float(num)
 
     def generate_code(self, alt_source=None):
-        now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now)
-        suffix = self.source_path.suffix
-        filename = self.source_path.with_suffix("")
-        new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
+        if alt_source:
+            new_file = Path(alt_source)
+        else:
+            now = datetime.datetime.now()
+            now_str = datetime.datetime.isoformat(now)
+            suffix = self.source_path.suffix
+            filename = self.source_path.with_suffix("")
+            new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
         print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         return Simple(new_file)
