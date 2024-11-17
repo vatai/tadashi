@@ -56,9 +56,10 @@ class TestCtadashi(unittest.TestCase):
                     target_code.append(target_line)
         return transforms, target_code
 
-    def _get_generated_code(self, app):
+    def _get_generated_code(self, app: Simple):
         with tempfile.TemporaryDirectory() as tmpdir:
-            outfile = Path(tmpdir) / self._testMethodName
+            suffix = Path(app.source).suffix
+            outfile = Path(tmpdir) / Path(self._testMethodName).with_suffix(suffix)
             outfile_bytes = str(outfile).encode()
             app.generate_code(outfile)
             generated_code = Path(outfile_bytes.decode()).read_text().split("\n")

@@ -102,7 +102,6 @@ class Simple(App):
             suffix = self.source_path.suffix
             filename = self.source_path.with_suffix("")
             new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
-        print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         return Simple(new_file)
 
