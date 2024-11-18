@@ -5,14 +5,6 @@
 extern "C" {
 #endif
 
-struct scop_info_t {
-  pet_scop *scop;
-  isl_union_map *dependency;
-  isl_schedule_node *current_node;
-  isl_schedule_node *tmp_node;
-  int modified;
-};
-
 int init_scops(char *input);
 
 void free_scops();
@@ -32,10 +24,6 @@ void goto_root(size_t scop_idx);
 void goto_parent(size_t scop_idx);
 
 void goto_child(size_t scop_idx, size_t child_idx);
-
-struct scop_info_t *pre_transform(size_t scop_idx);
-
-int post_transform(size_t scop_idx);
 
 int tile(size_t scop_idx, size_t tile_size);
 

@@ -36,9 +36,24 @@ extern "C" {
 
 std::vector<struct scop_info_t> SCOP_INFO;
 
-std::vector<std::string> STRINGS;
-
 /******** scops constructor/descructor **********************/
+
+struct scop_info_t {
+  pet_scop *scop;
+  isl_union_map *dependency;
+  isl_schedule_node *current_node;
+  isl_schedule_node *tmp_node;
+  int modified;
+  std::vector<std::string> strings;
+  const char *add_string(char *str);
+};
+
+const char *
+scop_info_t::add_string(char *str) {
+  this->strings.push_back(str);
+  free(str);
+  return this->strings.back().c_str();
+}
 
 __isl_give isl_printer *
 get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
@@ -84,9 +99,9 @@ free_scops() {
     if (si->tmp_node != NULL)
       isl_schedule_node_free(si->tmp_node);
     pet_scop_free(si->scop);
+    si->strings.clear();
   }
   SCOP_INFO.clear();
-  STRINGS.clear();
   isl_ctx_free(ctx);
 }
 
@@ -104,26 +119,24 @@ get_num_children(size_t scop_idx) {
 
 const char *
 get_expr(size_t idx) {
-  isl_schedule_node *node = SCOP_INFO[idx].current_node;
-  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+  scop_info_t *si = &SCOP_INFO[idx];
+  if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
-      isl_schedule_node_band_get_partial_schedule(node);
-  const char *tmp = isl_multi_union_pw_aff_to_str(mupa);
-  STRINGS.push_back(tmp);
-  free((void *)tmp);
+      isl_schedule_node_band_get_partial_schedule(si->current_node);
+  char *tmp = isl_multi_union_pw_aff_to_str(mupa);
   mupa = isl_multi_union_pw_aff_free(mupa);
-  return STRINGS.back().c_str();
+  return si->add_string(tmp);
 }
 
 const char *
 get_loop_signature(size_t scop_idx) {
-  isl_schedule_node *node = SCOP_INFO[scop_idx].current_node;
-  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+  scop_info_t *si = &SCOP_INFO[scop_idx];
+  if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "[]";
   std::stringstream ss;
   isl_multi_union_pw_aff *mupa;
-  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
   assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   // TODO save name
   isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
@@ -154,8 +167,8 @@ get_loop_signature(size_t scop_idx) {
   ss << "]";
   isl_set_list_free(slist);
   isl_union_set_free(domain);
-  STRINGS.push_back(ss.str());
-  return STRINGS.back().c_str();
+  si->strings.push_back(ss.str());
+  return si->strings.back().c_str();
 }
 
 const char *
