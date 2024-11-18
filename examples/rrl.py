@@ -7,8 +7,8 @@ import time
 from pathlib import Path
 from subprocess import TimeoutExpired
 
+from tadashi import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 from tadashi.apps import Polybench, Simple
-from tadashi.tadashilib import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 
 
 def get_polybench_list():
@@ -95,20 +95,20 @@ def run_model(app, num_steps, name=""):
     timer.time("Compilation")
     app.measure()
     t = timer.time("Total walltime")
-    loop_nests = Scops(app)
+    scop = app.scops[0]
     timer.time("Extraction")
     timer.custom("Kernel walltime", t)
     for i in range(num_steps):
         timer.times.append({})
         timer.reset()
-        loop_idx, tr, key, args = model.random_transform(loop_nests[0])
+        loop_idx, tr, key, args = model.random_transform(scop)
         timer.time("Random transformation")
-        legal = loop_nests[0].schedule_tree[loop_idx].transform(tr, *args)
+        legal = scop.schedule_tree[loop_idx].transform(tr, *args)
         timer.time("Transformation + legality")
         if not legal:
-            loop_nests[0].schedule_tree[loop_idx].rollback()
+            scop.schedule_tree[loop_idx].rollback()
     timer.reset()
-    loop_nests.generate_code(app.source_path, app.alt_source_path)
+    app = app.generate_code()
     timer.time("Code generation")
     app.compile()
     timer.time("Compilation")
@@ -131,7 +131,7 @@ def measure_polybench(num_steps):
     base, poly = get_polybench_list()
     for i, p in enumerate(poly):
         print(f"Start {i+1}. {p.name}")
-        app = Polybench(p, base)
+        app = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
         run_model(app, num_steps=num_steps, name=p.name)
 
 
@@ -159,4 +159,4 @@ if __name__ == "__main__":
     random.seed(42)
     # verify_polybench()
     measure_polybench(num_steps=1)
-    measure_polybench(num_steps=10)
+    # measure_polybench(num_steps=10)

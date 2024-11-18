@@ -11,29 +11,25 @@ from . import Scops
 
 
 class App:
-    def __init__(self, source: str):
-        c_include_path = ":".join([str(p) for p in self.include_paths])
-        os.environ["C_INCLUDE_PATH"] = c_include_path
-        self.scops = Scops(Path(source))
+    scops: Scops
+    source: Path
+    compiler_options: list[str]
 
-    @property
-    def include_paths(self) -> list[Path]:
-        """List of include paths which will be passed to TADASHI."""
-        return []
+    def _finalize_object(
+        self,
+        source: str,
+        include_paths: list[str] = [],
+        compiler_options: list[str] = [],
+    ):
+        self.compiler_options = compiler_options
+        self.compiler_options += [f"-I{p}" for p in include_paths]
+        os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
+        self.source = Path(source)
+        self.scops = Scops(self.source)
 
     @property
     def compile_cmd(self) -> list[str]:
         """Command executed for compilation (list of strings)."""
-        raise NotImplementedError()
-
-    @property
-    def source_path(self) -> Path:
-        """Path of the source code examined by TADASHI."""
-        raise NotImplementedError()
-
-    @property
-    def output_binary(self) -> Path:
-        """The output binary obtained after compilation."""
         raise NotImplementedError()
 
     def generate_code(self):
@@ -46,13 +42,18 @@ class App:
         raise NotImplementedError()
 
     @property
+    def output_binary(self) -> Path:
+        """The output binary obtained after compilation."""
+        return self.source.with_suffix("")
+
+    @property
     def run_cmd(self) -> list:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
     def compile(self) -> bool:
         """Compile the app so it can be measured/executed."""
-        result = subprocess.run(self.compile_cmd)
+        result = subprocess.run(self.compile_cmd + self.compiler_options)
         # raise an exception if it didn't compile
         result.check_returncode()
         return result == 0
@@ -65,28 +66,18 @@ class App:
 
 
 class Simple(App):
-    source: Path
-
-    def __init__(self, source: str):
-        super().__init__(source)
-        self.source = Path(source)
-
-    @property
-    def output_binary(self) -> Path:
-        return self.source.with_suffix("")
+    def __init__(self, source: str, compiler_options: list[str] = []):
+        self._finalize_object(source, compiler_options)
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
             str(self.source),
+            "-fopenmp",
             "-o",
             str(self.output_binary),
         ]
-
-    @property
-    def source_path(self) -> Path:
-        return self.source
 
     @staticmethod
     def extract_runtime(stdout):
@@ -99,8 +90,8 @@ class Simple(App):
         else:
             now = datetime.datetime.now()
             now_str = datetime.datetime.isoformat(now)
-            suffix = self.source_path.suffix
-            filename = self.source_path.with_suffix("")
+            suffix = self.source.suffix
+            filename = self.source.with_suffix("")
             new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
         self.scops.generate_code(self.source, new_file)
         return Simple(new_file)
@@ -112,50 +103,42 @@ class Polybench(App):
     benchmark: Path  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(self, benchmark: str, base: str, compiler_options=[]):
-        super().__init__()
+    def __init__(self, benchmark: str, base: str, infix: str = "", compiler_options=[]):
         self.benchmark = Path(benchmark)
         self.base = Path(base)
-        self.compiler_options = compiler_options
-        shutil.copy(self.source_path, self.alt_source_path)
-
-    @property
-    def source_path(self) -> Path:
-        path = self.base / self.benchmark / self.benchmark.name
-        return path.with_suffix(".c")
-
-    @property
-    def output_binary(self) -> Path:
-        return self.source_path.parent / self.benchmark.name
-
-    @property
-    def utilities_path(self) -> Path:
-        return self.base / "utilities"
-
-    @property
-    def include_paths(self) -> list[Path]:
-        return [self.utilities_path]
-
-    @property
-    def alt_source_path(self) -> Path:
-        ext = f".tmp{self.source_path.suffix}"
-        return self.source_path.with_suffix(ext)
+        dir = self.base / self.benchmark
+        source = dir / Path(self.benchmark.name).with_suffix(f".c")
+        compiler_options += ["-DPOLYBENCH_TIME", "-DPOLYBENCH_USE_RESTRICT", "-lm"]
+        # "-DMEDIUM_DATASET",
+        self.utilities = base / "utilities"
+        self._finalize_object(
+            source=self._source_with_infix(source, infix),
+            compiler_options=compiler_options,
+            include_paths=[self.utilities],
+        )
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
             "gcc",
-            str(self.alt_source_path),
-            str(self.utilities_path / "polybench.c"),
-            "-I",
-            str(self.include_paths[0]),
+            str(self.source),
+            str(self.utilities / "polybench.c"),
             "-o",
             str(self.output_binary),
-            "-DPOLYBENCH_TIME",
-            "-DPOLYBENCH_USE_RESTRICT",
-            # "-DMEDIUM_DATASET",
-            "-lm",
-        ] + self.compiler_options
+        ]
+
+    def generate_code(self, alt_infix=""):
+        if not alt_infix:
+            now = datetime.datetime.now()
+            now_str = datetime.datetime.isoformat(now)
+            alt_infix = f".{now_str}"
+        new_file = self._source_with_infix(self.source, alt_infix)
+        self.scops.generate_code(self.source, new_file)
+        return Polybench(self.benchmark, self.base, infix=alt_infix)
+
+    @staticmethod
+    def _source_with_infix(source: Path, infix: str):
+        return f"{source.with_suffix('')}{infix}{source.suffix}"
 
     @staticmethod
     def extract_runtime(stdout) -> float:
