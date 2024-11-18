@@ -110,8 +110,10 @@ get_expr(size_t idx) {
   isl_multi_union_pw_aff *mupa =
       isl_schedule_node_band_get_partial_schedule(node);
   const char *tmp = isl_multi_union_pw_aff_to_str(mupa);
-  isl_multi_union_pw_aff_free(mupa);
-  return tmp;
+  STRINGS.push_back(tmp);
+  free((void *)tmp);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  return STRINGS.back().c_str();
 }
 
 const char *
