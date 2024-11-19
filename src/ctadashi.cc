@@ -361,7 +361,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
 
 int
 generate_code(const char *input_path, const char *output_path) {
-  int r;
+  int r = 0;
   isl_ctx *ctx = isl_schedule_node_get_ctx(SCOP_INFO[0].current_node);
   size_t scop_idx = 0;
 
