@@ -55,9 +55,6 @@ struct scop_t {
 // const char *
 //  scop_t::add_string(char *str)
 
-typedef std::vector<struct scop_t> scops_t;
-std::vector<scops_t> SCOPS_POOL;
-
 class Scop {
 private:
   pet_scop *scop;
@@ -82,9 +79,18 @@ public:
   };
 };
 
+class Scops {
+public:
+  isl_ctx *ctx;
+  std::vector<scop_t> scops;
+  Scops(char *input);
+  int num_scops();
+  ~Scops();
+};
+
 __isl_give isl_printer *
 get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
-  std::vector<scop_t> *scops = (scops_t *)user;
+  std::vector<scop_t> *scops = (std::vector<scop_t> *)user;
   isl_schedule *sched = pet_scop_get_schedule(scop);
   struct scop_t tmp = {.scop = scop,
                        .dependency = get_dependencies(scop),
@@ -92,55 +98,49 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
                        .tmp_node = nullptr,
                        .modified = false};
   isl_schedule_free(sched);
+  printf("CALLBACK\n");
   scops->push_back(tmp);
   return p;
 }
 
-class Scops {
-private:
-  isl_ctx *ctx;
-  std::vector<scop_t> scops;
-
-public:
-  Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
-    FILE *output = fopen("/dev/null", "w");
-    // pet_options_set_autodetect(ctx, 1);
-    // pet_options_set_signed_overflow(ctx, 1);
-    // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-    pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
-    fclose(output);
-  };
-  int
-  num_scops() {
-    return scops.size();
-  }
-  ~Scops() {};
-};
-
-/// Entry point.
-int
-init_scops(char *input) { // Entry point
-
-  isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
+Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
   FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  SCOPS_POOL.emplace_back();
-  pet_transform_C_source(ctx, input, output, get_scop_callback, &SCOPS_POOL[0]);
+  pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
   fclose(output);
-  return SCOPS_POOL[0].size();
+};
+
+int
+Scops::num_scops() {
+  return scops.size();
+}
+
+Scops::~Scops() {};
+
+std::vector<Scops> SCOPS_POOL;
+
+/// Entry point.
+int
+init_scops(char *input) { // Entry point
+  // pet_options_set_autodetect(ctx, 1);
+  // pet_options_set_signed_overflow(ctx, 1);
+  // pet_options_set_encapsulate_dynamic_control(ctx, 1);
+  SCOPS_POOL.emplace_back(input);
+  printf("SIZE: %d\n", SCOPS_POOL[0].scops.size());
+  return SCOPS_POOL[0].scops.size();
 }
 
 void
 free_scops() {
-  if (SCOPS_POOL[0].size() == 0)
+  if (SCOPS_POOL[0].scops.size() == 0)
     return;
-  isl_set *set = pet_scop_get_context(SCOPS_POOL[0][0].scop);
+  isl_set *set = pet_scop_get_context(SCOPS_POOL[0].scops[0].scop);
   isl_ctx *ctx = isl_set_get_ctx(set);
   isl_set_free(set);
-  for (size_t i = 0; i < SCOPS_POOL[0].size(); ++i) {
-    scop_t *si = &SCOPS_POOL[0][i];
+  for (size_t i = 0; i < SCOPS_POOL[0].scops.size(); ++i) {
+    scop_t *si = &SCOPS_POOL[0].scops[i];
     isl_union_map_free(si->dependency);
     isl_schedule_node_free(si->current_node);
     if (si->tmp_node != NULL)
@@ -148,7 +148,7 @@ free_scops() {
     pet_scop_free(si->scop);
     si->strings.clear();
   }
-  SCOPS_POOL[0].clear();
+  SCOPS_POOL[0].scops.clear();
   isl_ctx_free(ctx);
 }
 
@@ -156,17 +156,18 @@ free_scops() {
 
 int
 get_type(size_t scop_idx) {
-  return isl_schedule_node_get_type(SCOPS_POOL[0][scop_idx].current_node);
+  return isl_schedule_node_get_type(SCOPS_POOL[0].scops[scop_idx].current_node);
 }
 
 size_t
 get_num_children(size_t scop_idx) {
-  return isl_schedule_node_n_children(SCOPS_POOL[0][scop_idx].current_node);
+  return isl_schedule_node_n_children(
+      SCOPS_POOL[0].scops[scop_idx].current_node);
 }
 
 const char *
 get_expr(size_t idx) {
-  scop_t *si = &SCOPS_POOL[0][idx];
+  scop_t *si = &SCOPS_POOL[0].scops[idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
@@ -178,7 +179,7 @@ get_expr(size_t idx) {
 
 const char *
 get_loop_signature(size_t scop_idx) {
-  scop_t *si = &SCOPS_POOL[0][scop_idx];
+  scop_t *si = &SCOPS_POOL[0].scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "[]";
   std::stringstream ss;
@@ -220,7 +221,7 @@ get_loop_signature(size_t scop_idx) {
 
 const char *
 print_schedule_node(size_t scop_idx) {
-  isl_schedule_node *node = SCOPS_POOL[0][scop_idx].current_node;
+  isl_schedule_node *node = SCOPS_POOL[0].scops[scop_idx].current_node;
   return isl_schedule_node_to_str(node);
 }
 
@@ -228,20 +229,20 @@ print_schedule_node(size_t scop_idx) {
 
 void
 goto_root(size_t scop_idx) {
-  SCOPS_POOL[0][scop_idx].current_node =
-      isl_schedule_node_root(SCOPS_POOL[0][scop_idx].current_node);
+  SCOPS_POOL[0].scops[scop_idx].current_node =
+      isl_schedule_node_root(SCOPS_POOL[0].scops[scop_idx].current_node);
 }
 
 void
 goto_parent(size_t scop_idx) {
-  SCOPS_POOL[0][scop_idx].current_node =
-      isl_schedule_node_parent(SCOPS_POOL[0][scop_idx].current_node);
+  SCOPS_POOL[0].scops[scop_idx].current_node =
+      isl_schedule_node_parent(SCOPS_POOL[0].scops[scop_idx].current_node);
 }
 
 void
 goto_child(size_t scop_idx, size_t child_idx) {
-  SCOPS_POOL[0][scop_idx].current_node =
-      isl_schedule_node_child(SCOPS_POOL[0][scop_idx].current_node, child_idx);
+  SCOPS_POOL[0].scops[scop_idx].current_node = isl_schedule_node_child(
+      SCOPS_POOL[0].scops[scop_idx].current_node, child_idx);
 }
 
 /******** transformations ***********************************/
@@ -256,7 +257,7 @@ pre_transform(size_t scop_idx) {
   // since we might wanna get to illegal states, temporarily of course
   // - the only requirement is that we're in a legal state at the
   // final output.
-  scop_t *si = &SCOPS_POOL[0][scop_idx]; // Just save some typing.
+  scop_t *si = &SCOPS_POOL[0].scops[scop_idx]; // Just save some typing.
   if (si->tmp_node != NULL)
     si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
@@ -265,7 +266,7 @@ pre_transform(size_t scop_idx) {
 
 int
 post_transform(size_t scop_idx) {
-  scop_t *si = &SCOPS_POOL[0][scop_idx]; // Just save some typing.
+  scop_t *si = &SCOPS_POOL[0].scops[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
@@ -281,7 +282,7 @@ post_transform(size_t scop_idx) {
 
 void
 rollback(size_t scop_idx) {
-  scop_t *si = &SCOPS_POOL[0][scop_idx];
+  scop_t *si = &SCOPS_POOL[0].scops[scop_idx];
   isl_schedule_node *tmp = si->tmp_node;
   si->tmp_node = si->current_node;
   si->current_node = tmp;
@@ -378,10 +379,10 @@ set_parallel(size_t scop_idx) {
 
 int
 set_loop_opt(size_t scop_idx, int pos, int opt) {
-  isl_schedule_node *node = SCOPS_POOL[0][scop_idx].current_node;
+  isl_schedule_node *node = SCOPS_POOL[0].scops[scop_idx].current_node;
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
-  SCOPS_POOL[0][scop_idx].current_node = node;
+  SCOPS_POOL[0].scops[scop_idx].current_node = node;
   return 1;
 }
 
@@ -391,7 +392,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
   isl_ctx *ctx;
   isl_schedule *sched;
   size_t *scop_idx = (size_t *)user;
-  struct scop_t *scop_info = &SCOPS_POOL[0][*scop_idx];
+  struct scop_t *scop_info = &SCOPS_POOL[0].scops[*scop_idx];
 
   if (!scop || !p)
     return isl_printer_free(p);
@@ -409,7 +410,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
 int
 generate_code(const char *input_path, const char *output_path) {
   int r = 0;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(SCOPS_POOL[0][0].current_node);
+  isl_ctx *ctx = isl_schedule_node_get_ctx(SCOPS_POOL[0].scops[0].current_node);
   size_t scop_idx = 0;
 
   //   isl_options_set_ast_print_macro_once(ctx, 1);
