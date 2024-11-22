@@ -321,7 +321,7 @@ generate_code(size_t pool_idx, const char *input_path,
 /******** transformations ***********************************/
 
 extern "C" Scop *
-pre_transform(size_t scop_idx) {
+pre_transform(size_t pool_idx, size_t scop_idx) {
   // Set up `tmp_node` as a copy of `current_node` because we don't
   // want to mess with the current node if the transformation is not
   // legal.
@@ -330,7 +330,7 @@ pre_transform(size_t scop_idx) {
   // since we might wanna get to illegal states, temporarily of course
   // - the only requirement is that we're in a legal state at the
   // final output.
-  Scop *si = &SCOPS_POOL[0].scops[scop_idx]; // Just save some typing.
+  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
   if (si->tmp_node != NULL)
     si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
@@ -338,8 +338,8 @@ pre_transform(size_t scop_idx) {
 }
 
 extern "C" int
-post_transform(size_t scop_idx) {
-  Scop *si = &SCOPS_POOL[0].scops[scop_idx]; // Just save some typing.
+post_transform(size_t pool_idx, size_t scop_idx) {
+  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
@@ -354,80 +354,82 @@ post_transform(size_t scop_idx) {
 }
 
 extern "C" int
-tile(size_t scop_idx, size_t tile_size) {
-  Scop *si = pre_transform(scop_idx);
+tile(size_t pool_idx, size_t scop_idx, size_t tile_size) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-interchange(size_t scop_idx) {
-  Scop *si = pre_transform(scop_idx);
+interchange(size_t pool_idx, size_t scop_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_interchange(si->tmp_node);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-fuse(size_t scop_idx, int idx1, int idx2) {
-  Scop *si = pre_transform(scop_idx);
+fuse(size_t pool_idx, size_t scop_idx, int idx1, int idx2) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-full_fuse(size_t scop_idx) {
-  Scop *si = pre_transform(scop_idx);
+full_fuse(size_t pool_idx, size_t scop_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_fuse(si->tmp_node);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx) {
-  Scop *si = pre_transform(scop_idx);
+partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+                  long var_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node =
       tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-partial_shift_val(size_t scop_idx, int pa_idx, long val) {
-  Scop *si = pre_transform(scop_idx);
+partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-full_shift_var(size_t scop_idx, long coeff, long var_idx) {
-  Scop *si = pre_transform(scop_idx);
+full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-full_shift_val(size_t scop_idx, long val) {
-  Scop *si = pre_transform(scop_idx);
+full_shift_val(size_t pool_idx, size_t scop_idx, long val) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-full_shift_param(size_t scop_idx, long coeff, long param_idx) {
-  Scop *si = pre_transform(scop_idx);
+full_shift_param(size_t pool_idx, size_t scop_idx, long coeff, long param_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-partial_shift_param(size_t scop_idx, int pa_idx, long coeff, long param_idx) {
-  Scop *si = pre_transform(scop_idx);
+partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+                    long param_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node =
       tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
-  return post_transform(scop_idx);
+  return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
-set_parallel(size_t scop_idx) {
-  Scop *si = pre_transform(scop_idx);
+set_parallel(size_t pool_idx, size_t scop_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_set_parallel(si->tmp_node);
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
@@ -443,8 +445,8 @@ set_parallel(size_t scop_idx) {
 }
 
 extern "C" int
-set_loop_opt(size_t scop_idx, int pos, int opt) {
-  isl_schedule_node *node = SCOPS_POOL[0].scops[scop_idx].current_node;
+set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt) {
+  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx].current_node;
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
   SCOPS_POOL[0].scops[scop_idx].current_node = node;

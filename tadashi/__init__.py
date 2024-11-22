@@ -156,7 +156,7 @@ class Node:
 
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
-        return func(self.scop.scop_idx, *args)
+        return func(self.scop.pool_idx, self.scop.scop_idx, *args)
 
     @property
     def yaml_str(self):
@@ -598,7 +598,7 @@ class Scops:
             msg = f"The transformation {tr_name} is not specified correctly!"
             assert len(tr_info.arg_help) == len(tr_info.argtypes), msg
             func = getattr(self.ctadashi, tr_info.func_name)
-            func.argtypes = [ctypes.c_size_t] + tr_info.argtypes
+            func.argtypes = [ctypes.c_size_t, ctypes.c_size_t] + tr_info.argtypes
             func.restype = tr_info.restype
 
     @staticmethod

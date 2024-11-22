@@ -32,28 +32,30 @@ void rollback(size_t pool_idx, size_t scop_idx);
 int generate_code(size_t pool_idx, const char *input_path,
                   const char *output_path);
 
-int tile(size_t scop_idx, size_t tile_size);
+int tile(size_t pool_idx, size_t scop_idx, size_t tile_size);
 
-int interchange(size_t scop_idx);
+int interchange(size_t pool_idx, size_t scop_idx);
 
-int fuse(size_t scop_idx, int idx1, int idx2);
+int fuse(size_t pool_idx, size_t scop_idx, int idx1, int idx2);
 
-int full_fuse(size_t scop_idx);
+int full_fuse(size_t pool_idx, size_t scop_idx);
 
-int partial_shift_var(size_t scop_idx, int pa_idx, long coeff, long var_idx);
+int partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+                      long var_idx);
 
-int partial_shift_val(size_t scop_idx, int pa_idx, long val);
+int partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val);
 
-int full_shift_var(size_t scop_idx, long coeff, long var_idx);
+int full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx);
 
-int full_shift_val(size_t scop_idx, long val);
+int full_shift_val(size_t pool_idx, size_t scop_idx, long val);
 
-int full_shift_param(size_t scop_idx, long coeff, long param_idx);
+int full_shift_param(size_t pool_idx, size_t scop_idx, long coeff,
+                     long param_idx);
 
-int partial_shift_param(size_t scop_idx, int pa_idx, long coeff,
-                        long param_idx);
+int partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx,
+                        long coeff, long param_idx);
 
-int set_loop_opt(size_t scop_idx, int pos, int opt);
+int set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt);
 
 #ifdef __cplusplus
 }
