@@ -161,12 +161,14 @@ class Node:
     @property
     def yaml_str(self):
         self.scop.locate(self.location)
-        encoded_result = self.scop.ctadashi.print_schedule_node(self.scop.scop_idx)
+        encoded_result = self.scop.ctadashi.print_schedule_node(
+            self.scop.pool_idx, self.scop.scop_idx
+        )
         return encoded_result.decode("utf8")
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        self.scop.ctadashi.rollback(self.scop.scop_idx)
+        self.scop.ctadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
 
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
@@ -483,7 +485,9 @@ class Scop:
         variables of each statement covered by the loop/band node.
 
         """
-        loop_signature = self.ctadashi.get_loop_signature(self.scop_idx).decode()
+        loop_signature = self.ctadashi.get_loop_signature(
+            self.pool_idx, self.scop_idx
+        ).decode()
         return literal_eval(loop_signature)
 
     def _make_node(self, parent, location):
@@ -506,23 +510,23 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                self.ctadashi.goto_child(self.scop_idx, c)
+                self.ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                self.ctadashi.goto_parent(self.scop_idx)
+                self.ctadashi.goto_parent(self.pool_idx, self.scop_idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
-        self.ctadashi.goto_root(self.scop_idx)
+        self.ctadashi.goto_root(self.pool_idx, self.scop_idx)
         nodes: list[Node] = []
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
-        self.ctadashi.goto_root(self.scop_idx)
+        self.ctadashi.goto_root(self.pool_idx, self.scop_idx)
         for c in location:
-            self.ctadashi.goto_child(self.scop_idx, c)
+            self.ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
 
 class Scops:
@@ -564,14 +568,31 @@ class Scops:
         self.ctadashi.get_num_children.restype = ctypes.c_size_t
         self.ctadashi.get_expr.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_expr.restype = ctypes.c_char_p
-        self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t]
-        self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
-        self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]
+        self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.print_schedule_node.restype = ctypes.c_char_p
-        self.ctadashi.goto_root.argtypes = [ctypes.c_size_t]
-        self.ctadashi.generate_code.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+        self.ctadashi.goto_root.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        self.ctadashi.goto_root.restype = None
+        self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        self.ctadashi.goto_parent.restype = None
+        self.ctadashi.goto_child.argtypes = [
+            ctypes.c_size_t,
+            ctypes.c_size_t,
+            ctypes.c_size_t,
+        ]
+        self.ctadashi.rollback.argtypes = [
+            ctypes.c_size_t,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+        ]
+        self.ctadashi.rollback.restype = ctypes.c_int
+        self.ctadashi.generate_code.argtypes = [
+            ctypes.c_size_t,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+        ]
+        self.ctadashi.generate_code.restype = ctypes.c_int
         #
         for tr_name, tr_info in TRANSFORMATIONS.items():
             msg = f"The transformation {tr_name} is not specified correctly!"
@@ -594,6 +615,7 @@ class Scops:
 
         """
         self.ctadashi.generate_code(
+            self.pool_idx,
             str(input_path).encode(),
             str(output_path).encode(),
         )

@@ -17,15 +17,20 @@ size_t get_num_children(size_t pool_idx, size_t scop_idx);
 
 const char *get_expr(size_t pool_idx, size_t idx);
 
-const char *get_loop_signature(size_t scop_idx);
+const char *get_loop_signature(size_t pool_idx, size_t scop_idx);
 
-const char *print_schedule_node(size_t scop_idx);
+const char *print_schedule_node(size_t pool_idx, size_t scop_idx);
 
-void goto_root(size_t scop_idx);
+void goto_root(size_t pool_idx, size_t scop_idx);
 
-void goto_parent(size_t scop_idx);
+void goto_parent(size_t pool_idx, size_t scop_idx);
 
-void goto_child(size_t scop_idx, size_t child_idx);
+void goto_child(size_t pool_idx, size_t scop_idx, size_t child_idx);
+
+void rollback(size_t pool_idx, size_t scop_idx);
+
+int generate_code(size_t pool_idx, const char *input_path,
+                  const char *output_path);
 
 int tile(size_t scop_idx, size_t tile_size);
 
@@ -49,10 +54,6 @@ int partial_shift_param(size_t scop_idx, int pa_idx, long coeff,
                         long param_idx);
 
 int set_loop_opt(size_t scop_idx, int pos, int opt);
-
-void rollback(size_t scop_idx);
-
-int generate_code(const char *input_path, const char *output_path);
 
 #ifdef __cplusplus
 }
