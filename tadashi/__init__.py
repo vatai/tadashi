@@ -156,17 +156,17 @@ class Node:
 
         func = getattr(self.scop.ctadashi, tr.func_name)
         self.scop.locate(self.location)
-        return func(self.scop.idx, *args)
+        return func(self.scop.scop_idx, *args)
 
     @property
     def yaml_str(self):
         self.scop.locate(self.location)
-        encoded_result = self.scop.ctadashi.print_schedule_node(self.scop.idx)
+        encoded_result = self.scop.ctadashi.print_schedule_node(self.scop.scop_idx)
         return encoded_result.decode("utf8")
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        self.scop.ctadashi.rollback(self.scop.idx)
+        self.scop.ctadashi.rollback(self.scop.scop_idx)
 
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
@@ -465,13 +465,14 @@ class Scop:
 
     In the .so file, there is a global `std::vector` of `isl_scop`
     objects.  Objects of `Scop` (in python) represents a the
-    `isl_scop` object by storing its index in the `std::vecto`.
+    `isl_scop` object by storing its index in the `std::vector`.
 
     """
 
-    def __init__(self, idx, ctadashi) -> None:
+    def __init__(self, pool_idx, scop_idx, ctadashi) -> None:
+        self.pool_idx = pool_idx
+        self.scop_idx = scop_idx
         self.ctadashi = ctadashi
-        self.idx = idx
 
     def get_loop_signature(self):
         """Extract the value for `Node.loop_signature`.
@@ -482,19 +483,19 @@ class Scop:
         variables of each statement covered by the loop/band node.
 
         """
-        loop_signature = self.ctadashi.get_loop_signature(self.idx).decode()
+        loop_signature = self.ctadashi.get_loop_signature(self.scop_idx).decode()
         return literal_eval(loop_signature)
 
     def _make_node(self, parent, location):
-        num_children = self.ctadashi.get_num_children(self.idx)
+        num_children = self.ctadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
-            node_type=NodeType(self.ctadashi.get_type(self.idx)),
+            node_type=NodeType(self.ctadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
             location=location,
             loop_signature=self.get_loop_signature(),
-            expr=self.ctadashi.get_expr(self.idx).decode("utf-8"),
+            expr=self.ctadashi.get_expr(self.pool_idx, self.scop_idx).decode("utf-8"),
             children_idx=[-1] * num_children,
         )
         return node
@@ -505,23 +506,23 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                self.ctadashi.goto_child(self.idx, c)
+                self.ctadashi.goto_child(self.scop_idx, c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                self.ctadashi.goto_parent(self.idx)
+                self.ctadashi.goto_parent(self.scop_idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
-        self.ctadashi.goto_root(self.idx)
+        self.ctadashi.goto_root(self.scop_idx)
         nodes: list[Node] = []
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
-        self.ctadashi.goto_root(self.idx)
+        self.ctadashi.goto_root(self.scop_idx)
         for c in location:
-            self.ctadashi.goto_child(self.idx, c)
+            self.ctadashi.goto_child(self.scop_idx, c)
 
 
 class Scops:
@@ -541,7 +542,8 @@ class Scops:
         print(f"{str(source_path)=}")
         print(f"{self.num_scops=}")
         print(f"{self.pool_idx=}")
-        self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
+        args = [self.pool_idx, self.ctadashi]
+        self.scops = [Scop(i, *args) for i in range(self.num_scops)]
 
     def __del__(self):
         self.ctadashi.free_scops(self.pool_idx)
@@ -556,14 +558,14 @@ class Scops:
         self.ctadashi.num_scops.restype = ctypes.c_size_t
         self.ctadashi.free_scops.argtypes = [ctypes.c_size_t]
         self.ctadashi.free_scops.restype = None
-        self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_type.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_type.restype = ctypes.c_int
-        self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]
+        self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
         self.ctadashi.get_num_children.restype = ctypes.c_size_t
+        self.ctadashi.get_expr.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        self.ctadashi.get_expr.restype = ctypes.c_char_p
         self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t]
         self.ctadashi.goto_child.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_expr.argtypes = [ctypes.c_size_t]
-        self.ctadashi.get_expr.restype = ctypes.c_char_p
         self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
         self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t]

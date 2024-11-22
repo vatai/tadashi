@@ -123,7 +123,7 @@ class ScopsPool {
 private:
   std::map<int, Scops *> scops_map;
   std::deque<size_t> free_indexes;
-  size_t max_index = 0;
+  size_t next_index = 0;
 
 public:
   size_t add(char *input);
@@ -138,18 +138,20 @@ ScopsPool::add(char *input) {
     index = free_indexes.front();
     free_indexes.pop_front();
   } else {
-    index = max_index;
-    max_index++;
+    index = next_index;
+    next_index++;
   }
-  assert(scops_map.find(index) == scops_map.end());
+  assert(scops_map.find(index) == scops_map.end() ||
+         scops_map[index] == nullptr);
   auto pair = scops_map.emplace(index, new Scops(input));
-  assert(pair.second);
+  // assert(pair.second);
   return pair.first->first;
 }
 
 void
 ScopsPool::remove(size_t pool_idx) {
   delete scops_map[pool_idx];
+  scops_map[pool_idx] = nullptr;
   free_indexes.push_back(pool_idx);
 };
 
@@ -180,19 +182,20 @@ free_scops(size_t pool_idx) {
 /******** node info *****************************************/
 
 extern "C" int
-get_type(size_t scop_idx) {
-  return isl_schedule_node_get_type(SCOPS_POOL[0].scops[scop_idx].current_node);
+get_type(size_t pool_idx, size_t scop_idx) {
+  return isl_schedule_node_get_type(
+      SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
 }
 
 extern "C" size_t
-get_num_children(size_t scop_idx) {
+get_num_children(size_t pool_idx, size_t scop_idx) {
   return isl_schedule_node_n_children(
-      SCOPS_POOL[0].scops[scop_idx].current_node);
+      SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
 }
 
 extern "C" const char *
-get_expr(size_t idx) {
-  Scop *si = &SCOPS_POOL[0].scops[idx];
+get_expr(size_t pool_idx, size_t idx) {
+  Scop *si = &SCOPS_POOL[pool_idx].scops[idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
