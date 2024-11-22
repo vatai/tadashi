@@ -5,9 +5,11 @@
 extern "C" {
 #endif
 
-int init_scops(char *input);
+size_t init_scops(char *input);
 
-void free_scops();
+size_t num_scops(size_t pool_idx);
+
+void free_scops(size_t pool_idx);
 
 int get_type(size_t scop_idx);
 

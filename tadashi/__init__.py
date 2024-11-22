@@ -529,19 +529,33 @@ class Scops:
 
     The object of type `Scops` is similar to a list."""
 
+    pool_idx: int
+    num_scops: int
+    scops: list[Scop]
+
     def __init__(self, source_path: str):
         self._setup_ctadashi()
         self._check_missing_file(source_path)
-        self.num_changes = 0
-        self.num_scops = self.ctadashi.init_scops(str(source_path).encode())
+        self.pool_idx = self.ctadashi.init_scops(str(source_path).encode())
+        self.num_scops = self.ctadashi.num_scops(self.pool_idx)
+        print(f"{str(source_path)=}")
+        print(f"{self.num_scops=}")
+        print(f"{self.pool_idx=}")
         self.scops = [Scop(i, self.ctadashi) for i in range(self.num_scops)]
+
+    def __del__(self):
+        self.ctadashi.free_scops(self.pool_idx)
 
     def _setup_ctadashi(self):
         self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
         self._check_missing_file(self.so_path)
         self.ctadashi = ctypes.CDLL(str(self.so_path))
         self.ctadashi.init_scops.argtypes = [ctypes.c_char_p]
-        self.ctadashi.init_scops.restype = ctypes.c_int
+        self.ctadashi.init_scops.restype = ctypes.c_size_t
+        self.ctadashi.num_scops.argtypes = [ctypes.c_size_t]
+        self.ctadashi.num_scops.restype = ctypes.c_size_t
+        self.ctadashi.free_scops.argtypes = [ctypes.c_size_t]
+        self.ctadashi.free_scops.restype = None
         self.ctadashi.get_type.argtypes = [ctypes.c_size_t]
         self.ctadashi.get_type.restype = ctypes.c_int
         self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t]
@@ -587,6 +601,3 @@ class Scops:
 
     def __getitem__(self, idx):
         return self.scops[idx]
-
-    def __del__(self):
-        self.ctadashi.free_scops()
