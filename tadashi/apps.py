@@ -123,6 +123,7 @@ class Polybench(App):
             "gcc",
             str(self.source),
             str(self.utilities / "polybench.c"),
+            "-fopenmp",
             "-o",
             str(self.output_binary),
         ]
