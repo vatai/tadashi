@@ -40,6 +40,7 @@ private:
   size_t next_index = 0;
 
 public:
+  ~ScopsPool();
   size_t add(char *input);
   void remove(size_t pool_idx);
   Scops &operator[](size_t idx);

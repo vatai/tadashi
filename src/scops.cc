@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <deque>
 #include <sstream>
 #include <vector>
@@ -63,6 +64,14 @@ Scops::~Scops() {
   scops.clear();
   isl_ctx_free(ctx);
 };
+
+ScopsPool::~ScopsPool() {
+  size_t size = scops_map.size();
+  for (int pool_idx = 0; pool_idx < size; pool_idx++) {
+    if (scops_map[pool_idx] != nullptr)
+      remove(pool_idx);
+  }
+}
 
 size_t
 ScopsPool::add(char *input) {
