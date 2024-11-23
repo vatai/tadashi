@@ -96,6 +96,7 @@ Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
   pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
   fclose(output);
+  printf("Scops(%s)\n", input);
 };
 
 int
@@ -121,7 +122,7 @@ Scops::~Scops() {
 
 class ScopsPool {
 private:
-  std::map<int, Scops *> scops_map;
+  std::vector<Scops *> scops_map;
   std::deque<size_t> free_indexes;
   size_t next_index = 0;
 
@@ -134,18 +135,14 @@ public:
 size_t
 ScopsPool::add(char *input) {
   size_t index = 0;
+  Scops *scops_ptr = new Scops(input);
   if (!free_indexes.empty()) {
     index = free_indexes.front();
-    free_indexes.pop_front();
+    scops_map[index] = scops_ptr;
   } else {
-    index = next_index;
-    next_index++;
+    scops_map.push_back(scops_ptr);
   }
-  assert(scops_map.find(index) == scops_map.end() ||
-         scops_map[index] == nullptr);
-  auto pair = scops_map.emplace(index, new Scops(input));
-  // assert(pair.second);
-  return pair.first->first;
+  return index;
 }
 
 void
@@ -166,16 +163,21 @@ init_scops(char *input) { // Entry point
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  return SCOPS_POOL.add(input);
+  printf("init_scops: %s\n", input);
+  size_t pool_idx = SCOPS_POOL.add(input);
+  printf("init_scops: pool_idx%d\n", pool_idx);
+  return pool_idx;
 }
 
 extern "C" size_t
 num_scops(size_t pool_idx) {
+  printf("num_scops: pool_idx=%d\n", pool_idx);
   return SCOPS_POOL[pool_idx].scops.size();
 }
 
 extern "C" void
 free_scops(size_t pool_idx) {
+  printf("free_scops: pool_idx=%d\n", pool_idx);
   SCOPS_POOL.remove(pool_idx);
 }
 
