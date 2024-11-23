@@ -8,14 +8,10 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <deque>
 #include <isl/aff_type.h>
 #include <isl/space_type.h>
-#include <map>
 #include <pet.h>
 #include <sstream>
-#include <string>
-#include <vector>
 
 #include <isl/aff.h>
 #include <isl/ast.h>
@@ -34,128 +30,10 @@
 
 #include "codegen.h"
 #include "legality.h"
+#include "scops.h"
 #include "transformations.h"
 
-/******** scops constructor/descructor **********************/
-
-class Scop {
-private:
-  std::vector<std::string> strings;
-
-public:
-  pet_scop *scop;
-  isl_union_map *dependency;
-  isl_schedule_node *current_node;
-  isl_schedule_node *tmp_node;
-  int modified;
-  Scop(pet_scop *scop);
-  const char *add_string(char *str);
-  const char *add_string(std::stringstream &ss);
-};
-
-Scop::Scop(pet_scop *scop) : scop(scop), tmp_node(nullptr), modified(false) {
-  dependency = get_dependencies(scop);
-  isl_schedule *schedule = pet_scop_get_schedule(scop);
-  current_node = isl_schedule_get_root(schedule);
-  schedule = isl_schedule_free(schedule);
-}
-
-const char *
-Scop::add_string(char *str) {
-  strings.push_back(str);
-  free(str);
-  return strings.back().c_str();
-};
-
-const char *
-Scop::add_string(std::stringstream &ss) {
-  strings.push_back(ss.str());
-  return strings.back().c_str();
-}
-
-class Scops {
-public:
-  isl_ctx *ctx;
-  std::vector<Scop> scops;
-  Scops(char *input);
-  int num_scops();
-  ~Scops();
-};
-
-__isl_give isl_printer *
-get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
-  std::vector<Scop> *scops = (std::vector<Scop> *)user;
-  scops->emplace_back(scop);
-  return p;
-}
-
-Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
-  FILE *output = fopen("/dev/null", "w");
-  // pet_options_set_autodetect(ctx, 1);
-  // pet_options_set_signed_overflow(ctx, 1);
-  // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
-  fclose(output);
-  printf("Scops(%s)\n", input);
-};
-
-int
-Scops::num_scops() {
-  return scops.size();
-}
-
-Scops::~Scops() {
-  // if (SCOPS_POOL[pool_idx].scops.size() == 0)
-  //   return;
-  for (size_t i = 0; i < scops.size(); ++i) {
-    Scop *si = &scops[i];
-    isl_union_map_free(si->dependency);
-    isl_schedule_node_free(si->current_node);
-    if (si->tmp_node != nullptr)
-      isl_schedule_node_free(si->tmp_node);
-    pet_scop_free(si->scop);
-    // si->strings.clear();
-  }
-  scops.clear();
-  isl_ctx_free(ctx);
-};
-
-class ScopsPool {
-private:
-  std::vector<Scops *> scops_map;
-  std::deque<size_t> free_indexes;
-  size_t next_index = 0;
-
-public:
-  size_t add(char *input);
-  void remove(size_t pool_idx);
-  Scops &operator[](size_t idx);
-} SCOPS_POOL;
-
-size_t
-ScopsPool::add(char *input) {
-  size_t index = 0;
-  Scops *scops_ptr = new Scops(input);
-  if (!free_indexes.empty()) {
-    index = free_indexes.front();
-    scops_map[index] = scops_ptr;
-  } else {
-    scops_map.push_back(scops_ptr);
-  }
-  return index;
-}
-
-void
-ScopsPool::remove(size_t pool_idx) {
-  delete scops_map[pool_idx];
-  scops_map[pool_idx] = nullptr;
-  free_indexes.push_back(pool_idx);
-};
-
-Scops &
-ScopsPool::operator[](size_t idx) {
-  return *scops_map[idx];
-}
+ScopsPool SCOPS_POOL;
 
 /// Entry point.
 extern "C" size_t
@@ -163,21 +41,17 @@ init_scops(char *input) { // Entry point
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  printf("init_scops: %s\n", input);
   size_t pool_idx = SCOPS_POOL.add(input);
-  printf("init_scops: pool_idx%d\n", pool_idx);
   return pool_idx;
 }
 
 extern "C" size_t
 num_scops(size_t pool_idx) {
-  printf("num_scops: pool_idx=%d\n", pool_idx);
   return SCOPS_POOL[pool_idx].scops.size();
 }
 
 extern "C" void
 free_scops(size_t pool_idx) {
-  printf("free_scops: pool_idx=%d\n", pool_idx);
   SCOPS_POOL.remove(pool_idx);
 }
 
