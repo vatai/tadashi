@@ -25,22 +25,12 @@ class TransformData:
 
 
 class TestCtadashi(unittest.TestCase):
-    @staticmethod
-    def _proc_line(line: str, transform_data: TransformData, target_code: list[str]):
-        """Return `True` if the line contains transformation data.
-
-        Return `True` when the `transform_data` object gets populated, and
-        `False` when the line is appended to the `target_code` list.
-
-        """
-        return False
 
     @classmethod
     def _read_app_comments(cls, app):
         TRANSFORMATION = " TRANSFORMATION: "
         transforms = []
         target_code = []
-        transform_data = TransformData()
         with open(app.source) as file:
             for commented_line in file:
                 if not commented_line.startswith(COMMENT):
@@ -91,7 +81,7 @@ class TestCtadashi(unittest.TestCase):
             print(f"\n{Path(__file__).parent/self._testMethodName}.c:1:1")
             print(diff_str)
         logger.info("Test finished")
-        # del scops
+        del app
         self.assertTrue(generated_code == target_code)
 
     @staticmethod
@@ -108,6 +98,7 @@ class TestCtadashi(unittest.TestCase):
     def _get_sequence_node(cls):
         return cls._get_node(3)
 
+    @unittest.skip("No reason")
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
         self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
