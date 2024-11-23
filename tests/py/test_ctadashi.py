@@ -66,7 +66,6 @@ class TestCtadashi(unittest.TestCase):
         for tr in transforms:
             scop = app.scops[tr.scop_idx]  # select_scop()
             node = scop.schedule_tree[tr.node_idx]  # model.select_node(scop)
-            trinfo = TRANSFORMATIONS[tr.transformation]
             legal = node.transform(tr.transformation, *tr.transformation_args)
             if legal is not None:
                 legality.append(f"legality={legal}")
