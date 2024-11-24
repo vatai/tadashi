@@ -20,17 +20,21 @@ public:
   isl_schedule_node *tmp_node;
   int modified;
   Scop(pet_scop *scop);
+  ~Scop();
   const char *add_string(char *str);
   const char *add_string(std::stringstream &ss);
 };
 
 class Scops {
+
+public:
+  Scops(char *input);
+  ~Scops();
+  int num_scops();
+
 public:
   isl_ctx *ctx;
   std::vector<Scop> scops;
-  Scops(char *input);
-  int num_scops();
-  ~Scops();
 };
 
 class ScopsPool {
@@ -40,6 +44,7 @@ private:
   size_t next_index = 0;
 
 public:
+  ScopsPool();
   ~ScopsPool();
   size_t add(char *input);
   void remove(size_t pool_idx);
