@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
+from . import TRANSFORMATIONS, Scops, TrEnum
 from .apps import Simple
-from .tadashilib import TRANSFORMATIONS, Scops, TrEnum
 
 
 def main():
@@ -11,7 +11,7 @@ def main():
     node = scop.schedule_tree[2]  # model.select_node(scop)
     print(f"{node=}")
     node.transform(TrEnum.TILE, 10)
-    scops.generate_code()
+    app = app.generate_code()
     app.compile()
     print(f"{app.output_binary=}")
 
