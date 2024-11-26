@@ -6,8 +6,7 @@ from .apps import Simple
 
 def main():
     app = Simple("./examples/depnodep.c")
-    scops = Scops(app)
-    scop = scops[0]  # select_scop()
+    scop = app.scops[0]  # select_scop()
     node = scop.schedule_tree[2]  # model.select_node(scop)
     print(f"{node=}")
     node.transform(TrEnum.TILE, 10)
