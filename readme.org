@@ -2,11 +2,13 @@
 
 * Breaking changes in v0.2.0
 
-Code generation is different.  Instead of the old:
+Code generation is different.  Code like this
 
 #+begin_src python
   scops.generate_code()
 #+end_src
+
+should be replace with code like this:
 
 #+begin_src python
   transformed_app = app.generate_code()
