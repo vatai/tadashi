@@ -26,8 +26,8 @@ class TransformData:
 
 class TestCtadashi(unittest.TestCase):
 
-    @classmethod
-    def _read_app_comments(cls, app):
+    @staticmethod
+    def _read_app_comments(app):
         TRANSFORMATION = " TRANSFORMATION: "
         transforms = []
         target_code = []
