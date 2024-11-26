@@ -1,5 +1,22 @@
 #+title: Tadashi
 
+* Breaking changes in v0.2.0
+
+Code generation is different.  Code like this
+
+#+begin_src python
+  scops.generate_code()
+#+end_src
+
+should be replace with code like this:
+
+#+begin_src python
+  transformed_app = app.generate_code()
+#+end_src
+
+Now both the old ~app~, and new ~transformed_app~ stay "alive", i.e. the
+user can compile and measure both of them.
+
 * Documentation:
 
 After the double blind review and the end of the anonymity

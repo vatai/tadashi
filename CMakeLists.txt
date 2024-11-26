@@ -99,6 +99,9 @@ target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
 add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
+add_library(scops SHARED src/scops.cc)
+target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 include_directories(include)
 
 find_package(Python REQUIRED COMPONENTS Development)
@@ -106,7 +109,7 @@ find_package(SWIG) # 4.0 COMPONENTS python)
 include (UseSWIG)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
-target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
+target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations scops)
 set_property(SOURCE src/ctadashi.i
   PROPERTY CPLUSPLUS ON
   PROPERTY SWIG_INCLUDE_DIRECTORIES )
