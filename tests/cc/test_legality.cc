@@ -1,5 +1,5 @@
 /*
- * Emil VATAI, Riken, R-CCS, HPAIS. All rights reserved.
+ * Emil VATAI, Riken. All rights reserved.
  *
  * Date: 2023-11-24
  */

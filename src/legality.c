@@ -99,18 +99,22 @@ tadashi_check_legality_parallel(isl_ctx *ctx,
   isl_union_set *delta, *zeros;
 
   if (isl_union_map_is_empty(dep)) {
-    isl_union_map_free(dep);
-    isl_union_map_free(map);
+    dep = isl_union_map_free(dep);
+    map = isl_union_map_free(map);
     return isl_bool_true;
   }
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
+  if (isl_union_set_is_empty(delta)) {
+    delta = isl_union_set_free(delta);
+    return isl_bool_true;
+  }
   zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
   cmp = isl_union_set_lex_lt_union_set(isl_union_set_copy(delta),
                                        isl_union_set_copy(zeros));
-  isl_union_map_free(cmp);
   retval = isl_union_map_is_empty(cmp);
+  cmp = isl_union_map_free(cmp);
   cmp = isl_union_set_lex_gt_union_set(delta, zeros);
   retval = retval && isl_union_map_is_empty(cmp);
   isl_union_map_free(cmp);

@@ -9,10 +9,11 @@ ltximg/
 .cache
 .ccls-cache
 _minted*
-build
+*build
 *.pluto.c
 *.pluto.cloog
 compile_commands.json
 *.tadashi.yaml
 *.tadashi.isl
 __pycache__
+times/*.json

@@ -1,3 +1,4 @@
+/** @file */
 #include <assert.h>
 
 #include <isl/aff.h>
@@ -15,6 +16,15 @@
 
 #include "transformations.h"
 
+/**
+ * Insert a context node with param_idx to be less than
+ * limit.
+ *
+ * @param node Node of the schedule tree
+ * @param param_idx Parameter index
+ * @param limit Upper limit for parameter specified by param_idx
+ * @returns Node pointing to the node below the context
+ */
 isl_schedule_node *
 limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
   isl_id *param;
@@ -38,6 +48,13 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
   return isl_schedule_node_first_child(node);
 }
 
+/**
+ * 1D loop tiling.
+ *
+ * @param node The band node which represents the loop which will be tiled
+ * @param tile_size Size of (number of iterations in) one tile
+ * @returns Transformed schedule tree node
+ */
 isl_schedule_node *
 tadashi_tile(isl_schedule_node *node, int tile_size) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
@@ -47,6 +64,12 @@ tadashi_tile(isl_schedule_node *node, int tile_size) {
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
+/**
+ * Loop interchange.
+ *
+ * @param node The band node which will be swapped with it's only child
+ * @returns Transformed schedule tree node
+ */
 isl_schedule_node *
 tadashi_interchange(isl_schedule_node *node) {
   isl_multi_union_pw_aff *mupa;
