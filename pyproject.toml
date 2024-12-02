@@ -1,9 +1,29 @@
 # IGNORE THIS FILE FOR NOW
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "cmake_build_extension", "wheel", "setuptools-git-versioning"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tadashi"  # as it would appear on PyPI
-version = "0.42"
+name = "Tadashi"  # as it would appear on PyPI
+readme = "readme.md"
+dynamic = ["dependencies", "version"]
+authors = [
+  {name = "Emil Vatai",      email = "emil.vatai@gmail.com"}
+]
+maintainers = [
+  {name = "Emil Vatai",      email = "emil.vatai@gmail.com"},
+]
+### keywords = ["simulation", "spin-dynamics", "radical pairs"]
+### license = {text = "MIT"}
+
+[project.urls]
+### Homepage = "https://github.com/Spin-Chemistry-Labs/radicalpy"
+### Documentation = "https://radicalpy.readthedocs.io/en/latest/"
+### Source = "https://github.com/Spin-Chemistry-Labs/radicalpy"
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
