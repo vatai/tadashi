@@ -61,7 +61,7 @@ Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
 Scops::~Scops() {
   scops.clear();
   isl_ctx_free(ctx);
-  // printf("<< ~Scops()\n");
+  printf("<< ~Scops()\n");
 };
 
 int
@@ -81,17 +81,18 @@ ScopsPool::~ScopsPool() {
     if (scops_map[pool_idx] != nullptr)
       delete scops_map[pool_idx];
   }
-  scops_map.clear();
-  free_indexes.clear();
+  // scops_map.clear();
+  // free_indexes.clear();
   // printf("< ~ScopsPool()\n");
 }
 
 size_t
 ScopsPool::add(char *input) {
-  size_t index = 0;
+  size_t index = scops_map.size();
   Scops *scops_ptr = new Scops(input);
   if (!free_indexes.empty()) {
     index = free_indexes.front();
+    free_indexes.pop_front();
     scops_map[index] = scops_ptr;
   } else {
     scops_map.push_back(scops_ptr);

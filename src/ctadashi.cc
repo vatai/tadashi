@@ -42,6 +42,7 @@ init_scops(char *input) { // Entry point
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
   size_t pool_idx = SCOPS_POOL.add(input);
+  printf(">>> init_scops(pool_idx=%zu)\n", pool_idx);
   return pool_idx;
 }
 
@@ -52,6 +53,7 @@ num_scops(size_t pool_idx) {
 
 extern "C" void
 free_scops(size_t pool_idx) {
+  printf(">>> free_scops(pool_idx=%zu)\n", pool_idx);
   SCOPS_POOL.remove(pool_idx);
 }
 
