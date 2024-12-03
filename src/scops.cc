@@ -1,4 +1,3 @@
-#include <cassert>
 #include <cstdio>
 #include <deque>
 #include <sstream>
@@ -19,8 +18,7 @@ Scop::Scop(pet_scop *scop) : scop(scop), tmp_node(nullptr), modified(false) {
 
 Scop::~Scop() {
   dependency = isl_union_map_free(dependency);
-  if (current_node != nullptr)
-    isl_schedule_node_free(current_node);
+  isl_schedule_node_free(current_node);
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
   pet_scop_free(scop);
@@ -49,16 +47,14 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   return p;
 }
 
-Scops::Scops(char *input) {
-  ctx = isl_ctx_alloc_with_pet_options();
+Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
+
   // printf("Scops::Scops(ctx=%p)\n", ctx);
   FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  int ret;
-  ret = pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
-  assert(ret == 0);
+  pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
   fclose(output);
   // printf("Scops::Scops(ctx=%p)\n", ctx);
 };
@@ -98,7 +94,6 @@ ScopsPool::add(char *input) {
   if (!free_indexes.empty()) {
     index = free_indexes.front();
     free_indexes.pop_front();
-    assert(scops_vector[index] == nullptr);
     scops_vector[index] = scops_ptr;
   } else {
     scops_vector.push_back(scops_ptr);

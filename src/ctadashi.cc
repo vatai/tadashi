@@ -191,9 +191,9 @@ generate_code(size_t pool_idx, const char *input_path,
   //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
+  Scop *si = SCOPS_POOL[pool_idx].scops.data();
   r = pet_transform_C_source(ctx, input_path, output_file,
-                             generate_code_callback,
-                             SCOPS_POOL[pool_idx].scops.data());
+                             generate_code_callback, si);
   fclose(output_file);
   return r;
 }

@@ -583,8 +583,7 @@ class Scops:
         ]
         self.ctadashi.rollback.argtypes = [
             ctypes.c_size_t,
-            ctypes.c_char_p,
-            ctypes.c_char_p,
+            ctypes.c_size_t,
         ]
         self.ctadashi.rollback.restype = ctypes.c_int
         self.ctadashi.generate_code.argtypes = [
