@@ -473,7 +473,6 @@ class Scop:
 
     def __init__(self, pool_idx, scop_idx, ctadashi) -> None:
         self.pool_idx = pool_idx
-        print(f"Scop({scop_idx=})")
         self.scop_idx = scop_idx
         self.ctadashi = ctadashi
 
@@ -544,7 +543,6 @@ class Scops:
         self._check_missing_file(Path(source_path))
         self.pool_idx = self.ctadashi.init_scops(str(source_path).encode())
         self.num_scops = self.ctadashi.num_scops(self.pool_idx)
-        print(f"{self.num_scops=}")
         # print(f"{str(source_path)=}")
         # print(f"{self.num_scops=}")
         # print(f"{self.pool_idx=}")

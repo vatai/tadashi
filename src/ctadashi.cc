@@ -41,8 +41,10 @@ init_scops(char *input) { // Entry point
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
+
+  printf(">>> init_scops()\n");
   size_t pool_idx = SCOPS_POOL.add(input);
-  printf(">>> init_scops(pool_idx=%zu)\n", pool_idx);
+  printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
   return pool_idx;
 }
 
@@ -55,6 +57,7 @@ extern "C" void
 free_scops(size_t pool_idx) {
   printf(">>> free_scops(pool_idx=%zu)\n", pool_idx);
   SCOPS_POOL.remove(pool_idx);
+  printf("<<< free_scops(pool_idx=%zu)\n", pool_idx);
 }
 
 /******** node info *****************************************/
@@ -311,7 +314,7 @@ set_parallel(size_t pool_idx, size_t scop_idx) {
   si->tmp_node = tadashi_set_parallel(si->tmp_node);
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
   node = isl_schedule_node_first_child(node);
   isl_bool legal = tadashi_check_legality_parallel(ctx, node, si->dependency);
   node = isl_schedule_node_free(node);

@@ -10,10 +10,10 @@
 #include <isl/schedule_node.h>
 
 class Scop {
-private:
+ private:
   std::vector<std::string> strings;
 
-public:
+ public:
   pet_scop *scop;
   isl_union_map *dependency;
   isl_schedule_node *current_node;
@@ -27,24 +27,23 @@ public:
 
 class Scops {
 
-public:
+ public:
   Scops(char *input);
   ~Scops();
   int num_scops();
 
-public:
+ public:
   isl_ctx *ctx;
   std::vector<Scop> scops;
 };
 
 class ScopsPool {
-private:
-  std::vector<Scops *> scops_map;
+ private:
+  std::vector<Scops *> scops_vector;
   std::deque<size_t> free_indexes;
-  size_t next_index = 0;
 
-public:
-  ScopsPool();
+ public:
+  // ScopsPool();
   ~ScopsPool();
   size_t add(char *input);
   void remove(size_t pool_idx);
