@@ -540,14 +540,14 @@ class Scops:
 
     def __init__(self, source_path: str):
         self._setup_ctadashi()
-        self._check_missing_file(source_path)
+        self._check_missing_file(Path(source_path))
         self.pool_idx = self.ctadashi.init_scops(str(source_path).encode())
         self.num_scops = self.ctadashi.num_scops(self.pool_idx)
         # print(f"{str(source_path)=}")
         # print(f"{self.num_scops=}")
         # print(f"{self.pool_idx=}")
-        args = [self.pool_idx, self.ctadashi]
-        self.scops = [Scop(i, *args) for i in range(self.num_scops)]
+        kwargs = {"pool_idx": self.pool_idx, "ctadashi": self.ctadashi}
+        self.scops = [Scop(scop_idx=i, **kwargs) for i in range(self.num_scops)]
 
     def __del__(self):
         self.ctadashi.free_scops(self.pool_idx)

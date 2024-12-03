@@ -41,7 +41,10 @@ init_scops(char *input) { // Entry point
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
+
+  // printf(">>> init_scops()\n");
   size_t pool_idx = SCOPS_POOL.add(input);
+  // printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
   return pool_idx;
 }
 
@@ -52,7 +55,9 @@ num_scops(size_t pool_idx) {
 
 extern "C" void
 free_scops(size_t pool_idx) {
+  // printf(">>> free_scops(pool_idx=%zu)\n", pool_idx);
   SCOPS_POOL.remove(pool_idx);
+  // printf("<<< free_scops(pool_idx=%zu)\n", pool_idx);
 }
 
 /******** node info *****************************************/
@@ -161,19 +166,17 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
                        void *user) {
   isl_ctx *ctx;
   isl_schedule *sched;
-  size_t *scop_idx = (size_t *)user;
-  struct Scop *scop_info = &SCOPS_POOL[0].scops[*scop_idx];
-
+  Scop *si = (Scop *)user;
   if (!scop || !p)
     return isl_printer_free(p);
-  if (!scop_info->modified) {
+  if (!si->modified) {
     p = pet_scop_print_original(scop, p);
   } else {
-    sched = isl_schedule_node_get_schedule(scop_info->current_node);
-    p = codegen(p, scop_info->scop, sched);
+    sched = isl_schedule_node_get_schedule(si->current_node);
+    p = codegen(p, si->scop, sched);
   }
   pet_scop_free(scop);
-  (*scop_idx)++;
+  si++;
   return p;
 }
 
@@ -189,7 +192,8 @@ generate_code(size_t pool_idx, const char *input_path,
 
   FILE *output_file = fopen(output_path, "w");
   r = pet_transform_C_source(ctx, input_path, output_file,
-                             generate_code_callback, &scop_idx);
+                             generate_code_callback,
+                             SCOPS_POOL[pool_idx].scops.data());
   fclose(output_file);
   return r;
 }
@@ -309,7 +313,7 @@ set_parallel(size_t pool_idx, size_t scop_idx) {
   si->tmp_node = tadashi_set_parallel(si->tmp_node);
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
   node = isl_schedule_node_first_child(node);
   isl_bool legal = tadashi_check_legality_parallel(ctx, node, si->dependency);
   node = isl_schedule_node_free(node);
@@ -325,6 +329,6 @@ set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt) {
   isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx].current_node;
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
-  SCOPS_POOL[0].scops[scop_idx].current_node = node;
+  SCOPS_POOL[pool_idx].scops[scop_idx].current_node = node;
   return 1;
 }

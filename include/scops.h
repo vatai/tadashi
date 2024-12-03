@@ -39,12 +39,11 @@ public:
 
 class ScopsPool {
 private:
-  std::vector<Scops *> scops_map;
   std::deque<size_t> free_indexes;
-  size_t next_index = 0;
+  std::vector<Scops *> scops_vector;
 
 public:
-  ScopsPool();
+  // ScopsPool();
   ~ScopsPool();
   size_t add(char *input);
   void remove(size_t pool_idx);
