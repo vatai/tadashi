@@ -51,8 +51,7 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
 
 Scops::Scops(char *input) {
   ctx = isl_ctx_alloc_with_pet_options();
-  printf("Scops::Scops(ctx=%p)\n", ctx);
-  // printf(">> Scops(%s)\n", input);
+  // printf("Scops::Scops(ctx=%p)\n", ctx);
   FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
@@ -61,12 +60,12 @@ Scops::Scops(char *input) {
   ret = pet_transform_C_source(ctx, input, output, get_scop_callback, &scops);
   assert(ret == 0);
   fclose(output);
-  printf("Scops::Scops(ctx=%p)\n", ctx);
+  // printf("Scops::Scops(ctx=%p)\n", ctx);
 };
 
 Scops::~Scops() {
   scops.clear();
-  printf("Scops::~Scops(ctx=%p)\n", ctx);
+  // printf("Scops::~Scops(ctx=%p)\n", ctx);
   isl_ctx_free(ctx);
 };
 
