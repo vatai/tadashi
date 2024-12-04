@@ -51,7 +51,7 @@ class TestCtadashi(unittest.TestCase):
             suffix = Path(app.source).suffix
             outfile = Path(tmpdir) / Path(self._testMethodName).with_suffix(suffix)
             outfile_bytes = str(outfile).encode()
-            app.generate_code(outfile, ephemeral=True)
+            app.generate_code(outfile, ephemeral=False)
             generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
