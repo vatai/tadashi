@@ -97,7 +97,6 @@ class TestCtadashi(unittest.TestCase):
     def _get_sequence_node(cls):
         return cls._get_node(3)
 
-    @unittest.skip("No reason")
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
         self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
