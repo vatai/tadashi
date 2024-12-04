@@ -436,14 +436,6 @@ class SetLoopOptInfo(TransformInfo):
         ]
 
 
-class PrintScheduleNodeInfo(TransformInfo):
-    func_name = "print_schedule_node"
-
-    @staticmethod
-    def valid(node: Node) -> bool:
-        return True
-
-
 """A dictionary which connects the simple `TrEnum` to the detailed
 `TranformInfo`."""
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {

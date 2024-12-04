@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from tadashi import TRANSFORMATIONS, Scops, TrEnum
+from tadashi import Scops, TrEnum
 from tadashi.apps import Simple
 
 HEADER = "/// TRANSFORMATION: "

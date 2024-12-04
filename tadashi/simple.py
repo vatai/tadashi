@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from . import TRANSFORMATIONS, Scops, TrEnum
+from . import Scops, TrEnum
 from .apps import Simple
 
 
