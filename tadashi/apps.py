@@ -14,6 +14,7 @@ class App:
     scops: Scops
     source: Path
     compiler_options: list[str]
+    ephemeral: bool = False
 
     def _finalize_object(
         self,
@@ -26,6 +27,25 @@ class App:
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         self.source = Path(source)
         self.scops = Scops(self.source)
+
+    @classmethod
+    def make_ephemeral(cls, *args, **kwargs):
+        app = cls(*args, **kwargs)
+        app.ephemeral = True
+        return app
+
+    def __del__(self):
+        if self.ephemeral:
+            self.remove_binary()
+            self.remove_source()
+
+    def remove_binary(self):
+        binary = self.output_binary
+        if binary.exists():
+            binary.unlink()
+
+    def remove_source(self):
+        self.source.unlink()
 
     @property
     def compile_cmd(self) -> list[str]:
@@ -94,7 +114,7 @@ class Simple(App):
             filename = self.source.with_suffix("")
             new_file = Path(f"{filename}-{now_str}").with_suffix(suffix)
         self.scops.generate_code(self.source, new_file)
-        return Simple(new_file)
+        return Simple.make_ephemeral(new_file)
 
 
 class Polybench(App):
@@ -135,7 +155,7 @@ class Polybench(App):
             alt_infix = f".{now_str}"
         new_file = self._source_with_infix(self.source, alt_infix)
         self.scops.generate_code(self.source, new_file)
-        return Polybench(self.benchmark, self.base, infix=alt_infix)
+        return Polybench.make_ephemeral(self.benchmark, self.base, infix=alt_infix)
 
     @staticmethod
     def _source_with_infix(source: Path, infix: str):
