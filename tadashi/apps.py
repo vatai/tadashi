@@ -156,7 +156,7 @@ class Polybench(App):
             alt_infix = f".{now_str}"
         new_file = self._source_with_infix(self.source, alt_infix)
         self.scops.generate_code(self.source, new_file)
-        kwargs = {"benchmarks": self.benchmark, "base": self.base, "infix": alt_infix}
+        kwargs = {"benchmark": self.benchmark, "base": self.base, "infix": alt_infix}
         return Polybench.make_ephemeral(**kwargs) if ephemeral else Polybench(**kwargs)
 
     @staticmethod
