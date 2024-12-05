@@ -165,7 +165,7 @@ class Polybench(App):
 
     @staticmethod
     def extract_runtime(stdout) -> float:
-        result = 0
+        result = 0.0
         try:
             result = float(stdout.split()[0])
         except IndexError as e:
