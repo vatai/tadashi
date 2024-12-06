@@ -12,7 +12,7 @@ from tadashi.apps import Polybench, Simple
 
 
 def get_polybench_list():
-    base = Path("build/_deps/polybench-src/")
+    base = Path("examples/polybench")
     result = []
     for p in base.glob("**"):
         if Path(p / (p.name + ".c")).exists():
