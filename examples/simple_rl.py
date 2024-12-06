@@ -15,6 +15,7 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import tadashi
+import tadashi.apps
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -381,7 +382,7 @@ def main():
 
 
 def get_polybench_list():
-    base = Path("build/_deps/polybench-src/")
+    base = Path("examples/polybench/")
     result = []
     for p in base.glob("**"):
         if Path(p / (p.name + ".c")).exists():
@@ -484,8 +485,7 @@ def main2():
     gemm = tadashi.apps.Polybench(results[29], base)
     print(f"{gemm.benchmark=}")
 
-    scops = tadashi.Scops(gemm)
-    scop = scops[0]
+    scop = gemm.scops[0]
     node = scop.schedule_tree[11]
     node.transform(tadashi.TrEnum.TILE, 16)
 
@@ -654,8 +654,7 @@ def main3():
     # benchmark = results[29]
     benchmark = "linear-algebra/solvers/durbin"
     gemm = tadashi.apps.Polybench(benchmark=benchmark, base=base)
-    scops = tadashi.Scops(gemm)
-    scop = scops[0]
+    scop = gemm.scops[0]
     print(scop.schedule_tree[0].yaml_str)
     node_nn = NodeNN(scop, args)
     node_head_nn = NodeHeadNN(args)
@@ -663,8 +662,8 @@ def main3():
     args_nns = dict((t, ArgsNN(node_nn, args)) for t in tadashi.TrEnum)
     print(benchmark)
     mcts(
-        scops=scops,
-        scop=scops[0],
+        scops=gemm.scops,
+        scop=gemm.scops[0],
         node_nn=node_nn,
         node_head_nn=node_head_nn,
         tran_nns=tran_nns,
