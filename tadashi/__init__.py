@@ -520,6 +520,13 @@ class Scop:
         for c in location:
             self.ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
+    def transform_list(self, trs: list) -> bool:
+        result = []
+        for node_idx, tr, args in trs:
+            node = self.schedule_tree[node_idx]
+            result.append(node.transform(tr, *args))
+        return result
+
 
 class Scops:
     """All SCoPs which belong to a given file.

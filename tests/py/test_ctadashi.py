@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+import tadashi
 from tadashi import Scops, TrEnum
 from tadashi.apps import Simple
 
@@ -25,7 +26,6 @@ class TransformData:
 
 
 class TestCtadashi(unittest.TestCase):
-
     @staticmethod
     def _read_app_comments(app):
         TRANSFORMATION = " TRANSFORMATION: "
@@ -100,6 +100,26 @@ class TestCtadashi(unittest.TestCase):
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
         self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
+
+    def test_transformation_list(self):
+        # watch python -m unittest tests.py.test_ctadashi.TestCtadashi.test_transformation_list
+        app = Simple("examples/depnodep.c")
+        scop = app.scops[0]
+        transformations = [
+            [2, tadashi.TrEnum.SET_PARALLEL, []],
+            [1, tadashi.TrEnum.SET_LOOP_OPT, [0, 3]],
+            [1, tadashi.TrEnum.FULL_SHIFT_VAL, [-47]],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 39]],
+            [1, tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 34]],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, -22, 0]],
+            [3, tadashi.TrEnum.SET_PARALLEL, []],
+        ]
+        legals = scop.transform_list(transformations)
+        mod_app = app.generate_code()
+        mod_app.compile()
+        for legal in legals[:-1]:
+            self.assertTrue(legal)
+        self.assertFalse(legals[-1])
 
 
 def setup():
