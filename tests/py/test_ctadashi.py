@@ -101,7 +101,11 @@ class TestCtadashi(unittest.TestCase):
         self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
 
     def test_transformation_list(self):
-        pass
+        # watch python -m unittest tests.py.test_ctadashi.TestCtadashi.test_transformation_list
+        app = Simple("examples/depnodep.c")
+        node = app.scops[0].schedule_tree[1]
+
+        print(node)
 
 
 def setup():
