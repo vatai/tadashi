@@ -46,6 +46,7 @@
  * implied, of Sven Verdoolaege.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include "codegen.h"
@@ -379,6 +380,12 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   isl_ast_print_options_free(options);
 
   return p;
+}
+
+static int
+conditional_set_omp_pragma_string(__isl_keep isl_id *id, char *line) {
+  int nt = 42;
+  sprintf(line, "#pragma omp parallel for num_threads(%d)", nt);
 }
 
 static int
