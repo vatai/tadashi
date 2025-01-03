@@ -57,6 +57,8 @@ int partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx,
 
 int set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt);
 
+int set_parallel(size_t pool_idx, size_t scop_idx);
+
 #ifdef __cplusplus
 }
 #endif
