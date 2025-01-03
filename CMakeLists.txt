@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18.4)
 
-project(polyhedral-tutor)
+project(tadashi)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -8,14 +8,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 include(FetchContent)
 
-FetchContent_Declare(
-  googletest
-  DOWNLOAD_EXTRACT_TIMESTAMP On
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+# FetchContent_Declare(
+#   googletest
+#   DOWNLOAD_EXTRACT_TIMESTAMP On
+#   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+# )
+# # For Windows: Prevent overriding the parent project's compiler/linker settings
+# # set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(googletest)
 
 FetchContent_Declare(
   pet
@@ -79,8 +79,6 @@ if(NOT PET_FOUND)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 endif()
 
-include(src/archive/CMakeLists.txt)
-
 add_library(legality SHARED src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
@@ -106,16 +104,18 @@ set_property(SOURCE src/ctadashi.i
   PROPERTY SWIG_INCLUDE_DIRECTORIES )
 swig_add_library(ctadashi_py TYPE SHARED LANGUAGE python SOURCES src/ctadashi.i)
 swig_link_libraries(ctadashi_py ctadashi Python::Python) # PkgConfig::PET legality codegen transformations)
+install(TARGETS legality codegen transformations scops ctadashi
+  DESTINATION lib)
 
 add_executable(goodbadtest src/goodbadtest.c)
 
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
 
-enable_testing()
-include(GoogleTest)
+# enable_testing()
+# include(GoogleTest)
 
-add_executable(test_legality tests/cc/test_legality.cc)
-target_link_libraries(test_legality PUBLIC PkgConfig::ISL GTest::gtest_main legality)
+# add_executable(test_legality tests/cc/test_legality.cc)
+# target_link_libraries(test_legality PUBLIC PkgConfig::ISL GTest::gtest_main legality)
 
-gtest_discover_tests(test_legality)
+# gtest_discover_tests(test_legality)

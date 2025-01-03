@@ -14,14 +14,14 @@ import setuptools
 # install_requires that must be added to the setup.cfg. Otherwise, cmake-build-extension
 # could only be listed as build-system requires in pyproject.toml since it would only
 # be necessary for packaging and not during runtime.
-init_py = inspect.cleandoc(
-    """
-    import cmake_build_extension
-
-    with cmake_build_extension.build_extension_env():
-        from . import bindings
-    """
-)
+### init_py = inspect.cleandoc(
+###     """
+###     import cmake_build_extension
+###
+###     with cmake_build_extension.build_extension_env():
+###         from . import bindings
+###     """
+### )
 
 # Extra options passed to the CI/CD pipeline that uses cibuildwheel
 CIBW_CMAKE_OPTIONS = []
@@ -50,9 +50,9 @@ setuptools.setup(
             install_prefix="ctadashi",
             # Exposes the binary print_answer to the environment.
             # It requires also adding a new entry point in setup.cfg.
-            ### expose_binaries=["bin/print_answer"],
+            expose_binaries=["libctadashi.so"],
             # Writes the content to the top-level __init__.py
-            write_top_level_init=init_py,
+            ### write_top_level_init=init_py,
             # Selects the folder where the main CMakeLists.txt is stored
             # (it could be a subfolder)
             source_dir=str(Path(__file__).parent.absolute()),
