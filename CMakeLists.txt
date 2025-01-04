@@ -8,6 +8,8 @@ cmake_policy(SET CMP0086 NEW)
 include(GNUInstallDirs)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 # list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
 
@@ -147,14 +149,11 @@ swig_add_library(ctadashi_swig
   SOURCES src/ctadashi.i)
 swig_link_libraries(ctadashi_swig PUBLIC ctadashi Python3::Python PkgConfig::PET legality code_gen transformations)
 set_target_properties(ctadashi_swig PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi)
-set_property(TARGET ctadashi_swig PROPERTY
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
-set_property(TARGET ctadashi_swig
-    PROPERTY SWIG_COMPILE_OPTIONS -doxygen)
-set_property(
-    TARGET ctadashi_swig
-    PROPERTY SWIG_DEPENDS src/ctadashi.i)
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}
+  SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+  SWIG_COMPILE_OPTIONS -doxygen
+  SWIG_DEPENDS src/ctadashi.i)
 
 get_property(WRAPPER_PY_FILE
     TARGET ctadashi_swig
