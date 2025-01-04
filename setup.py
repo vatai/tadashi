@@ -59,8 +59,8 @@ setuptools.setup(
             cmake_configure_options=[
                 # This option points CMake to the right Python interpreter, and helps
                 # the logic of FindPython3.cmake to find the active version
-                ### f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
-                ### "-DCALL_FROM_SETUP_PY:BOOL=ON",
+                f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
+                "-DCALL_FROM_SETUP_PY:BOOL=ON",
                 ### "-DBUILD_SHARED_LIBS:BOOL=OFF",
                 # Select the bindings implementation
                 ### "-DEXAMPLE_WITH_SWIG:BOOL=ON",

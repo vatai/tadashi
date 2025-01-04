@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.18.4)
-
 project(tadashi)
+
+cmake_policy(SET CMP0078 NEW)
+cmake_policy(SET CMP0086 NEW)
+
+# Common installation directories
+include(GNUInstallDirs)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -82,8 +87,8 @@ endif()
 add_library(legality SHARED src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
-add_library(codegen SHARED src/codegen.c)
-target_link_libraries(codegen PUBLIC PkgConfig::ISL PkgConfig::PET)
+add_library(code_gen SHARED src/codegen.c)
+target_link_libraries(code_gen PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
@@ -93,24 +98,83 @@ target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 include_directories(include)
 
-find_package(Python REQUIRED COMPONENTS Development)
-find_package(SWIG) # 4.0 COMPONENTS python)
-include (UseSWIG)
-
 add_library(ctadashi SHARED src/ctadashi.cc)
-target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations scops)
+target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
+add_library(CTadashi::ctadashi ALIAS ctadashi)
+
+install(TARGETS legality code_gen transformations scops ctadashi
+  EXPORT CTadashiTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(
+    EXPORT CTadashiTargets
+    FILE CTadashiTargets.cmake
+    NAMESPACE CTadashi::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi)
+
+###
+
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
+find_package(SWIG 4.0 REQUIRED)
+set(UseSWIG_MODULE_VERSION 2)
+include(${SWIG_USE_FILE})
+
+# Handle where to install the resulting Python package
+if(CALL_FROM_SETUP_PY)
+    # The CMakeExtension will set CMAKE_INSTALL_PREFIX to the root
+    # of the resulting wheel archive
+    set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+else()
+    # The Python package is installed directly in the folder of the
+    # detected interpreter (system, user, or virtualenv)
+    set(CTADASHI_INSTALL_PREFIX ${Python3_SITELIB})
+    # set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+endif()
+
+# The name of the shared library must match the module name
 set_property(SOURCE src/ctadashi.i
   PROPERTY CPLUSPLUS ON
-  PROPERTY SWIG_INCLUDE_DIRECTORIES )
-swig_add_library(ctadashi_py TYPE SHARED LANGUAGE python SOURCES src/ctadashi.i)
-swig_link_libraries(ctadashi_py ctadashi Python::Python) # PkgConfig::PET legality codegen transformations)
-install(TARGETS legality codegen transformations scops ctadashi
-  DESTINATION lib)
+  PROPERTY SWIG_INCLUDE_DIRECTORIES
+  SWIG_MODULE_NAME "pytadashi")
+swig_add_library(ctadashi_swig
+  TYPE MODULE
+  LANGUAGE python
+  OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
+  SOURCES src/ctadashi.i)
+swig_link_libraries(ctadashi_swig PUBLIC ctadashi Python3::Python PkgConfig::PET legality code_gen transformations)
+set_target_properties(ctadashi_swig PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi)
+set_property(TARGET ctadashi_swig PROPERTY
+    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
+set_property(TARGET ctadashi_swig
+    PROPERTY SWIG_COMPILE_OPTIONS -doxygen)
+set_property(
+    TARGET ctadashi_swig
+    PROPERTY SWIG_DEPENDS src/ctadashi.i)
+
+get_property(WRAPPER_PY_FILE
+    TARGET ctadashi_swig
+    PROPERTY SWIG_SUPPORT_FILES)
+install(
+    FILES ${WRAPPER_PY_FILE}
+    DESTINATION ${CTADASHI_INSTALL_PREFIX}
+    COMPONENT pytadashi)
+
+install(
+    TARGETS ctadashi_swig legality code_gen transformations scops ctadashi
+    COMPONENT pytadashi
+    LIBRARY DESTINATION ${CTADASHI_INSTALL_PREFIX}
+    ARCHIVE DESTINATION ${CTADASHI_INSTALL_PREFIX}
+    RUNTIME DESTINATION ${CTADASHI_INSTALL_PREFIX})
 
 add_executable(goodbadtest src/goodbadtest.c)
 
 add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality codegen transformations)
+target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
 
 # enable_testing()
 # include(GoogleTest)
