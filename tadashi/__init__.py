@@ -13,7 +13,7 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-from build import pytadashi
+from build.pytadashi import pytadashi
 
 
 class AstLoopType(Enum):
