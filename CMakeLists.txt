@@ -112,10 +112,13 @@ install(TARGETS legality code_gen transformations scops ctadashi
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
-    EXPORT CTadashiTargets
-    FILE CTadashiTargets.cmake
-    NAMESPACE CTadashi::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi)
+  EXPORT CTadashiTargets
+  FILE CTadashiTargets.cmake
+  NAMESPACE CTadashi::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi)
+
+# install(PROGRAMS ${PET_LINK_LIBRARIES}
+#   DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ###
 
