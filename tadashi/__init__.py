@@ -5,7 +5,6 @@
 # from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from __future__ import annotations
 
-import ctypes
 import os
 from ast import literal_eval
 from collections import namedtuple
@@ -13,6 +12,8 @@ from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
+
+from build.pytadashi import pytadashi
 
 
 class AstLoopType(Enum):
@@ -136,7 +137,7 @@ class Node:
         self.scop.locate(self.location)
         return self.scop.get_current_node_from_ISL(None, None)
 
-    def transform(self, trkey: TrEnum, *args):
+    def transform(self, trkey: TrEnum, *args) -> bool:
         """Execute the selected transformation.
 
         Args:
@@ -154,21 +155,22 @@ class Node:
             msg = f"Not valid transformation args: {args}"
             raise ValueError(msg)
 
-        func = getattr(self.scop.ctadashi, tr.func_name)
+        func = getattr(pytadashi, tr.func_name)
         self.scop.locate(self.location)
-        return func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        return bool(legal)
 
     @property
     def yaml_str(self):
         self.scop.locate(self.location)
-        encoded_result = self.scop.ctadashi.print_schedule_node(
+        encoded_result = pytadashi.print_schedule_node(
             self.scop.pool_idx, self.scop.scop_idx
         )
-        return encoded_result.decode("utf8")
+        return encoded_result
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        self.scop.ctadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
+        pytadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
 
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
@@ -205,20 +207,12 @@ arguments for transformations. `None` indicates no upper/lower bound.
 
 
 class TransformInfo:
-    """Abstract base class used to describe transformations.
-
-    .. _ctypes:
-       https://docs.python.org/3/library/ctypes.html
-    """
+    """Abstract base class used to describe transformations."""
 
     #: The name of the C/C++ function in the `.so` file.
     func_name: str
-    #: Types of arguments as required by `ctypes`_.
-    argtypes: list[type] = []
     #: Help string describing the arg.
     arg_help: list[str] = []
-    #: Type of the result as required by `ctypes`_.
-    restype: Optional[type] = ctypes.c_bool
 
     @staticmethod
     def valid(node: Node) -> bool:
@@ -250,9 +244,7 @@ class TransformInfo:
 
 class TileInfo(TransformInfo):
     func_name = "tile"
-    argtypes = [ctypes.c_size_t]
     arg_help = ["Tile size"]
-    restype = ctypes.c_bool
 
     @staticmethod
     def valid_args(node, arg):
@@ -277,7 +269,6 @@ class InterchangeInfo(TransformInfo):
 
 class FuseInfo(TransformInfo):
     func_name = "fuse"
-    argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
 
     @staticmethod
@@ -316,7 +307,6 @@ class FullFuseInfo(TransformInfo):
 
 class FullShiftValInfo(TransformInfo):
     func_name = "full_shift_val"
-    argtypes = [ctypes.c_long]
     arg_help = ["Value"]
 
     @staticmethod
@@ -326,7 +316,6 @@ class FullShiftValInfo(TransformInfo):
 
 class PartialShiftValInfo(TransformInfo):
     func_name = "partial_shift_val"
-    argtypes = [ctypes.c_int, ctypes.c_long]
     arg_help = ["Statement index", "Value"]
 
     @staticmethod
@@ -341,7 +330,6 @@ class PartialShiftValInfo(TransformInfo):
 
 class FullShiftVarInfo(TransformInfo):
     func_name = "full_shift_var"
-    argtypes = [ctypes.c_long, ctypes.c_long]
     arg_help = ["Coefficient", "Variable index"]
 
     @staticmethod
@@ -356,7 +344,6 @@ class FullShiftVarInfo(TransformInfo):
 
 class PartialShiftVarInfo(TransformInfo):
     func_name = "partial_shift_var"
-    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Variable index"]
 
     @staticmethod
@@ -378,7 +365,6 @@ class PartialShiftVarInfo(TransformInfo):
 
 class FullShiftParamInfo(TransformInfo):
     func_name = "full_shift_param"
-    argtypes = [ctypes.c_long, ctypes.c_long]
     arg_help = ["Coefficient", "Parameter index"]
 
     @staticmethod
@@ -393,7 +379,6 @@ class FullShiftParamInfo(TransformInfo):
 
 class PartialShiftParamInfo(TransformInfo):
     func_name = "partial_shift_param"
-    argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long]
     arg_help = ["Statement index", "Coefficient", "Parameter index"]
 
     @staticmethod
@@ -420,7 +405,6 @@ class SetParallelInfo(TransformInfo):
 
 class SetLoopOptInfo(TransformInfo):
     func_name = "set_loop_opt"
-    argtypes = [ctypes.c_int, ctypes.c_int]
     arg_help = ["Iterator index", "Option"]
 
     @staticmethod
@@ -463,10 +447,9 @@ class Scop:
 
     """
 
-    def __init__(self, pool_idx, scop_idx, ctadashi) -> None:
+    def __init__(self, pool_idx, scop_idx) -> None:
         self.pool_idx = pool_idx
         self.scop_idx = scop_idx
-        self.ctadashi = ctadashi
 
     def get_loop_signature(self):
         """Extract the value for `Node.loop_signature`.
@@ -477,21 +460,19 @@ class Scop:
         variables of each statement covered by the loop/band node.
 
         """
-        loop_signature = self.ctadashi.get_loop_signature(
-            self.pool_idx, self.scop_idx
-        ).decode()
+        loop_signature = pytadashi.get_loop_signature(self.pool_idx, self.scop_idx)
         return literal_eval(loop_signature)
 
     def _make_node(self, parent, location):
-        num_children = self.ctadashi.get_num_children(self.pool_idx, self.scop_idx)
+        num_children = pytadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
-            node_type=NodeType(self.ctadashi.get_type(self.pool_idx, self.scop_idx)),
+            node_type=NodeType(pytadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
             location=location,
             loop_signature=self.get_loop_signature(),
-            expr=self.ctadashi.get_expr(self.pool_idx, self.scop_idx).decode("utf-8"),
+            expr=pytadashi.get_expr(self.pool_idx, self.scop_idx),
             children_idx=[-1] * num_children,
         )
         return node
@@ -502,23 +483,23 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                self.ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
+                pytadashi.goto_child(self.pool_idx, self.scop_idx, c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                self.ctadashi.goto_parent(self.pool_idx, self.scop_idx)
+                pytadashi.goto_parent(self.pool_idx, self.scop_idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
-        self.ctadashi.goto_root(self.pool_idx, self.scop_idx)
+        pytadashi.goto_root(self.pool_idx, self.scop_idx)
         nodes: list[Node] = []
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
-        self.ctadashi.goto_root(self.pool_idx, self.scop_idx)
+        pytadashi.goto_root(self.pool_idx, self.scop_idx)
         for c in location:
-            self.ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
+            pytadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
     def transform_list(self, trs: list) -> bool:
         result = []
@@ -538,66 +519,16 @@ class Scops:
     scops: list[Scop]
 
     def __init__(self, source_path: str):
-        self._setup_ctadashi()
         self._check_missing_file(Path(source_path))
-        self.pool_idx = self.ctadashi.init_scops(str(source_path).encode())
-        self.num_scops = self.ctadashi.num_scops(self.pool_idx)
+        self.pool_idx = pytadashi.init_scops(str(source_path))
+        self.num_scops = pytadashi.num_scops(self.pool_idx)
         # print(f"{str(source_path)=}")
         # print(f"{self.num_scops=}")
         # print(f"{self.pool_idx=}")
-        kwargs = {"pool_idx": self.pool_idx, "ctadashi": self.ctadashi}
-        self.scops = [Scop(scop_idx=i, **kwargs) for i in range(self.num_scops)]
+        self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
-        self.ctadashi.free_scops(self.pool_idx)
-
-    def _setup_ctadashi(self):
-        self.so_path = Path(__file__).parent.parent / "build/libctadashi.so"
-        self._check_missing_file(self.so_path)
-        self.ctadashi = ctypes.CDLL(str(self.so_path))
-        self.ctadashi.init_scops.argtypes = [ctypes.c_char_p]
-        self.ctadashi.init_scops.restype = ctypes.c_size_t
-        self.ctadashi.num_scops.argtypes = [ctypes.c_size_t]
-        self.ctadashi.num_scops.restype = ctypes.c_size_t
-        self.ctadashi.free_scops.argtypes = [ctypes.c_size_t]
-        self.ctadashi.free_scops.restype = None
-        self.ctadashi.get_type.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_type.restype = ctypes.c_int
-        self.ctadashi.get_num_children.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_num_children.restype = ctypes.c_size_t
-        self.ctadashi.get_expr.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_expr.restype = ctypes.c_char_p
-        self.ctadashi.get_loop_signature.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.get_loop_signature.restype = ctypes.c_char_p
-        self.ctadashi.print_schedule_node.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.print_schedule_node.restype = ctypes.c_char_p
-        self.ctadashi.goto_root.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.goto_root.restype = None
-        self.ctadashi.goto_parent.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
-        self.ctadashi.goto_parent.restype = None
-        self.ctadashi.goto_child.argtypes = [
-            ctypes.c_size_t,
-            ctypes.c_size_t,
-            ctypes.c_size_t,
-        ]
-        self.ctadashi.rollback.argtypes = [
-            ctypes.c_size_t,
-            ctypes.c_size_t,
-        ]
-        self.ctadashi.rollback.restype = ctypes.c_int
-        self.ctadashi.generate_code.argtypes = [
-            ctypes.c_size_t,
-            ctypes.c_char_p,
-            ctypes.c_char_p,
-        ]
-        self.ctadashi.generate_code.restype = ctypes.c_int
-        #
-        for tr_name, tr_info in TRANSFORMATIONS.items():
-            msg = f"The transformation {tr_name} is not specified correctly!"
-            assert len(tr_info.arg_help) == len(tr_info.argtypes), msg
-            func = getattr(self.ctadashi, tr_info.func_name)
-            func.argtypes = [ctypes.c_size_t, ctypes.c_size_t] + tr_info.argtypes
-            func.restype = tr_info.restype
+        pytadashi.free_scops(self.pool_idx)
 
     @staticmethod
     def _check_missing_file(path: Path):
@@ -612,11 +543,7 @@ class Scops:
         to be called.
 
         """
-        self.ctadashi.generate_code(
-            self.pool_idx,
-            str(input_path).encode(),
-            str(output_path).encode(),
-        )
+        pytadashi.generate_code(self.pool_idx, str(input_path), str(output_path))
 
     def __len__(self):
         return self.num_scops
