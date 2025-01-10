@@ -1,4 +1,4 @@
-#!/urs/bin/bash
+#!/usr/bin/bash
 
 TADASHI_DEPS_PREFIX=${TADASHI_DEPS_PREFIX:-$(git rev-parse --show-toplevel)/deps/opt}
 mkdir -p "$TADASHI_DEPS_PREFIX"

@@ -7,7 +7,7 @@ pushd /tmp || exit
 wget https://www.python.org/ftp/python/3.13.0/Python-3.13.0.tar.xz
 tar xvf  Python-3.13.0.tar.xz
 pushd Python-3.13.0 || exit
-./configure --prefix=${TADASHI_DEPS_PREFIX}
+./configure --enable-shared --prefix="${TADASHI_DEPS_PREFIX}"
 make -j
 make install
 popd || exit

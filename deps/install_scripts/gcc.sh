@@ -11,7 +11,7 @@ pushd gcc-14.2.0 || exit
 mkdir objdir
 pushd objdir || exit
 "$PWD"/../configure --disable-multilib  --enable-host-shared --prefix="$TADASHI_DEPS_PREFIX"
-make -j
+make -j 10
 make install
 popd || exit
 popd || exit
