@@ -2,14 +2,20 @@
 
 from mpi4py import MPI
 
-RANK = MPI.COMM_WORLD.get_rank()
+RANK = MPI.COMM_WORLD.Get_rank()
 
 
 def master():
-    pass
+    print("I'm the master")
+    MPI.COMM_WORLD
 
 
 def worker():
+    print("I'm a worker")
+    exit()
+
+
+def send(lst: list):
     pass
 
 
