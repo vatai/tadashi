@@ -13,6 +13,8 @@ jobs:
         git build-essential autoconf pkg-config libtool libc++-dev
         libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
         libclang-dev python-is-python3 swig
+        openmpi-bin openmpi-common libopenmpi-dev
+        python3-mpi4py
 
     - name: Set up Python 🐍
       uses: actions/setup-python@v5
