@@ -40,6 +40,8 @@ set(ENV{PKG_CONFIG_PATH} "${pet_SOURCE_DIR}:${pet_SOURCE_DIR}/isl:$ENV{PKG_CONFI
 list(APPEND CMAKE_LIBRARY_PATH "${pet_BINARY_DIR}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
 
+set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
@@ -54,34 +56,13 @@ endif()
 
 if(NOT PET_FOUND)
   message("Package 'pet' not found, but don't worry, I know how to build it!")
-
   set(ENV{CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
-
   execute_process(
-    # OUTPUT_QUIET
-    COMMAND ./autogen.sh
+    # OUTPUT_QUIET 
+    COMMAND /usr/bin/bash ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL}
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
-
-  execute_process(
-    # OUTPUT_QUIET
-    COMMAND ./configure --prefix=${pet_BINARY_DIR} --with-isl=${PET_CONFIGURE_WITH_ISL}
-    WORKING_DIRECTORY ${pet_SOURCE_DIR}
-  )
-
-  execute_process(
-    # OUTPUT_QUIET
-    COMMAND make -j
-    WORKING_DIRECTORY ${pet_SOURCE_DIR}
-  )
-
-  execute_process(
-    # OUTPUT_QUIET
-    COMMAND make -j install
-    WORKING_DIRECTORY ${pet_SOURCE_DIR}
-  )
-
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 endif()
