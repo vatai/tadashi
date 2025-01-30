@@ -4,10 +4,13 @@ import os
 import shutil
 import subprocess
 import tempfile
+from collections import namedtuple
 from pathlib import Path
-from typing import Optional
+from typing import Tuple
 
 from . import Scops
+
+Result = namedtuple("Result", ["legal", "walltime"])
 
 
 class App:
@@ -83,6 +86,28 @@ class App:
         result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
+
+    def transform_list(
+        self, transformation_list: list, run_each: bool = False
+    ) -> Result | list[Result]:
+        if run_each:
+            results = []
+            self.compile()
+            walltime = self.measure()
+            results.append(Result(True, walltime))
+        for si, ni, *tr in transformation_list:
+            print(f"{tr=}")
+            node = self.scops[si].schedule_tree[ni]
+            legal = node.transform(*tr)
+            if run_each:
+                self.compile()
+                walltime = self.measure()
+                results.append(Result(legal, walltime))
+        if not run_each:
+            self.compile()
+            walltime = self.measure()
+            return Result(legal, walltime)
+        return results
 
 
 class Simple(App):
