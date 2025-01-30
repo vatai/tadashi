@@ -96,7 +96,6 @@ class App:
             walltime = self.measure()
             results.append(Result(True, walltime))
         for si, ni, *tr in transformation_list:
-            print(f"{tr=}")
             node = self.scops[si].schedule_tree[ni]
             legal = node.transform(*tr)
             if run_each:

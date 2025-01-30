@@ -1,6 +1,7 @@
 from concurrent import futures
 
 import tadashi
+from halo import Halo
 from tadashi.apps import App, Simple
 
 
@@ -12,10 +13,13 @@ def func(app: App, scop_idx: int, transformation_list: list):
     return legal, runtime
 
 
+@Halo(spinner="dots")
 def main():
     app = Simple("examples/depnodep.c")
     node = app.scops[0].schedule_tree[1]
-    tlist = [[0, 1, tadashi.TrEnum.FULL_SHIFT_VAR, 13, 1]]
+    tlist = [
+        [0, 1, tadashi.TrEnum.FULL_SHIFT_VAR, 13, 1],
+    ]
 
     with futures.ThreadPoolExecutor(max_workers=4) as executor:
         fs = [executor.submit(app.transform_list, tlist)]
