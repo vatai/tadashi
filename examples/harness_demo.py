@@ -4,8 +4,9 @@ import tadashi
 from tadashi.apps import Simple
 
 
-def func():
-    pass
+def func(transformation_list):
+    for transformation in transformation_list:
+        pass
 
 
 def main():
@@ -17,8 +18,8 @@ def main():
     legal = node.transform(tr, *args)
 
     with futures.ThreadPoolExecutor(max_workers=4) as executor:
-        fs = [executor.submit(func, *arg) for arg in enumerate(times[:])]
-        print("-- scheduled --")
+        tlist = [[0, tadashi.TrEnum.FULL_SHIFT_VAR, [13,1]]
+        fs = [executor.submit(func, tlist)]
         while fs:
             done = [f for f in fs if f.done()]
             for f in done:
