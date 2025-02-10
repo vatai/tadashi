@@ -1,7 +1,20 @@
 #!/usr/bin/env python
 
 import time
-from concurrent import futures
+import socket
+import os
+import subprocess
+
+print(f"{socket.gethostname()=} (top)")
+if not True:
+    print("IMPORT CONCURRENT")
+    from concurrent import futures
+    from concurrent.futures import ThreadPoolExecutor as Executor
+else:
+    print("IMPORT MPI4PY")
+    from mpi4py import futures
+    from mpi4py.futures import MPIPoolExecutor as Executor
+    # from mpi4py.futures import MPICommExecutor as Executor
 
 
 def func(task, t):
@@ -11,26 +24,17 @@ def func(task, t):
     return t * task * 10000
 
 
-def main0():
-    times = [3, 4, 1, 2, 3, 4, 5]
-    with futures.ThreadPoolExecutor(max_workers=4) as executor:
-        fs = [executor.submit(func, *arg) for arg in enumerate(times[:])]
-        print("-- scheduled --")
-        while fs:
-            try:
-                for f in futures.as_completed(fs, timeout=0):
-                    print(f"{f.result()=}")
-                    idx = fs.index(f)
-                    del fs[idx]
-            except TimeoutError as e:
-                # print(f"{e=}")
-                pass
-
-
-def main1():
-    times = [3, 4, 1, 2, 3, 4, 5]
-    with futures.ThreadPoolExecutor(max_workers=4) as executor:
-        fs = [executor.submit(func, *arg) for arg in enumerate(times[:])]
+def main():
+    nodelist = os.environ["SLURM_NODELIST"]
+    cmd = ["scontrol", "show", "hostnames", f"{nodelist}"]
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    hosts = result.stdout.read().decode().split('\n')
+    host = hosts[1] + '.cloud.r-ccs.riken.jp'
+    print(f"{hosts=} and {host=}")
+    times = [3, 4, 1, 2, 3, 4, 5] * 100
+    info={'host': host}
+    with Executor(max_workers=2, info=info) as executor:
+        fs = [executor.submit(func, *arg) for arg in enumerate(times[:3])]
         print("-- scheduled --")
         while fs:
             done = [f for f in fs if f.done()]
@@ -40,5 +44,5 @@ def main1():
 
 
 if __name__ == "__main__":
-    main1()
+    main()
     print("Done!")
