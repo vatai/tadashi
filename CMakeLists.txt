@@ -54,13 +54,15 @@ else()
   set(PET_CONFIGURE_WITH_ISL bundled)
 endif()
 
+include_directories(include)
+
 if(NOT PET_FOUND)
   message("Package 'pet' not found, but don't worry, I know how to build it!")
   set(ENV{CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
   execute_process(
     # OUTPUT_QUIET 
-    COMMAND /usr/bin/bash ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL}
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL} ${CMAKE_SOURCE_DIR}/deps/opt
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
@@ -78,8 +80,6 @@ target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(scops SHARED src/scops.cc)
 target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
-
-include_directories(include)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
