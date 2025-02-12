@@ -29,7 +29,7 @@ class App:
         self.compiler_options += [f"-I{p}" for p in include_paths]
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         self.source = Path(source)
-        self.scops = Scops(self.source)
+        self.scops = Scops(str(self.source))
 
     @classmethod
     def make_ephemeral(cls, *args, **kwargs):
