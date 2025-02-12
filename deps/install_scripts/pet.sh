@@ -1,10 +1,15 @@
 #!/usr/bin/bash
 
-pet_BINARY_DIR=$1
-PET_CONFIGURE_WITH_ISL=$2
+CONFIGURE_ARGS=(
+  --enable-shared
+  --prefix="$1"
+  --with-isl="$2"
+  --with-llvm="$3"
+)
 
+./get_submodules.sh
 ./autogen.sh
-./configure --prefix="${pet_BINARY_DIR}" --with-isl="${PET_CONFIGURE_WITH_ISL}"
+./configure "${CONFIGURE_ARGS[@]}"
 make -j
 make -j install
 

@@ -5,15 +5,13 @@
 # from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from __future__ import annotations
 
-import os
 from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
-from typing import Optional
 
-from build.pytadashi import pytadashi
+from build import pytadashi
 
 
 class AstLoopType(Enum):

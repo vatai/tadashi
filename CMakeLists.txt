@@ -54,13 +54,15 @@ else()
   set(PET_CONFIGURE_WITH_ISL bundled)
 endif()
 
+include_directories(include)
+
 if(NOT PET_FOUND)
   message("Package 'pet' not found, but don't worry, I know how to build it!")
   set(ENV{CC} ${CMAKE_C_COMPILER})
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
   execute_process(
     # OUTPUT_QUIET 
-    COMMAND /usr/bin/bash ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL}
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL} ${CMAKE_SOURCE_DIR}/deps/opt
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
@@ -78,8 +80,6 @@ target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(scops SHARED src/scops.cc)
 target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
-
-include_directories(include)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
@@ -128,12 +128,12 @@ set_property(SOURCE src/ctadashi.i
 swig_add_library(ctadashi_swig
   TYPE MODULE
   LANGUAGE python
-  OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES src/ctadashi.i)
 swig_link_libraries(ctadashi_swig PUBLIC ctadashi Python3::Python PkgConfig::PET legality code_gen transformations)
 set_target_properties(ctadashi_swig PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}
   SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
   SWIG_COMPILE_OPTIONS -doxygen
