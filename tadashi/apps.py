@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 from . import Scops
 
@@ -86,6 +86,11 @@ class App:
         result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
+
+    def compile_and_measure(self, *args, **kwargs) -> Optional[float]:
+        if not self.compile():
+            return None
+        return self.measure(*args, **kwargs)
 
     def transform_list(
         self, transformation_list: list, run_each: bool = False
