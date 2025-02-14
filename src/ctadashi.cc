@@ -308,9 +308,9 @@ partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
 }
 
 extern "C" int
-set_parallel(size_t pool_idx, size_t scop_idx) {
+set_parallel(size_t pool_idx, size_t scop_idx, int num_threads) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_set_parallel(si->tmp_node);
+  si->tmp_node = tadashi_set_parallel(si->tmp_node, num_threads);
   isl_union_map *dep = isl_union_map_copy(si->dependency);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
   isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
