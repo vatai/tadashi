@@ -382,20 +382,15 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
-static int
-conditional_set_omp_pragma_string(__isl_keep isl_id *id, char *line) {
-  int nt = 42;
-  sprintf(line, "#pragma omp parallel for num_threads(%d)", nt);
-}
-
-static int
-id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+static const char *
+id_name_is_label_and_free(__isl_take isl_id *id) {
   if (!id)
     return 0;
+  char label[] = "#pragma";
   const char *id_name = isl_id_get_name(id);
-  int result = strncmp(id_name, label, TADASHI_LABEL_MAX_SIZE);
+  int result = strncmp(id_name, label, sizeof(label) + 1);
   isl_id_free(id);
-  return result == 0;
+  return result == 0 ? id_name : NULL;
 }
 
 static __isl_give isl_printer *
@@ -408,9 +403,9 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   isl_ast_node *body = isl_ast_node_for_get_body(for_node);
 
   isl_id *annotation = isl_ast_node_get_annotation(for_node);
-  if (id_name_is_label_and_free(annotation, TADASHI_LABEL_PARALLEL)) {
-    p = isl_printer_print_str(p, "#pragma omp parallel for\n");
-  }
+  const char *pragma = id_name_is_label_and_free(annotation);
+  if (pragma)
+    p = isl_printer_print_str(p, pragma);
 
   p = isl_printer_start_line(p);
   p = isl_printer_indent(p, 2);
@@ -442,12 +437,13 @@ after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
            void *user) {
   isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
   isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
-  if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
+  const char *pragma = id_name_is_label_and_free(mark_id);
+  if (!pragma)
     return mark_node;
 
   isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
   isl_ast_node_free(mark_node);
-  isl_id *annotation = isl_id_alloc(ctx, TADASHI_LABEL_PARALLEL, NULL);
+  isl_id *annotation = isl_id_alloc(ctx, pragma, NULL);
   for_node = isl_ast_node_set_annotation(for_node, annotation);
   return for_node;
 }
