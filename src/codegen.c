@@ -46,9 +46,9 @@
  * implied, of Sven Verdoolaege.
  */
 
+#include <limits.h>
+#include <stdio.h>
 #include <string.h>
-
-#include "codegen.h"
 
 #include <isl/ast.h>
 #include <isl/ast_build.h>
@@ -58,8 +58,7 @@
 #include <isl/val.h>
 #include <pet.h>
 
-#define TADASHI_LABEL_MAX_SIZE 100
-#define TADASHI_LABEL_PARALLEL "parallel"
+#include "codegen.h"
 
 /* Call "fn" on each declared array in "scop" that has an exposed field
  * equal to "exposed".
@@ -382,13 +381,14 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 }
 
 static int
-id_name_is_label_and_free(__isl_take isl_id *id, const char *label) {
+get_num_threads_from_pragma_parallel(__isl_take isl_id *id) {
   if (!id)
     return 0;
   const char *id_name = isl_id_get_name(id);
-  int result = strncmp(id_name, label, TADASHI_LABEL_MAX_SIZE);
+  int num_threads;
+  int rv = sscanf(id_name, "pragma_parallel_%d", &num_threads);
   isl_id_free(id);
-  return result == 0;
+  return rv == 1 ? num_threads : 0;
 }
 
 static __isl_give isl_printer *
@@ -401,8 +401,13 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   isl_ast_node *body = isl_ast_node_for_get_body(for_node);
 
   isl_id *annotation = isl_ast_node_get_annotation(for_node);
-  if (id_name_is_label_and_free(annotation, TADASHI_LABEL_PARALLEL)) {
-    p = isl_printer_print_str(p, "#pragma omp parallel for\n");
+
+  int num_threads = get_num_threads_from_pragma_parallel(annotation);
+  if (num_threads) {
+    char pragma_line[LINE_MAX];
+    sprintf(pragma_line, "#pragma omp parallel for num_threads(%d)\n",
+            num_threads);
+    p = isl_printer_print_str(p, pragma_line);
   }
 
   p = isl_printer_start_line(p);
@@ -435,12 +440,20 @@ after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
            void *user) {
   isl_ctx *ctx = isl_ast_node_get_ctx(mark_node);
   isl_id *mark_id = isl_ast_node_mark_get_id(mark_node);
-  if (!id_name_is_label_and_free(mark_id, TADASHI_LABEL_PARALLEL))
+
+  const char *id_name = isl_id_get_name(mark_id);
+  int starts_with_pragma = !strncmp(id_name, "pragma", 6);
+  mark_id = isl_id_free(mark_id);
+  if (!starts_with_pragma)
     return mark_node;
 
   isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
   isl_ast_node_free(mark_node);
-  isl_id *annotation = isl_id_alloc(ctx, TADASHI_LABEL_PARALLEL, NULL);
+  // Copy the name of the annotation id of the `mark_node` in the
+  // schedule tree to the name of the annotation id of the `for_node`
+  // in the AST, since the AST does not have access to the `mark_node`
+  // from the schedule tree directly.
+  isl_id *annotation = isl_id_alloc(ctx, id_name, NULL);
   for_node = isl_ast_node_set_annotation(for_node, annotation);
   return for_node;
 }

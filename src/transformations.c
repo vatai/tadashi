@@ -1,5 +1,6 @@
 /** @file */
 #include <assert.h>
+#include <limits.h>
 
 #include <isl/aff.h>
 #include <isl/ctx.h>
@@ -394,9 +395,10 @@ tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
 }
 
 __isl_give isl_schedule_node *
-tadashi_set_parallel(__isl_take isl_schedule_node *node) {
+tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  return isl_schedule_node_insert_mark(node,
-                                       isl_id_read_from_str(ctx, "parallel"));
+  char pragma[LINE_MAX];
+  sprintf(pragma, "pragma_parallel_%d", num_threads);
+  return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
 }
 // sink & order?
