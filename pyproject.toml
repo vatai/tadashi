@@ -17,10 +17,17 @@ maintainers = [
 ### keywords = ["simulation", "spin-dynamics", "radical pairs"]
 ### license = {text = "MIT"}
 
+[tools.setuptools]
+packages = ["tadashi"]
+# package-dir = {"tadashi" = "tadashi", "ctadashi"="src"}
+
+[tool.setuptools.packages]
+find = {}  # Scanning implicit namespaces is active by default
+
 [project.urls]
 ### Homepage = "https://github.com/Spin-Chemistry-Labs/radicalpy"
 ### Documentation = "https://radicalpy.readthedocs.io/en/latest/"
-### Source = "https://github.com/Spin-Chemistry-Labs/radicalpy"
+Source = "https://github.com/vatai/tadashi"
 
 [tool.setuptools-git-versioning]
 enabled = true
