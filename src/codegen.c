@@ -49,8 +49,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "codegen.h"
-
 #include <isl/ast.h>
 #include <isl/ast_build.h>
 #include <isl/id.h>
@@ -58,6 +56,8 @@
 #include <isl/printer.h>
 #include <isl/val.h>
 #include <pet.h>
+
+#include "codegen.h"
 
 #define TADASHI_LABEL_MAX_SIZE 100
 #define TADASHI_LABEL_PARALLEL "parallel"
