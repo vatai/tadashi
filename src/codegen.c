@@ -59,9 +59,6 @@
 
 #include "codegen.h"
 
-#define TADASHI_LABEL_MAX_SIZE 100
-#define TADASHI_LABEL_PARALLEL "parallel"
-
 /* Call "fn" on each declared array in "scop" that has an exposed field
  * equal to "exposed".
  */
