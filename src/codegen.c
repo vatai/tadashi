@@ -449,6 +449,10 @@ after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
 
   isl_ast_node *for_node = isl_ast_node_mark_get_node(mark_node);
   isl_ast_node_free(mark_node);
+  // Copy the name of the annotation id of the `mark_node` in the
+  // schedule tree to the name of the annotation id of the `for_node`
+  // in the AST, since the AST does not have access to the `mark_node`
+  // from the schedule tree directly.
   isl_id *annotation = isl_id_alloc(ctx, id_name, NULL);
   for_node = isl_ast_node_set_annotation(for_node, annotation);
   return for_node;
