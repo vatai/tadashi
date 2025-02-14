@@ -398,7 +398,7 @@ __isl_give isl_schedule_node *
 tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   char pragma[LINE_MAX];
-  sprintf(pragma, "pragma_%d", num_threads);
+  sprintf(pragma, "pragma_parallel_%d", num_threads);
   return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
 }
 // sink & order?

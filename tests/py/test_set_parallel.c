@@ -4,7 +4,7 @@
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   for(int c0 = 1; c0 < N; c0 += 1)
-///     #pragma
+/// #pragma omp parallel for num_threads(42)
 ///     for(int c1 = 0; c1 < N; c1 += 1)
 ///       {
 ///         for(int c2 = 0; c2 < N; c2 += 1)
