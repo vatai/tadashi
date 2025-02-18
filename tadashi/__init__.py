@@ -399,6 +399,7 @@ class PartialShiftParamInfo(TransformInfo):
 
 class SetParallelInfo(TransformInfo):
     func_name = "set_parallel"
+    arg_help = ["omp num_threads"]
 
 
 class SetLoopOptInfo(TransformInfo):
