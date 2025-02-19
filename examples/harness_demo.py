@@ -12,11 +12,6 @@ def func(idx):
     return f"FUNC({idx}) on {socket.gethostname()}"
 
 
-def compile_and_run(app):
-    app.compile()
-    return app.measure()
-
-
 @Halo(spinner="dots")
 def main():
     app = Simple("examples/depnodep.c")
@@ -30,7 +25,7 @@ def main():
             app.transform_list(tlist)
             new_app = app.generate_code(ephemeral=False)
             print(f"{new_app.source=}")
-            fs.append(executor.submit(compile_and_run, new_app))
+            fs.append(executor.submit(new_app.compile_and_measure))
             # fs.append(executor.submit(new_app.compile))
             # fs.append(executor.submit(func, idx))
         print(f"{len(fs)=}")
