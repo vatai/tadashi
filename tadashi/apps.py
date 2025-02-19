@@ -118,6 +118,13 @@ class Simple(App):
     def __init__(self, source: str, compiler_options: list[str] = []):
         self._finalize_object(source, compiler_options)
 
+    def __getstate__(self):
+        return {
+            "source": self.source,
+            "compiler_options": self.compiler_options,
+            "scops": None,
+        }
+
     @property
     def compile_cmd(self) -> list[str]:
         return [
