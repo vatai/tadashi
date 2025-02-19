@@ -19,6 +19,9 @@ class App:
     compiler_options: list[str]
     ephemeral: bool = False
 
+    def __getstate__(self):
+        raise NotImplemented("The `__getstate__` mehtod is needed for pickling!")
+
     def _finalize_object(
         self,
         source: str,
