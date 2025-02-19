@@ -134,6 +134,7 @@ def tr_args(node, tr):
         tile_size = random.choice([2**x for x in range(5, 12)])
         return [tile_size]
     tr = tadashi.TRANSFORMATIONS[tr]
+    print(f"{tr=}")
     lubs = tr.available_args(node)
     args = []
     for lub in lubs:
@@ -479,38 +480,6 @@ def tokenize(node: tadashi.Node, vocab: Optional[list] = None) -> dict:
     return dict(vocab=vocab, tokens=tokens)
 
 
-def main2():
-    args = get_args()
-    base, results = get_polybench_list()
-    gemm = tadashi.apps.Polybench(results[29], base)
-    print(f"{gemm.benchmark=}")
-
-    scop = gemm.scops[0]
-    node = scop.schedule_tree[11]
-    node.transform(tadashi.TrEnum.TILE, 16)
-
-    tokenizer = tokenize(scop.schedule_tree[0])
-    tokens = tokenizer["tokens"]
-    vocab = tokenizer["vocab"]
-    embeddings = nn.Embedding(len(vocab), args.embedding_size)
-    encoder = nn.LSTM(
-        args.embedding_size,
-        args.lstm_hidden_size,
-        num_layers=5,
-        batch_first=False,
-    )
-    # level, current, token = tokens[0]
-    indices = torch.LongTensor([vocab.index(token) for _, _, token in tokens])
-    emb: torch.Tensor = embeddings(indices)
-    print(f"{emb.shape=}")
-    # emb.unsqueeze_(1)
-    print(f"{emb.shape=}")
-    output = encoder(emb)
-    print(emb.shape)
-    print(f"{len(tokens)=}")
-    print(f"{(output[0].shape, (output[1][0].shape, output[1][1].shape))=}")
-
-
 class NodeNN(nn.Module):
     def __init__(self, scop: tadashi.Scop, args: argparse.Namespace):
         super().__init__()
@@ -581,9 +550,8 @@ class ArgsNN(nn.Module):
         self.node_nn = node_nn
         max_num_args = 3
         self.max_num_args = max(
-            len(tadashi.TRANSFORMATIONS[t].argtypes) for t in list(tadashi.TrEnum)
+            len(tadashi.TRANSFORMATIONS[t].arg_help) for t in list(tadashi.TrEnum)
         )
-        print(f"{self.max_num_args=}")
         in_size = args.lstm_hidden_size + self.max_num_args
         self.linear = nn.Linear(in_features=in_size, out_features=1, device=device)
 
@@ -591,8 +559,7 @@ class ArgsNN(nn.Module):
         device = get_device()
         encoded = self.node_nn(node)
         pad_size = self.max_num_args - len(args)
-        args_tensor = torch.tensor(args + [0] * pad_size)
-        print(f"{args_tensor.shape=}")
+        args_tensor = torch.tensor(args + [0] * pad_size).to(device)
         combined = torch.hstack([encoded, args_tensor]).to(device)
         return self.linear(combined)
 
@@ -625,15 +592,18 @@ def mcts(
             )
             for tr_idx in tr_top_k.indices:
                 tr = list(tadashi.TrEnum)[tr_idx]
-                trargs = tr_args(node, tr)
-                print(f"{trargs=}")
-                args_times = torch.vstack([args_nns[tr](node, ta) for ta in trargs])
-                args_top_k = torch.topk(
-                    torch.Tensor(args_times),
-                    args.args_top_k,
-                    dim=0,
-                    largest=False,
-                )
+                trargs = list(tr_args(node, tr))
+                stack = [args_nns[tr](node, ta) for ta in trargs]
+                if not stack:
+                    stack = [args_nns[tr](node, [])]
+                args_times = torch.vstack(stack)
+                print(f"{torch.Tensor(args_times).shape=}")
+                print(f"{args.args_top_k=}")
+                times = torch.Tensor(args_times)
+                k = min(args.args_top_k, times.shape[0])
+                args_top_k = torch.topk(times, k, dim=0, largest=False)
+                print(f"{type(args_top_k)=}")
+                print(f"{args_top_k.shape=}")
                 for trarg_idx in args_top_k.indices:
                     trarg = trargs[trarg_idx]
                     legal = node.transform(tr, *trarg)
@@ -644,8 +614,6 @@ def mcts(
                         app = scops.app
                         app.compile()
                         t = app.measure()
-
-                    print(f"{node.node_type.value=} {tr.value=}")
 
 
 def main3():

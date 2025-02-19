@@ -336,7 +336,9 @@ class FullShiftVarInfo(TransformInfo):
 
     @staticmethod
     def available_args(node: Node):
-        min_nv = min(len(s["vars"]) for s in node.loop_signature)
+        min_nv = 0
+        if node.loop_signature:
+            min_nv = min(len(s["vars"]) for s in node.loop_signature)
         return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
 
 
