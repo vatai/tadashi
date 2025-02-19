@@ -19,12 +19,19 @@ class App:
     compiler_options: list[str]
     ephemeral: bool = False
 
+    def __getstate__(self):
+        raise NotImplementedError("`__getstate__` needed for pickling!")
+
     def _finalize_object(
         self,
-        source: str,
-        include_paths: list[str] = [],
-        compiler_options: list[str] = [],
+        source: str | Path,
+        include_paths: Optional[list[str | Path]] = None,
+        compiler_options: Optional[list[str]] = None,
     ):
+        if include_paths is None:
+            include_paths = []
+        if compiler_options is None:
+            compiler_options = []
         self.compiler_options = compiler_options
         self.compiler_options += [f"-I{p}" for p in include_paths]
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
@@ -70,16 +77,15 @@ class App:
         return self.source.with_suffix("")
 
     @property
-    def run_cmd(self) -> list:
+    def run_cmd(self) -> list[Path]:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
-    def compile(self) -> bool:
+    def compile(self):
         """Compile the app so it can be measured/executed."""
         result = subprocess.run(self.compile_cmd + self.compiler_options)
         # raise an exception if it didn't compile
         result.check_returncode()
-        return result == 0
 
     def measure(self, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
@@ -87,9 +93,11 @@ class App:
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
-    def compile_and_measure(self, *args, **kwargs) -> Optional[float]:
-        if not self.compile():
-            return None
+    def compile_and_measure(self, *args, **kwargs) -> float | str:
+        try:
+            self.compile()
+        except subprocess.CalledProcessError as err:
+            return str(err)
         return self.measure(*args, **kwargs)
 
     def transform_list(
@@ -115,8 +123,15 @@ class App:
 
 
 class Simple(App):
-    def __init__(self, source: str, compiler_options: list[str] = []):
+    def __init__(self, source: str | Path, compiler_options: list[str] = []):
         self._finalize_object(source, compiler_options)
+
+    def __getstate__(self):
+        return {
+            "source": self.source,
+            "compiler_options": self.compiler_options,
+            "scops": None,
+        }
 
     @property
     def compile_cmd(self) -> list[str]:
@@ -153,19 +168,34 @@ class Polybench(App):
     benchmark: Path  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(self, benchmark: str, base: str, infix: str = "", compiler_options=[]):
+    def __init__(
+        self,
+        benchmark: str,
+        base: str,
+        infix: str = "",
+        compiler_options: Optional[list[str]] = None,
+    ):
+        if compiler_options is None:
+            compiler_options = []
         self.benchmark = Path(benchmark)
         self.base = Path(base)
-        dir = self.base / self.benchmark
-        source = dir / Path(self.benchmark.name).with_suffix(f".c")
-        compiler_options += ["-DPOLYBENCH_TIME", "-DPOLYBENCH_USE_RESTRICT", "-lm"]
+        path = self.base / self.benchmark
+        source = path / Path(self.benchmark.name).with_suffix(".c")
+        compiler_options += [
+            "-DPOLYBENCH_TIME",
+            "-DPOLYBENCH_USE_RESTRICT",
+            "-lm",
+        ]
         # "-DMEDIUM_DATASET",
-        self.utilities = base / "utilities"
+        self.utilities = base / Path("utilities")
         self._finalize_object(
             source=self._source_with_infix(source, infix),
             compiler_options=compiler_options,
             include_paths=[self.utilities],
         )
+
+    def __getstate__(self):
+        raise NotImplementedError()
 
     @property
     def compile_cmd(self) -> list[str]:
