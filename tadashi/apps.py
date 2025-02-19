@@ -70,16 +70,15 @@ class App:
         return self.source.with_suffix("")
 
     @property
-    def run_cmd(self) -> list:
+    def run_cmd(self) -> list[Path]:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
-    def compile(self) -> bool:
+    def compile(self):
         """Compile the app so it can be measured/executed."""
         result = subprocess.run(self.compile_cmd + self.compiler_options)
         # raise an exception if it didn't compile
         result.check_returncode()
-        return result == 0
 
     def measure(self, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
@@ -87,9 +86,11 @@ class App:
         stdout = result.stdout.decode()
         return self.extract_runtime(stdout)
 
-    def compile_and_measure(self, *args, **kwargs) -> Optional[float]:
-        if not self.compile():
-            return None
+    def compile_and_measure(self, *args, **kwargs) -> float | str:
+        try:
+            self.compile()
+        except subprocess.CalledProcessError as err:
+            return str(err)
         return self.measure(*args, **kwargs)
 
     def transform_list(
@@ -115,7 +116,7 @@ class App:
 
 
 class Simple(App):
-    def __init__(self, source: str, compiler_options: list[str] = []):
+    def __init__(self, source: str | Path, compiler_options: list[str] = []):
         self._finalize_object(source, compiler_options)
 
     def __getstate__(self):
