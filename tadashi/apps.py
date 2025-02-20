@@ -103,6 +103,8 @@ class App:
     def transform_list(
         self, transformation_list: list, run_each: bool = False
     ) -> Result | list[Result]:
+        if transformation_list == []:
+            run_each = True
         if run_each:
             results = []
             self.compile()
@@ -123,8 +125,12 @@ class App:
 
 
 class Simple(App):
-    def __init__(self, source: str | Path, compiler_options: list[str] = []):
-        self._finalize_object(source, compiler_options)
+    def __init__(
+        self, source: str | Path, compiler_options: Optional[list[str]] = None
+    ):
+        if compiler_options:
+            compiler_options = []
+        self._finalize_object(source, compiler_options=compiler_options)
 
     def __getstate__(self):
         return {
