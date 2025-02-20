@@ -5,6 +5,7 @@
 # from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from __future__ import annotations
 
+import multiprocessing
 from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
@@ -402,6 +403,13 @@ class PartialShiftParamInfo(TransformInfo):
 class SetParallelInfo(TransformInfo):
     func_name = "set_parallel"
     arg_help = ["omp num_threads"]
+
+    @staticmethod
+    def available_args(node: Node):
+        nproc = multiprocessing.cpu_count()
+        return [
+            LowerUpperBound(0, nproc),
+        ]
 
 
 class SetLoopOptInfo(TransformInfo):
