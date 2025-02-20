@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 import matplotlib.pyplot as plt
+import numpy as np
 import tadashi
 import tadashi.apps
 import torch
@@ -23,6 +24,10 @@ import torch.optim as optim
 import yaml
 
 CURRENT_MARK = "CURRENT_"
+
+torch.manual_seed(42)
+random.seed(42)
+np.random.seed(42)
 
 
 def get_args():
@@ -603,7 +608,7 @@ def mcts(
                 k = min(args.args_top_k, times.shape[0])
                 args_top_k = torch.topk(times, k, dim=0, largest=False)
                 print(f"{type(args_top_k)=}")
-                print(f"{args_top_k.shape=}")
+                print(f"{args_top_k.values.shape=}")
                 for trarg_idx in args_top_k.indices:
                     trarg = trargs[trarg_idx]
                     legal = node.transform(tr, *trarg)
