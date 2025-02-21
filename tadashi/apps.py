@@ -20,7 +20,10 @@ class App:
     ephemeral: bool = False
 
     def __getstate__(self):
-        raise NotImplementedError("`__getstate__` needed for pickling!")
+        state = {}
+        for k, v in self.__dict__.items():
+            state[k] = None if k == "scops" else v
+        return state
 
     def _finalize_object(
         self,
@@ -131,13 +134,6 @@ class Simple(App):
         if compiler_options:
             compiler_options = []
         self._finalize_object(source, compiler_options=compiler_options)
-
-    def __getstate__(self):
-        return {
-            "source": self.source,
-            "compiler_options": self.compiler_options,
-            "scops": None,
-        }
 
     @property
     def compile_cmd(self) -> list[str]:
