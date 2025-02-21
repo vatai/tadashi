@@ -196,9 +196,6 @@ class Polybench(App):
             include_paths=[self.utilities],
         )
 
-    def __getstate__(self):
-        raise NotImplementedError()
-
     @staticmethod
     def get_benchmarks(path):
         benchmarks = []
