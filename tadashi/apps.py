@@ -203,6 +203,16 @@ class Polybench(App):
     def __getstate__(self):
         raise NotImplementedError()
 
+    @staticmethod
+    def get_benchmarks(path):
+        benchmarks = []
+        for file in Path(path).glob("**/*.c"):
+            filename = file.with_suffix("").name
+            dirname = file.parent.name
+            if filename == dirname:
+                benchmarks.append(file.parent.relative_to(path))
+        return benchmarks
+
     @property
     def compile_cmd(self) -> list[str]:
         return [
