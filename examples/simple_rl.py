@@ -141,6 +141,7 @@ def tr_args(node, tr):
     tr = tadashi.TRANSFORMATIONS[tr]
     print(f"{tr=}")
     lubs = tr.available_args(node)
+    print(f"{lubs=}")
     args = []
     for lub in lubs:
         if isinstance(lub, tadashi.LowerUpperBound):
@@ -598,6 +599,7 @@ def mcts(
             for tr_idx in tr_top_k.indices:
                 tr = list(tadashi.TrEnum)[tr_idx]
                 trargs = list(tr_args(node, tr))
+                print(f"{trargs=}")
                 stack = [args_nns[tr](node, ta) for ta in trargs]
                 if not stack:
                     stack = [args_nns[tr](node, [])]
@@ -605,12 +607,14 @@ def mcts(
                 print(f"{torch.Tensor(args_times).shape=}")
                 print(f"{args.args_top_k=}")
                 times = torch.Tensor(args_times)
+                print(f"{times.shape=}")
                 k = min(args.args_top_k, times.shape[0])
                 args_top_k = torch.topk(times, k, dim=0, largest=False)
                 print(f"{type(args_top_k)=}")
-                print(f"{args_top_k.values.shape=}")
+                print(f"{args_top_k.values=}")
+                print(f"{args_top_k.indices=}")
                 for trarg_idx in args_top_k.indices:
-                    trarg = trargs[trarg_idx]
+                    trarg = trargs[trarg_idx] if trargs else []
                     legal = node.transform(tr, *trarg)
                     if not legal:
                         node.rollback()
