@@ -139,9 +139,7 @@ def tr_args(node, tr):
         tile_size = random.choice([2**x for x in range(5, 12)])
         return [tile_size]
     tr = tadashi.TRANSFORMATIONS[tr]
-    print(f"{tr=}")
     lubs = tr.available_args(node)
-    print(f"{lubs=}")
     args = []
     for lub in lubs:
         if isinstance(lub, tadashi.LowerUpperBound):
@@ -150,10 +148,11 @@ def tr_args(node, tr):
                 lb = -5
             if ub is None:
                 ub = 5
-            args = product(args, range(lb, ub))
+            tmp = list(range(lb, ub))
         else:
-            args = product(args, [t.value for t in lub])
-
+            tmp = [t.value for t in lub]
+        args = list(product(args, tmp) if args else tmp)
+    args = list(args)
     return args
 
 
@@ -565,7 +564,7 @@ class ArgsNN(nn.Module):
         device = get_device()
         encoded = self.node_nn(node)
         pad_size = self.max_num_args - len(args)
-        args_tensor = torch.tensor(args + [0] * pad_size).to(device)
+        args_tensor = torch.tensor(list(args) + [0] * pad_size).to(device)
         combined = torch.hstack([encoded, args_tensor]).to(device)
         return self.linear(combined)
 
@@ -578,6 +577,7 @@ def mcts(
     tran_nns: dict[TranNN],
     args_nns: dict[ArgsNN],
     args: argparse.Namespace,
+    app: tadashi.apps.App,
 ):
     for d in range(args.num_mcts_layers):
         nodes = [n for n in scop.schedule_tree if n.available_transformations]
@@ -622,9 +622,9 @@ def mcts(
                         node.rollback()
                         t = 1000000
                     else:
-                        app = scops.app
-                        app.compile()
-                        t = app.measure()
+                        new_app = app.generate_code()
+                        new_app.compile()
+                        t = new_app.measure()
 
 
 def main3():
@@ -648,6 +648,7 @@ def main3():
         tran_nns=tran_nns,
         args_nns=args_nns,
         args=args,
+        app=gemm,
     )
 
 
