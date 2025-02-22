@@ -590,7 +590,7 @@ def mcts(
         )
         for node_idx in node_top_k.indices:
             node = nodes[node_idx]
-            trs = node.available_transformations
+            trs = list(node.available_transformations)
             tr_times = torch.vstack([tran_nns[tr](node, tr) for tr in trs])
             tr_top_k = torch.topk(
                 torch.Tensor(tr_times),
@@ -599,7 +599,7 @@ def mcts(
                 largest=False,
             )
             for tr_idx in tr_top_k.indices:
-                tr = list(tadashi.TrEnum)[tr_idx]
+                tr = trs[tr_idx]
                 trargs = list(tr_args(node, tr))
                 print(f"{trargs=}")
                 stack = [args_nns[tr](node, ta) for ta in trargs]

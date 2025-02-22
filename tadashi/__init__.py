@@ -146,7 +146,9 @@ class Node:
         # TODO proc_args
         tr = TRANSFORMATIONS[trkey]
         if len(args) != len(tr.arg_help):
-            raise ValueError(f"Incorrect number of args for {tr}!")
+            raise ValueError(
+                f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
+            )
         if not tr.valid(self):
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
