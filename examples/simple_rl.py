@@ -580,7 +580,8 @@ def mcts(
     args: argparse.Namespace,
 ):
     for d in range(args.num_mcts_layers):
-        node_times = torch.vstack([node_nn(node) for node in scop.schedule_tree])
+        nodes = [n for n in scop.schedule_tree if n.available_transformations]
+        node_times = torch.vstack([node_nn(node) for node in nodes])
         node_top_k = torch.topk(
             input=node_head_nn(node_times),
             k=args.node_top_k,
@@ -589,7 +590,8 @@ def mcts(
         )
         for node_idx in node_top_k.indices:
             node = scop.schedule_tree[node_idx]
-            tr_times = torch.vstack([tran_nns[tr](node, tr) for tr in tadashi.TrEnum])
+            trs = node.available_transformations
+            tr_times = torch.vstack([tran_nns[tr](node, tr) for tr in trs])
             tr_top_k = torch.topk(
                 torch.Tensor(tr_times),
                 args.tr_top_k,
