@@ -100,7 +100,7 @@ def get_args():
     )
     parser.add_argument(
         "--num_mcts_layers",
-        default=5,
+        default=1,
         type=int,
         help="Number of MCTS layers (1 layer = 3 sublayers)",
     )
@@ -446,15 +446,19 @@ def tokenize_isl_str(isl_str: str):
     return result
 
 
+def parse_str(yaml_dict: dict, level: int) -> list:
+    if yaml_dict.endswith("leaf"):
+        current = yaml_dict.startswith(CURRENT_MARK)
+        if current:
+            yaml_dict = yaml_dict.replace(CURRENT_MARK, "")
+        return [(level, current, yaml_dict)]
+    return [(level, False, token) for token in tokenize_isl_str(yaml_dict)]
+
+
 def traverse(yaml_dict: dict, level: int = 0) -> list:
     result = []
     if isinstance(yaml_dict, str):
-        if yaml_dict.endswith("leaf"):
-            current = yaml_dict.startswith(CURRENT_MARK)
-            if current:
-                yaml_dict = yaml_dict.replace(CURRENT_MARK, "")
-            return [(level, current, yaml_dict)]
-        return [(level, False, token) for token in tokenize_isl_str(yaml_dict)]
+        return parse_str(yaml_dict, level)
     elif isinstance(yaml_dict, list):
         for item in yaml_dict:
             result += traverse(item, level + 1)
@@ -512,6 +516,7 @@ class NodeNN(nn.Module):
     def forward(self, node: tadashi.Node):
         device = get_device()
         tokens = tokenize(node, self.vocab)["tokens"]
+        print(" ".join([t for _, _, t in tokens]))
         indices = [self.vocab.index(token) for _, _, token in tokens]
         indices_tensor = torch.LongTensor(indices).to(device)
         encoded, (h0, c0) = self.rnn(self.embeddings(indices_tensor))
@@ -601,22 +606,16 @@ def mcts(
             for tr_idx in tr_top_k.indices:
                 tr = trs[tr_idx]
                 trargs = list(tr_args(node, tr))
-                print(f"{trargs=}")
                 stack = [args_nns[tr](node, ta) for ta in trargs]
                 if not stack:
                     stack = [args_nns[tr](node, [])]
                 args_times = torch.vstack(stack)
-                print(f"{torch.Tensor(args_times).shape=}")
-                print(f"{args.args_top_k=}")
                 times = torch.Tensor(args_times)
-                print(f"{times.shape=}")
                 k = min(args.args_top_k, times.shape[0])
                 args_top_k = torch.topk(times, k, dim=0, largest=False)
-                print(f"{type(args_top_k)=}")
-                print(f"{args_top_k.values=}")
-                print(f"{args_top_k.indices=}")
                 for trarg_idx in args_top_k.indices:
                     trarg = trargs[trarg_idx] if trargs else []
+                    print(f">>> TRANSFORM: {tr, trarg=}")
                     legal = node.transform(tr, *trarg)
                     if not legal:
                         node.rollback()
