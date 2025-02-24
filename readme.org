@@ -131,7 +131,7 @@ cmake --build .
 
 #+begin_src bash
 mk_dot_env.sh  # create .env file with USER, UID, GROUP, GID
-docker compose build # build images
+docker compose build tadashi # build images
 docker compose run --rm -it tadashi
 #+end_src
 

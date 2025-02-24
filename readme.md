@@ -1,14 +1,14 @@
-- [Breaking changes in v0.2.0](#orgc943df9)
-- [Documentation:](#orga6c730a)
-  - [Prerequisites](#org33a0c24)
-  - [Quick start](#orgb16da79)
-    - [End-to-end example](#org98d157d)
-- [Build instructions:](#orgf101ad4)
-- [Run from docker](#org1c449c1)
+- [Breaking changes in v0.2.0](#org7475ca6)
+- [Documentation:](#org4405622)
+  - [Prerequisites](#orgc7453a6)
+  - [Quick start](#org3b77a23)
+    - [End-to-end example](#org0ae3bce)
+- [Build instructions:](#orgee7dfba)
+- [Run from docker](#org19ccccd)
 
 
 
-<a id="orgc943df9"></a>
+<a id="org7475ca6"></a>
 
 # Breaking changes in v0.2.0
 
@@ -27,7 +27,7 @@ transformed_app = app.generate_code()
 Now both the old `app`, and new `transformed_app` stay "alive", i.e. the user can compile and measure both of them.
 
 
-<a id="orga6c730a"></a>
+<a id="org4405622"></a>
 
 # Documentation:
 
@@ -39,14 +39,14 @@ Until then these API docs can be downloaded (from the root dir of this repo) as:
 -   apidocs.tgz (tgz-ed html)
 
 
-<a id="org33a0c24"></a>
+<a id="orgc7453a6"></a>
 
 ## Prerequisites
 
 Compile Tadashi (as described below), and set the `PYTHONPATH` environment variable to point to the repository root.
 
 
-<a id="orgb16da79"></a>
+<a id="org3b77a23"></a>
 
 ## Quick start
 
@@ -57,7 +57,7 @@ PYTHONPATH=. python examples/end2end.py
 ```
 
 
-<a id="org98d157d"></a>
+<a id="org0ae3bce"></a>
 
 ### End-to-end example
 
@@ -69,10 +69,6 @@ from tadashi.apps import Simple
 app = Simple("examples/depnodep.c")
 scops = tadashi.Scops(app)
 ```
-
-    str(source_path)='examples/depnodep.c'
-    self.num_scops=1
-    self.pool_idx=0
 
 Select a node and a transformation, and check that the transformation is available on the selected node.
 
@@ -115,7 +111,7 @@ print(f"{app.measure()=}")
 ```
 
 
-<a id="orgf101ad4"></a>
+<a id="orgee7dfba"></a>
 
 # Build instructions:
 
@@ -130,13 +126,13 @@ cmake --build .
 ```
 
 
-<a id="org1c449c1"></a>
+<a id="org19ccccd"></a>
 
 # Run from docker
 
 ```bash
 mk_dot_env.sh  # create .env file with USER, UID, GROUP, GID
-docker compose build # build images
+docker compose build tadashi # build images
 docker compose run --rm -it tadashi
 ```
 
