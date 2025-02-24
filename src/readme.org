@@ -1,0 +1,3 @@
+#+title: ~ctadashi~ files
+
+This directory contains C/C++ source files of the library.
