@@ -1,17 +1,7 @@
 services:
   tadashi:
-    env_file:
-      .env
-    user: ${UID?error}:${GID?error}
     build:
-      ssh:
-        - default
       dockerfile: ./tadashi.dockerfile
-      args:
-        - USER=${USER}
-        - UID=${UID}
-        - GROUP=${GROUP}
-        - GID=${GID}
     volumes:
       - ..:/workdir
     environment:

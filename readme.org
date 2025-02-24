@@ -114,7 +114,7 @@ Generate new code, compile it and measure the performance.
 * Build instructions:
 
 Before building, install LLVM and other (system) packages (check
-[[file:./docker/tadashi.dockerfile][dockerfile]] for an exact list of ~apt-get~ packages).
+[[file:./.github/workflows/tests.yaml][this file]] for an exact list of ~apt-get~ packages).
 
 #+begin_src bash
 git clone --recursive https://github.com/vatai/tadashi.git
@@ -126,30 +126,3 @@ cmake --build .
 
 #+RESULTS:
 
-
-* Run from docker
-
-#+begin_src bash
-mk_dot_env.sh  # create .env file with USER, UID, GROUP, GID
-docker compose build tadashi # build images
-docker compose run --rm -it tadashi
-#+end_src
-
-#+RESULTS:
-
-The tadashi binds the host repo to ~/workdir~ inside the container.
-
-Tadashi should be rebuilt from the container (i.e. these are
-instructions primarily for developers):
-#+begin_src bash
-mkdir /workdir/build
-cd /workdir/build
-cmake ..
-cmake --build .
-#+end_src
-
-#+RESULTS:
-
-The dependencies are built during the ~docker compose build~ command
-under ~/tadashi/build/_deps~ and the environment is set up that these
-dependencies are used (i.e. not rebuilt again).

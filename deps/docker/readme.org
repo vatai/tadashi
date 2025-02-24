@@ -1,0 +1,30 @@
+#+title: Run from docker
+
+* Build the image
+
+#+begin_src bash
+docker compose build tadashi # build images
+#+end_src
+
+* Run the container
+
+#+begin_src bash
+docker compose run --rm -it tadashi
+#+end_src
+
+The tadashi binds the host repo to ~/workdir~ inside the container.
+
+* Development notes
+
+~ctadashi~ should be rebuilt from the container (i.e. these are
+instructions primarily for developers):
+#+begin_src bash
+mkdir /workdir/build
+cd /workdir/build
+cmake ..
+cmake --build .
+#+end_src
+
+The dependencies are built during the ~docker compose build~ command
+under ~/tadashi/build/_deps~ and the environment is set up that these
+dependencies are used (i.e. they don't need to be rebuilt).
