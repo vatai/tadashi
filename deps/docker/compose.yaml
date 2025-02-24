@@ -3,7 +3,7 @@ services:
     build:
       dockerfile: ./tadashi.dockerfile
     volumes:
-      - ..:/workdir
+      - ../..:/workdir
     environment:
       - PKG_CONFIG_PATH=/tadashi/build/_deps/libpet-src:/tadashi/build/_deps/libpet-src/isl
       - LIBRARY_PATH=/tadashi/build/_deps/libpet-build/lib
@@ -12,10 +12,10 @@ services:
     build:
       dockerfile: ./barvinok.dockerfile
     volumes:
-      - ..:/workdir
+      - ../..:/workdir
 
   barvinok-arch:
     build:
       dockerfile: ./barvinok-arch.dockerfile
     volumes:
-      - ..:/workdir
+      - ../..:/workdir
