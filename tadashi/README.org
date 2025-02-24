@@ -1,0 +1,3 @@
+#+title: ~tadashi~ files
+
+This directory contains Python source files of the library.
