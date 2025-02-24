@@ -20,14 +20,6 @@ tadashi.simple module
    :undoc-members:
    :show-inheritance:
 
-tadashi.tadashilib module
--------------------------
-
-.. automodule:: tadashi.tadashilib
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
