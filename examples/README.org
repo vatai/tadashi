@@ -1,0 +1,3 @@
+#+title: Example scripts
+
+This directory contains example Python scripts demonstrating how to use the library.
