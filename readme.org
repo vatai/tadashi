@@ -126,4 +126,4 @@ cmake --build .
 
 #+RESULTS:
 
-Using [[file:./deps/docker/readme.org][Docker]] is also an option.
+Using [[file:./deps/docker/][Docker]] is also an option.
