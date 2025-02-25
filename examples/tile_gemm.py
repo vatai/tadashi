@@ -7,10 +7,12 @@ base = "examples/polybench"
 gemm = Polybench(
     "linear-algebra/blas/gemm",
     base,
-    # compiler_options=["-DEXTRALARGE_DATASET"],
+    compiler_options=["-DEXTRALARGE_DATASET"],
 )
 
 print(gemm.scops[0].schedule_tree[2].yaml_str)
+gemm.compile()
+print(f"{gemm.measure()=}")
 trs = [
     [0, 7, TrEnum.INTERCHANGE],
     [0, 2, TrEnum.FULL_FUSE],
@@ -23,5 +25,8 @@ gemm.transform_list(trs)
 print(gemm.scops[0].schedule_tree[7].yaml_str)
 gemm2 = gemm.generate_code(alt_infix=".joao", ephemeral=False)
 
-# print(f"{gemm2.compiler_options=}")
+print(f"{gemm2.compiler_options=}")
+gemm2.compile()
+print(f"{gemm2.measure()=}")
+
 print("DONE")
