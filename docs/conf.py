@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-os.mknod("../build/__init__.py").
+os.mknod("../build/__init__.py")
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../tadashi"))
 
