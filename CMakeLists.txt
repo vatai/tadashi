@@ -69,6 +69,9 @@ if(NOT PET_FOUND)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 endif()
 
+add_executable(killer src/killer.c)
+target_link_libraries(killer PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_library(legality SHARED src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
 
