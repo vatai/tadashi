@@ -124,7 +124,7 @@ def run_model(app, num_steps, name=""):
 
 
 def run_simple():
-    run_model(Simple("./examples/depnodep.c"), num_steps=5)
+    run_model(Simple("./examples/inputs/depnodep.c"), num_steps=5)
 
 
 def measure_polybench(num_steps):

@@ -1,5 +1,5 @@
 # run with:
-# ./build/tadashi ./examples/depnodep.c < ./examples/depnodep_mark.yaml && cat out.c
+# ./build/tadashi ./examples/inputs/depnodep.c < ./examples/inputs/depnodep_mark.yaml && cat out.c
 {
   "domain": "[N] -> { S_0[i, j] : 0 < i < N and 0 <= j < N }",
   "child": {

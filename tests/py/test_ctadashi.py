@@ -102,7 +102,7 @@ class TestCtadashi(unittest.TestCase):
         self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
 
     def test_transformation_list(self):
-        app = Simple("examples/depnodep.c")
+        app = Simple("examples/inputs/depnodep.c")
         scop = app.scops[0]
         transformations = [
             [2, tadashi.TrEnum.SET_PARALLEL, [1]],

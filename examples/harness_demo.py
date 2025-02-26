@@ -14,7 +14,7 @@ def func(idx):
 
 @Halo(spinner="dots")
 def main():
-    app = Simple("examples/depnodep.c")
+    app = Simple("examples/inputs/depnodep.c")
     tlist = [
         [0, 1, tadashi.TrEnum.FULL_SHIFT_VAR, 13, 1],
     ]
