@@ -13,5 +13,4 @@ RUN mkdir build
 RUN cmake -S . -B build -G Ninja
 RUN cmake --build build
 
-WORKDIR /workdir
-
+WORKDIR /tadashi
