@@ -1,3 +1,7 @@
+import random
+
+from tadashi.apps import Polybench
+
 # TODO: implement Upper Confidence Bound for sampling strategy
 
 # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
@@ -74,5 +78,9 @@ class MCTSNode:
         if depth > 2:
             return
 
-node = MCTSNode(app=app, action="START")
-node.select_node()
+if __name__ == "__main__":
+    app = Polybench("linear-algebra/blas/gemm", "./examples/polybench/", compiler_options=["-D", "LARGE_DATASET"])
+    root = MCTSNode(app=app, action="START")
+    root.select_node()
+    print("samples tree as follows:")
+    root.print()
