@@ -70,6 +70,9 @@ class MCTSNode:
         child = self.select_child()
         child.select_params(depth+1)
 
+    # OK let us do the following here
+    # be tail-recursing list of params until it is empty
+    # then do eval and continue back to the node selection
     def select_params(self, depth):
         self._number_of_visits += 1
         print("selecting params")
