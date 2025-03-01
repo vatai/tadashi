@@ -25,7 +25,16 @@ class MCTSNode_Node(MCTSNode):
         # cloned_app = self.app.generate_code()
         default_scop = 0
         node = self.parent.parent.action
-        trs = [[default_scop, node, TrEnum.INTERCHANGE]]
+        tr= self.parent.action
+        trs = [[default_scop, node, tr]]
+        print("selected tr", trs)
+        result = self.app.transform_list(trs)
+        print(result)
+        # TODO: check result??
+        new_app = self.app.generate_code()
+        new_app.compile()
+        new_time = new_app.measure()
+        print("optimized time:", new_time)
         # TODO: clone the app
         # TODO: repeat to the node selection again
         if depth > 2:

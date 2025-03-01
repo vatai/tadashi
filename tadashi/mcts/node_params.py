@@ -46,7 +46,9 @@ class MCTSNode_Params(MCTSNode):
         # TODO: this can be done lazily, if too many params
         if self.children is None:
             # thould we do some eval here?
-            self.children = [tadashi.mcts.node_node.MCTSNode_Node(parent=self, action=self.select_default_params())]
+            self.children = [tadashi.mcts.node_node.MCTSNode_Node(parent=self,
+                                                                  app=self.app,
+                                                                  action=self.select_default_params())]
         print("children:", self.children[0].action)
         # params = self.parent.action.available_args(self.action)
         #print(params)
