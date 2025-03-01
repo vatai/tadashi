@@ -1,5 +1,7 @@
 import random
+from itertools import count, product
 
+from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
 from tadashi.apps import Polybench
 
 # TODO: implement Upper Confidence Bound for sampling strategy
@@ -61,7 +63,7 @@ class MCTSNode:
         child.select_transformation(depth+1)
 
     def set_actions_transformations(self):
-        self.children = [MCTSNode(self, action=tr) for tr in self.action.available_transformations]
+        self.children = [MCTSNode(parent=self, action=tr) for tr in self.action.available_transformations]
 
     def select_transformation(self, depth):
         self._number_of_visits += 1
@@ -73,11 +75,42 @@ class MCTSNode:
     # OK let us do the following here
     # be tail-recursing list of params until it is empty
     # then do eval and continue back to the node selection
+
+    # But for now let's roll with default params
+    def select_default_params(self):
+        tr = self.action
+        print("SELECTING ARAMS FOR", tr)
+        if tr == TRANSFORMATIONS[TrEnum.TILE]:
+            tile_size = random.choice([2**x for x in range(5, 12)])
+            return [tile_size]
+        tr = TRANSFORMATIONS[tr]
+        lubs = tr.available_args(node=self.parent.action)
+        args = []
+        for lub in lubs:
+            if isinstance(lub, LowerUpperBound):
+                lb, ub = lub
+                if lb is None:
+                    lb = -5
+                if ub is None:
+                    ub = 5
+                tmp = list(range(lb, ub))
+            else:
+                tmp = [t.value for t in lub]
+            args = list(product(args, tmp) if args else tmp)
+        args = list(args)
+        return args
+
+    # TODO: perhaps implementing tail recursion here for var len params
+    # also maybe better to make children a dictionary, so that we can add dynamically
     def select_params(self, depth):
         self._number_of_visits += 1
         print("selecting params")
-        params = self.parent.action.available_args(self.action)
-        print(params)
+        if self.children is None:
+            self.children = [MCTSNode(self.select_default_params())]
+        # params = self.parent.action.available_args(self.action)
+        #print(params)
+        child = self.select_child()
+        # TODO: do evals here and return to node selection
         if depth > 2:
             return
 
