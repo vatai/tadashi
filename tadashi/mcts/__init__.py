@@ -57,9 +57,10 @@ class MCTSNode_Node(MCTSNode):
     # But for now let's roll with default params
     def select_default_params(self):
         tr = self.action
-        print("SELECTING ARAMS FOR", tr)
-        if tr == TRANSFORMATIONS[TrEnum.TILE]:
+        print("SELECTING PARAMS FOR", tr, type(tr))
+        if tr == TrEnum.TILE:
             tile_size = random.choice([2**x for x in range(5, 12)])
+            print("RETURN FOR TILE")
             return [tile_size]
         tr = TRANSFORMATIONS[tr]
         lubs = tr.available_args(node=self.parent.action)
@@ -82,15 +83,22 @@ class MCTSNode_Node(MCTSNode):
     # also maybe better to make children a dictionary, so that we can add dynamically
     def select_params(self, depth):
         self._number_of_visits += 1
-        print("selecting params")
+        # TODO: this can be done lazily, if too many params
         if self.children is None:
-            self.children = [MCTSNode_Node(self.select_default_params())]
+            self.children = [MCTSNode_Node(parent=self, action=self.select_default_params())]
+        print("children:", self.children[0].action)
         # params = self.parent.action.available_args(self.action)
         #print(params)
         child = self.select_child()
-        # TODO: do evals here and return to node selection
+        child.evaluate(depth+1)
+
+    def evaluate(self, depth):
+        print("measuring performance")
+        self._number_of_visits += 1
         if depth > 2:
             return
+        # TODO: clone the app
+        # TODO: repeat to the node selection again
 
 if __name__ == "__main__":
     app = Polybench("linear-algebra/blas/gemm", "./examples/polybench/", compiler_options=["-D", "LARGE_DATASET"])
