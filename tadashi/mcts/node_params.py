@@ -22,7 +22,8 @@ class MCTSNode_Params(MCTSNode):
             print("RETURN FOR TILE")
             return [tile_size]
         tr = TRANSFORMATIONS[tr]
-        lubs = tr.available_args(node=self.parent.action)
+        node=self.app.scops[0].schedule_tree[self.parent.action]
+        lubs = tr.available_args(node=node)
         args = []
         for lub in lubs:
             if isinstance(lub, LowerUpperBound):
@@ -50,4 +51,4 @@ class MCTSNode_Params(MCTSNode):
         # params = self.parent.action.available_args(self.action)
         #print(params)
         child = self.select_child()
-        child.evaluate(depth+1)
+        child.evaluate(depth + 1)
