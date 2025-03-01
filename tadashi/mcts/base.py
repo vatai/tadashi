@@ -9,8 +9,16 @@ class MCTSNode:
         self.children = None
         self._number_of_visits = 0
 
-    # TODO: replace this with UCT weighting
-    # Neural scoring in the future
+    # TODO: implement Upper Confidence Bound for sampling strategy
+    # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
+
+    # Q(node): Average reward (win rate) of the node (exploitation).
+    # N(parent): Number of visits to the parent node.
+    # N(node): Number of visits to the node.
+    # C: Exploration constant (balances exploration vs. exploitation).
+    # can start from C=1
+
+    # TODO: Neural scoring in the future
     def select_child(self):
         child = random.choice(self.children)
         return child

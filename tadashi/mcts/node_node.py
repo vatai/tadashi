@@ -21,6 +21,7 @@ class MCTSNode_Node(MCTSNode):
         self._number_of_visits += 1
         if depth > 2:
             return
+        cloned_app = self.app.generate_code()
         # TODO: clone the app
         # TODO: repeat to the node selection again
 
@@ -29,4 +30,4 @@ class MCTSNode_Node(MCTSNode):
         if self.children is None:
             self.set_actions_from_nodes()
         child = self.select_child()
-        child.select_transformation(depth+1)
+        child.roll(depth+1)

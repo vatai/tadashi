@@ -40,7 +40,7 @@ class MCTSNode_Params(MCTSNode):
 
     # TODO: perhaps implementing tail recursion here for var len params
     # also maybe better to make children a dictionary, so that we can add dynamically
-    def select_params(self, depth):
+    def roll(self, depth):
         self._number_of_visits += 1
         # TODO: this can be done lazily, if too many params
         if self.children is None:
