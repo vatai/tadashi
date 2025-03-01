@@ -2,7 +2,6 @@ import random
 from itertools import count, product
 
 from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
-from tadashi.apps import Polybench
 
 # TODO: implement Upper Confidence Bound for sampling strategy
 
