@@ -1,7 +1,9 @@
 import random
-from itertools import count, product
+from itertools import product
 
 from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
+
+from .base import MCTSNode
 
 # TODO: implement Upper Confidence Bound for sampling strategy
 
@@ -14,30 +16,7 @@ from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
 
 # can start from C=1
 
-class MCTSNode:
-    def __init__(self, parent=None, app=None, action=None):
-        self.parent = parent
-        self.app = app
-        self.action = action
-        self.children = None
-        self._number_of_visits = 0
-
-    # def get_networkx_tree(self, graph=None, parent=None):
-    #     # TODO: this is WIP
-    #     if graph is None:
-    #         graph = nx.Graph()
-    #     graph.add_node(self)
-    #     return graph
-
-    def print(self, depth=0):
-        if self._number_of_visits == 0:
-            return
-        print(f"{' '*depth}", end="")
-        print(f"V:{self._number_of_visits}", self.action)
-        if self.children is None:
-            return
-        for c in self.children:
-            c.print(depth+1)
+class MCTSNode_Node(MCTSNode):
 
     def set_actions_from_nodes(self):
         nodes = self.app.scops[0].schedule_tree
@@ -46,7 +25,7 @@ class MCTSNode:
             if node.available_transformations:
                 nodes_transformable.append(node)
         # TODO: do this lazily to avoid expensive cloning through code generation
-            self.children = [MCTSNode(self, self.app, node) for node in nodes_transformable]
+            self.children = [MCTSNode_Node(self, self.app, node) for node in nodes_transformable]
 
     # TODO: replace this with UCT weighting
     # Neural scoring in the future
@@ -62,7 +41,7 @@ class MCTSNode:
         child.select_transformation(depth+1)
 
     def set_actions_transformations(self):
-        self.children = [MCTSNode(parent=self, action=tr) for tr in self.action.available_transformations]
+        self.children = [MCTSNode_Node(parent=self, action=tr) for tr in self.action.available_transformations]
 
     def select_transformation(self, depth):
         self._number_of_visits += 1
@@ -105,7 +84,7 @@ class MCTSNode:
         self._number_of_visits += 1
         print("selecting params")
         if self.children is None:
-            self.children = [MCTSNode(self.select_default_params())]
+            self.children = [MCTSNode_Node(self.select_default_params())]
         # params = self.parent.action.available_args(self.action)
         #print(params)
         child = self.select_child()
