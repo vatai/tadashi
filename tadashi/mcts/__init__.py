@@ -1,9 +1,8 @@
-import random
-from itertools import product
-
 from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
 
 from .base import MCTSNode
+
+# from .node_node import MCTSNode_Node
 
 # TODO: implement Upper Confidence Bound for sampling strategy
 
@@ -15,87 +14,3 @@ from .base import MCTSNode
 #     C: Exploration constant (balances exploration vs. exploitation).
 
 # can start from C=1
-
-class MCTSNode_Node(MCTSNode):
-
-    def set_actions_from_nodes(self):
-        nodes = self.app.scops[0].schedule_tree
-        nodes_transformable = []
-        for node in nodes:
-            if node.available_transformations:
-                nodes_transformable.append(node)
-        # TODO: do this lazily to avoid expensive cloning through code generation
-            self.children = [MCTSNode_Node(self, self.app, node) for node in nodes_transformable]
-
-    # TODO: replace this with UCT weighting
-    # Neural scoring in the future
-    def select_child(self):
-        child = random.choice(self.children)
-        return child
-
-    def select_node(self, depth=0):
-        self._number_of_visits += 1
-        if self.children is None:
-            self.set_actions_from_nodes()
-        child = self.select_child()
-        child.select_transformation(depth+1)
-
-    def set_actions_transformations(self):
-        self.children = [MCTSNode_Node(parent=self, action=tr) for tr in self.action.available_transformations]
-
-    def select_transformation(self, depth):
-        self._number_of_visits += 1
-        if self.children is None:
-            self.set_actions_transformations()
-        child = self.select_child()
-        child.select_params(depth+1)
-
-    # OK let us do the following here
-    # be tail-recursing list of params until it is empty
-    # then do eval and continue back to the node selection
-
-    # But for now let's roll with default params
-    def select_default_params(self):
-        tr = self.action
-        print("SELECTING PARAMS FOR", tr, type(tr))
-        if tr == TrEnum.TILE:
-            tile_size = random.choice([2**x for x in range(5, 12)])
-            print("RETURN FOR TILE")
-            return [tile_size]
-        tr = TRANSFORMATIONS[tr]
-        lubs = tr.available_args(node=self.parent.action)
-        args = []
-        for lub in lubs:
-            if isinstance(lub, LowerUpperBound):
-                lb, ub = lub
-                if lb is None:
-                    lb = -5
-                if ub is None:
-                    ub = 5
-                tmp = list(range(lb, ub))
-            else:
-                tmp = [t.value for t in lub]
-            args = list(product(args, tmp) if args else tmp)
-        args = list(args)
-        return args
-
-    # TODO: perhaps implementing tail recursion here for var len params
-    # also maybe better to make children a dictionary, so that we can add dynamically
-    def select_params(self, depth):
-        self._number_of_visits += 1
-        # TODO: this can be done lazily, if too many params
-        if self.children is None:
-            self.children = [MCTSNode_Node(parent=self, action=self.select_default_params())]
-        print("children:", self.children[0].action)
-        # params = self.parent.action.available_args(self.action)
-        #print(params)
-        child = self.select_child()
-        child.evaluate(depth+1)
-
-    def evaluate(self, depth):
-        print("measuring performance")
-        self._number_of_visits += 1
-        if depth > 2:
-            return
-        # TODO: clone the app
-        # TODO: repeat to the node selection again

@@ -1,3 +1,6 @@
+import random
+
+
 class MCTSNode:
     def __init__(self, parent=None, app=None, action=None):
         self.parent = parent
@@ -5,6 +8,12 @@ class MCTSNode:
         self.action = action
         self.children = None
         self._number_of_visits = 0
+
+    # TODO: replace this with UCT weighting
+    # Neural scoring in the future
+    def select_child(self):
+        child = random.choice(self.children)
+        return child
 
     # def get_networkx_tree(self, graph=None, parent=None):
     #     # TODO: this is WIP
