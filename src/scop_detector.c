@@ -1,10 +1,11 @@
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <isl/ctx.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
-#include <stddef.h>
-#include <stdio.h>
-
-#include <isl/ctx.h>
 #include <pet.h>
 
 isl_printer *
@@ -23,6 +24,10 @@ main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("/dev/null", "w");
   size_t num_scops = 0;
+  if (argc > 2 && strncmp(argv[2], "-a", 3) == 0) {
+    printf("Using auto detection\n");
+    pet_options_set_autodetect(ctx, 1);
+  }
   pet_transform_C_source(ctx, input, output, transform, &num_scops);
   printf("Number of scops detected: %d\n", num_scops);
   return 0;
