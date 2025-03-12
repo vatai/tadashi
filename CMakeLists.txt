@@ -159,6 +159,9 @@ add_executable(goodbadtest src/goodbadtest.c)
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
 
+add_executable(scop_detector src/scop_detector.c)
+target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 # enable_testing()
 # include(GoogleTest)
 
