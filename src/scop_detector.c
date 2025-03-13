@@ -13,7 +13,7 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
   size_t *num_scops = user;
   isl_schedule *schedule = pet_scop_get_schedule(scop);
   isl_schedule_node *root = isl_schedule_get_root(schedule);
-  printf("scop[%d]:\n%s\n", num_scops, isl_schedule_node_to_str(root));
+  printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
   (*num_scops)++;
   return p;
 }
