@@ -28,16 +28,24 @@ class MCTSNode_Node(MCTSNode):
         tr = self.parent.action
         args = self.action
         trs = [[default_scop, node, tr, *args]]
-        print("selected tr", trs)
-        result = self.app.transform_list(trs)
-        print(result)
-        # TODO: check result??
-        new_app = self.app.generate_code()
-        new_app.compile()
-        new_time = new_app.measure()
-        print("optimized time:", new_time)
+        print("selected transform:", trs)
+        try:
+            result = self.app.transform_list(trs)
+            print(result)
+            # TODO: check result??
+            new_app = self.app.generate_code()
+            new_app.compile()
+            new_time = new_app.measure()
+            print("optimized time:", new_time)
+            speedup = self.get_initial_time() / new_time
+            print("speedup:", speedup)
+            # speedup = 
+        except Exception as e:
+            print("OOPS")
+            print(e)
         # TODO: clone the app
         # TODO: repeat to the node selection again
+        # TODO: compute and store speedup
         if depth > 2:
             return
 

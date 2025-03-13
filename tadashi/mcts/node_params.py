@@ -16,6 +16,8 @@ class MCTSNode_Params(MCTSNode):
     # But for now let's roll with default params
     @staticmethod
     def expand_lub(lub):
+        if isinstance(lub, list):
+            return lub
         assert isinstance(lub, LowerUpperBound)
         lb, ub = lub
         if lb is None:

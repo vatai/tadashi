@@ -2,12 +2,13 @@ import random
 
 
 class MCTSNode:
-    def __init__(self, parent=None, app=None, action=None):
+    def __init__(self, parent=None, app=None, action=None, initial_time=None):
         self.parent = parent
         self.app = app
         self.action = action
         self.children = None
         self._number_of_visits = 0
+        self.initial_time = initial_time
 
     # TODO: implement Upper Confidence Bound for sampling strategy
     # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
@@ -22,6 +23,11 @@ class MCTSNode:
     def select_child(self):
         child = random.choice(self.children)
         return child
+
+    def get_initial_time(self):
+        if self.initial_time is not None:
+            return self.initial_time
+        return self.parent.get_initial_time()
 
     # def get_networkx_tree(self, graph=None, parent=None):
     #     # TODO: this is WIP
