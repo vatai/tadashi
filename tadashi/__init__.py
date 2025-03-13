@@ -372,7 +372,7 @@ class FullShiftParamInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node) -> bool:
-        if node.node_type 1= NodeType.BAND:
+        if node.node_type != NodeType.BAND:
             return False
         min_num_params = min(len(s["params"]) for s in node.loop_signature)
         return min_num_params > 0
