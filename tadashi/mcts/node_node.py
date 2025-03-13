@@ -25,8 +25,9 @@ class MCTSNode_Node(MCTSNode):
         # cloned_app = self.app.generate_code()
         default_scop = 0
         node = self.parent.parent.action
-        tr= self.parent.action
-        trs = [[default_scop, node, tr]]
+        tr = self.parent.action
+        args = self.action
+        trs = [[default_scop, node, tr, *args]]
         print("selected tr", trs)
         result = self.app.transform_list(trs)
         print(result)
