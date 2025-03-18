@@ -13,9 +13,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Common installation directories
 include(GNUInstallDirs)
 
+
+# =======
+# Options
+# =======
+
+# Use -fPIC even if statically compiled
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+
 # ============
 # Dependencies
 # ============
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 include(FetchContent)
 
@@ -40,19 +53,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
-# =======
-# Options
-# =======
-
-# Use -fPIC even if statically compiled
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
-set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-
 # list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
-
 
 set(ENV{PKG_CONFIG_PATH} "${pet_SOURCE_DIR}:${pet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${pet_BINARY_DIR}/lib")
@@ -60,21 +61,21 @@ list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
 
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PET IMPORTED_TARGET pet)
+message("Package 'pet' not found, but don't worry, I know how to build it!")
+set(ENV{CC} ${CMAKE_C_COMPILER})
+set(ENV{CXX} ${CMAKE_CXX_COMPILER})
+execute_process(
+  # TODO: remove "bundled"
+  COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} bundled ${CMAKE_SOURCE_DIR}/deps/opt
+  WORKING_DIRECTORY ${pet_SOURCE_DIR}
+)
+pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
+pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 
-if(NOT PET_FOUND)
-  message("Package 'pet' not found, but don't worry, I know how to build it!")
-  set(ENV{CC} ${CMAKE_C_COMPILER})
-  set(ENV{CXX} ${CMAKE_CXX_COMPILER})
-  execute_process(
-    # OUTPUT_QUIET 
-    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} bundled ${CMAKE_SOURCE_DIR}/deps/opt
-    WORKING_DIRECTORY ${pet_SOURCE_DIR}
-  )
-  pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
-  pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
-endif()
+
+# ========
+# ctadashi
+# ========
 
 include_directories(include)
 
@@ -92,9 +93,29 @@ target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
+
 add_library(CTadashi::ctadashi ALIAS ctadashi)
 
-install(TARGETS legality code_gen transformations scops ctadashi
+add_executable(goodbadtest src/goodbadtest.c)
+
+add_executable(tadashi src/tadashi.c)
+target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
+
+# enable_testing()
+# include(GoogleTest)
+
+# add_executable(test_legality tests/cc/test_legality.cc)
+# target_link_libraries(test_legality PUBLIC PkgConfig::ISL GTest::gtest_main legality)
+
+# gtest_discover_tests(test_legality)
+
+
+# =======
+# Install
+# =======
+
+install(
+  TARGETS legality code_gen transformations scops ctadashi
   EXPORT CTadashiTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -163,15 +184,3 @@ install(
     ARCHIVE DESTINATION ${CTADASHI_INSTALL_PREFIX}
     RUNTIME DESTINATION ${CTADASHI_INSTALL_PREFIX})
 
-add_executable(goodbadtest src/goodbadtest.c)
-
-add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
-
-# enable_testing()
-# include(GoogleTest)
-
-# add_executable(test_legality tests/cc/test_legality.cc)
-# target_link_libraries(test_legality PUBLIC PkgConfig::ISL GTest::gtest_main legality)
-
-# gtest_discover_tests(test_legality)
