@@ -128,10 +128,52 @@ install(
   NAMESPACE CTadashi::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi)
 
+# Create a CMake package
+include(CMakePackageConfigHelpers)
+
+# Prepare the Config.cmake.in content
+set(PACKAGE_INIT_MACRO "@PACKAGE_INIT@")
+set(CONFIG_CMAKE_IN "\
+@PACKAGE_INIT_MACRO@\n\
+include(\"\${CMAKE_CURRENT_LIST_DIR}/CTadashiTargets.cmake\")\n\
+check_required_components(CTadashi)\n"
+)
+
+# Create Config.cmake.in
+file(CONFIGURE
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Config.cmake.in
+    CONTENT ${CONFIG_CMAKE_IN}
+    @ONLY)
+
+# Create CTadashiConfig.cmake
+configure_package_config_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CTadashiConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi)
+
+# Create CTadashiConfigVersion.cmake
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/CTadashiConfigVersion.cmake"
+    VERSION "${version}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Install CMake package files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/CTadashiConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/CTadashiConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi
+)
+
 # install(PROGRAMS ${PET_LINK_LIBRARIES}
 #   DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-###
+### Around here
+
+
+# ===============
+# Python bindings
+# ===============
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
 find_package(SWIG 4.0 REQUIRED)
