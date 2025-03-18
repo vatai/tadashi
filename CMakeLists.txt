@@ -1,17 +1,21 @@
 cmake_minimum_required(VERSION 3.18.4)
 project(tadashi)
 
-cmake_policy(SET CMP0078 NEW)
-cmake_policy(SET CMP0086 NEW)
+# C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# cmake_policy(SET CMP0078 NEW)
+# cmake_policy(SET CMP0086 NEW)
 
 # Common installation directories
 include(GNUInstallDirs)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
-set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-
-# list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
+# ============
+# Dependencies
+# ============
 
 include(FetchContent)
 
@@ -36,6 +40,20 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
+# =======
+# Options
+# =======
+
+# Use -fPIC even if statically compiled
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+
+# list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
+
+
 set(ENV{PKG_CONFIG_PATH} "${pet_SOURCE_DIR}:${pet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${pet_BINARY_DIR}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
@@ -43,18 +61,7 @@ list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(ISL IMPORTED_TARGET isl)
 pkg_check_modules(PET IMPORTED_TARGET pet)
-
-if(ISL_FOUND)
-  message("ISL found")
-  set(PET_CONFIGURE_WITH_ISL system)
-else()
-  message("ISL NOT found")
-  set(PET_CONFIGURE_WITH_ISL bundled)
-endif()
-
-include_directories(include)
 
 if(NOT PET_FOUND)
   message("Package 'pet' not found, but don't worry, I know how to build it!")
@@ -62,12 +69,14 @@ if(NOT PET_FOUND)
   set(ENV{CXX} ${CMAKE_CXX_COMPILER})
   execute_process(
     # OUTPUT_QUIET 
-    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} ${PET_CONFIGURE_WITH_ISL} ${CMAKE_SOURCE_DIR}/deps/opt
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} bundled ${CMAKE_SOURCE_DIR}/deps/opt
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
   pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 endif()
+
+include_directories(include)
 
 add_library(legality SHARED src/legality.c)
 target_link_libraries(legality PUBLIC PkgConfig::ISL PkgConfig::PET)
