@@ -18,7 +18,6 @@ include(GNUInstallDirs)
 # Options
 # =======
 
-# Use -fPIC even if statically compiled
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -30,16 +29,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
-include(FetchContent)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
 
-# FetchContent_Declare(
-#   googletest
-#   DOWNLOAD_EXTRACT_TIMESTAMP On
-#   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-# )
-# # For Windows: Prevent overriding the parent project's compiler/linker settings
-# # set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# FetchContent_MakeAvailable(googletest)
+# Handle where to install the resulting Python package
+if(CALL_FROM_SETUP_PY)
+    # The CMakeExtension will set CMAKE_INSTALL_PREFIX to the root
+    # of the resulting wheel archive
+    set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+else()
+    # The Python package is installed directly in the folder of the
+    # detected interpreter (system, user, or virtualenv)
+    set(CTADASHI_INSTALL_PREFIX ${Python3_SITELIB})
+endif()
+set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+message("CTADASHI_INSTALL_PREFIX = ${CTADASHI_INSTALL_PREFIX}")
+include(FetchContent)
 
 FetchContent_Declare(
   pet
@@ -53,22 +57,24 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
-# list(APPEND CMAKE_PREFIX_PATH ${PROJECT_BINARY_DIR})
-
-set(ENV{PKG_CONFIG_PATH} "${pet_SOURCE_DIR}:${pet_SOURCE_DIR}/isl:$ENV{PKG_CONFIG_PATH}")
-list(APPEND CMAKE_LIBRARY_PATH "${pet_BINARY_DIR}/lib")
-list(APPEND CMAKE_INSTALL_RPATH "${pet_BINARY_DIR}/lib")
+set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}:${pet_SOURCE_DIR}$ENV{PKG_CONFIG_PATH}")
+message("PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
+list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/lib")
+list(APPEND CMAKE_INSTALL_RPATH "${CTADASHI_INSTALL_PREFIX}/lib")
 
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 
-message("Package 'pet' not found, but don't worry, I know how to build it!")
 set(ENV{CC} ${CMAKE_C_COMPILER})
 set(ENV{CXX} ${CMAKE_CXX_COMPILER})
+set(ENV{CFLAGS} ${CMAKE_C_FLAGS})
+set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
+
 execute_process(
   # TODO: remove "bundled"
-  COMMAND ${INSTALL_SCRIPTS}/pet.sh ${pet_BINARY_DIR} bundled ${CMAKE_SOURCE_DIR}/deps/opt
+  COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
   WORKING_DIRECTORY ${pet_SOURCE_DIR}
 )
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
 pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 
@@ -175,7 +181,6 @@ install(FILES
 # Python bindings
 # ===============
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
 find_package(SWIG 4.0 REQUIRED)
 set(UseSWIG_MODULE_VERSION 2)
 include(${SWIG_USE_FILE})
