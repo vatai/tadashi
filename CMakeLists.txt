@@ -166,11 +166,6 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CTadashi
 )
 
-# install(PROGRAMS ${PET_LINK_LIBRARIES}
-#   DESTINATION ${CMAKE_INSTALL_PREFIX})
-
-### Around here
-
 
 # ===============
 # Python bindings
