@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18.4)
-project(tadashi)
+project(tadashi VERSION 1.2.3)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
