@@ -39,8 +39,6 @@ else()
     # detected interpreter (system, user, or virtualenv)
     set(CTADASHI_INSTALL_PREFIX ${Python3_SITELIB})
 endif()
-# set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-message("CTADASHI_INSTALL_PREFIX = ${CTADASHI_INSTALL_PREFIX}")
 include(FetchContent)
 
 FetchContent_Declare(
@@ -57,7 +55,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(pet)
 
 set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-message("PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "${CTADASHI_INSTALL_PREFIX}/lib")
 
@@ -70,10 +67,6 @@ execute_process(
   # TODO: remove "bundled"
   COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
   WORKING_DIRECTORY ${pet_SOURCE_DIR}
-)
-message(">>>>>>>>>>>>>>>>>>>>>")
-execute_process(
-  COMMAND ls ${CTADASHI_INSTALL_PREFIX}/lib/pkgconfig
 )
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
