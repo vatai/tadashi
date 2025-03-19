@@ -39,7 +39,7 @@ else()
     # detected interpreter (system, user, or virtualenv)
     set(CTADASHI_INSTALL_PREFIX ${Python3_SITELIB})
 endif()
-set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+# set(CTADASHI_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 message("CTADASHI_INSTALL_PREFIX = ${CTADASHI_INSTALL_PREFIX}")
 include(FetchContent)
 
@@ -71,9 +71,14 @@ execute_process(
   COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
   WORKING_DIRECTORY ${pet_SOURCE_DIR}
 )
+message(">>>>>>>>>>>>>>>>>>>>>")
+execute_process(
+  COMMAND ls ${CTADASHI_INSTALL_PREFIX}/lib/pkgconfig
+)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
 pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
+
 
 
 # ========
