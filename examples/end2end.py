@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import tadashi
 from tadashi.apps import Simple
 
-app = Simple("examples/inputs/depnodep.c")
+app = Simple(f"{Path(__file__).parent}/inputs/depnodep.c")
+print(app)
 node = app.scops[0].schedule_tree[1]
 print(f"{node=}")
 tr = tadashi.TrEnum.FULL_SHIFT_VAR
