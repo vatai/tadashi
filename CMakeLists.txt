@@ -26,6 +26,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # Dependencies
 # ============
 
+set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
@@ -47,6 +48,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   pet
+  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch"
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG master
   GIT_SHALLOW ON
@@ -61,8 +63,6 @@ set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}:${pet_SOURCE_DIR}$ENV{PKG_C
 message("PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "${CTADASHI_INSTALL_PREFIX}/lib")
-
-set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 
 set(ENV{CC} ${CMAKE_C_COMPILER})
 set(ENV{CXX} ${CMAKE_CXX_COMPILER})
