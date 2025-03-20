@@ -2,8 +2,9 @@ from pathlib import Path
 
 import tadashi
 from tadashi.apps import Simple
-
-app = Simple(f"{Path(__file__).parent}/inputs/depnodep.c")
+dir_path = Path(__file__).parent
+examples_path = dir_path if dir_path.name == "examples" else "examples"
+app = Simple(f"{examples_path}/inputs/depnodep.c")
 print(app)
 
 node = app.scops[0].schedule_tree[1]

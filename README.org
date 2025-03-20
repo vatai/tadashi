@@ -52,12 +52,14 @@ app.
 
   import tadashi
   from tadashi.apps import Simple
-
-  app = Simple(f"{Path(__file__).parent}/inputs/depnodep.c")
+  dir_path = Path(__file__).parent
+  examples_path = dir_path if dir_path.name == "examples" else "examples"
+  app = Simple(f"{examples_path}/inputs/depnodep.c")
   print(app)
 #+end_src
 
 #+RESULTS:
+: <tadashi.apps.Simple object at 0x7260a99fea50>
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
@@ -70,6 +72,8 @@ is available on the selected node.
 #+end_src
 
 #+RESULTS:
+: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['j', 'i']}], [N] -> L_0[{ S_0[j, i] -> [(j)] }], [0]
+: tr in node.available_transformations=True
 
 Check the available arguments for the given node-transformation pair.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
@@ -82,6 +86,10 @@ Check the available arguments for the given node-transformation pair.
 #+end_src
 
 #+RESULTS:
+: tr=<TrEnum.FULL_SHIFT_VAR: 'full_shift_var'>
+: len(lu)=2
+: lu[0]=LowerUpperBound(lower=None, upper=None)
+: lu[1]=LowerUpperBound(lower=0, upper=2)
 
 
 Perform the transformation and check legality.
@@ -94,6 +102,8 @@ Perform the transformation and check legality.
 #+end_src
 
 #+RESULTS:
+: node.valid_args(tr, *args)=True
+: legal=True
 
 Generate new code, compile it and measure the performance.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
@@ -106,5 +116,7 @@ Generate new code, compile it and measure the performance.
 #+end_src
 
 #+RESULTS:
+: app.measure()=24.0
+: app.measure()=38.0
 
 
