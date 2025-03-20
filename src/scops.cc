@@ -9,10 +9,9 @@
 #include "legality.h"
 #include "scops.h"
 
-Scop::Scop(pet_scop *scop) : tmp_node(nullptr), modified(false) {
-  this->scop.scop = scop;
-  this->scop.dependency = get_dependencies(scop);
-  isl_schedule *schedule = pet_scop_get_schedule(scop);
+Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
+  populate_tadashi_scop(&scop, ps);
+  isl_schedule *schedule = pet_scop_get_schedule(scop.scop);
   current_node = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
 }
