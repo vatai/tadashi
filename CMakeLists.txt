@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.18.4)
-project(tadashi VERSION 1.2.3)
+project(tadashi VERSION 0.2.2)
+
+
+# ==============
+# Notes on RPATH
+# ==============
+
+# https://gitlab.kitware.com/cmake/community/-/wikis/doc/cmake/RPATH-handling
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -24,7 +31,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # ============
 
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
-# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # didn't help
 set(CMAKE_INSTALL_RPATH_USE_ORIGIN TRUE)
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
@@ -201,7 +207,6 @@ swig_link_libraries(ctadashi_swig
 set_target_properties(ctadashi_swig PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
   INSTALL_RPATH $ORIGIN/lib
-  # INSTALL_RPATH $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/lib>
   # SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
   # SWIG_COMPILE_OPTIONS -doxygen
   # SWIG_DEPENDS src/ctadashi.i
