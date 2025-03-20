@@ -191,13 +191,13 @@ include(${SWIG_USE_FILE})
 # The name of the shared library must match the module name
 set_source_files_properties(src/ctadashi.i PROPERTIES
   CPLUSPLUS ON
-  SWIG_MODULE_NAME "pytadashi")
+  SWIG_MODULE_NAME "ctadashi")
 
 # Create the SWIG library
 swig_add_library(ctadashi_swig
   TYPE MODULE
   LANGUAGE python
-  OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/ctadashi
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES src/ctadashi.i)
 
@@ -205,7 +205,7 @@ swig_link_libraries(ctadashi_swig
   PRIVATE CTadashi::ctadashi Python3::Python PkgConfig::PET)
 
 set_target_properties(ctadashi_swig PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pytadashi
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ctadashi
   INSTALL_RPATH $ORIGIN/lib
   # SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
   # SWIG_COMPILE_OPTIONS -doxygen
@@ -238,12 +238,12 @@ get_property(WRAPPER_PY_FILE
 install(
     FILES ${WRAPPER_PY_FILE}
     DESTINATION ${CTADASHI_INSTALL_PREFIX}
-    COMPONENT pytadashi)
+    COMPONENT ctadashi)
 
 # Install the SWIG library
 install(
     TARGETS ctadashi_swig
-    COMPONENT pytadashi
+    COMPONENT ctadashi
     LIBRARY DESTINATION ${CTADASHI_INSTALL_PREFIX}
     ARCHIVE DESTINATION ${CTADASHI_INSTALL_PREFIX}
     RUNTIME DESTINATION ${CTADASHI_INSTALL_PREFIX})
