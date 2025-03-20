@@ -1,5 +1,19 @@
 #+title: Tadashi
 
+* Install
+
+After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
+
+#+begin_src bash
+  pip install git+https://github.com/vatai/tadashi.git
+#+end_src
+
+Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
+libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
+
+Using [[file:./deps/docker/][Docker]] is also an option.
+
+
 * Breaking changes in v0.2.0
 
 Code generation is different.  Code like this
@@ -23,12 +37,6 @@ user can compile and measure both of them.
 After the double blind review and the end of the anonymity
 requirement, detailed API documentation will be uploaded to
 https://tadashi.readthedocs.io/ (or a similar URL).
-
-
-** Prerequisites
-
-Compile Tadashi (as described below), and set the ~PYTHONPATH~
-environment variable to point to the repository root.
 
 ** Quick start
 
@@ -108,15 +116,3 @@ Generate new code, compile it and measure the performance.
 : app.measure()=22.0
 
 
-* Install
-
-After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
-
-#+begin_src bash
-  pip install git+https://github.com/vatai/tadashi.git
-#+end_src
-
-Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
-libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
-
-Using [[file:./deps/docker/][Docker]] is also an option.
