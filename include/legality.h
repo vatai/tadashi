@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+struct tadashi_scop {
+  pet_scop *scop;
+  isl_union_map *dependency;
+};
+
 __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);
 
 isl_bool tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
