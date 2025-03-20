@@ -14,24 +14,6 @@ libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/work
 Using [[file:./deps/docker/][Docker]] is also an option.
 
 
-* Breaking changes in v0.2.0
-
-Code generation is different.  Code like this
-
-#+begin_src python
-  scops.generate_code()
-#+end_src
-
-should be replace with code like this:
-
-#+begin_src python
-  transformed_app = app.generate_code()
-#+end_src
-
-Now both the old ~app~, and new ~transformed_app~ stay "alive", i.e. the
-user can compile and measure both of them.
-
-
 * Documentation
 
 After the double blind review and the end of the anonymity
@@ -40,30 +22,33 @@ https://tadashi.readthedocs.io/ (or a similar URL).
 
 ** Quick start
 
-An [[./examples/inputs/end2edn.py][end-to-end]] example is provided below (split into parts with
+An [[./examples/inputs/end2end.py][end-to-end]] example is provided below (split into parts with
 comments and outputs).  This example can be run from the repository
 root with the following command:
 #+begin_src bash
-  python examples/inputs/end2edn.py
+  python examples/inputs/end2end.py
 #+end_src
 
 *** End-to-end example
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
 app.
-#+begin_src python :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  from pathlib import Path
+
   import tadashi
   from tadashi.apps import Simple
-  app = Simple("examples/inputs/depnodep.c")
-  scops = tadashi.Scops(app)
+
+  app = Simple(f"{Path(__file__).parent}/inputs/depnodep.c")
+  print(app)
 #+end_src
 
 #+RESULTS:
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
-  node = scops[0].schedule_tree[1]
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
+  node = app.scops[0].schedule_tree[1]
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
   print(f"{tr in node.available_transformations=}")
@@ -71,11 +56,9 @@ is available on the selected node.
 #+end_src
 
 #+RESULTS:
-: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['j', 'i']}], [N] -> L_0[{ S_0[j, i] -> [(j)] }], [0]
-: tr in node.available_transformations=True
 
 Check the available arguments for the given node-transformation pair.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   print(f"{tr=}")
   lu = node.available_args(tr)
   print(f"{len(lu)=}")
@@ -85,14 +68,10 @@ Check the available arguments for the given node-transformation pair.
 #+end_src
 
 #+RESULTS:
-: tr=<TrEnum.FULL_SHIFT_VAR: 'full_shift_var'>
-: len(lu)=2
-: lu[0]=LowerUpperBound(lower=None, upper=None)
-: lu[1]=LowerUpperBound(lower=0, upper=2)
 
 
 Perform the transformation and check legality.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
@@ -101,18 +80,17 @@ Perform the transformation and check legality.
 #+end_src
 
 #+RESULTS:
-: node.valid_args(tr, *args)=True
-: legal=True
 
 Generate new code, compile it and measure the performance.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
-  scops.generate_code()
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
+  app.compile()
+  print(f"{app.measure()=}")
+  app = app.generate_code()
   app.compile()
   print(f"{app.measure()=}")
   # output:
 #+end_src
 
 #+RESULTS:
-: app.measure()=22.0
 
 
