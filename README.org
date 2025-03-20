@@ -1,64 +1,73 @@
 #+title: Tadashi
 
-* Breaking changes in v0.2.0
+* Install
 
-Code generation is different.  Code like this
+After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
 
-#+begin_src python
-  scops.generate_code()
+#+begin_src bash
+  pip install git+https://github.com/vatai/tadashi.git
 #+end_src
 
-should be replace with code like this:
+Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
+libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
 
-#+begin_src python
-  transformed_app = app.generate_code()
+Using [[file:./deps/docker/][Docker]] is also an option.
+
+** Development
+
+#+begin_src bash
+   mkdir build
+   cmake -S . -B build -GNinja -DCMAKE_INSTALL_PREFIX=ctadashi -DCALL_FROM_SETUP_PY=ON
+   ninja -C build install
 #+end_src
 
-Now both the old ~app~, and new ~transformed_app~ stay "alive", i.e. the
-user can compile and measure both of them.
+Execute with:
 
-* Documentation:
+#+begin_src bash
+  PYTHONPATH=. python examples/end2end.py
+#+end_src
+
+
+* Documentation
 
 After the double blind review and the end of the anonymity
 requirement, detailed API documentation will be uploaded to
 https://tadashi.readthedocs.io/ (or a similar URL).
 
-Until then these API docs can be downloaded (from the root dir of this
-repo) as:
-- tadashi.pdf (PDF)
-- apidocs.tgz (tgz-ed html)
-
-** Prerequisites
-
-Compile Tadashi (as described below), and set the ~PYTHONPATH~
-environment variable to point to the repository root.
-
 ** Quick start
 
-An [[./examples/inputs/end2edn.py][end-to-end]] example is provided below (split into parts with
+An [[./examples/inputs/end2end.py][end-to-end]] example is provided below (split into parts with
 comments and outputs).  This example can be run from the repository
 root with the following command:
 #+begin_src bash
-  PYTHONPATH=. python examples/inputs/end2edn.py
+  python examples/inputs/end2end.py
 #+end_src
+
+#+RESULTS:
 
 *** End-to-end example
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
 app.
-#+begin_src python :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  from pathlib import Path
+
   import tadashi
   from tadashi.apps import Simple
-  app = Simple("examples/inputs/depnodep.c")
-  scops = tadashi.Scops(app)
+  dir_path = Path(__file__).parent
+  examples_path = dir_path if dir_path.name == "examples" else "examples"
+  app = Simple(f"{examples_path}/inputs/depnodep.c")
+  print(app)
 #+end_src
 
 #+RESULTS:
+: <tadashi.apps.Simple object at 0x7260a57196d0>
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
-  node = scops[0].schedule_tree[1]
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
+  node = app.scops[0].schedule_tree[1]
   print(f"{node=}")
   tr = tadashi.TrEnum.FULL_SHIFT_VAR
   print(f"{tr in node.available_transformations=}")
@@ -70,7 +79,7 @@ is available on the selected node.
 : tr in node.available_transformations=True
 
 Check the available arguments for the given node-transformation pair.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
   print(f"{tr=}")
   lu = node.available_args(tr)
   print(f"{len(lu)=}")
@@ -87,7 +96,7 @@ Check the available arguments for the given node-transformation pair.
 
 
 Perform the transformation and check legality.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
   args = [13, 1]
   print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
@@ -100,30 +109,15 @@ Perform the transformation and check legality.
 : legal=True
 
 Generate new code, compile it and measure the performance.
-#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/inputs/end2edn.py
-  scops.generate_code()
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
   app.compile()
   print(f"{app.measure()=}")
+  transformed_app = app.generate_code()
+  transformed_app.compile()
+  print(f"{transformed_app.measure()=}")
   # output:
 #+end_src
 
 #+RESULTS:
-: app.measure()=22.0
-
-
-* Build instructions:
-
-Before building, install LLVM and other (system) packages (check
-[[file:./.github/workflows/tests.yaml][this file]] for an exact list of ~apt-get~ packages).
-
-#+begin_src bash
-git clone --recursive https://github.com/vatai/tadashi.git
-mkdir tadashi/build
-cd tadashi/build
-cmake ..
-cmake --build .
-#+end_src
-
-#+RESULTS:
-
-Using [[file:./deps/docker/][Docker]] is also an option.
+: app.measure()=24.0
+: transformed_app.measure()=39.0

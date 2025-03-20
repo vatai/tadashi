@@ -1,7 +1,12 @@
+from pathlib import Path
+
 import tadashi
 from tadashi.apps import Simple
+dir_path = Path(__file__).parent
+examples_path = dir_path if dir_path.name == "examples" else "examples"
+app = Simple(f"{examples_path}/inputs/depnodep.c")
+print(app)
 
-app = Simple("examples/inputs/depnodep.c")
 node = app.scops[0].schedule_tree[1]
 print(f"{node=}")
 tr = tadashi.TrEnum.FULL_SHIFT_VAR
@@ -23,7 +28,7 @@ print(f"{legal=}")
 
 app.compile()
 print(f"{app.measure()=}")
-app = app.generate_code()
-app.compile()
-print(f"{app.measure()=}")
+transformed_app = app.generate_code()
+transformed_app.compile()
+print(f"{transformed_app.measure()=}")
 # output:

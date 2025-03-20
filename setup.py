@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import inspect
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -22,6 +23,8 @@ import setuptools
 ###         from . import bindings
 ###     """
 ### )
+
+NINJA_OPTION = ["-GNinja"] if shutil.which("ninja") else []
 
 # Extra options passed to the CI/CD pipeline that uses cibuildwheel
 CIBW_CMAKE_OPTIONS = []
@@ -66,7 +69,8 @@ setuptools.setup(
                 ### "-DEXAMPLE_WITH_SWIG:BOOL=ON",
                 ### "-DEXAMPLE_WITH_PYBIND11:BOOL=OFF",
             ]
-            + CIBW_CMAKE_OPTIONS,
+            + CIBW_CMAKE_OPTIONS
+            + NINJA_OPTION,
         ),
         ### cmake_build_extension.CMakeExtension(
         ###     name="Pybind11Bindings",
