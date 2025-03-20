@@ -47,6 +47,12 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
   return dep;
 }
 
+void
+populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
+  ts->scop = ps;
+  ts->dependency = get_dependencies(ts->scop);
+}
+
 static __isl_give isl_union_set *
 _get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   isl_set *delta_set;
