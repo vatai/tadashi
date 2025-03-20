@@ -44,7 +44,7 @@ An [[./examples/inputs/end2edn.py][end-to-end]] example is provided below (split
 comments and outputs).  This example can be run from the repository
 root with the following command:
 #+begin_src bash
-  PYTHONPATH=. python examples/inputs/end2edn.py
+  python examples/inputs/end2edn.py
 #+end_src
 
 *** End-to-end example
