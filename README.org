@@ -17,16 +17,13 @@ should be replace with code like this:
 Now both the old ~app~, and new ~transformed_app~ stay "alive", i.e. the
 user can compile and measure both of them.
 
-* Documentation:
+
+* Documentation
 
 After the double blind review and the end of the anonymity
 requirement, detailed API documentation will be uploaded to
 https://tadashi.readthedocs.io/ (or a similar URL).
 
-Until then these API docs can be downloaded (from the root dir of this
-repo) as:
-- tadashi.pdf (PDF)
-- apidocs.tgz (tgz-ed html)
 
 ** Prerequisites
 
@@ -111,19 +108,15 @@ Generate new code, compile it and measure the performance.
 : app.measure()=22.0
 
 
-* Build instructions:
+* Install
 
-Before building, install LLVM and other (system) packages (check
-[[file:./.github/workflows/tests.yaml][this file]] for an exact list of ~apt-get~ packages).
+After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
 
 #+begin_src bash
-git clone --recursive https://github.com/vatai/tadashi.git
-mkdir tadashi/build
-cd tadashi/build
-cmake ..
-cmake --build .
+  pip install git+https://github.com/vatai/tadashi.git
 #+end_src
 
-#+RESULTS:
+Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
+libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
 
 Using [[file:./deps/docker/][Docker]] is also an option.
