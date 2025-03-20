@@ -16,8 +16,9 @@ Using [[file:./deps/docker/][Docker]] is also an option.
 ** Development
 
 #+begin_src bash
-  mkdir build
-  cmake -S . -B build -GNinja -DCMAKE_INSTALL_PREFIX=ctadashi -DCALL_FROM_SETUP_PY=ON && ninja -C build install
+   mkdir build
+   cmake -S . -B build -GNinja -DCMAKE_INSTALL_PREFIX=ctadashi -DCALL_FROM_SETUP_PY=ON
+   ninja -C build install
 #+end_src
 
 Execute with:
