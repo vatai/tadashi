@@ -42,6 +42,8 @@ root with the following command:
   python examples/inputs/end2end.py
 #+end_src
 
+#+RESULTS:
+
 *** End-to-end example
 
 After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
@@ -59,7 +61,7 @@ app.
 #+end_src
 
 #+RESULTS:
-: <tadashi.apps.Simple object at 0x7260a99fea50>
+: <tadashi.apps.Simple object at 0x7260a57196d0>
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
@@ -109,14 +111,12 @@ Generate new code, compile it and measure the performance.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
   app.compile()
   print(f"{app.measure()=}")
-  app = app.generate_code()
-  app.compile()
-  print(f"{app.measure()=}")
+  transformed_app = app.generate_code()
+  transformed_app.compile()
+  print(f"{transformed_app.measure()=}")
   # output:
 #+end_src
 
 #+RESULTS:
 : app.measure()=24.0
-: app.measure()=38.0
-
-
+: transformed_app.measure()=39.0

@@ -28,7 +28,7 @@ print(f"{legal=}")
 
 app.compile()
 print(f"{app.measure()=}")
-app = app.generate_code()
-app.compile()
-print(f"{app.measure()=}")
+transformed_app = app.generate_code()
+transformed_app.compile()
+print(f"{transformed_app.measure()=}")
 # output:
