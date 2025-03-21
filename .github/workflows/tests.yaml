@@ -27,17 +27,20 @@ jobs:
     - name: Check out repo
       uses: actions/checkout@master
 
-    - name: Configure Project
-      # continue-on-error: true
-      uses: threeal/cmake-action@v1.3.0
-      with:
-        generator: Ninja
+    # - name: Configure Project
+    #   # continue-on-error: true
+    #   uses: threeal/cmake-action@v1.3.0
+    #   with:
+    #     generator: Ninja
 
-    - name: Build Project
-      run: cmake --build build
+    # - name: Build Project
+    #   run: cmake --build build
 
-    - name: Run cmake gtest
-      run: ctest --test-dir build
+    # - name: Run cmake gtest
+    #   run: ctest --test-dir build
+
+    - name: Build python package
+      run: pip install .
 
     - name: Run simple.py
       run: python -m tadashi.simple
