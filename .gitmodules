@@ -4,3 +4,4 @@
 [submodule "examples/polybench"]
 	path = examples/polybench
 	url = https://github.com/MatthiasJReisinger/PolyBenchC-4.2.1
+	ignore = dirty

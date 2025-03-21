@@ -370,6 +370,13 @@ class FullShiftParamInfo(TransformInfo):
     arg_help = ["Coefficient", "Parameter index"]
 
     @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        min_num_params = min(len(s["params"]) for s in node.loop_signature)
+        return min_num_params > 0
+
+    @staticmethod
     def valid_args(node: Node, coeff: int, param_idx: int):
         return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
 
