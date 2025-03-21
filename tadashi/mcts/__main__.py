@@ -16,7 +16,8 @@ if __name__ == "__main__":
     # new_app.compile()
     # new_time = new_app.measure()
     # print("optimized time:", new_time)
-
+    # with Simple(lalala) as app:
+        # do things
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.roll()
     print("samples tree as follows:")

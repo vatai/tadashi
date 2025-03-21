@@ -16,7 +16,7 @@ class MCTSNode_Node(MCTSNode):
                 nodes_transformable.append(i)
         # TODO: do this lazily to avoid expensive cloning through code generation
             self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
-                                                                                      app=self.app,
+                                                                                      app=self.app.generate_code(),
                                                                                       action=node) for node in nodes_transformable]
 
     def evaluate(self, depth):
@@ -29,6 +29,9 @@ class MCTSNode_Node(MCTSNode):
         args = self.action
         trs = [[default_scop, node, tr, *args]]
         print("selected transform:", trs)
+        # TODO: make a copy of the app to continue on it
+        # TODO: make another brach
+        # TODO: 1 where we do not apply, but keep growing list of 
         try:
             result = self.app.transform_list(trs)
             print(result)
