@@ -1,4 +1,5 @@
 import tadashi.mcts.node_transformation
+from colorama import Fore, Style
 from tadashi import TrEnum
 
 from .base import MCTSNode
@@ -46,8 +47,10 @@ class MCTSNode_Node(MCTSNode):
             self.update_stats(speedup)
             print("speedup:", speedup)
         except Exception as e:
+            print(Fore.RED, end="")
             print("failed to transform with the following exception:")
             print(e)
+            print(Style.RESET_ALL, end="")
         # finally:
             # self.app = app_backup
         # TODO: repeat to the node selection again
