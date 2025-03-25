@@ -32,4 +32,4 @@ TESTS=(
 # done
 
 valgrind ${VALGRIND_ARGS[@]} python -m unittest 2>&1 | tail
-# valgrind ${VALGRIND_ARGS[@]} python examples/inputs/end2edn.py
+# valgrind ${VALGRIND_ARGS[@]} python examples/inputs/end2end.py

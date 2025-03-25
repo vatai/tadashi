@@ -2,7 +2,6 @@
 
 """Main Tadashi package."""
 
-# from ctypes import CDLL, c_bool, c_char_p, c_int, c_long, c_size_t
 from __future__ import annotations
 
 import multiprocessing
@@ -12,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
 
-from build import pytadashi
+from ctadashi import ctadashi
 
 
 class AstLoopType(Enum):
@@ -156,7 +155,7 @@ class Node:
             msg = f"Not valid transformation args: {args}"
             raise ValueError(msg)
 
-        func = getattr(pytadashi, tr.func_name)
+        func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
         return bool(legal)
@@ -164,14 +163,14 @@ class Node:
     @property
     def yaml_str(self):
         self.scop.locate(self.location)
-        encoded_result = pytadashi.print_schedule_node(
+        encoded_result = ctadashi.print_schedule_node(
             self.scop.pool_idx, self.scop.scop_idx
         )
         return encoded_result
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        pytadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
+        ctadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
 
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
@@ -482,19 +481,19 @@ class Scop:
         variables of each statement covered by the loop/band node.
 
         """
-        loop_signature = pytadashi.get_loop_signature(self.pool_idx, self.scop_idx)
+        loop_signature = ctadashi.get_loop_signature(self.pool_idx, self.scop_idx)
         return literal_eval(loop_signature)
 
     def _make_node(self, parent, location):
-        num_children = pytadashi.get_num_children(self.pool_idx, self.scop_idx)
+        num_children = ctadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
-            node_type=NodeType(pytadashi.get_type(self.pool_idx, self.scop_idx)),
+            node_type=NodeType(ctadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
             location=location,
             loop_signature=self.get_loop_signature(),
-            expr=pytadashi.get_expr(self.pool_idx, self.scop_idx),
+            expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),
             children_idx=[-1] * num_children,
         )
         return node
@@ -505,23 +504,23 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                pytadashi.goto_child(self.pool_idx, self.scop_idx, c)
+                ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                pytadashi.goto_parent(self.pool_idx, self.scop_idx)
+                ctadashi.goto_parent(self.pool_idx, self.scop_idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
-        pytadashi.goto_root(self.pool_idx, self.scop_idx)
+        ctadashi.goto_root(self.pool_idx, self.scop_idx)
         nodes: list[Node] = []
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
-        pytadashi.goto_root(self.pool_idx, self.scop_idx)
+        ctadashi.goto_root(self.pool_idx, self.scop_idx)
         for c in location:
-            pytadashi.goto_child(self.pool_idx, self.scop_idx, c)
+            ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
     def transform_list(self, trs: list) -> bool:
         result = []
@@ -542,15 +541,15 @@ class Scops:
 
     def __init__(self, source_path: str):
         self._check_missing_file(Path(source_path))
-        self.pool_idx = pytadashi.init_scops(str(source_path))
-        self.num_scops = pytadashi.num_scops(self.pool_idx)
+        self.pool_idx = ctadashi.init_scops(str(source_path))
+        self.num_scops = ctadashi.num_scops(self.pool_idx)
         # print(f"{str(source_path)=}")
         # print(f"{self.num_scops=}")
         # print(f"{self.pool_idx=}")
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
-        pytadashi.free_scops(self.pool_idx)
+        ctadashi.free_scops(self.pool_idx)
 
     @staticmethod
     def _check_missing_file(path: Path):
@@ -565,7 +564,7 @@ class Scops:
         to be called.
 
         """
-        pytadashi.generate_code(self.pool_idx, str(input_path), str(output_path))
+        ctadashi.generate_code(self.pool_idx, str(input_path), str(output_path))
 
     def __len__(self):
         return self.num_scops
