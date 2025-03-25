@@ -9,6 +9,7 @@ class MCTSNode:
         self.children = None
         self._number_of_visits = 0
         self.initial_time = initial_time
+        self.speedup = None
 
     # TODO: implement Upper Confidence Bound for sampling strategy
     # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
@@ -40,8 +41,14 @@ class MCTSNode:
         if self._number_of_visits == 0:
             return
         print(f"{' '*depth}", end="")
-        print(f"V:{self._number_of_visits}", self.action)
+        print(f"V:{self._number_of_visits} S:{self.speedup:0.4f} |", self.action)
         if self.children is None:
             return
         for c in self.children:
             c.print(depth+1)
+
+    def update_stats(self, speedup):
+        if self.speedup is None or speedup > self.speedup:
+            self.speedup = speedup
+            if self.parent:
+                self.parent.update_stats(speedup)

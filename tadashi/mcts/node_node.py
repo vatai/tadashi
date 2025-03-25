@@ -41,10 +41,11 @@ class MCTSNode_Node(MCTSNode):
             new_time = new_app.measure()
             print("optimized time:", new_time)
             speedup = self.get_initial_time() / new_time
+            self.update_stats(speedup)
             print("speedup:", speedup)
             # speedup = 
         except Exception as e:
-            print("OOPS")
+            print("failed to transform with the following exception:")
             print(e)
         # TODO: clone the app
         # TODO: repeat to the node selection again
