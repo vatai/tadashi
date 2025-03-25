@@ -431,9 +431,9 @@ class SetLoopOptInfo(TransformInfo):
         return [
             LowerUpperBound(0, 1),
             [
-                AstLoopType.DEFAULT,
-                AstLoopType.ATOMIC,
-                AstLoopType.SEPARATE,
+                AstLoopType.DEFAULT.value,
+                AstLoopType.ATOMIC.value,
+                AstLoopType.SEPARATE.value,
             ],
         ]
 

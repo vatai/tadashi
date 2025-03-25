@@ -20,8 +20,11 @@ if __name__ == "__main__":
         # do things
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
-    root.roll()
-    print("samples tree as follows:")
+    for rollout in range(100):
+        print(f"doing rollout {rollout}")
+        root.roll()
+    print("sampled tree as follows:")
     root.print()
     del root
+    del app
     print("all done")
