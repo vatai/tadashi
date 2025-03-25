@@ -82,7 +82,7 @@ class MCTSNode_Params(MCTSNode):
             self.children = [tadashi.mcts.node_node.MCTSNode_Node(parent=self,
                                                                   app=self.app,
                                                                   action=self.select_default_params())]
-        print("children:", self.children[0].action)
+        # print("children:", self.children[0].action)
         # params = self.parent.action.available_args(self.action)
         #print(params)
         child = self.select_child()
