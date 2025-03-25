@@ -22,3 +22,5 @@ if __name__ == "__main__":
     root.roll()
     print("samples tree as follows:")
     root.print()
+    del root
+    print("all done")
