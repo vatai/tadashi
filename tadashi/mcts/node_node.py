@@ -35,12 +35,14 @@ class MCTSNode_Node(MCTSNode):
         try:
             result = self.app.transform_list(trs)
             print(result)
-            # TODO: check result??
-            new_app = self.app.generate_code()
-            new_app.compile()
-            new_time = new_app.measure()
-            print("optimized time:", new_time)
-            speedup = self.get_initial_time() / new_time
+            if result.legal:
+                new_app = self.app.generate_code()
+                new_app.compile()
+                new_time = new_app.measure()
+                print("optimized time:", new_time)
+                speedup = self.get_initial_time() / new_time
+            else:
+                speedup = -1
             self.update_stats(speedup)
             print("speedup:", speedup)
             # speedup = 
