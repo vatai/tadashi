@@ -13,6 +13,7 @@ class MCTSNode:
         self.initial_time = initial_time
         self.speedup = -1
         self.is_best = False
+        self.best = None
 
     # TODO: implement Upper Confidence Bound for sampling strategy
     # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
@@ -40,10 +41,21 @@ class MCTSNode:
     #     graph.add_node(self)
     #     return graph
 
+    def show_best_source(self):
+        if self.best:
+            self.best.show_best_source()
+        else:
+            print ("best source:", self.source)
+
     def set_best(self):
+        if self._number_of_visits == 0:
+            return
         if self.children:
             best = max(self.children, key=lambda x: x.speedup)
+            if best._number_of_visits == 0:
+                return
             best.is_best = True
+            self.best= best
             best.set_best()
 
     def print(self, depth=0):
