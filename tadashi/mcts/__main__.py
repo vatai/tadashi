@@ -19,6 +19,7 @@ if __name__ == "__main__":
     # with Simple(lalala) as app:
         # do things
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
+    root.speedup = 1
     root.roll()
     print("samples tree as follows:")
     root.print()
