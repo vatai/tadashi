@@ -4,6 +4,7 @@
 #include <isl/aff.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/space_type.h>
 #include <sstream>
 
 #include <nlohmann/json.hpp>
@@ -50,6 +51,17 @@ main(int argc, char *argv[]) {
   std::cout << isl_schedule_to_str(schedule) << std::endl;
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   std::cout << isl_schedule_node_to_str(root) << std::endl;
+
+  root = isl_schedule_node_first_child(root);
+  isl_multi_union_pw_aff *partial =
+      isl_schedule_node_band_get_partial_schedule(root);
+  std::cout << isl_multi_union_pw_aff_to_str(partial) << std::endl;
+  isl_size dim = isl_multi_union_pw_aff_dim(partial, isl_dim_all);
+  std::cout << "dim: " << dim << std::endl;
+  for (isl_size pos = 0; pos < dim; pos++) {
+    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(partial, pos);
+    std::cout << pos << ": " << isl_union_pw_aff_to_str(upa) << std::endl;
+  }
 
   isl_schedule_node_free(root);
   isl_schedule_free(schedule);
