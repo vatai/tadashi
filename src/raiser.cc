@@ -21,6 +21,7 @@ main(int argc, char *argv[]) {
   json data;
   istream >> data;
   auto stmts = data["statements"];
+  isl_union_map *union_theta = isl_union_map_empty_ctx(ctx);
   for (auto stmt : stmts.items()) {
     auto name = stmt.value()["name"];
     auto schedule = stmt.value()["schedule"];
@@ -29,7 +30,10 @@ main(int argc, char *argv[]) {
     isl_union_map *theta = isl_union_map_read_from_str(
         ctx, schedule.template get<std::string>().c_str());
     std::cout << "Isl schedule: " << isl_union_map_to_str(theta) << std::endl;
+    union_theta = isl_union_map_union(union_theta, theta);
   }
+  std::cout << "Union Theta: " << isl_union_map_to_str(union_theta)
+            << std::endl;
   std::printf("Done!\n");
   return 0;
 }
