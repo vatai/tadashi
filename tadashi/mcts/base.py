@@ -45,7 +45,7 @@ class MCTSNode:
         if self.best:
             self.best.show_best_source()
         else:
-            print ("best source:", self.source)
+            print ("best source:", self.app.source)
 
     def set_best(self):
         if self._number_of_visits == 0:

@@ -75,18 +75,17 @@ class MCTSNode_Params(MCTSNode):
     # TODO: perhaps implementing tail recursion here for var len params
     # also maybe better to make children a dictionary, so that we can add dynamically
     def roll(self, depth):
-        print("select params")
+        # print("select params")
         self._number_of_visits += 1
         # TODO: this can be done lazily, if too many params
         if self.children is None:
             self.children = [tadashi.mcts.node_node.MCTSNode_Node(parent=self,
-                                                                  app=self.app.generate_code(),
+                                                                  app=self.app.clone(),
                                                                   action=self.select_default_params())]
         # print("children:", self.children[0].action)
         # params = self.parent.action.available_args(self.action)
         child = self.select_child()
-        print("select params as ", child)
-        #child.evaluate()
-        if depth > 18:
-            return
-        child.roll(depth + 1)
+        # print("select as ", child)
+        child.evaluate()
+        if depth < 5:
+            child.roll(depth + 1)
