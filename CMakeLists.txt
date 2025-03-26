@@ -113,7 +113,7 @@ add_executable(goodbadtest src/goodbadtest.c)
 add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
 
-add_executable(raiser src/raiser.c)
+add_executable(raiser src/raiser.cc)
 target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations nlohmann_json::nlohmann_json)
 
 # enable_testing()
