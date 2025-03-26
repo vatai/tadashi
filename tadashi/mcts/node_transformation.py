@@ -11,8 +11,10 @@ class MCTSNode_Transformation(MCTSNode):
                                                                   action=tr) for tr in node.available_transformations]
 
     def roll(self, depth):
+        print("select transform")
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_transformations()
         child = self.select_child()
+        print("selected transform as tr")
         child.roll(depth+1)

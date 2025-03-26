@@ -22,16 +22,19 @@ if __name__ == "__main__":
     # print("optimized time:", new_time)
     # with Simple(lalala) as app:
     # do things
+    #app2 = app.generate_code()
+    #app3 = app2.generate_code()
+    #app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
-    for rollout in range(10):
-        print(f"---- doing rollout {rollout}")
-        root.roll()
+    # for rollout in range(10):
+    #     print(f"---- doing rollout {rollout}")
+    root.roll()
     print("\n**************************\n")
     print("sampled tree as follows:\n")
-    root.set_best()
-    root.print()
-    root.show_best_source()
-    del root
-    del app
-    print("all done")
+    # root.set_best()
+    # root.print()
+    # root.show_best_source()
+    # del root
+    # del app
+    # print("all done")
