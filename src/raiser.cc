@@ -1,19 +1,23 @@
+#include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <isl/aff.h>
-#include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
 #include <isl/space_type.h>
 #include <sstream>
 
 #include <nlohmann/json.hpp>
 
+#include <isl/aff.h>
 #include <isl/ctx.h>
+#include <isl/id.h>
 #include <isl/map.h>
 #include <isl/schedule.h>
+#include <isl/schedule_node.h>
+#include <isl/set.h>
+#include <isl/space.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
+#include <isl/val.h>
 
 using json = nlohmann::json;
 int
@@ -59,8 +63,29 @@ main(int argc, char *argv[]) {
   isl_size dim = isl_multi_union_pw_aff_dim(partial, isl_dim_all);
   std::cout << "dim: " << dim << std::endl;
   for (isl_size pos = 0; pos < dim; pos++) {
+    std::cout << "pos: " << pos << std::endl;
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(partial, pos);
-    std::cout << pos << ": " << isl_union_pw_aff_to_str(upa) << std::endl;
+    isl_size n_pa = isl_union_pw_aff_n_pw_aff(upa);
+    isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+
+    for (isl_size pa_idx = 0; pa_idx < n_pa; pa_idx++) {
+      isl_pw_aff *pa = isl_pw_aff_list_get_at(pa_list, pa_idx);
+      std::cout << "--pa_idx: " << pa_idx << ": " << isl_pw_aff_to_str(pa)
+                << std::endl;
+      assert(isl_pw_aff_n_piece(pa) == 1);
+      assert(isl_pw_aff_isa_aff(pa));
+      isl_aff *aff = isl_pw_aff_as_aff(pa);
+      assert(isl_aff_dim(aff, isl_dim_out) == 1);
+      if (isl_aff_is_cst(aff)) {
+        std::cout << "CONST: " << isl_val_to_str(isl_aff_get_constant_val(aff))
+                  << std::endl;
+
+      } else {
+        // std::cout << ">>> > > > >  NOT CONST:"
+        //           << isl_pw_aff_is_c
+        //           << std::endl;
+      }
+    }
   }
 
   isl_schedule_node_free(root);
