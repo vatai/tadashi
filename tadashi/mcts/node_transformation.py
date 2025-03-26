@@ -1,4 +1,5 @@
 import tadashi.mcts.node_params
+from tadashi import TrEnum
 
 from .base import MCTSNode
 
@@ -6,9 +7,13 @@ from .base import MCTSNode
 class MCTSNode_Transformation(MCTSNode):
     def set_actions_transformations(self):
         node = self.app.scops[0].schedule_tree[self.action]
+        available_transformations = node.available_transformations
+        if TrEnum.TILE in available_transformations:
+            available_transformations = [TrEnum.TILE]
+
         self.children = [tadashi.mcts.node_params.MCTSNode_Params(parent=self,
                                                                   app=self.app.clone(),
-                                                                  action=tr) for tr in node.available_transformations]
+                                                                  action=tr) for tr in available_transformations]
 
     def roll(self, depth):
         # print("select transform")
