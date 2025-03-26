@@ -127,7 +127,6 @@ class TestCtadashiRegression(unittest.TestCase):
         app = Simple(base / "examples/inputs/simple/two_loops.c")
         for i in range(10):
             app = app.generate_code()
-            print(app.source)
 
 
 def setup():
