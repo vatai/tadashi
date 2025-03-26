@@ -32,7 +32,7 @@ class MCTSNode_Node(MCTSNode):
         node = self.parent.parent.action
         tr = self.parent.action
         args = self.action
-        trs = [[default_scop, node, tr, *args]]
+        trs = [[node, tr, *args]]
         print("selected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
@@ -40,9 +40,9 @@ class MCTSNode_Node(MCTSNode):
         # app_backup = self.app.generate_code()
         # print("!we are in app ", self.app)
         try:
-            result = self.app.transform_list(trs)
-            print("transform result: ", result)
-            if result.legal:
+            legal = self.app.scops[default_scop].transform_list(trs)[0]
+            print("transform legal: ", legal)
+            if legal:
                 # print("try generate code")
                 self.app = self.app.generate_code(ephemeral=False)
                 # print("try compile")

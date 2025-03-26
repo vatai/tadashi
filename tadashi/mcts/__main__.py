@@ -25,6 +25,7 @@ if __name__ == "__main__":
     # random.seed(21) # some errors
     # app = Polybench("linear-algebra/blas/gemm", "./examples/polybench/", compiler_options=["-D", "LARGE_DATASET"])
     app = Simple("./examples/inputs/simple/two_loops.c")
+    # app = Simple("./examples/inputs/simple/gemm.c")
     print(app.scops[0].schedule_tree[0].yaml_str)
     app.compile()
     initial_time = app.measure()
