@@ -1,15 +1,18 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <isl/union_map_type.h>
-#include <isl/union_set.h>
+#include <isl/aff.h>
+#include <isl/schedule_node.h>
+#include <isl/schedule_type.h>
+#include <sstream>
+
 #include <nlohmann/json.hpp>
 
 #include <isl/ctx.h>
 #include <isl/map.h>
 #include <isl/schedule.h>
 #include <isl/union_map.h>
-#include <sstream>
+#include <isl/union_set.h>
 
 using json = nlohmann::json;
 int
@@ -39,10 +42,18 @@ main(int argc, char *argv[]) {
               << std::endl;
     union_schedule = isl_union_map_union(union_schedule, schedule);
   }
-  isl_schedule *schedule = isl_schedule_from_domain(union_domain);
-  std::cout << isl_schedule_to_str(schedule) << std::endl;
   std::cout << "Union Theta: " << isl_union_map_to_str(union_schedule)
             << std::endl;
+  isl_schedule *schedule = isl_schedule_from_domain(union_domain);
+  schedule = isl_schedule_insert_partial_schedule(
+      schedule, isl_multi_union_pw_aff_from_union_map(union_schedule));
+  std::cout << isl_schedule_to_str(schedule) << std::endl;
+  isl_schedule_node *root = isl_schedule_get_root(schedule);
+  std::cout << isl_schedule_node_to_str(root) << std::endl;
+
+  isl_schedule_node_free(root);
+  isl_schedule_free(schedule);
+  isl_ctx_free(ctx);
   std::printf("Done!\n");
   return 0;
 }
