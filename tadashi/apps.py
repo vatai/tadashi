@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-import re
 import datetime
-from colorama import Fore, Style
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple
+
+from colorama import Fore, Style
 
 from . import Scops
 
@@ -159,7 +160,7 @@ class Simple(App):
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
-            new_file = Path(alt_source)
+            new_file = Path(alt_source).absolute()
         else:
             mark = "TMPFILE"
             now = datetime.datetime.now()
