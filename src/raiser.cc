@@ -75,16 +75,18 @@ main(int argc, char *argv[]) {
     // (*fn)(isl_pw_aff *, void *), void *user)
 
     isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+    // isl_union_set *filter_list = isl_union_set_list_alloc(ctx, n_pa);
     // PA_LIST
     for (isl_size pa_idx = 0; pa_idx < n_pa; pa_idx++) {
       isl_pw_aff *pa = isl_pw_aff_list_get_at(pa_list, pa_idx);
       // PA
-      std::cout << "--pa_idx: " << pa_idx << ": " << isl_pw_aff_to_str(pa)
-                << "; ";
-      isl_set *set = isl_pw_aff_domain(pa);
-      std::cout << "DOMAIN: " << isl_set_to_str(set) << "; ";
+      std::cout << "--pa_idx: " << pa_idx << ": ";
+      std::cout << isl_pw_aff_to_str(pa) << "; ";
+      isl_set *domain_set = isl_pw_aff_domain(pa);
+      std::cout << "DOMAIN: " << isl_set_to_str(domain_set) << "; ";
+      // isl_union_set *intersection = isl_union_set_list_
       isl_union_set *intersection = isl_union_set_intersect(
-          isl_union_set_copy(union_domain), isl_union_set_from_set(set));
+          isl_union_set_copy(union_domain), isl_union_set_from_set(domain_set));
 
       std::cout << "SET:" << isl_union_set_to_str(intersection) << "; ";
       assert(isl_pw_aff_n_piece(pa) == 1);
