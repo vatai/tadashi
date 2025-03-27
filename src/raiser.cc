@@ -23,11 +23,11 @@
 #include <isl/val.h>
 
 using json = nlohmann::json;
-
 isl_union_set *
 fn(isl_union_set *set, void *user) {
-  // isl_union_map *step_to_stmt = (isl_union_map *)user;
-  // return isl_union_set_apply(set, step_to_stmt);
+  isl_union_map *step_to_stmt = (isl_union_map *)user;
+  std::cout << "1set: " << isl_union_set_to_str(set) << std::endl;
+  return isl_union_set_apply(set, step_to_stmt);
   return set;
 }
 
@@ -83,10 +83,11 @@ main(int argc, char *argv[]) {
     isl_union_map *map = isl_union_map_from_union_pw_aff(upa);
     map = isl_union_map_reverse(map);
     std::cout << "MAP: " << isl_union_map_to_str(map) << std::endl;
-    isl_union_set *steps = isl_union_map_domain(map);
+    isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
     std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
     isl_union_set_list *filters = isl_union_set_to_list(steps);
-    filters = isl_union_set_list_map(filters, fn, map);
+    filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
+
     std::cout << "MAPPED: " << isl_union_set_list_to_str(filters) << std::endl;
 
     // isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
