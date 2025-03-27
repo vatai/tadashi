@@ -14,10 +14,10 @@ int main() {
     double cpu_time_used;
     start = clock();
 
+    // result[i * SIZE + j] = 0;
     #pragma scop
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            result[i * SIZE + j] = 0;
             for (int k = 0; k < SIZE; k++) {
                 result[i*SIZE+j] += mat1[i*SIZE+k] * mat2[k*SIZE+j];
             }

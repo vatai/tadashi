@@ -12,4 +12,5 @@ tile2 = tile1.generate_code("tile2.c")
 tile2.scops[0].transform_list([[3, TrEnum.TILE, 16]])
 
 tile2.scops[0].transform_list([[2, TrEnum.INTERCHANGE]])
-tile2.generate_code("final.c")
+final_app = tile2.generate_code("final.c")
+final_app.measure()
