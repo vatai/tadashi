@@ -44,7 +44,7 @@ if __name__ == "__main__":
     #app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
-    for rollout in range(10):
+    for rollout in range(100):
         print(f"---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")

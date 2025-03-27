@@ -58,7 +58,7 @@ class MCTSNode_Node(MCTSNode):
         except Exception as e:
             print(Fore.RED, end="")
             print("failed to transform with the following exception:")
-            print(e)
+            print(e
             print(Style.RESET_ALL, end="")
         # finally:
             # self.app = app_backup
