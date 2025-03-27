@@ -54,23 +54,14 @@ main(int argc, char *argv[]) {
   isl_schedule *schedule = isl_schedule_from_domain(union_domain);
   isl_multi_union_pw_aff *mupa =
       isl_multi_union_pw_aff_from_union_map(union_schedule);
-  // schedule = isl_schedule_insert_partial_schedule(schedule, mupa);
+  // MUPA
+
+  std::cout << "MUPA: " << isl_multi_union_pw_aff_to_str(mupa) << std::endl;
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   root = isl_schedule_node_first_child(root);
-
-  // std::cout << "Project: "
-  //           << isl_union_map_to_str(
-  //                  isl_union_map_project_out(union_schedule, isl_dim_out, 0,
-  //                  2))
-  //           << std::endl;
-
-  // isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
-  // std::cout << isl_union_pw_aff_to_str(upa) << std::endl;
-
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_all);
   std::cout << "dim: " << dim << std::endl;
   std::cout << isl_multi_union_pw_aff_to_str(mupa) << std::endl;
-  // MUPA
   for (isl_size pos = 0; pos < dim; pos++) {
     if (1 < pos)
       continue;
@@ -80,6 +71,9 @@ main(int argc, char *argv[]) {
     // UPA
     isl_size n_pa = isl_union_pw_aff_n_pw_aff(upa);
     std::cout << "UPA: " << isl_union_pw_aff_to_str(upa) << std::endl;
+    // isl_union_pw_aff_foreach_pw_aff(isl_union_pw_aff *upa, isl_stat
+    // (*fn)(isl_pw_aff *, void *), void *user)
+
     isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
     // PA_LIST
     for (isl_size pa_idx = 0; pa_idx < n_pa; pa_idx++) {
@@ -91,6 +85,7 @@ main(int argc, char *argv[]) {
       std::cout << "DOMAIN: " << isl_set_to_str(set) << "; ";
       isl_union_set *intersection = isl_union_set_intersect(
           isl_union_set_copy(union_domain), isl_union_set_from_set(set));
+
       std::cout << "SET:" << isl_union_set_to_str(intersection) << "; ";
       assert(isl_pw_aff_n_piece(pa) == 1);
       assert(isl_pw_aff_isa_aff(pa));
