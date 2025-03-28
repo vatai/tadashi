@@ -4,6 +4,7 @@
 #include <iostream>
 #include <isl/aff_type.h>
 #include <isl/id_to_ast_expr.h>
+#include <isl/point.h>
 #include <isl/space_type.h>
 #include <isl/union_map_type.h>
 #include <sstream>
@@ -30,13 +31,20 @@ struct filter_results_t {
 };
 
 isl_stat
-fn(isl_point *pnt, void *user) {
-  struct filter_results_t *fr = (struct filter_results_t *)user;
+add_singleton_to_list(isl_point *pnt, void *user) {
+  isl_union_set_list *filters = (isl_union_set_list *)user;
   isl_union_set *singleton = isl_union_set_from_point(pnt);
-  isl_union_map *input = isl_union_map_copy(fr->map);
-  isl_union_set *image = isl_union_set_apply(singleton, input);
-  fr->filters = isl_union_set_list_add(fr->filters, image);
+  filters = isl_union_set_list_add(filters, singleton);
   return isl_stat_ok;
+}
+
+int
+filter_cmp(struct isl_union_set *set1, struct isl_union_set *set2, void *_) {
+  isl_val *v1 = isl_point_get_coordinate_val(isl_union_set_sample_point(set1),
+                                             isl_dim_all, 0);
+  isl_val *v2 = isl_point_get_coordinate_val(isl_union_set_sample_point(set2),
+                                             isl_dim_all, 0);
+  return isl_val_get_num_si(isl_val_sub(v1, v2));
 }
 
 int
@@ -77,9 +85,9 @@ main(int argc, char *argv[]) {
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_all);
   // std::cout << "dim: " << dim << std::endl;
   for (isl_size pos = 0; pos < dim; pos++) {
-    if (1 < pos)
+    if (100 < pos)
       continue;
-    std::cout << "pos: " << pos << std::endl;
+    std::cout << "\npos: " << pos << std::endl;
 
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
     // UPA
@@ -94,11 +102,13 @@ main(int argc, char *argv[]) {
     isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
     std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
     isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
-    struct filter_results_t filter_results = {map, filters};
-    filter_results.filters = isl_union_set_list_alloc(ctx, 1);
-    isl_union_set_foreach_point(steps, fn, &filter_results);
-    std::cout << "FILTERS: "
-              << isl_union_set_list_to_str(filter_results.filters) << std::endl;
+    // struct filter_results_t filter_results = {map, filters};
+    // filter_results.filters = isl_union_set_list_alloc(ctx, 1);
+    isl_union_set_foreach_point(steps, add_singleton_to_list, filters);
+    // isl_union_set_list_sort(filter_results.filters, filter_cmp, map);
+    // std::cout << "FILTERS: " << isl_union_set_list_to_str(filters) <<
+    // std::endl; root = isl_schedule_node_insert_sequence(root,
+    // filter_results.filters);
 
     // isl_union_set_list *filters = isl_union_set_to_list(steps);
     // filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
