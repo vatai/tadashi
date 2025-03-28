@@ -24,14 +24,18 @@
 
 using json = nlohmann::json;
 
+struct filter_results_t {
+  isl_union_map *map;
+  isl_union_set_list *filters;
+};
+
 isl_stat
 fn(isl_point *pnt, void *user) {
-  isl_union_map *map = (isl_union_map *)user;
+  struct filter_results_t *fr = (struct filter_results_t *)user;
   isl_union_set *singleton = isl_union_set_from_point(pnt);
-  std::cout << "Singleton: " << isl_union_set_to_str(singleton) << std::endl;
-  isl_union_set *image =
-      isl_union_set_apply(singleton, isl_union_map_copy(map));
-  std::cout << "Image: " << isl_union_set_to_str(image) << std::endl;
+  isl_union_map *input = isl_union_map_copy(fr->map);
+  isl_union_set *image = isl_union_set_apply(singleton, input);
+  fr->filters = isl_union_set_list_add(fr->filters, image);
   return isl_stat_ok;
 }
 
@@ -89,7 +93,12 @@ main(int argc, char *argv[]) {
     std::cout << "MAP: " << isl_union_map_to_str(map) << std::endl;
     isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
     std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
-    isl_union_set_foreach_point(steps, fn, map);
+    isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
+    struct filter_results_t filter_results = {map, filters};
+    filter_results.filters = isl_union_set_list_alloc(ctx, 1);
+    isl_union_set_foreach_point(steps, fn, &filter_results);
+    std::cout << "FILTERS: "
+              << isl_union_set_list_to_str(filter_results.filters) << std::endl;
 
     // isl_union_set_list *filters = isl_union_set_to_list(steps);
     // filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
