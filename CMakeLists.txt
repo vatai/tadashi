@@ -49,7 +49,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   pet
-  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch"
+  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch" || true
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG master
   GIT_SHALLOW ON
@@ -60,6 +60,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/lib")
 list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN")
@@ -69,13 +72,16 @@ set(ENV{CXX} ${CMAKE_CXX_COMPILER})
 set(ENV{CFLAGS} ${CMAKE_C_FLAGS})
 set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 
-execute_process(
-  # TODO: remove "bundled"
-  COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
-  WORKING_DIRECTORY ${pet_SOURCE_DIR}
-)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
+pkg_check_modules(PET IMPORTED_TARGET pet)
+if(NOT PET_FOUND)
+  execute_process(
+    # TODO: remove "bundled"
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
+    WORKING_DIRECTORY ${pet_SOURCE_DIR}
+  )
+  pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
+endif()
 pkg_check_modules(ISL REQUIRED IMPORTED_TARGET isl)
 
 
@@ -109,6 +115,9 @@ target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code
 
 add_executable(scop_detector src/scop_detector.c)
 target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET)
+
+add_executable(raiser src/raiser.cc)
+target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations nlohmann_json::nlohmann_json)
 
 # enable_testing()
 # include(GoogleTest)

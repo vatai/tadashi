@@ -1,4 +1,5 @@
 import tadashi.mcts.node_transformation
+from colorama import Fore, Style
 from tadashi import TrEnum
 
 from .base import MCTSNode
@@ -20,7 +21,6 @@ class MCTSNode_Node(MCTSNode):
                                                                                       action=node) for node in nodes_transformable]
 
     def evaluate(self, depth):
-        print("measuring performance")
         self._number_of_visits += 1
         # cloned_app = self.app.generate_code()
         default_scop = 0
@@ -32,26 +32,29 @@ class MCTSNode_Node(MCTSNode):
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
         # TODO: 1 where we do not apply, but keep growing list of 
+        # app_backup = self.app.generate_code()
         try:
             result = self.app.transform_list(trs)
-            print(result)
+            print("transform result: ", result)
             if result.legal:
-                new_app = self.app.generate_code()
+                new_app = self.app.generate_code(ephemeral=False)
                 new_app.compile()
                 new_time = new_app.measure()
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
+                self.source = new_app.source
             else:
                 speedup = -1
             self.update_stats(speedup)
             print("speedup:", speedup)
-            # speedup = 
         except Exception as e:
+            print(Fore.RED, end="")
             print("failed to transform with the following exception:")
             print(e)
-        # TODO: clone the app
+            print(Style.RESET_ALL, end="")
+        # finally:
+            # self.app = app_backup
         # TODO: repeat to the node selection again
-        # TODO: compute and store speedup
         if depth > 2:
             return
 
