@@ -338,6 +338,8 @@ class FullShiftVarInfo(TransformInfo):
 
     @staticmethod
     def available_args(node: Node):
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
         min_nv = 0
         if node.loop_signature:
             min_nv = min(len(s["vars"]) for s in node.loop_signature)
@@ -357,6 +359,8 @@ class PartialShiftVarInfo(TransformInfo):
 
     @staticmethod
     def available_args(node: Node):
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
         min_nv = min(len(s["vars"]) for s in node.loop_signature)
         return [
             LowerUpperBound(0, len(node.loop_signature)),
@@ -368,6 +372,13 @@ class PartialShiftVarInfo(TransformInfo):
 class FullShiftParamInfo(TransformInfo):
     func_name = "full_shift_param"
     arg_help = ["Coefficient", "Parameter index"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        min_num_params = min(len(s["params"]) for s in node.loop_signature)
+        return min_num_params > 0
 
     @staticmethod
     def valid_args(node: Node, coeff: int, param_idx: int):
@@ -423,9 +434,9 @@ class SetLoopOptInfo(TransformInfo):
         return [
             LowerUpperBound(0, 1),
             [
-                AstLoopType.DEFAULT,
-                AstLoopType.ATOMIC,
-                AstLoopType.SEPARATE,
+                AstLoopType.DEFAULT.value,
+                AstLoopType.ATOMIC.value,
+                AstLoopType.SEPARATE.value,
             ],
         ]
 
