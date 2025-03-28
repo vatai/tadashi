@@ -30,6 +30,12 @@ pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
   return isl_pw_aff_is_cst(pa);
 }
 
+isl_union_set *
+idx_to_domain(isl_union_set *set, void *user) {
+  isl_union_map *map = (isl_union_map *)user;
+  return isl_union_set_apply(set, isl_union_map_copy(map));
+}
+
 isl_stat
 add_singleton_to_list(__isl_take isl_point *pnt, void *user) {
   isl_union_set_list **filters = (isl_union_set_list **)user;
@@ -110,6 +116,10 @@ main(int argc, char *argv[]) {
       isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
       isl_union_set_foreach_point(steps, add_singleton_to_list, &filters);
       filters = isl_union_set_list_sort(filters, filter_cmp, map);
+      std::cout << "FILTERS: " << isl_union_set_list_to_str(filters)
+                << std::endl;
+
+      isl_union_set_list_map(filters, idx_to_domain, map);
       std::cout << "FILTERS: " << isl_union_set_list_to_str(filters)
                 << std::endl;
       isl_union_set_list_free(filters);
