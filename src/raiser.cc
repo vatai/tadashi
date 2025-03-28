@@ -95,9 +95,7 @@ main(int argc, char *argv[]) {
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_all);
   // std::cout << "dim: " << dim << std::endl;
-  for (isl_size pos = 0; pos < dim; pos++) {
-    if (100 < pos)
-      continue;
+  for (isl_size pos = dim - 1; pos >= 0; pos--) {
     std::cout << "\npos: " << pos << std::endl;
 
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
@@ -122,58 +120,17 @@ main(int argc, char *argv[]) {
       isl_union_set_list_map(filters, idx_to_domain, map);
       std::cout << "FILTERS: " << isl_union_set_list_to_str(filters)
                 << std::endl;
-      isl_union_set_list_free(filters);
+      root = isl_schedule_node_insert_sequence(root, filters);
+      // isl_union_set_list_free(filters);
       isl_union_set_free(steps);
       isl_union_map_free(map);
     } else {
-      isl_union_pw_aff_free(upa);
+      isl_multi_union_pw_aff *mupa =
+          isl_multi_union_pw_aff_from_union_pw_aff(upa);
+      root = isl_schedule_node_insert_partial_schedule(root, mupa);
     }
-    // root = isl_schedule_node_insert_sequence(root,
-    // filter_results.filters);
-
-    // isl_union_set_list *filters = isl_union_set_to_list(steps);
-    // filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
-    // std::cout << "MAPPED: " << isl_union_set_list_to_str(filters) <<
-    // std::endl;
-
-    // isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
-    // // isl_union_set *filter_list = isl_union_set_list_alloc(ctx, n_pa);
-    // // PA_LIST
-    // for (isl_size pa_idx = 0; pa_idx < n_pa; pa_idx++) {
-    //   isl_pw_aff *pa = isl_pw_aff_list_get_at(pa_list, pa_idx);
-    //   // PA
-    //   std::cout << "--pa_idx: " << pa_idx << ": ";
-    //   std::cout << isl_pw_aff_to_str(pa) << "; ";
-    //   isl_set *domain_set = isl_pw_aff_domain(pa);
-
-    //   std::cout << "DOMAIN: " << isl_set_to_str(domain_set) << "; ";
-    //   // isl_union_set *intersection = isl_union_set_list_
-    //   isl_union_set *intersection = isl_union_set_intersect(
-    //       isl_union_set_copy(union_domain),
-    //       isl_union_set_from_set(domain_set));
-
-    //   std::cout << "SET:" << isl_union_set_to_str(intersection) << "; ";
-    //   assert(isl_pw_aff_n_piece(pa) == 1);
-    //   assert(isl_pw_aff_isa_aff(pa));
-    //   // if (isl_pw_aff_is_cst(pa)) {
-    //   //   isl_aff *aff = isl_pw_aff_as_aff(pa);
-    //   //   assert(isl_aff_dim(aff, isl_dim_out) == 1);
-    //   //   isl_val *v = isl_aff_get_constant_val(aff);
-    //   //   std::cout << "CONST: " << isl_val_to_str(v) << "; ";
-    //   //   std::cout << isl_id_to_str(isl_pw_aff_get_tuple_id(pa,
-    //   isl_dim_in))
-    //   //             << "; ";
-    //   // } else {
-    //   //   std::cout << "VAR:"
-    //   //             /* << isl_aff_get_dim_name(isl_pw_aff_as_aff(pa),
-    //   //             isl_dim_out,
-    //   //                1) //*/
-    //   //             << std::endl;
-    //   // }
-    //   std::cout << std::endl;
-    // }
+    std::cout << isl_schedule_node_to_str(root) << std::endl;
   }
-  //*/
   isl_multi_union_pw_aff_free(mupa);
   isl_schedule_node_free(root);
   isl_schedule_free(schedule);
