@@ -25,21 +25,31 @@
 
 using json = nlohmann::json;
 
+isl_bool
+pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
+  return isl_pw_aff_is_cst(pa);
+}
+
 isl_stat
-add_singleton_to_list(isl_point *pnt, void *user) {
-  isl_union_set_list *filters = (isl_union_set_list *)user;
+add_singleton_to_list(__isl_take isl_point *pnt, void *user) {
+  isl_union_set_list **filters = (isl_union_set_list **)user;
   isl_union_set *singleton = isl_union_set_from_point(pnt);
-  filters = isl_union_set_list_add(filters, singleton);
+  *filters = isl_union_set_list_add(*filters, singleton);
   return isl_stat_ok;
 }
 
 int
 filter_cmp(struct isl_union_set *set1, struct isl_union_set *set2, void *_) {
-  isl_val *v1 = isl_point_get_coordinate_val(isl_union_set_sample_point(set1),
-                                             isl_dim_all, 0);
-  isl_val *v2 = isl_point_get_coordinate_val(isl_union_set_sample_point(set2),
-                                             isl_dim_all, 0);
-  return isl_val_get_num_si(isl_val_sub(v1, v2));
+  isl_point *p1 = isl_union_set_sample_point(isl_union_set_copy(set1));
+  isl_val *v1 = isl_point_get_coordinate_val(p1, isl_dim_all, 0);
+  isl_point *p2 = isl_union_set_sample_point(isl_union_set_copy(set2));
+  isl_val *v2 = isl_point_get_coordinate_val(p2, isl_dim_all, 0);
+  int result = isl_val_get_num_si(v1) - isl_val_get_num_si(v2);
+  isl_point_free(p1);
+  isl_point_free(p2);
+  isl_val_free(v1);
+  isl_val_free(v2);
+  return result;
 }
 
 int
@@ -84,23 +94,31 @@ main(int argc, char *argv[]) {
       continue;
     std::cout << "\npos: " << pos << std::endl;
 
-    // isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
+    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
     // // UPA
     // isl_size n_pa = isl_union_pw_aff_n_pw_aff(upa);
     // std::cout << "UPA: " << isl_union_pw_aff_to_str(upa) << std::endl;
     // // isl_union_pw_aff_foreach_pw_aff(isl_union_pw_aff *upa, isl_stat
     // // (*fn)(isl_pw_aff *, void *), void *user)
 
-    // isl_union_map *map = isl_union_map_from_union_pw_aff(upa);
-    // map = isl_union_map_reverse(map);
-    // std::cout << "MAP: " << isl_union_map_to_str(map) << std::endl;
-    // isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
-    // std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
-    // isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
-    // isl_union_set_foreach_point(steps, add_singleton_to_list, filters);
-    // isl_union_set_list_sort(filter_results.filters, filter_cmp, map);
-    // std::cout << "FILTERS: " << isl_union_set_list_to_str(filters) <<
-    // std::endl; root = isl_schedule_node_insert_sequence(root,
+    if (isl_union_pw_aff_every_pw_aff(upa, pw_aff_is_cst, NULL)) {
+      isl_union_map *map = isl_union_map_from_union_pw_aff(upa);
+      map = isl_union_map_reverse(map);
+      // std::cout << "MAP: " << isl_union_map_to_str(map) << std::endl;
+      isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
+      // std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
+      isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
+      isl_union_set_foreach_point(steps, add_singleton_to_list, &filters);
+      filters = isl_union_set_list_sort(filters, filter_cmp, map);
+      std::cout << "FILTERS: " << isl_union_set_list_to_str(filters)
+                << std::endl;
+      isl_union_set_list_free(filters);
+      isl_union_set_free(steps);
+      isl_union_map_free(map);
+    } else {
+      isl_union_pw_aff_free(upa);
+    }
+    // root = isl_schedule_node_insert_sequence(root,
     // filter_results.filters);
 
     // isl_union_set_list *filters = isl_union_set_to_list(steps);
