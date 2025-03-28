@@ -24,11 +24,13 @@ main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   FILE *output = fopen("/dev/null", "w");
   size_t num_scops = 0;
+  pet_options_set_autodetect(ctx, 1);
   if (argc > 2 && strncmp(argv[2], "-a", 3) == 0) {
-    printf("Using auto detection\n");
-    pet_options_set_autodetect(ctx, 1);
+    printf("Disabling auto detection\n");
+    pet_options_set_autodetect(ctx, 0);
   }
   pet_transform_C_source(ctx, input, output, transform, &num_scops);
-  printf("Number of scops detected: %d\n", num_scops);
-  return 0;
+  if (num_scops)
+    printf("Number of scops in %s: %d\n", input, num_scops);
+  return !num_scops;
 }
