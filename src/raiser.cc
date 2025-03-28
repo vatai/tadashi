@@ -23,12 +23,16 @@
 #include <isl/val.h>
 
 using json = nlohmann::json;
-isl_union_set *
-fn(isl_union_set *set, void *user) {
-  isl_union_map *step_to_stmt = (isl_union_map *)user;
-  std::cout << "1set: " << isl_union_set_to_str(set) << std::endl;
-  return isl_union_set_apply(set, step_to_stmt);
-  return set;
+
+isl_stat
+fn(isl_point *pnt, void *user) {
+  isl_union_map *map = (isl_union_map *)user;
+  isl_union_set *singleton = isl_union_set_from_point(pnt);
+  std::cout << "Singleton: " << isl_union_set_to_str(singleton) << std::endl;
+  isl_union_set *image =
+      isl_union_set_apply(singleton, isl_union_map_copy(map));
+  std::cout << "Image: " << isl_union_set_to_str(image) << std::endl;
+  return isl_stat_ok;
 }
 
 int
@@ -85,10 +89,12 @@ main(int argc, char *argv[]) {
     std::cout << "MAP: " << isl_union_map_to_str(map) << std::endl;
     isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
     std::cout << "STEPS: " << isl_union_set_to_str(steps) << std::endl;
-    isl_union_set_list *filters = isl_union_set_to_list(steps);
-    filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
+    isl_union_set_foreach_point(steps, fn, map);
 
-    std::cout << "MAPPED: " << isl_union_set_list_to_str(filters) << std::endl;
+    // isl_union_set_list *filters = isl_union_set_to_list(steps);
+    // filters = isl_union_set_list_map(filters, fn, isl_union_map_copy(map));
+    // std::cout << "MAPPED: " << isl_union_set_list_to_str(filters) <<
+    // std::endl;
 
     // isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
     // // isl_union_set *filter_list = isl_union_set_list_alloc(ctx, n_pa);
