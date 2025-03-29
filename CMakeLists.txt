@@ -63,8 +63,8 @@ FetchContent_MakeAvailable(pet)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/lib")
+set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+list(APPEND CMAKE_LIBRARY_PATH "${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN")
 
 set(ENV{CC} ${CMAKE_C_COMPILER})
@@ -77,7 +77,7 @@ pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
   execute_process(
     # TODO: remove "bundled"
-    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} bundled ${CMAKE_SOURCE_DIR}/deps/opt
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} ${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} ${CMAKE_SOURCE_DIR}/deps/opt
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
@@ -218,7 +218,7 @@ swig_link_libraries(ctadashi_swig
 
 set_target_properties(ctadashi_swig PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ctadashi
-  INSTALL_RPATH $ORIGIN/lib
+  INSTALL_RPATH $ORIGIN/${CMAKE_INSTALL_LIBDIR}
   # SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
   # SWIG_COMPILE_OPTIONS -doxygen
   # SWIG_DEPENDS src/ctadashi.i
