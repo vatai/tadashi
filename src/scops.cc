@@ -11,9 +11,7 @@
 
 Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
   populate_tadashi_scop(&scop, ps);
-  isl_schedule *schedule = pet_scop_get_schedule(scop.scop);
-  current_node = isl_schedule_get_root(schedule);
-  schedule = isl_schedule_free(schedule);
+  current_node = isl_schedule_get_root(scop.schedule);
 }
 
 Scop::~Scop() {
