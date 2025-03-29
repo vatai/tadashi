@@ -17,18 +17,23 @@
 
 static __isl_give isl_union_flow *
 _get_flow_from_scop(__isl_keep pet_scop *scop) {
-  isl_union_map *sink, *may_source, *must_source;
+  isl_union_map *reads, *may_writes, *must_source, *kills, *must_writes;
   isl_union_access_info *access;
   isl_schedule *schedule;
   isl_union_flow *flow;
-  sink = pet_scop_get_may_reads(scop);
-  access = isl_union_access_info_from_sink(sink);
+  reads = pet_scop_get_may_reads(scop);
+  access = isl_union_access_info_from_sink(reads);
 
-  may_source = pet_scop_get_may_writes(scop);
-  access = isl_union_access_info_set_may_source(access, may_source);
+  kills = pet_scop_get_must_kills(scop);
+  must_writes = pet_scop_get_tagged_must_writes(scop);
+  kills = isl_union_map_union(kills, must_writes);
+  access = isl_union_access_info_set_kill(access, kills);
 
-  must_source = pet_scop_get_must_writes(scop);
-  access = isl_union_access_info_set_must_source(access, must_source);
+  may_writes = pet_scop_get_may_writes(scop);
+  access = isl_union_access_info_set_may_source(access, may_writes);
+
+  /* must_source = pet_scop_get_must_writes(scop); */
+  /* access = isl_union_access_info_set_must_source(access, must_source); */
 
   schedule = pet_scop_get_schedule(scop);
   access = isl_union_access_info_set_schedule(access, schedule);
@@ -281,8 +286,17 @@ populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->must_kills = pet_scop_get_must_kills(ps);
   ts->schedule = isl_schedule_copy(ps->schedule);
   ts->scop = ps;
+  compute_live_out(ts);
   ts->dep_flow = get_dependencies(ts->scop); // check
   eliminate_dead_code(ts);
+}
+
+void
+free_tadashi_scop(struct tadashi_scop *ts) {
+  isl_schedule_free(ts->schedule);
+  isl_union_map_free(ts->may_writes);
+  isl_union_map_free(ts->must_writes);
+  isl_union_map_free(ts->must_kills);
 }
 
 static __isl_give isl_union_set *
