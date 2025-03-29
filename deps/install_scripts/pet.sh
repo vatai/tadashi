@@ -3,7 +3,7 @@
 CONFIGURE_ARGS=(
   --enable-shared
   --prefix="$1"
-  --with-isl="$2"
+  --libdir="$2"
   --with-llvm="$3"
 )
 

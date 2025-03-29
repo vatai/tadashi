@@ -167,8 +167,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   // Introduce a new band node on top of the sequence using If you
   // want, you can then also delete the original band nodes, but this
   // is not strictly required since they will mostly be ignored during
-  // AST generation.  // printf("%s\n",
-  // isl_schedule_node_to_str(node));
+  // AST generation.
   enum isl_schedule_node_type node_type = isl_schedule_node_get_type(node);
   assert(node_type == isl_schedule_node_sequence ||
          node_type == isl_schedule_node_set);

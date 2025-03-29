@@ -121,6 +121,14 @@ class TestCtadashi(unittest.TestCase):
         self.assertFalse(legals[-1])
 
 
+class TestCtadashiRegression(unittest.TestCase):
+    def test_repeated_code_generation(self):
+        base = Path(__file__).parent.parent.parent
+        app = Simple(base / "examples/inputs/simple/two_loops.c")
+        for i in range(10):
+            app = app.generate_code()
+
+
 def setup():
     if "-v" in sys.argv:
         logging.basicConfig(level=logging.INFO)
