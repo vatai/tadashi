@@ -37,6 +37,55 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
+/* Compute the live out accesses, i.e., the writes that are
+ * potentially not killed by any kills or any other writes, and
+ * store them in ps->live_out.
+ *
+ * We compute the "dependence" of any "kill" (an explicit kill
+ * or a must write) on any may write.
+ * The elements accessed by the may writes with a "depending" kill
+ * also accessing the element are definitely killed.
+ * The remaining may writes can potentially be live out.
+ *
+ * The result of the dependence analysis is
+ *
+ *	{ IW -> [IK -> A] }
+ *
+ * with IW the instance of the write statement, IK the instance of kill
+ * statement and A the element that was killed.
+ * The range factor range is
+ *
+ *	{ IW -> A }
+ *
+ * containing all such pairs for which there is a kill statement instance,
+ * i.e., all pairs that have been killed.
+ */
+static void
+compute_live_out(struct tadashi_scop *ts) {
+  isl_schedule *schedule;
+  isl_union_map *kills;
+  isl_union_map *exposed;
+  isl_union_map *covering;
+  isl_union_access_info *access;
+  isl_union_flow *flow;
+
+  schedule = isl_schedule_copy(ts->schedule);
+  kills = isl_union_map_union(isl_union_map_copy(ts->must_writes),
+                              isl_union_map_copy(ts->must_kills));
+  access = isl_union_access_info_from_sink(kills);
+  access = isl_union_access_info_set_may_source(
+      access, isl_union_map_copy(ts->may_writes));
+  access = isl_union_access_info_set_schedule(access, schedule);
+  flow = isl_union_access_info_compute_flow(access);
+  covering = isl_union_flow_get_full_may_dependence(flow);
+  isl_union_flow_free(flow);
+
+  covering = isl_union_map_range_factor_range(covering);
+  exposed = isl_union_map_copy(ts->may_writes);
+  exposed = isl_union_map_subtract(exposed, covering);
+  ts->live_out = exposed;
+}
+
 __isl_give isl_union_map *
 get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
@@ -114,6 +163,13 @@ eliminate_dead_code(struct tadashi_scop *ts) {
   /* 					live); */
 }
 
+/* Is "stmt" not a kill statement?
+ */
+static int
+is_not_kill(struct pet_stmt *stmt) {
+  return !pet_stmt_is_kill(stmt);
+}
+
 /* Collect the iteration domains of the statements in "scop" that
  * satisfy "pred".
  */
@@ -144,6 +200,14 @@ collect_domains(struct pet_scop *scop, int (*pred)(struct pet_stmt *stmt)) {
   }
 
   return domain;
+}
+
+/* Collect the iteration domains of the statements in "scop",
+ * skipping kill statements.
+ */
+static __isl_give isl_union_set *
+collect_non_kill_domains(struct pet_scop *scop) {
+  return collect_domains(scop, &is_not_kill);
 }
 
 /* This function is used as a callback to pet_expr_foreach_call_expr
@@ -210,15 +274,15 @@ collect_call_domains(struct pet_scop *scop) {
 
 void
 populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
-  ts->scop = ps;
-  ts->dep_flow = get_dependencies(ts->scop);
-  ts->schedule = isl_schedule_copy(ps->schedule);
+  ts->domain = collect_non_kill_domains(ps);
   ts->call = collect_call_domains(ps);
-  /* isl_union_map *live_out; */
-  /* isl_union_set *call; */
-  /* isl_union_set *domain; */
-  /* isl_schedule *schedule; */
-  // eliminate_dead_code(ts);
+  ts->may_writes = pet_scop_get_may_writes(ps);
+  ts->must_writes = pet_scop_get_must_writes(ps);
+  ts->must_kills = pet_scop_get_must_kills(ps);
+  ts->schedule = isl_schedule_copy(ps->schedule);
+  ts->scop = ps;
+  ts->dep_flow = get_dependencies(ts->scop); // check
+  eliminate_dead_code(ts);
 }
 
 static __isl_give isl_union_set *
