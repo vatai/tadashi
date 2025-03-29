@@ -160,8 +160,7 @@ eliminate_dead_code(struct tadashi_scop *ts) {
   ts->domain = isl_union_set_intersect(ts->domain, isl_union_set_copy(live));
   ts->schedule =
       isl_schedule_intersect_domain(ts->schedule, isl_union_set_copy(live));
-  ts->dep_flow =
-      isl_union_map_intersect_range(ts->dep_flow, isl_union_set_copy(live));
+  ts->dep_flow = isl_union_map_intersect_range(ts->dep_flow, live);
   /* tagger = isl_union_pw_multi_aff_copy(ps->tagger); */
   /* live = isl_union_set_preimage_union_pw_multi_aff(live, tagger); */
   /* ps->tagged_dep_flow = isl_union_map_intersect_range(ps->tagged_dep_flow, */
