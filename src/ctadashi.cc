@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <isl/aff_type.h>
 #include <isl/space_type.h>
-#include <pet.h>
 #include <sstream>
 
 #include <isl/aff.h>
@@ -25,6 +24,7 @@
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
+#include <pet.h>
 
 #include "ctadashi.h"
 

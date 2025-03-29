@@ -13,6 +13,11 @@ extern "C" {
 struct tadashi_scop {
   pet_scop *scop;
   isl_union_map *dependency;
+  // dead code stuff
+  isl_union_map *live_out;
+  isl_union_set *call;
+  isl_union_set *domain;
+  isl_schedule *schedule;
 };
 
 __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);

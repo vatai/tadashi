@@ -47,10 +47,77 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
   return dep;
 }
 
+static __isl_give isl_union_set *
+shared_constraints(__isl_take isl_union_set *old,
+                   __isl_take isl_union_set *extended) {
+  isl_union_set *hull, *gist, *valid;
+
+  /* hull = isl_union_set_plain_unshifted_simple_hull(old); */
+  gist = isl_union_set_copy(hull);
+  gist = isl_union_set_gist(gist, extended);
+  return isl_union_set_gist(hull, gist);
+}
+
+static void
+eliminate_dead_code(struct tadashi_scop *ts) {
+  isl_union_set *live;
+  isl_union_map *dep;
+  isl_union_pw_multi_aff *tagger;
+
+  live = isl_union_map_domain(isl_union_map_copy(ts->live_out));
+  if (!isl_union_set_is_empty(ts->call)) {
+    live = isl_union_set_union(live, isl_union_set_copy(ts->call));
+    live = isl_union_set_coalesce(live);
+  }
+
+  dep = isl_union_map_copy(ts->dependency);
+  dep = isl_union_map_reverse(dep);
+
+  for (;;) {
+    isl_union_set *extra, *universe, *same_space, *other_space;
+    isl_union_set *prev, *valid;
+
+    extra =
+        isl_union_set_apply(isl_union_set_copy(live), isl_union_map_copy(dep));
+    if (isl_union_set_is_subset(extra, live)) {
+      isl_union_set_free(extra);
+      break;
+    }
+
+    universe = isl_union_set_universe(isl_union_set_copy(live));
+    same_space = isl_union_set_intersect(isl_union_set_copy(extra),
+                                         isl_union_set_copy(universe));
+    other_space = isl_union_set_subtract(extra, universe);
+
+    prev = isl_union_set_copy(live);
+    live = isl_union_set_union(live, same_space);
+    valid = shared_constraints(prev, isl_union_set_copy(live));
+
+    live = isl_union_set_affine_hull(live);
+    live = isl_union_set_intersect(live, valid);
+    live = isl_union_set_intersect(live, isl_union_set_copy(ts->domain));
+    live = isl_union_set_union(live, other_space);
+  }
+
+  isl_union_map_free(dep);
+
+  /* report_dead_code(ps, live); */
+
+  ts->domain = isl_union_set_intersect(ts->domain, isl_union_set_copy(live));
+  ts->schedule =
+      isl_schedule_intersect_domain(ts->schedule, isl_union_set_copy(live));
+  ts->dependency =
+      isl_union_map_intersect_range(ts->dependency, isl_union_set_copy(live));
+  /* tagger = isl_union_pw_multi_aff_copy(ps->tagger); */
+  /* live = isl_union_set_preimage_union_pw_multi_aff(live, tagger); */
+  /* ps->tagged_dep_flow = isl_union_map_intersect_range(ps->tagged_dep_flow, */
+  /* 					live); */
+}
 void
 populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->scop = ps;
   ts->dependency = get_dependencies(ts->scop);
+  isl_union_set *live;
 }
 
 static __isl_give isl_union_set *
