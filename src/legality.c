@@ -52,7 +52,7 @@ shared_constraints(__isl_take isl_union_set *old,
                    __isl_take isl_union_set *extended) {
   isl_union_set *hull, *gist, *valid;
 
-  /* hull = isl_union_set_plain_unshifted_simple_hull(old); */
+  hull = isl_union_set_plain_unshifted_simple_hull(old);
   gist = isl_union_set_copy(hull);
   gist = isl_union_set_gist(gist, extended);
   return isl_union_set_gist(hull, gist);
