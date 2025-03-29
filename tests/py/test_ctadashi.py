@@ -105,13 +105,13 @@ class TestCtadashi(unittest.TestCase):
         app = Simple("examples/inputs/depnodep.c")
         scop = app.scops[0]
         transformations = [
-            [2, tadashi.TrEnum.SET_PARALLEL, [1]],
-            [1, tadashi.TrEnum.SET_LOOP_OPT, [0, 3]],
-            [1, tadashi.TrEnum.FULL_SHIFT_VAL, [-47]],
-            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 39]],
-            [1, tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 34]],
-            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, -22, 0]],
-            [3, tadashi.TrEnum.SET_PARALLEL, [1]],
+            [2, tadashi.TrEnum.SET_PARALLEL, 1],
+            [1, tadashi.TrEnum.SET_LOOP_OPT, 0, 3],
+            [1, tadashi.TrEnum.FULL_SHIFT_VAL, -47],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 39],
+            [1, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 34],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, -22, 0],
+            [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         legals = scop.transform_list(transformations)
         mod_app = app.generate_code()
@@ -119,6 +119,14 @@ class TestCtadashi(unittest.TestCase):
         for legal in legals[:-1]:
             self.assertTrue(legal)
         self.assertFalse(legals[-1])
+
+
+class TestCtadashiRegression(unittest.TestCase):
+    def test_repeated_code_generation(self):
+        base = Path(__file__).parent.parent.parent
+        app = Simple(base / "examples/inputs/simple/two_loops.c")
+        for i in range(10):
+            app = app.generate_code()
 
 
 def setup():

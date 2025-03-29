@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 import datetime
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple
+
+from colorama import Fore, Style
 
 from . import Scops
 
@@ -157,13 +160,16 @@ class Simple(App):
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
-            new_file = Path(alt_source)
+            new_file = Path(alt_source).absolute()
         else:
+            mark = "TMPFILE"
             now = datetime.datetime.now()
             now_str = datetime.datetime.isoformat(now)
             suffix = self.source.suffix
-            filename = self.source.with_suffix("")
-            prefix = f"{filename}-{now_str}"
+            pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
+            m = re.match(pattern, str(self.source))
+            filename = m.groups()[0] if m else self.source.with_suffix("")
+            prefix = f"{filename}-{mark}-{now_str}-"
             new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
         self.scops.generate_code(self.source, Path(new_file))
         return Simple.make_ephemeral(new_file) if ephemeral else Simple(new_file)

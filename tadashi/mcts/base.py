@@ -1,5 +1,7 @@
 import random
 
+from colorama import Fore, Style, init
+
 
 class MCTSNode:
     def __init__(self, parent=None, app=None, action=None, initial_time=None):
@@ -9,7 +11,9 @@ class MCTSNode:
         self.children = None
         self._number_of_visits = 0
         self.initial_time = initial_time
-        self.speedup = None
+        self.speedup = -1
+        self.is_best = False
+        self.best = None
 
     # TODO: implement Upper Confidence Bound for sampling strategy
     # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
@@ -37,11 +41,31 @@ class MCTSNode:
     #     graph.add_node(self)
     #     return graph
 
+    def show_best_source(self):
+        if self.best:
+            self.best.show_best_source()
+        else:
+            print ("best source:", self.app.source)
+
+    def set_best(self):
+        if self._number_of_visits == 0:
+            return
+        if self.children:
+            best = max(self.children, key=lambda x: x.speedup)
+            if best._number_of_visits == 0:
+                return
+            best.is_best = True
+            self.best= best
+            best.set_best()
+
     def print(self, depth=0):
         if self._number_of_visits == 0:
             return
         print(f"{' '*depth}", end="")
+        if self.is_best:
+            print(Fore.GREEN, end="")
         print(f"V:{self._number_of_visits} S:{self.speedup:0.4f} |", self.action)
+        print(Style.RESET_ALL, end="")
         if self.children is None:
             return
         for c in self.children:
