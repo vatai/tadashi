@@ -17,9 +17,9 @@ Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
 }
 
 Scop::~Scop() {
-  this->scop.dep_flow = isl_union_map_free(this->scop.dep_flow);
-  free_tadashi_scop(&scop);
+  scop.dep_flow = isl_union_map_free(scop.dep_flow);
   isl_schedule_node_free(current_node);
+  free_tadashi_scop(&scop);
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
   pet_scop_free(this->scop.scop);

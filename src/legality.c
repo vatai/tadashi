@@ -292,10 +292,13 @@ populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
 
 void
 free_tadashi_scop(struct tadashi_scop *ts) {
-  isl_schedule_free(ts->schedule);
+  isl_union_set_free(ts->call);
+  isl_union_set_free(ts->domain);
   isl_union_map_free(ts->may_writes);
   isl_union_map_free(ts->must_writes);
   isl_union_map_free(ts->must_kills);
+  isl_schedule_free(ts->schedule);
+  isl_union_map_free(ts->live_out);
 }
 
 static __isl_give isl_union_set *
