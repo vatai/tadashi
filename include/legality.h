@@ -12,7 +12,7 @@ extern "C" {
 
 struct tadashi_scop {
   pet_scop *scop;
-  isl_union_map *dependency;
+  isl_union_map *dep_flow;
   // dead code stuff
   isl_union_map *live_out;
   isl_union_set *call;

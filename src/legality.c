@@ -70,7 +70,7 @@ eliminate_dead_code(struct tadashi_scop *ts) {
     live = isl_union_set_coalesce(live);
   }
 
-  dep = isl_union_map_copy(ts->dependency);
+  dep = isl_union_map_copy(ts->dep_flow);
   dep = isl_union_map_reverse(dep);
 
   for (;;) {
@@ -106,8 +106,8 @@ eliminate_dead_code(struct tadashi_scop *ts) {
   ts->domain = isl_union_set_intersect(ts->domain, isl_union_set_copy(live));
   ts->schedule =
       isl_schedule_intersect_domain(ts->schedule, isl_union_set_copy(live));
-  ts->dependency =
-      isl_union_map_intersect_range(ts->dependency, isl_union_set_copy(live));
+  ts->dep_flow =
+      isl_union_map_intersect_range(ts->dep_flow, isl_union_set_copy(live));
   /* tagger = isl_union_pw_multi_aff_copy(ps->tagger); */
   /* live = isl_union_set_preimage_union_pw_multi_aff(live, tagger); */
   /* ps->tagged_dep_flow = isl_union_map_intersect_range(ps->tagged_dep_flow, */
@@ -116,7 +116,7 @@ eliminate_dead_code(struct tadashi_scop *ts) {
 void
 populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->scop = ps;
-  ts->dependency = get_dependencies(ts->scop);
+  ts->dep_flow = get_dependencies(ts->scop);
   isl_union_set *live;
 }
 
