@@ -117,7 +117,13 @@ void
 populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->scop = ps;
   ts->dep_flow = get_dependencies(ts->scop);
-  isl_union_set *live;
+  ts->schedule = isl_schedule_copy(ps->schedule)
+
+  /* isl_union_map *live_out; */
+  /* isl_union_set *call; */
+  /* isl_union_set *domain; */
+  /* isl_schedule *schedule; */
+  // eliminate_dead_code(ts);
 }
 
 static __isl_give isl_union_set *
