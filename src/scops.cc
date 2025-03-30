@@ -20,7 +20,7 @@ Scop::~Scop() {
   free_tadashi_scop(&scop);
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
-  pet_scop_free(this->scop.scop);
+  pet_scop_free(this->scop.pet_scop);
   // printf("<<< ~Scop()\n");
 }
 

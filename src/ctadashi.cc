@@ -173,7 +173,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
     p = pet_scop_print_original(scop, p);
   } else {
     sched = isl_schedule_node_get_schedule(si->current_node);
-    p = codegen(p, si->scop.scop, sched);
+    p = codegen(p, si->scop.pet_scop, sched);
   }
   pet_scop_free(scop);
   si++;

@@ -284,9 +284,9 @@ populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->must_writes = pet_scop_get_must_writes(ps);
   ts->must_kills = pet_scop_get_must_kills(ps);
   ts->schedule = isl_schedule_copy(ps->schedule);
-  ts->scop = ps;
+  ts->pet_scop = ps;
   compute_live_out(ts);
-  ts->dep_flow = get_dependencies(ts->scop); // check
+  ts->dep_flow = get_dependencies(ts->pet_scop); // check
   eliminate_dead_code(ts);
 }
 
