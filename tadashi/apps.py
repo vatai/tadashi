@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import datetime
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -152,13 +153,17 @@ class App:
 
 
 class Simple(App):
+    runtime_prefix: str
+
     def __init__(
         self,
         source: str | Path,
         compiler_options: Optional[list[str]] = None,
+        runtime_prefix: str = "WALLTIME: ",
     ):
         if compiler_options:
             compiler_options = []
+        self.runtime_prefix = runtime_prefix
         self._finalize_object(source, compiler_options=compiler_options)
 
     @property
@@ -171,21 +176,25 @@ class Simple(App):
             str(self.output_binary),
         ]
 
-    @staticmethod
-    def extract_runtime(stdout):
-        num = stdout.split()[1]
+    def extract_runtime(self, stdout):
+        num = stdout.split(self.runtime_prefix)[1]
         return float(num)
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
-            new_file = Path(alt_source)
+            new_file = Path(alt_source).absolute()
         else:
+            mark = "TMPFILE"
             now = datetime.datetime.now()
             now_str = datetime.datetime.isoformat(now)
             suffix = self.source.suffix
-            filename = self.source.with_suffix("")
-            prefix = f"{filename}-{now_str}"
+            pattern = rf"(.*)(-{mark}\d+-\d+-\d+T\d+:\d+:\d+.\d+.*)({suffix})"
+            m = re.match(pattern, str(self.source))
+            filename = m.groups()[0] if m else self.source.with_suffix("")
+            prefix = f"{filename}-{mark}{now_str}"
             new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        print(f"{new_file=}")
+        print(f"{self.source=}")
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {"source": new_file}
         return self.make_new_app(ephemeral, **kwargs)
