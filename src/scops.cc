@@ -10,15 +10,15 @@
 #include "scops.h"
 
 Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
-  populate_tadashi_scop(&scop, ps);
-  current_node = isl_schedule_get_root(scop.schedule);
+  scop = allocate_tadashi_scop(ps);
+  current_node = isl_schedule_get_root(scop->schedule);
 }
 
 Scop::~Scop() {
   isl_schedule_node_free(current_node);
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
-  free_tadashi_scop(&scop);
+  free_tadashi_scop(scop);
   // printf("<<< ~Scop()\n");
 }
 

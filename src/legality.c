@@ -276,8 +276,9 @@ collect_call_domains(struct pet_scop *scop) {
   return collect_domains(scop, &has_call);
 }
 
-void
-populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
+struct tadashi_scop *
+allocate_tadashi_scop(struct pet_scop *ps) {
+  struct tadashi_scop *ts = malloc(sizeof(struct tadashi_scop));
   ts->domain = collect_non_kill_domains(ps);
   ts->call = collect_call_domains(ps);
   ts->may_writes = pet_scop_get_may_writes(ps);
@@ -288,6 +289,7 @@ populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->dep_flow = get_dependencies(ps);
   eliminate_dead_code(ts);
   ts->pet_scop = ps;
+  return ts;
 }
 
 void

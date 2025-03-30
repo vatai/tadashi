@@ -24,7 +24,7 @@ struct tadashi_scop {
 
 __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);
 
-void populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps);
+struct tadashi_scop *allocate_tadashi_scop(struct pet_scop *ps);
 
 void free_tadashi_scop(struct tadashi_scop *ts);
 

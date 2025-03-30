@@ -16,7 +16,7 @@ private:
   std::vector<std::string> strings;
 
 public:
-  struct tadashi_scop scop;
+  struct tadashi_scop *scop;
   isl_schedule_node *current_node;
   isl_schedule_node *tmp_node;
   int modified;
