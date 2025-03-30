@@ -76,6 +76,10 @@ class App:
         """Create a transformed copy of the app object."""
         raise NotImplementedError()
 
+    def reset_scops(self):
+        for scop in self.scops:
+            scop.reset()
+
     @staticmethod
     def extract_runtime(stdout) -> float:
         """Extract the measured runtime from the output."""
