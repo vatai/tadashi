@@ -52,6 +52,115 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
   return dep;
 }
 
+/* Is "stmt" not a kill statement?
+ */
+static int
+is_not_kill(struct pet_stmt *stmt) {
+  return !pet_stmt_is_kill(stmt);
+}
+
+/* Collect the iteration domains of the statements in "scop" that
+ * satisfy "pred".
+ */
+static __isl_give isl_union_set *
+collect_domains(struct pet_scop *scop, int (*pred)(struct pet_stmt *stmt)) {
+  int i;
+  isl_set *domain_i;
+  isl_union_set *domain;
+
+  if (!scop)
+    return NULL;
+
+  domain = isl_union_set_empty(isl_set_get_space(scop->context));
+
+  for (i = 0; i < scop->n_stmt; ++i) {
+    struct pet_stmt *stmt = scop->stmts[i];
+
+    if (!pred(stmt))
+      continue;
+
+    if (stmt->n_arg > 0)
+      isl_die(isl_union_set_get_ctx(domain), isl_error_unsupported,
+              "data dependent conditions not supported",
+              return isl_union_set_free(domain));
+
+    domain_i = isl_set_copy(scop->stmts[i]->domain);
+    domain = isl_union_set_add_set(domain, domain_i);
+  }
+
+  return domain;
+}
+
+/* Collect the iteration domains of the statements in "scop",
+ * skipping kill statements.
+ */
+static __isl_give isl_union_set *
+collect_non_kill_domains(struct pet_scop *scop) {
+  return collect_domains(scop, &is_not_kill);
+}
+
+/* This function is used as a callback to pet_expr_foreach_call_expr
+ * to detect if there is any call expression in the input expression.
+ * Assign the value 1 to the integer that "user" points to and
+ * abort the search since we have found what we were looking for.
+ */
+static int
+set_has_call(__isl_keep pet_expr *expr, void *user) {
+  int *has_call = user;
+
+  *has_call = 1;
+
+  return -1;
+}
+
+/* Does "expr" contain any call expressions?
+ */
+static int
+expr_has_call(__isl_keep pet_expr *expr) {
+  int has_call = 0;
+
+  if (pet_expr_foreach_call_expr(expr, &set_has_call, &has_call) < 0 &&
+      !has_call)
+    return -1;
+
+  return has_call;
+}
+
+/* This function is a callback for pet_tree_foreach_expr.
+ * If "expr" contains any call (sub)expressions, then set *has_call
+ * and abort the search.
+ */
+static int
+check_call(__isl_keep pet_expr *expr, void *user) {
+  int *has_call = user;
+
+  if (expr_has_call(expr))
+    *has_call = 1;
+
+  return *has_call ? -1 : 0;
+}
+
+/* Does "stmt" contain any call expressions?
+ */
+static int
+has_call(struct pet_stmt *stmt) {
+  int has_call = 0;
+
+  if (pet_tree_foreach_expr(stmt->body, &check_call, &has_call) < 0 &&
+      !has_call)
+    return -1;
+
+  return has_call;
+}
+
+/* Collect the iteration domains of the statements in "scop"
+ * that contain a call expression.
+ */
+static __isl_give isl_union_set *
+collect_call_domains(struct pet_scop *scop) {
+  return collect_domains(scop, &has_call);
+}
+
 /* Compute the live out accesses, i.e., the writes that are
  * potentially not killed by any kills or any other writes, and
  * store them in ps->live_out.
@@ -165,115 +274,6 @@ eliminate_dead_code(struct tadashi_scop *ts) {
   /* live = isl_union_set_preimage_union_pw_multi_aff(live, tagger); */
   /* ps->tagged_dep_flow = isl_union_map_intersect_range(ps->tagged_dep_flow, */
   /* 					live); */
-}
-
-/* Is "stmt" not a kill statement?
- */
-static int
-is_not_kill(struct pet_stmt *stmt) {
-  return !pet_stmt_is_kill(stmt);
-}
-
-/* Collect the iteration domains of the statements in "scop" that
- * satisfy "pred".
- */
-static __isl_give isl_union_set *
-collect_domains(struct pet_scop *scop, int (*pred)(struct pet_stmt *stmt)) {
-  int i;
-  isl_set *domain_i;
-  isl_union_set *domain;
-
-  if (!scop)
-    return NULL;
-
-  domain = isl_union_set_empty(isl_set_get_space(scop->context));
-
-  for (i = 0; i < scop->n_stmt; ++i) {
-    struct pet_stmt *stmt = scop->stmts[i];
-
-    if (!pred(stmt))
-      continue;
-
-    if (stmt->n_arg > 0)
-      isl_die(isl_union_set_get_ctx(domain), isl_error_unsupported,
-              "data dependent conditions not supported",
-              return isl_union_set_free(domain));
-
-    domain_i = isl_set_copy(scop->stmts[i]->domain);
-    domain = isl_union_set_add_set(domain, domain_i);
-  }
-
-  return domain;
-}
-
-/* Collect the iteration domains of the statements in "scop",
- * skipping kill statements.
- */
-static __isl_give isl_union_set *
-collect_non_kill_domains(struct pet_scop *scop) {
-  return collect_domains(scop, &is_not_kill);
-}
-
-/* This function is used as a callback to pet_expr_foreach_call_expr
- * to detect if there is any call expression in the input expression.
- * Assign the value 1 to the integer that "user" points to and
- * abort the search since we have found what we were looking for.
- */
-static int
-set_has_call(__isl_keep pet_expr *expr, void *user) {
-  int *has_call = user;
-
-  *has_call = 1;
-
-  return -1;
-}
-
-/* Does "expr" contain any call expressions?
- */
-static int
-expr_has_call(__isl_keep pet_expr *expr) {
-  int has_call = 0;
-
-  if (pet_expr_foreach_call_expr(expr, &set_has_call, &has_call) < 0 &&
-      !has_call)
-    return -1;
-
-  return has_call;
-}
-
-/* This function is a callback for pet_tree_foreach_expr.
- * If "expr" contains any call (sub)expressions, then set *has_call
- * and abort the search.
- */
-static int
-check_call(__isl_keep pet_expr *expr, void *user) {
-  int *has_call = user;
-
-  if (expr_has_call(expr))
-    *has_call = 1;
-
-  return *has_call ? -1 : 0;
-}
-
-/* Does "stmt" contain any call expressions?
- */
-static int
-has_call(struct pet_stmt *stmt) {
-  int has_call = 0;
-
-  if (pet_tree_foreach_expr(stmt->body, &check_call, &has_call) < 0 &&
-      !has_call)
-    return -1;
-
-  return has_call;
-}
-
-/* Collect the iteration domains of the statements in "scop"
- * that contain a call expression.
- */
-static __isl_give isl_union_set *
-collect_call_domains(struct pet_scop *scop) {
-  return collect_domains(scop, &has_call);
 }
 
 struct tadashi_scop *
