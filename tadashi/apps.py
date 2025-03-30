@@ -192,9 +192,9 @@ class Simple(App):
             m = re.match(pattern, str(self.source))
             filename = m.groups()[0] if m else self.source.with_suffix("")
             prefix = f"{filename}-{mark}{now_str}"
-            new_file = Path(
-                tempfile.mktemp(prefix=prefix, suffix=suffix, dir=self.source.parent)
-            )
+            new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        print(f"{new_file=}")
+        print(f"{self.source=}")
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {"source": new_file}
         return self.make_new_app(ephemeral, **kwargs)
