@@ -161,6 +161,18 @@ rollback(size_t pool_idx, size_t scop_idx) {
   si->current_node = tmp;
 }
 
+void
+reset_scop(size_t pool_idx, size_t scop_idx) {
+  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx];
+  si->current_node = isl_schedule_node_free(si->current_node);
+  si->current_node = isl_schedule_get_root(si->scop->schedule);
+  if (si->tmp_node)
+    if (si->tmp_node != nullptr)
+      si->tmp_node = isl_schedule_node_free(si->tmp_node);
+  si->tmp_node = nullptr;
+  si->modified = false;
+}
+
 static __isl_give isl_printer *
 generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
                        void *user) {
@@ -211,7 +223,7 @@ pre_transform(size_t pool_idx, size_t scop_idx) {
   // - the only requirement is that we're in a legal state at the
   // final output.
   Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
-  if (si->tmp_node != NULL)
+  if (si->tmp_node != nullptr)
     si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
   return si;
