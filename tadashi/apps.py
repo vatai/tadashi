@@ -76,6 +76,10 @@ class App:
         """Create a transformed copy of the app object."""
         raise NotImplementedError()
 
+    def reset_scops(self):
+        for scop in self.scops:
+            scop.reset()
+
     @staticmethod
     def extract_runtime(stdout) -> float:
         """Extract the measured runtime from the output."""
@@ -96,11 +100,11 @@ class App:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
-    def compile(self):
+    def compile(self, verbose: bool = False):
         """Compile the app so it can be measured/executed."""
         cmd = self.compile_cmd + self.user_compiler_options
-        # print(f"{' '.join(cmd)}")
-        print(cmd)
+        if verbose:
+            print(f"{' '.join(cmd)}")
         result = subprocess.run(cmd)
         # raise an exception if it didn't compile
         result.check_returncode()

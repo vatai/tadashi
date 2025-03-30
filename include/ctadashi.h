@@ -29,6 +29,8 @@ void goto_child(size_t pool_idx, size_t scop_idx, size_t child_idx);
 
 void rollback(size_t pool_idx, size_t scop_idx);
 
+void reset_scop(size_t pool_idx, size_t scop_idx);
+
 int generate_code(size_t pool_idx, const char *input_path,
                   const char *output_path);
 

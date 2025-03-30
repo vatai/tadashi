@@ -529,6 +529,9 @@ class Scop:
             result.append(node.transform(tr, *args))
         return result
 
+    def reset(self):
+        ctadashi.reset_scop(self.pool_idx, self.scop_idx)
+
 
 class Scops:
     """All SCoPs which belong to a given file.
