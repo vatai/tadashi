@@ -303,6 +303,7 @@ free_tadashi_scop(struct tadashi_scop *ts) {
   ts->dep_flow = isl_union_map_free(ts->dep_flow);
   ts->live_out = isl_union_map_free(ts->live_out);
   ts->pet_scop = pet_scop_free(ts->pet_scop);
+  free(ts);
 }
 
 static __isl_give isl_union_set *
