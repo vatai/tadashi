@@ -1,25 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+# define TILE_SIZE 32
 
-void stencil_2d(double *input, double *output, int rows, int cols) {
+void stencil_2d(double *input, double *output, size_t rows, size_t cols) {
     #pragma scop
-    for (int i = 1; i < rows - 1; i++) {
-    for (int j = 1; j < cols - 1; j++) {
+    for (size_t i = 1; i < rows - 1; i++) {
+    for (size_t j = 1; j < cols - 1; j++) {
       output[i * cols + j] = (input[i * cols + j] +
-                               input[(i - 1) * cols + j] +
-                               input[(i + 1) * cols + j] +
-                               input[i * cols + (j - 1)] +
-                               input[i * cols + (j + 1)]) /
+                              input[(i - 1) * cols + j] +
+                              input[(i + 1) * cols + j] +
+                              input[i * cols + (j - 1)] +
+                              input[i * cols + (j + 1)]) /
                               5.0;
+      }
+    }
+    #pragma endscop
+}
+
+void stencil_2d_tiled(double *input, double *output, size_t rows, size_t cols) {
+  
+  for (size_t tile = 0; tile < cols/TILE_SIZE - 1; i++) {
+  for (size_t i = 1; i < rows - 1; i++) {
+  for (size_t j = 1; j < cols - 1; j++) {
+    output[i * cols + j] = (input[i * cols + j] +
+                            input[(i - 1) * cols + j] +
+                            input[(i + 1) * cols + j] +
+                            input[i * cols + (j - 1)] +
+                            input[i * cols + (j + 1)]) /
+                            5.0;
     }
   }
-  #pragma endscop
+  
 }
 
 int main() {
-  int rows = 1000;
-  int cols = 200000;
+  size_t rows = 1000;
+  size_t cols = 200000;
   clock_t start, end;
   double cpu_time_used;
 
