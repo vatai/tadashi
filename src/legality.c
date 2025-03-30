@@ -42,6 +42,16 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
+__isl_give isl_union_map *
+get_dependencies(__isl_keep struct pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = _get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
 /* Compute the live out accesses, i.e., the writes that are
  * potentially not killed by any kills or any other writes, and
  * store them in ps->live_out.
@@ -89,16 +99,6 @@ compute_live_out(struct tadashi_scop *ts) {
   exposed = isl_union_map_copy(ts->may_writes);
   exposed = isl_union_map_subtract(exposed, covering);
   ts->live_out = exposed;
-}
-
-__isl_give isl_union_map *
-get_dependencies(__isl_keep struct pet_scop *scop) {
-  isl_union_map *dep;
-  isl_union_flow *flow;
-  flow = _get_flow_from_scop(scop);
-  dep = isl_union_flow_get_may_dependence(flow);
-  isl_union_flow_free(flow);
-  return dep;
 }
 
 static __isl_give isl_union_set *
