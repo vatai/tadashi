@@ -109,11 +109,16 @@ class App:
         # raise an exception if it didn't compile
         result.check_returncode()
 
-    def measure(self, *args, **kwargs) -> float:
+    def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
-        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
-        stdout = result.stdout.decode()
-        return self.extract_runtime(stdout)
+        results = []
+        for _ in range(repeat):
+            result = subprocess.run(
+                self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs
+            )
+            stdout = result.stdout.decode()
+            results.append(self.extract_runtime(stdout))
+        return min(results)
 
     def compile_and_measure(self, *args, **kwargs) -> float | str:
         try:
