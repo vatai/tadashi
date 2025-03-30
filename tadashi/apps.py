@@ -64,7 +64,6 @@ class App:
         self.source.unlink()
 
     @staticmethod
-    @property
     def compiler():
         return os.getenv("CC", "gcc")
 
@@ -156,7 +155,7 @@ class Simple(App):
     @property
     def compile_cmd(self) -> list[str]:
         return [
-            self.compiler,
+            self.compiler(),
             str(self.source),
             "-fopenmp",
             "-o",
@@ -223,7 +222,7 @@ class Polybench(App):
     @property
     def compile_cmd(self) -> list[str]:
         return [
-            self.compiler,
+            self.compiler(),
             str(self.source),
             str(self.utilities / "polybench.c"),
             "-DPOLYBENCH_TIME",
