@@ -11,15 +11,15 @@ extern "C" {
 #endif
 
 struct tadashi_scop {
-  pet_scop *pet_scop;
-  isl_union_map *dep_flow;
-  isl_union_map *live_out;
-  isl_union_set *call;
   isl_union_set *domain;
-  isl_schedule *schedule;
+  isl_union_set *call;
+  isl_union_map *may_writes;
   isl_union_map *must_writes;
   isl_union_map *must_kills;
-  isl_union_map *may_writes;
+  isl_schedule *schedule;
+  isl_union_map *dep_flow;
+  isl_union_map *live_out;
+  pet_scop *pet_scop;
 };
 
 __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);

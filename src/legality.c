@@ -284,21 +284,22 @@ populate_tadashi_scop(struct tadashi_scop *ts, struct pet_scop *ps) {
   ts->must_writes = pet_scop_get_must_writes(ps);
   ts->must_kills = pet_scop_get_must_kills(ps);
   ts->schedule = isl_schedule_copy(ps->schedule);
-  ts->pet_scop = ps;
   compute_live_out(ts);
-  ts->dep_flow = get_dependencies(ts->pet_scop); // check
+  ts->dep_flow = get_dependencies(ps);
   eliminate_dead_code(ts);
+  ts->pet_scop = ps;
 }
 
 void
 free_tadashi_scop(struct tadashi_scop *ts) {
-  isl_union_set_free(ts->call);
-  isl_union_set_free(ts->domain);
-  isl_union_map_free(ts->may_writes);
-  isl_union_map_free(ts->must_writes);
-  isl_union_map_free(ts->must_kills);
-  isl_schedule_free(ts->schedule);
-  isl_union_map_free(ts->live_out);
+  ts->domain = isl_union_set_free(ts->domain);
+  ts->call = isl_union_set_free(ts->call);
+  ts->may_writes = isl_union_map_free(ts->may_writes);
+  ts->must_writes = isl_union_map_free(ts->must_writes);
+  ts->must_kills = isl_union_map_free(ts->must_kills);
+  ts->schedule = isl_schedule_free(ts->schedule);
+  ts->dep_flow = isl_union_map_free(ts->dep_flow);
+  ts->live_out = isl_union_map_free(ts->live_out);
 }
 
 static __isl_give isl_union_set *
