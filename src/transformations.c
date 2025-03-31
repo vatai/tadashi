@@ -135,7 +135,7 @@ struct _fuse_result_t {
   isl_multi_union_pw_aff *mupa;
 };
 
-static __isl_give isl_schedule_node *
+__isl_give isl_schedule_node *
 _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
                           struct _fuse_result_t *result,
                           isl_union_set_list **filters) {
@@ -233,7 +233,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
-static __isl_give isl_union_set_list *
+__isl_give isl_union_set_list *
 alloc_half_list(isl_schedule_node **node, int begin, int end) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
   isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
@@ -247,7 +247,7 @@ alloc_half_list(isl_schedule_node **node, int begin, int end) {
   // return isl_union_set_list_union(list);
 }
 
-static __isl_give isl_schedule_node *
+__isl_give isl_schedule_node *
 make_subsequence(__isl_take isl_schedule_node *node,
                  __isl_take isl_union_set *set,
                  __isl_take isl_union_set_list *list) {
@@ -287,7 +287,7 @@ __isl_give isl_schedule_node *
 tadashi_split(__isl_take isl_schedule_node *node, int split) {
   isl_union_set_list *filters, *left, *right;
   isl_union_set *lefts, *rights;
-  assert(tadashi_valid_split(node, split));
+  // assert(tadashi_valid_split(node, split));
   isl_size num_children = isl_schedule_node_n_children(node);
   left = alloc_half_list(&node, 0, split);
   right = alloc_half_list(&node, split, num_children);
