@@ -310,7 +310,18 @@ class FullFuseInfo(TransformInfo):
 
 
 class SplitInfo(TransformInfo):
-    pass
+    func_name = "split"
+    arg_help = ["Index where the sequence should be split"]
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if len(node.children) < 2:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        return True
 
 
 class FullSplitInfo(TransformInfo):

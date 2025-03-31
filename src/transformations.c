@@ -1,6 +1,5 @@
 /** @file */
 #include <assert.h>
-#include <isl/aff_type.h>
 #include <limits.h>
 
 #include <isl/aff.h>
@@ -11,6 +10,7 @@
 #include <isl/schedule_node.h>
 #include <isl/set.h>
 #include <isl/space.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 
@@ -233,8 +233,48 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
+__isl_give isl_union_set_list *
+alloc_half_list(isl_schedule_node **node, int begin, int end) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
+  isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
+  for (int pos = begin; pos < end; pos++) {
+    *node = isl_schedule_node_child(*node, pos);
+    isl_union_set *domain = isl_schedule_node_get_domain(*node);
+    list = isl_union_set_list_add(list, domain);
+    *node = isl_schedule_node_parent(*node);
+  }
+  return list;
+  // return isl_union_set_list_union(list);
+}
 __isl_give isl_schedule_node *
-tadashi_split(__isl_take isl_schedule_node *node, int idx) {}
+tadashi_split(__isl_take isl_schedule_node *node, int split) {
+  isl_union_set_list *filters, *left, *right;
+  isl_union_set *lefts, *rights;
+  isl_size num_children = isl_schedule_node_n_children(node);
+  left = alloc_half_list(&node, 0, split);
+  right = alloc_half_list(&node, split, num_children);
+  lefts = isl_union_set_list_union(isl_union_set_list_copy(left));
+  rights = isl_union_set_list_union(right);
+  filters = isl_union_set_list_from_union_set(isl_union_set_copy(lefts));
+  filters = isl_union_set_list_add(filters, rights);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_first_child(node);
+  isl_union_map *map = isl_schedule_node_get_subtree_schedule_union_map(node);
+  map = isl_union_map_intersect_domain(map, lefts);
+  printf("map: %s\n", isl_union_map_to_str(map));
+  node = isl_schedule_node_cut(node);
+  /* node = isl_schedule_node_insert_partial_schedule( */
+  /*     node, isl_multi_union_pw_aff_from_union_map(map)); */
+  /* node = isl_schedule_node_insert_sequence(node, left); */
+  printf("second child:%s\n", isl_schedule_node_to_str(node));
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
+  return node;
+}
 
 __isl_give isl_schedule_node *
 tadashi_full_split(__isl_take isl_schedule_node *node) {

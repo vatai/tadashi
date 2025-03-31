@@ -42,6 +42,8 @@ int fuse(size_t pool_idx, size_t scop_idx, int idx1, int idx2);
 
 int full_fuse(size_t pool_idx, size_t scop_idx);
 
+int split(size_t pool_idx, size_t scop_idx, int split);
+
 int full_split(size_t pool_idx, size_t scop_idx);
 
 int partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
