@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <isl/aff_type.h>
 #include <isl/space_type.h>
-#include <pet.h>
 #include <sstream>
 
 #include <isl/aff.h>
@@ -25,6 +24,7 @@
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
+#include <pet.h>
 
 #include "ctadashi.h"
 
@@ -161,6 +161,18 @@ rollback(size_t pool_idx, size_t scop_idx) {
   si->current_node = tmp;
 }
 
+void
+reset_scop(size_t pool_idx, size_t scop_idx) {
+  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx];
+  si->current_node = isl_schedule_node_free(si->current_node);
+  si->current_node = isl_schedule_get_root(si->scop->schedule);
+  if (si->tmp_node)
+    if (si->tmp_node != nullptr)
+      si->tmp_node = isl_schedule_node_free(si->tmp_node);
+  si->tmp_node = nullptr;
+  si->modified = false;
+}
+
 static __isl_give isl_printer *
 generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
                        void *user) {
@@ -173,7 +185,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
     p = pet_scop_print_original(scop, p);
   } else {
     sched = isl_schedule_node_get_schedule(si->current_node);
-    p = codegen(p, si->scop, sched);
+    p = codegen(p, si->scop->pet_scop, sched);
   }
   pet_scop_free(scop);
   si++;
@@ -211,7 +223,7 @@ pre_transform(size_t pool_idx, size_t scop_idx) {
   // - the only requirement is that we're in a legal state at the
   // final output.
   Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
-  if (si->tmp_node != NULL)
+  if (si->tmp_node != nullptr)
     si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
   return si;
@@ -220,7 +232,7 @@ pre_transform(size_t pool_idx, size_t scop_idx) {
 extern "C" int
 post_transform(size_t pool_idx, size_t scop_idx) {
   Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
-  isl_union_map *dep = isl_union_map_copy(si->dependency);
+  isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
   isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
@@ -311,11 +323,12 @@ extern "C" int
 set_parallel(size_t pool_idx, size_t scop_idx, int num_threads) {
   Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_set_parallel(si->tmp_node, num_threads);
-  isl_union_map *dep = isl_union_map_copy(si->dependency);
+  isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
   isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
   isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
   node = isl_schedule_node_first_child(node);
-  isl_bool legal = tadashi_check_legality_parallel(ctx, node, si->dependency);
+  isl_bool legal =
+      tadashi_check_legality_parallel(ctx, node, si->scop->dep_flow);
   node = isl_schedule_node_free(node);
   si->modified = true;
   node = si->current_node;
