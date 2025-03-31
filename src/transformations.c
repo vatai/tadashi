@@ -233,7 +233,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
-__isl_give isl_union_set_list *
+static __isl_give isl_union_set_list *
 alloc_half_list(isl_schedule_node **node, int begin, int end) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
   isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
@@ -263,6 +263,7 @@ make_subsequence(__isl_take isl_schedule_node *node,
   node = isl_schedule_node_insert_sequence(node, list);
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
+  return node;
 }
 
 int
