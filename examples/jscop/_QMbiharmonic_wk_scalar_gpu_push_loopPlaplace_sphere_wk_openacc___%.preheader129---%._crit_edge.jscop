@@ -1,0 +1,150 @@
+{
+   "arrays": [
+      {
+         "name": "MemRef0",
+         "sizes": [
+            "*"
+         ],
+         "type": "double"
+      },
+      {
+         "name": "MemRef1",
+         "sizes": [
+            "*"
+         ],
+         "type": "double"
+      },
+      {
+         "name": "MemRef3",
+         "sizes": [
+            "*"
+         ],
+         "type": "i8"
+      }
+   ],
+   "context": "[p_0, p_1, p_2, p_3] -> {  : -2147483648 <= p_0 <= 2147483647 and 0 <= p_1 <= 9223372030412324865 and -4611686018427387903 <= p_2 <= 4611686011984936962 and -9223372036854775808 <= p_3 <= 9223372036854775807 }",
+   "name": "%.preheader129---%._crit_edge",
+   "statements": [
+      {
+         "accesses": [
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt3[i0, i1, i2, i3] -> MemRef0[32p_1 + 32p_2 + 32i0 + 4i1 + i2 + 16i3] }"
+            },
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt3[i0, i1, i2, i3] -> MemRef1[i3] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt3[i0, i1, i2, i3] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 and 0 <= i3 <= 1 }",
+         "name": "Stmt3",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt3[i0, i1, i2, i3] -> [i0, i1, i2, 0, i3] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt4[i0, i1, i2] -> MemRef2__phi[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt4[i0, i1, i2] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 }",
+         "name": "Stmt4",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt4[i0, i1, i2] -> [i0, i1, i2, 1, 0] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> MemRef2__phi[] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> MemRef2__phi[] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> MemRef1[i3] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> MemRef3[o0] : 640 + p_3 + 32i1 + 8i2 + 256i3 <= o0 <= 647 + p_3 + 32i1 + 8i2 + 256i3 }"
+            },
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> MemRef4[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 and 0 <= i3 <= 1 }",
+         "name": "Stmt5",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt5[i0, i1, i2, i3] -> [i0, i1, i2, 2, i3] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt6[i0, i1, i2] -> MemRef0[32p_1 + 32p_2 + 32i0 + 4i1 + i2] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt6[i0, i1, i2] -> MemRef4[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt6[i0, i1, i2] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 }",
+         "name": "Stmt6",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt6[i0, i1, i2] -> [i0, i1, i2, 3, 0] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt6last[i0, i1, i2] -> MemRef5__phi[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt6last[i0, i1, i2] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 }",
+         "name": "Stmt6last",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt6last[i0, i1, i2] -> [i0, i1, i2, 4, 0] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> MemRef5__phi[] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> MemRef5__phi[] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> MemRef1[i3] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> MemRef3[o0] : 768 + p_3 + 32i1 + 8i2 + 256i3 <= o0 <= 775 + p_3 + 32i1 + 8i2 + 256i3 }"
+            },
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> MemRef6[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 and 0 <= i3 <= 1 }",
+         "name": "Stmt7",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt7[i0, i1, i2, i3] -> [i0, i1, i2, 5, i3] }"
+      },
+      {
+         "accesses": [
+            {
+               "kind": "write",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt8[i0, i1, i2] -> MemRef0[16 + 32p_1 + 32p_2 + 32i0 + 4i1 + i2] }"
+            },
+            {
+               "kind": "read",
+               "relation": "[p_0, p_1, p_2, p_3] -> { Stmt8[i0, i1, i2] -> MemRef6[] }"
+            }
+         ],
+         "domain": "[p_0, p_1, p_2, p_3] -> { Stmt8[i0, i1, i2] : 0 <= i0 < p_0 and 0 <= i1 <= 3 and 0 <= i2 <= 3 }",
+         "name": "Stmt8",
+         "schedule": "[p_0, p_1, p_2, p_3] -> { Stmt8[i0, i1, i2] -> [i0, i1, i2, 6, 0] }"
+      }
+   ]
+}

@@ -2,12 +2,11 @@
 import datetime
 import os
 import re
-import shutil
 import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 from . import Scops
 
@@ -188,10 +187,10 @@ class Simple(App):
             now = datetime.datetime.now()
             now_str = datetime.datetime.isoformat(now)
             suffix = self.source.suffix
-            pattern = rf"(.*)(-{mark}\d+-\d+-\d+T\d+:\d+:\d+.\d+.*)({suffix})"
+            pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
             m = re.match(pattern, str(self.source))
             filename = m.groups()[0] if m else self.source.with_suffix("")
-            prefix = f"{filename}-{mark}{now_str}"
+            prefix = f"{filename}-{mark}-{now_str}-"
             new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
         print(f"{new_file=}")
         print(f"{self.source=}")
