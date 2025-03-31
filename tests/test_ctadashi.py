@@ -85,7 +85,7 @@ class TestCtadashi(unittest.TestCase):
 
     @staticmethod
     def _get_node(idx):
-        app = Simple("tests/py/dummy.c")
+        app = Simple("tests/dummy.c")
         node = app.scops[0].schedule_tree[idx]
         return node
 
@@ -123,7 +123,7 @@ class TestCtadashi(unittest.TestCase):
 
 class TestCtadashiRegression(unittest.TestCase):
     def test_repeated_code_generation(self):
-        base = Path(__file__).parent.parent.parent
+        base = Path(__file__).parent.parent
         app = Simple(base / "examples/inputs/simple/two_loops.c")
         for i in range(10):
             app = app.generate_code()
