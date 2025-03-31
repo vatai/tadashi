@@ -135,7 +135,7 @@ struct _fuse_result_t {
   isl_multi_union_pw_aff *mupa;
 };
 
-__isl_give isl_schedule_node *
+static __isl_give isl_schedule_node *
 _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
                           struct _fuse_result_t *result,
                           isl_union_set_list **filters) {
@@ -233,7 +233,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
-__isl_give isl_union_set_list *
+static __isl_give isl_union_set_list *
 alloc_half_list(isl_schedule_node **node, int begin, int end) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
   isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
@@ -247,7 +247,7 @@ alloc_half_list(isl_schedule_node **node, int begin, int end) {
   // return isl_union_set_list_union(list);
 }
 
-__isl_give isl_schedule_node *
+static __isl_give isl_schedule_node *
 make_subsequence(__isl_take isl_schedule_node *node,
                  __isl_take isl_union_set *set,
                  __isl_take isl_union_set_list *list) {
@@ -265,12 +265,30 @@ make_subsequence(__isl_take isl_schedule_node *node,
   node = isl_schedule_node_parent(node);
 }
 
+int
+tadashi_valid_split(__isl_keep isl_schedule_node *node, int split) {
+  enum isl_schedule_node_type type;
+  type = isl_schedule_node_get_type(node);
+  // The node is a sequence or set node
+  if (type != isl_schedule_node_sequence && type != isl_schedule_node_set)
+    return 0;
+  // 1 <= split <= n-1
+  size_t num_children = isl_schedule_node_n_children(node);
+  if (!(0 < split && split < num_children))
+    return 0;
+  // Parent is a band node.
+  type = isl_schedule_node_get_parent_type(node);
+  if (type != isl_schedule_node_band)
+    return 0;
+  return 1;
+}
+
 __isl_give isl_schedule_node *
 tadashi_split(__isl_take isl_schedule_node *node, int split) {
   isl_union_set_list *filters, *left, *right;
   isl_union_set *lefts, *rights;
+  assert(tadashi_valid_split(node, split));
   isl_size num_children = isl_schedule_node_n_children(node);
-  printf("split: %d\n", split);
   left = alloc_half_list(&node, 0, split);
   right = alloc_half_list(&node, split, num_children);
   lefts = isl_union_set_list_union(isl_union_set_list_copy(left));
@@ -287,18 +305,28 @@ tadashi_split(__isl_take isl_schedule_node *node, int split) {
   return node;
 }
 
+int
+tadashi_valid_full_split(__isl_keep isl_schedule_node *node) {
+  enum isl_schedule_node_type node_type;
+  node_type = isl_schedule_node_get_parent_type(node);
+  // Parent is a band node.
+  if (isl_schedule_node_band != node_type)
+    return 0;
+  // This is a sequence or set node.
+  node_type = isl_schedule_node_get_type(node);
+  if (node_type != isl_schedule_node_sequence &&
+      node_type != isl_schedule_node_set)
+    return 0;
+  return 1;
+}
+
 __isl_give isl_schedule_node *
 tadashi_full_split(__isl_take isl_schedule_node *node) {
-  enum isl_schedule_node_type node_type;
-  node_type = isl_schedule_node_get_type(node);
-  assert(isl_schedule_node_band == node_type);
-
+  assert(tadashi_valid_full_split(node));
   isl_multi_union_pw_aff *mupa;
+  node = isl_schedule_node_parent(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   node = isl_schedule_node_delete(node);
-  node_type = isl_schedule_node_get_type(node);
-  assert(node_type == isl_schedule_node_sequence ||
-         node_type == isl_schedule_node_set);
   isl_size num_children = isl_schedule_node_n_children(node);
   for (int pos = 0; pos < num_children; pos++) {
     isl_multi_union_pw_aff *tmp;

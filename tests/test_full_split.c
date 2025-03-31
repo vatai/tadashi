@@ -1,4 +1,4 @@
-/// TRANSFORMATION: 0, 3, "FULL_SPLIT"
+/// TRANSFORMATION: 0, 4, "FULL_SPLIT"
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {

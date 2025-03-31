@@ -10,6 +10,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
+from typing import Optional
 
 from ctadashi import ctadashi
 
@@ -321,20 +322,29 @@ class SplitInfo(TransformInfo):
             return False
         if node.parent.node_type != NodeType.BAND:
             return False
-        return True
+        args = SplitInfo.available_args(node)
+        return args is not None
+
+    @staticmethod
+    def valid_args(node: Node, split_idx: int) -> bool:
+        nc = len(node.children)
+        return 0 < split_idx and split_idx < nc
+
+    @staticmethod
+    def available_args(node: Node) -> Optional[list]:
+        nc = len(node.children)
+        return [LowerUpperBound(lower=1, upper=nc)]
 
 
 class FullSplitInfo(TransformInfo):
     func_name = "full_split"
 
+    # TODO -> split sequence!
     @staticmethod
     def valid(node: Node):
-        if node.node_type != NodeType.BAND:
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
             return False
-        if len(node.children) != 1:
-            return False
-        child = node.children[0]
-        if child.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+        if node.parent.node_type != NodeType.BAND:
             return False
         return True
 
