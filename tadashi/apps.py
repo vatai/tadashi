@@ -8,8 +8,6 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
-from colorama import Fore, Style
-
 from . import Scops
 
 Result = namedtuple("Result", ["legal", "walltime"])
