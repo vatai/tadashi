@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-import re
 import datetime
-from colorama import Fore, Style
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple
+
+from colorama import Fore, Style
 
 from . import Scops
 
@@ -18,7 +19,7 @@ Result = namedtuple("Result", ["legal", "walltime"])
 class App:
     scops: Scops
     source: Path
-    compiler_options: list[str]
+    user_compiler_options: list[str]
     ephemeral: bool = False
 
     def __getstate__(self):
@@ -37,8 +38,7 @@ class App:
             include_paths = []
         if compiler_options is None:
             compiler_options = []
-        self.compiler_options = compiler_options
-        self.compiler_options += [f"-I{p}" for p in include_paths]
+        self.user_compiler_options = compiler_options
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         self.source = Path(source)
         self.scops = Scops(str(self.source))
@@ -48,6 +48,10 @@ class App:
         app = cls(*args, **kwargs)
         app.ephemeral = True
         return app
+
+    def make_new_app(self, ephemeral, **kwargs):
+        kwargs["compiler_options"] = self.user_compiler_options
+        return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
 
     def __del__(self):
         if self.ephemeral:
@@ -62,6 +66,10 @@ class App:
     def remove_source(self):
         self.source.unlink()
 
+    @staticmethod
+    def compiler():
+        return os.getenv("CC", "gcc")
+
     @property
     def compile_cmd(self) -> list[str]:
         """Command executed for compilation (list of strings)."""
@@ -70,6 +78,10 @@ class App:
     def generate_code(self):
         """Create a transformed copy of the app object."""
         raise NotImplementedError()
+
+    def reset_scops(self):
+        for scop in self.scops:
+            scop.reset()
 
     @staticmethod
     def extract_runtime(stdout) -> float:
@@ -91,17 +103,25 @@ class App:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
-    def compile(self):
+    def compile(self, verbose: bool = False):
         """Compile the app so it can be measured/executed."""
-        result = subprocess.run(self.compile_cmd + self.compiler_options)
+        cmd = self.compile_cmd + self.user_compiler_options
+        if verbose:
+            print(f"{' '.join(cmd)}")
+        result = subprocess.run(cmd)
         # raise an exception if it didn't compile
         result.check_returncode()
 
-    def measure(self, *args, **kwargs) -> float:
+    def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
-        result = subprocess.run(self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs)
-        stdout = result.stdout.decode()
-        return self.extract_runtime(stdout)
+        results = []
+        for _ in range(repeat):
+            result = subprocess.run(
+                self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs
+            )
+            stdout = result.stdout.decode()
+            results.append(self.extract_runtime(stdout))
+        return min(results)
 
     def compile_and_measure(self, *args, **kwargs) -> float | str:
         try:
@@ -135,31 +155,36 @@ class App:
 
 
 class Simple(App):
+    runtime_prefix: str
+
     def __init__(
-        self, source: str | Path, compiler_options: Optional[list[str]] = None
+        self,
+        source: str | Path,
+        compiler_options: Optional[list[str]] = None,
+        runtime_prefix: str = "WALLTIME: ",
     ):
         if compiler_options:
             compiler_options = []
+        self.runtime_prefix = runtime_prefix
         self._finalize_object(source, compiler_options=compiler_options)
 
     @property
     def compile_cmd(self) -> list[str]:
         return [
-            "gcc",
+            self.compiler(),
             str(self.source),
             "-fopenmp",
             "-o",
             str(self.output_binary),
         ]
 
-    @staticmethod
-    def extract_runtime(stdout):
-        num = stdout.split()[1]
+    def extract_runtime(self, stdout):
+        num = stdout.split(self.runtime_prefix)[1]
         return float(num)
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
-            new_file = Path(alt_source)
+            new_file = Path(alt_source).absolute()
         else:
             mark = "TMPFILE"
             now = datetime.datetime.now()
@@ -170,8 +195,11 @@ class Simple(App):
             filename = m.groups()[0] if m else self.source.with_suffix("")
             prefix = f"{filename}-{mark}-{now_str}-"
             new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        print(f"{new_file=}")
+        print(f"{self.source=}")
         self.scops.generate_code(self.source, Path(new_file))
-        return Simple.make_ephemeral(new_file) if ephemeral else Simple(new_file)
+        kwargs = {"source": new_file}
+        return self.make_new_app(ephemeral, **kwargs)
 
 
 class Polybench(App):
@@ -193,11 +221,6 @@ class Polybench(App):
         self.base = Path(base)
         path = self.base / self.benchmark
         source = path / Path(self.benchmark.name).with_suffix(".c")
-        compiler_options += [
-            "-DPOLYBENCH_TIME",
-            "-DPOLYBENCH_USE_RESTRICT",
-            "-lm",
-        ]
         # "-DMEDIUM_DATASET",
         self.utilities = base / Path("utilities")
         self._finalize_object(
@@ -219,9 +242,12 @@ class Polybench(App):
     @property
     def compile_cmd(self) -> list[str]:
         return [
-            "gcc",
+            self.compiler(),
             str(self.source),
             str(self.utilities / "polybench.c"),
+            "-DPOLYBENCH_TIME",
+            "-DPOLYBENCH_USE_RESTRICT",
+            "-lm",
             "-fopenmp",
             "-o",
             str(self.output_binary),
@@ -238,9 +264,8 @@ class Polybench(App):
             "benchmark": self.benchmark,
             "base": self.base,
             "infix": alt_infix,
-            "compiler_options": self.compiler_options,
         }
-        return Polybench.make_ephemeral(**kwargs) if ephemeral else Polybench(**kwargs)
+        return self.make_new_app(ephemeral, **kwargs)
 
     @staticmethod
     def _source_with_infix(source: Path, infix: str):

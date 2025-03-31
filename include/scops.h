@@ -9,13 +9,14 @@
 
 #include <isl/schedule_node.h>
 
+#include "legality.h"
+
 class Scop {
 private:
   std::vector<std::string> strings;
 
 public:
-  pet_scop *scop;
-  isl_union_map *dependency;
+  struct tadashi_scop *scop;
   isl_schedule_node *current_node;
   isl_schedule_node *tmp_node;
   int modified;

@@ -8,6 +8,7 @@ CONFIGURE_ARGS=(
 )
 
 ./get_submodules.sh
+git -C ./isl checkout master
 ./autogen.sh
 ./configure "${CONFIGURE_ARGS[@]}"
 make -j

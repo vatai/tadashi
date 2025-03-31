@@ -25,7 +25,7 @@ gemm.transform_list(trs)
 print(gemm.scops[0].schedule_tree[7].yaml_str)
 gemm2 = gemm.generate_code(alt_infix=".joao", ephemeral=False)
 
-print(f"{gemm2.compiler_options=}")
+print(f"{gemm2.user_compiler_options=}")
 gemm2.compile()
 print(f"{gemm2.measure()=}")
 
