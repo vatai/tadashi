@@ -233,7 +233,7 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
-static __isl_give isl_union_set_list *
+__isl_give isl_union_set_list *
 alloc_half_list(isl_schedule_node **node, int begin, int end) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
   isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
@@ -287,7 +287,7 @@ __isl_give isl_schedule_node *
 tadashi_split(__isl_take isl_schedule_node *node, int split) {
   isl_union_set_list *filters, *left, *right;
   isl_union_set *lefts, *rights;
-  // assert(tadashi_valid_split(node, split));
+  assert(tadashi_valid_split(node, split));
   isl_size num_children = isl_schedule_node_n_children(node);
   left = alloc_half_list(&node, 0, split);
   right = alloc_half_list(&node, split, num_children);
