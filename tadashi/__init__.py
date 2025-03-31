@@ -69,6 +69,8 @@ class TrEnum(StrEnum):
     INTERCHANGE = auto()
     FUSE = auto()
     FULL_FUSE = auto()
+    SPLIT = auto()
+    FULL_SPLIT = auto()
     PARTIAL_SHIFT_VAR = auto()
     PARTIAL_SHIFT_VAL = auto()
     FULL_SHIFT_VAR = auto()
@@ -158,6 +160,8 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        # print(">>> In Node.transform(): <<<\n")
+        # print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -305,6 +309,25 @@ class FullFuseInfo(TransformInfo):
         ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
 
 
+class SplitInfo(TransformInfo):
+    pass
+
+
+class FullSplitInfo(TransformInfo):
+    func_name = "full_split"
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type != NodeType.BAND:
+            return False
+        if len(node.children) != 1:
+            return False
+        child = node.children[0]
+        if child.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        return True
+
+
 class FullShiftValInfo(TransformInfo):
     func_name = "full_shift_val"
     arg_help = ["Value"]
@@ -448,6 +471,8 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
     TrEnum.FULL_FUSE: FullFuseInfo(),
+    TrEnum.SPLIT: SplitInfo(),
+    TrEnum.FULL_SPLIT: FullSplitInfo(),
     TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
     TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
     TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
