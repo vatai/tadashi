@@ -273,6 +273,20 @@ full_fuse(size_t pool_idx, size_t scop_idx) {
   return post_transform(pool_idx, scop_idx);
 }
 
+int
+split(size_t pool_idx, size_t scop_idx, int split) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_split(si->tmp_node, split);
+  return post_transform(pool_idx, scop_idx);
+}
+
+int
+full_split(size_t pool_idx, size_t scop_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_full_split(si->tmp_node);
+  return post_transform(pool_idx, scop_idx);
+}
+
 extern "C" int
 partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
                   long var_idx) {
