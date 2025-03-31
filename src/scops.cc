@@ -9,19 +9,16 @@
 #include "legality.h"
 #include "scops.h"
 
-Scop::Scop(pet_scop *scop) : scop(scop), tmp_node(nullptr), modified(false) {
-  dependency = get_dependencies(scop);
-  isl_schedule *schedule = pet_scop_get_schedule(scop);
-  current_node = isl_schedule_get_root(schedule);
-  schedule = isl_schedule_free(schedule);
+Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
+  scop = allocate_tadashi_scop(ps);
+  current_node = isl_schedule_get_root(scop->schedule);
 }
 
 Scop::~Scop() {
-  dependency = isl_union_map_free(dependency);
   isl_schedule_node_free(current_node);
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
-  pet_scop_free(scop);
+  free_tadashi_scop(scop);
   // printf("<<< ~Scop()\n");
 }
 
