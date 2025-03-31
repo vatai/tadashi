@@ -10,6 +10,7 @@
 #include <isl/schedule_node.h>
 #include <isl/set.h>
 #include <isl/space.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 
@@ -134,7 +135,7 @@ struct _fuse_result_t {
   isl_multi_union_pw_aff *mupa;
 };
 
-__isl_give isl_schedule_node *
+static __isl_give isl_schedule_node *
 _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
                           struct _fuse_result_t *result,
                           isl_union_set_list **filters) {
@@ -155,6 +156,37 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
   tmp = isl_union_set_copy(result->filter);
   isl_size pos = isl_union_set_list_size(*filters);
   *filters = isl_union_set_list_insert(*filters, pos, tmp);
+  return node;
+}
+
+__isl_give isl_schedule_node *
+tadashi_fuse(__isl_take isl_schedule_node *node, int idx1, int idx2) {
+  // If you don't want to fuse all the children of a sequence, you
+  // first need to isolate those that you do want to fuse.  Take the
+  // filters of the children of the original sequence node, collect
+  // them in an isl_union_set_list, replacing the filters of the nodes
+  // you want to fuse by a single (union) filter.  Insert a new
+  // sequence node on top of the original sequence node.
+  isl_union_set_list *filters;
+  isl_multi_union_pw_aff *mupa;
+  isl_union_set *tmp;
+  struct _fuse_result_t result[2];
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+
+  isl_size size = isl_schedule_node_n_children(node);
+  assert(0 <= idx1 && idx1 < size);
+  assert(0 <= idx2 && idx2 < size);
+  node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
+  node = isl_schedule_node_child(node, idx1);
+  node = isl_schedule_node_first_child(node);
+  filters = isl_union_set_list_alloc(ctx, 2);
+  node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
+  node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
+  mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_parent(node);
   return node;
 }
 
@@ -201,34 +233,114 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
-__isl_give isl_schedule_node *
-tadashi_fuse(__isl_take isl_schedule_node *node, int idx1, int idx2) {
-  // If you don't want to fuse all the children of a sequence, you
-  // first need to isolate those that you do want to fuse.  Take the
-  // filters of the children of the original sequence node, collect
-  // them in an isl_union_set_list, replacing the filters of the nodes
-  // you want to fuse by a single (union) filter.  Insert a new
-  // sequence node on top of the original sequence node.
-  isl_union_set_list *filters;
-  isl_multi_union_pw_aff *mupa;
-  isl_union_set *tmp;
-  struct _fuse_result_t result[2];
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+static __isl_give isl_union_set_list *
+alloc_half_list(isl_schedule_node **node, int begin, int end) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
+  isl_union_set_list *list = isl_union_set_list_alloc(ctx, end - begin);
+  for (int pos = begin; pos < end; pos++) {
+    *node = isl_schedule_node_child(*node, pos);
+    isl_union_set *domain = isl_schedule_node_filter_get_filter(*node);
+    list = isl_union_set_list_add(list, domain);
+    *node = isl_schedule_node_parent(*node);
+  }
+  return list;
+  // return isl_union_set_list_union(list);
+}
 
-  isl_size size = isl_schedule_node_n_children(node);
-  assert(0 <= idx1 && idx1 < size);
-  assert(0 <= idx2 && idx2 < size);
-  node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
-  node = isl_schedule_node_child(node, idx1);
+static __isl_give isl_schedule_node *
+make_subsequence(__isl_take isl_schedule_node *node,
+                 __isl_take isl_union_set *set,
+                 __isl_take isl_union_set_list *list) {
+  isl_union_map *map;
+  isl_multi_union_pw_aff *mupa;
   node = isl_schedule_node_first_child(node);
-  filters = isl_union_set_list_alloc(ctx, 2);
-  node = _fuse_get_filter_and_mupa(node, idx1, &result[0], &filters);
-  node = _fuse_get_filter_and_mupa(node, idx2, &result[1], &filters);
-  mupa = isl_multi_union_pw_aff_union_add(result[0].mupa, result[1].mupa);
-  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_first_child(node);
+  map = isl_schedule_node_get_subtree_schedule_union_map(node);
+  map = isl_union_map_intersect_domain(map, set);
+  node = isl_schedule_node_cut(node);
+  mupa = isl_multi_union_pw_aff_from_union_map(map);
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_insert_sequence(node, list);
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
+  return node;
+}
+
+int
+tadashi_valid_split(__isl_keep isl_schedule_node *node, int split) {
+  enum isl_schedule_node_type type;
+  type = isl_schedule_node_get_type(node);
+  // The node is a sequence or set node
+  if (type != isl_schedule_node_sequence && type != isl_schedule_node_set)
+    return 0;
+  // 1 <= split <= n-1
+  size_t num_children = isl_schedule_node_n_children(node);
+  if (!(0 < split && split < num_children))
+    return 0;
+  // Parent is a band node.
+  type = isl_schedule_node_get_parent_type(node);
+  if (type != isl_schedule_node_band)
+    return 0;
+  return 1;
+}
+
+__isl_give isl_schedule_node *
+tadashi_split(__isl_take isl_schedule_node *node, int split) {
+  isl_union_set_list *filters, *left, *right;
+  isl_union_set *lefts, *rights;
+  assert(tadashi_valid_split(node, split));
+  isl_size num_children = isl_schedule_node_n_children(node);
+  left = alloc_half_list(&node, 0, split);
+  right = alloc_half_list(&node, split, num_children);
+  lefts = isl_union_set_list_union(isl_union_set_list_copy(left));
+  rights = isl_union_set_list_union(isl_union_set_list_copy(right));
+  filters = isl_union_set_list_from_union_set(isl_union_set_copy(lefts));
+  filters = isl_union_set_list_add(filters, isl_union_set_copy(rights));
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_insert_sequence(node, filters);
+  node = isl_schedule_node_first_child(node);
+  node = make_subsequence(node, lefts, left);
+  node = isl_schedule_node_next_sibling(node);
+  node = make_subsequence(node, rights, right);
+  node = isl_schedule_node_parent(node);
+  return node;
+}
+
+int
+tadashi_valid_full_split(__isl_keep isl_schedule_node *node) {
+  enum isl_schedule_node_type node_type;
+  node_type = isl_schedule_node_get_parent_type(node);
+  // Parent is a band node.
+  if (isl_schedule_node_band != node_type)
+    return 0;
+  // This is a sequence or set node.
+  node_type = isl_schedule_node_get_type(node);
+  if (node_type != isl_schedule_node_sequence &&
+      node_type != isl_schedule_node_set)
+    return 0;
+  return 1;
+}
+
+__isl_give isl_schedule_node *
+tadashi_full_split(__isl_take isl_schedule_node *node) {
+  assert(tadashi_valid_full_split(node));
+  isl_multi_union_pw_aff *mupa;
+  node = isl_schedule_node_parent(node);
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  node = isl_schedule_node_delete(node);
+  isl_size num_children = isl_schedule_node_n_children(node);
+  for (int pos = 0; pos < num_children; pos++) {
+    isl_multi_union_pw_aff *tmp;
+    node = isl_schedule_node_child(node, pos);
+    isl_union_set *domain = isl_schedule_node_filter_get_filter(node);
+    tmp = isl_multi_union_pw_aff_intersect_domain(
+        isl_multi_union_pw_aff_copy(mupa), domain);
+    node = isl_schedule_node_first_child(node);
+    node = isl_schedule_node_insert_partial_schedule(node, tmp);
+    node = isl_schedule_node_parent(node);
+    node = isl_schedule_node_parent(node);
+  }
+  isl_multi_union_pw_aff_free(mupa);
   return node;
 }
 

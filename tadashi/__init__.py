@@ -10,6 +10,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
 from pathlib import Path
+from typing import Optional
 
 from ctadashi import ctadashi
 
@@ -69,6 +70,8 @@ class TrEnum(StrEnum):
     INTERCHANGE = auto()
     FUSE = auto()
     FULL_FUSE = auto()
+    SPLIT = auto()
+    FULL_SPLIT = auto()
     PARTIAL_SHIFT_VAR = auto()
     PARTIAL_SHIFT_VAL = auto()
     FULL_SHIFT_VAR = auto()
@@ -158,6 +161,8 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        # print(">>> In Node.transform(): <<<\n")
+        # print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -305,6 +310,45 @@ class FullFuseInfo(TransformInfo):
         ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
 
 
+class SplitInfo(TransformInfo):
+    func_name = "split"
+    arg_help = ["Index where the sequence should be split"]
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if len(node.children) < 2:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        args = SplitInfo.available_args(node)
+        return args is not None
+
+    @staticmethod
+    def valid_args(node: Node, split_idx: int) -> bool:
+        nc = len(node.children)
+        return 0 < split_idx and split_idx < nc
+
+    @staticmethod
+    def available_args(node: Node) -> Optional[list]:
+        nc = len(node.children)
+        return [LowerUpperBound(lower=1, upper=nc)]
+
+
+class FullSplitInfo(TransformInfo):
+    func_name = "full_split"
+
+    # TODO -> split sequence!
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        return True
+
+
 class FullShiftValInfo(TransformInfo):
     func_name = "full_shift_val"
     arg_help = ["Value"]
@@ -448,6 +492,8 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
     TrEnum.FULL_FUSE: FullFuseInfo(),
+    TrEnum.SPLIT: SplitInfo(),
+    TrEnum.FULL_SPLIT: FullSplitInfo(),
     TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
     TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
     TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
