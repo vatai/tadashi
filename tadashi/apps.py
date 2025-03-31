@@ -2,14 +2,11 @@
 import datetime
 import os
 import re
-import shutil
 import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Tuple
-
-from colorama import Fore, Style
+from typing import Optional
 
 from . import Scops
 
