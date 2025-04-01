@@ -114,7 +114,7 @@ add_executable(tadashi src/tadashi.c)
 target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
 
 add_executable(scop_detector src/scop_detector.c)
-target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET)
+target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET legality)
 
 add_executable(raiser src/raiser.cc)
 target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations nlohmann_json::nlohmann_json)

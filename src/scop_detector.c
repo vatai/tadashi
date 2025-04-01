@@ -8,11 +8,13 @@
 #include <isl/schedule_type.h>
 #include <pet.h>
 
+#include "legality.h"
+
 isl_printer *
 transform(isl_printer *p, pet_scop *scop, void *user) {
   size_t *num_scops = user;
-  isl_schedule *schedule = pet_scop_get_schedule(scop);
-  isl_schedule_node *root = isl_schedule_get_root(schedule);
+  struct tadashi_scop *ts = allocate_tadashi_scop(scop);
+  isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
   (*num_scops)++;
   return p;
