@@ -13,6 +13,12 @@ extern "C" {
 __isl_give isl_schedule_node *tadashi_tile(__isl_take isl_schedule_node *node,
                                            int tile_size);
 
+__isl_give isl_schedule_node *tadashi_unroll(__isl_take isl_schedule_node *node,
+                                             int factor);
+
+__isl_give isl_schedule_node *
+tadashi_full_unroll(__isl_take isl_schedule_node *node);
+
 __isl_give isl_schedule_node *
 tadashi_interchange(__isl_take isl_schedule_node *node);
 

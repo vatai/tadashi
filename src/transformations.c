@@ -66,6 +66,69 @@ tadashi_tile(isl_schedule_node *node, int tile_size) {
                 isl_val_list_from_val(isl_val_int_from_si(ctx, tile_size))));
 }
 
+__isl_give isl_schedule_node *
+tadashi_unroll(__isl_take isl_schedule_node *node, int factor) {
+  node = tadashi_tile(node, factor);
+  node = isl_schedule_node_parent(node);
+
+  // =====
+  // begin
+  // =====
+
+  isl_multi_union_pw_aff *mupa;
+  isl_space *space;
+  isl_union_set *domain, *restriction;
+
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  space = isl_schedule_node_band_get_space(node);
+
+  isl_schedule *schedule = isl_schedule_node_get_schedule(node);
+  domain = isl_schedule_get_domain(schedule);
+  isl_schedule_free(schedule);
+
+  domain = isl_union_set_intersect(
+      domain, isl_multi_union_pw_aff_domain(isl_multi_union_pw_aff_copy(mupa)));
+  isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  isl_pw_aff_list *pal = isl_union_pw_aff_get_pw_aff_list(upa);
+  isl_pw_aff *pa = isl_pw_aff_list_get_at(pal, 0);
+  isl_id *id = isl_pw_aff_get_dim_id(pa, isl_dim_in, 0);
+  printf("id: %s\n", isl_id_to_str(id));
+
+  /* isl_basic_set *bset = */
+  /*     isl_set_coefficients(isl_set_from_union_set(isl_union_set_copy(domain)));
+   */
+  /* printf("bset: %s\n", isl_basic_set_to_str(bset)); */
+
+  /* isl_space *sp2 = isl_pw_aff_get_space(pa); */
+  /* printf("sp2: %s\n", isl_space_to_str(sp2)); */
+
+  printf("dmn: %s\n", isl_union_set_to_str(domain));
+
+  /* restriction = isl_union_set_universe(domain); */
+  /* printf("rest: %s\n", isl_union_set_to_str(restriction)); */
+
+  // ===
+  // end
+  // ===
+
+  /* node = isl_schedule_node_band_member_set_ast_loop_type(node, 0, */
+  /*                                                        isl_ast_loop_separate);
+   */
+  node = isl_schedule_node_first_child(node);
+  /* node = isl_schedule_node_band_member_set_ast_loop_type(node, 0, */
+  /*                                                        isl_ast_loop_separate);
+   */
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_band_member_set_ast_loop_type(node, 0,
+                                                         isl_ast_loop_unroll);
+  return node;
+}
+
+__isl_give isl_schedule_node *
+tadashi_full_unroll(__isl_take isl_schedule_node *node) {
+  return node;
+}
+
 /**
  * Loop interchange.
  *

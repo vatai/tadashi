@@ -246,9 +246,23 @@ post_transform(size_t pool_idx, size_t scop_idx) {
 }
 
 extern "C" int
-tile(size_t pool_idx, size_t scop_idx, size_t tile_size) {
+tile(size_t pool_idx, size_t scop_idx, int tile_size) {
   Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
+  return post_transform(pool_idx, scop_idx);
+}
+
+extern "C" int
+unroll(size_t pool_idx, size_t scop_idx, int factor) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_unroll(si->tmp_node, factor);
+  return post_transform(pool_idx, scop_idx);
+}
+
+extern "C" int
+full_unroll(size_t pool_idx, size_t scop_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_full_unroll(si->tmp_node);
   return post_transform(pool_idx, scop_idx);
 }
 

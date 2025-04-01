@@ -67,6 +67,8 @@ class TrEnum(StrEnum):
     """
 
     TILE = auto()
+    UNROLL = auto()
+    FULL_UNROLL = auto()
     INTERCHANGE = auto()
     FUSE = auto()
     FULL_FUSE = auto()
@@ -161,8 +163,8 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
-        # print(">>> In Node.transform(): <<<\n")
-        # print(self.yaml_str)
+        print(">>> In Node.transform(): <<<\n")
+        print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -253,11 +255,28 @@ class TileInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node, arg):
-        return True
+        return 1 < arg
+
+    @staticmethod
+    def available_args(node: Node):
+        return [LowerUpperBound(lower=2, upper=None)]
+
+
+class UnrollInfo(TransformInfo):
+    func_name = "unroll"
+    arg_help = ["Unroll factor"]
+
+    @staticmethod
+    def valid_args(node, arg):
+        return 1 < arg
 
     @staticmethod
     def available_args(node: Node):
         return [LowerUpperBound(lower=1, upper=None)]
+
+
+class FullUnrollInfo(TransformInfo):
+    func_name = "unroll"
 
 
 class InterchangeInfo(TransformInfo):
@@ -489,6 +508,8 @@ class SetLoopOptInfo(TransformInfo):
 `TranformInfo`."""
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.TILE: TileInfo(),
+    TrEnum.UNROLL: UnrollInfo(),
+    TrEnum.FULL_UNROLL: FullUnrollInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
     TrEnum.FULL_FUSE: FullFuseInfo(),

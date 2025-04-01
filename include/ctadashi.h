@@ -34,7 +34,11 @@ void reset_scop(size_t pool_idx, size_t scop_idx);
 int generate_code(size_t pool_idx, const char *input_path,
                   const char *output_path);
 
-int tile(size_t pool_idx, size_t scop_idx, size_t tile_size);
+int tile(size_t pool_idx, size_t scop_idx, int tile_size);
+
+int unroll(size_t pool_idx, size_t scop_idx, int factor);
+
+int full_unroll(size_t pool_idx, size_t scop_idx);
 
 int interchange(size_t pool_idx, size_t scop_idx);
 
