@@ -1,5 +1,6 @@
 /** @file */
 #include <assert.h>
+#include <isl/aff_type.h>
 #include <limits.h>
 
 #include <isl/aff.h>
@@ -91,18 +92,30 @@ tadashi_unroll(__isl_take isl_schedule_node *node, int factor) {
   domain = isl_union_set_intersect(domain, isl_schedule_get_domain(schedule));
   domain = isl_union_set_apply(domain, isl_union_map_copy(map));
   // the good stuff
+
   printf("domain: %s\n", isl_union_set_to_str(domain));
   printf("range: %s\n", isl_union_set_to_str(isl_union_map_range(map)));
 
   // get boundaries
-  isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
-  isl_val *v = isl_union_pw_aff_max_val(upa);
-  printf("val: %s\n", isl_val_to_str(v));
+
+  /* printf("set?!: %s\n", isl_set_to_str(isl_set_from_union_set(domain))); */
+  domain = isl_union_set_project_out(domain, isl_dim_param, 1, 1);
+  printf("domain again: %s\n", isl_union_set_to_str(domain));
+  /* printf("space:%s\n", isl_space_to_str(isl_union_set_get_space(domain))); */
+  /* isl_union_pw_multi_aff *upma = isl_union_pw_multi_aff_from_domain(domain);
+   */
+  /* printf("upma: %s\n", isl_union_pw_multi_aff_to_str(upma)); */
+
+  /* isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0); */
+  /* isl_val *v = isl_union_pw_aff_max_val(upa); */
+  /* printf("val: %s\n", isl_val_to_str(v)); */
 
   /* printf("upa: %s\n", isl_union_pw_aff_to_str(upa)); */
   /* isl_pw_aff_list *pal = isl_union_pw_aff_get_pw_aff_list(upa); */
   /* isl_pw_aff *pa = isl_pw_aff_list_get_at(pal, 0); */
   /* printf("pa: %s\n", isl_pw_aff_to_str(pa)); */
+  /* isl_set *set = isl_set_from_pw_aff(pa); */
+  /* printf("set: %s\n", isl_set_to_str(set)); */
   /* isl_aff *aff = isl_pw_aff_as_aff(pa); */
   /* printf("aff: %s\n", isl_aff_to_str(aff)); */
 
