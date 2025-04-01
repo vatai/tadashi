@@ -1,3 +1,5 @@
+#include <isl/printer.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +18,9 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
   struct tadashi_scop *ts = allocate_tadashi_scop(scop);
   isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
+  p = isl_printer_print_str(p, "BEGIN_SCOP\n");
+  p = pet_scop_print_original(scop, p);
+  p = isl_printer_print_str(p, "END_SCOP\n");
   (*num_scops)++;
   return p;
 }
@@ -24,7 +29,10 @@ int
 main(int argc, char *argv[]) {
   char *input = argv[1];
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
-  FILE *output = fopen("/dev/null", "w");
+  char out[PATH_MAX];
+  sprintf(out, "/tmp/scops_detect_%s", strrchr(argv[1], '/') + 1);
+  printf("out %s\n", out);
+  FILE *output = fopen(out, "w");
   size_t num_scops = 0;
   pet_options_set_autodetect(ctx, 1);
   if (argc > 2 && strncmp(argv[2], "-a", 3) == 0) {
