@@ -78,13 +78,19 @@ tadashi_unroll(__isl_take isl_schedule_node *node, int factor) {
   isl_multi_union_pw_aff *mupa;
   isl_space *space;
   isl_union_set *domain, *restriction;
+  isl_union_map *map;
 
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  space = isl_schedule_node_band_get_space(node);
+  map = isl_union_map_from_multi_union_pw_aff(mupa);
+  domain = isl_union_map_domain(map);
 
   isl_schedule *schedule = isl_schedule_node_get_schedule(node);
-  domain = isl_schedule_get_domain(schedule);
-  isl_schedule_free(schedule);
+  domain = isl_union_set_intersect(domain, isl_schedule_get_domain(schedule));
+  printf("domain: %s\n", isl_union_set_to_str(domain));
+
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  map = isl_union_map_from_multi_union_pw_aff(mupa);
+  printf("range: %s\n", isl_union_set_to_str(isl_union_set_apply(domain, map)));
 
   domain = isl_union_set_intersect(
       domain, isl_multi_union_pw_aff_domain(isl_multi_union_pw_aff_copy(mupa)));
