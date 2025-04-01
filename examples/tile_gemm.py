@@ -7,26 +7,28 @@ base = "examples/polybench"
 gemm = Polybench(
     "linear-algebra/blas/gemm",
     base,
-    compiler_options=["-DEXTRALARGE_DATASET"],
+    compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
 )
+print(f"{gemm.user_compiler_options=}")
 
-print(gemm.scops[0].schedule_tree[2].yaml_str)
 gemm.compile()
 print(f"{gemm.measure()=}")
-trs = [
-    [0, 7, TrEnum.INTERCHANGE],
-    [0, 2, TrEnum.FULL_FUSE],
-    [0, 1, TrEnum.TILE, 32],
-    [0, 3, TrEnum.TILE, 32],
-    [0, 2, TrEnum.INTERCHANGE],
-    [0, 2, TrEnum.SET_PARALLEL, 8],
-]
-gemm.transform_list(trs)
-print(gemm.scops[0].schedule_tree[7].yaml_str)
-gemm2 = gemm.generate_code(alt_infix=".joao", ephemeral=False)
+for tile_size in [64, 100, 128]:
+    gemm.reset_scops()
+    trs = [
+        [0, 2, TrEnum.FULL_SPLIT],
+        [0, 7, TrEnum.TILE, tile_size],
+        [0, 9, TrEnum.TILE, tile_size],
+        [0, 11, TrEnum.TILE, tile_size],
+        [0, 8, TrEnum.INTERCHANGE],
+        [0, 10, TrEnum.INTERCHANGE],
+        [0, 9, TrEnum.INTERCHANGE],
+    ]
+    gemm.transform_list(trs)
+    # print(gemm.scops[0].schedule_tree[9].yaml_str)
+    tiled = gemm.generate_code(alt_infix="_tiled{tile_size}", ephemeral=False)
 
-print(f"{gemm2.user_compiler_options=}")
-gemm2.compile()
-print(f"{gemm2.measure()=}")
+    tiled.compile()
+    print(f"{tile_size=} : {tiled.measure()=}")
 
 print("DONE")
