@@ -3,8 +3,10 @@
 #include <limits.h>
 
 #include <isl/aff.h>
+#include <isl/constraint.h>
 #include <isl/ctx.h>
 #include <isl/id.h>
+#include <isl/ilp.h>
 #include <isl/local_space.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
@@ -81,16 +83,33 @@ tadashi_unroll(__isl_take isl_schedule_node *node, int factor) {
   isl_union_map *map;
 
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  map = isl_union_map_from_multi_union_pw_aff(mupa);
-  domain = isl_union_map_domain(map);
+  map =
+      isl_union_map_from_multi_union_pw_aff(isl_multi_union_pw_aff_copy(mupa));
+  domain = isl_union_map_domain(isl_union_map_copy(map));
 
   isl_schedule *schedule = isl_schedule_node_get_schedule(node);
   domain = isl_union_set_intersect(domain, isl_schedule_get_domain(schedule));
+  domain = isl_union_set_apply(domain, isl_union_map_copy(map));
+  // the good stuff
   printf("domain: %s\n", isl_union_set_to_str(domain));
+  printf("range: %s\n", isl_union_set_to_str(isl_union_map_range(map)));
 
-  mupa = isl_schedule_node_band_get_partial_schedule(node);
-  map = isl_union_map_from_multi_union_pw_aff(mupa);
-  printf("range: %s\n", isl_union_set_to_str(isl_union_set_apply(domain, map)));
+  // get boundaries
+  isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+  isl_val *v = isl_union_pw_aff_max_val(upa);
+  printf("val: %s\n", isl_val_to_str(v));
+
+  /* printf("upa: %s\n", isl_union_pw_aff_to_str(upa)); */
+  /* isl_pw_aff_list *pal = isl_union_pw_aff_get_pw_aff_list(upa); */
+  /* isl_pw_aff *pa = isl_pw_aff_list_get_at(pal, 0); */
+  /* printf("pa: %s\n", isl_pw_aff_to_str(pa)); */
+  /* isl_aff *aff = isl_pw_aff_as_aff(pa); */
+  /* printf("aff: %s\n", isl_aff_to_str(aff)); */
+
+  /* isl_constraint *cst = isl_inequality_from_aff(aff); */
+  /* isl_constraint_dump(cst); */
+
+  // isl_constraint_get_coefficient_val()
 
   // ===
   // end
