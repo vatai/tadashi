@@ -1,3 +1,4 @@
+#include <bits/posix2_lim.h>
 #include <isl/printer.h>
 #include <limits.h>
 #include <stddef.h>
@@ -47,12 +48,17 @@
 isl_printer *
 transform(isl_printer *p, pet_scop *scop, void *user) {
   size_t *num_scops = user;
+  char line[LINE_MAX];
   struct tadashi_scop *ts = allocate_tadashi_scop(scop);
   isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
-  p = isl_printer_print_str(p, "// #pragma scop ////////////////////\n");
+  sprintf(line, "// #pragma %s // [%zu] //////////////////\n", "scop",
+          *num_scops);
+  p = isl_printer_print_str(p, line);
   p = pet_scop_print_original(scop, p);
-  p = isl_printer_print_str(p, "\n// #pragma endscop ////////////////////\n");
+  sprintf(line, "// #pragma %s // [%zu] //////////////////\n", "scop",
+          *num_scops);
+  p = isl_printer_print_str(p, line);
   (*num_scops)++;
   return p;
 }
