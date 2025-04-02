@@ -16,6 +16,7 @@ struct tadashi_scop {
   isl_union_map *may_writes;
   isl_union_map *must_writes;
   isl_union_map *must_kills;
+  isl_union_map *may_reads;
   isl_schedule *schedule;
   isl_union_map *dep_flow;
   isl_union_map *live_out;

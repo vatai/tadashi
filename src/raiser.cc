@@ -129,6 +129,8 @@ allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
         ctx, s["schedule"].template get<std::string>().c_str());
     union_schedule = isl_union_map_union(union_schedule, schedule);
   }
+  ts->may_reads = acc_map["read"];
+  ts->must_writes = acc_map["write"];
   ts->domain = isl_union_set_copy(union_domain);
   ts->schedule = umap_to_schedule_tree(union_domain, union_schedule);
   return ts;
@@ -136,6 +138,8 @@ allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
 
 void
 free_tadashi_scop_from_json(struct tadashi_scop *ts) {
+  isl_union_map_free(ts->may_reads);
+  isl_union_map_free(ts->must_writes);
   isl_union_set_free(ts->domain);
   isl_schedule_free(ts->schedule);
   free(ts);

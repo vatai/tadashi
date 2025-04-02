@@ -284,6 +284,7 @@ allocate_tadashi_scop(struct pet_scop *ps) {
   ts->may_writes = pet_scop_get_may_writes(ps);
   ts->must_writes = pet_scop_get_must_writes(ps);
   ts->must_kills = pet_scop_get_must_kills(ps);
+  ts->may_reads = pet_scop_get_may_reads(ps);
   ts->schedule = isl_schedule_copy(ps->schedule);
   compute_live_out(ts);
   ts->dep_flow = get_dependencies(ps);
@@ -299,6 +300,7 @@ free_tadashi_scop(struct tadashi_scop *ts) {
   ts->may_writes = isl_union_map_free(ts->may_writes);
   ts->must_writes = isl_union_map_free(ts->must_writes);
   ts->must_kills = isl_union_map_free(ts->must_kills);
+  ts->may_reads = isl_union_map_free(ts->may_reads);
   ts->schedule = isl_schedule_free(ts->schedule);
   ts->dep_flow = isl_union_map_free(ts->dep_flow);
   ts->live_out = isl_union_map_free(ts->live_out);
