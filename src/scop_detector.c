@@ -30,7 +30,9 @@ main(int argc, char *argv[]) {
   char *input = argv[1];
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   char out[PATH_MAX];
-  sprintf(out, "/tmp/scops_detect_%s", strrchr(argv[1], '/') + 1);
+  char *outfile = strrchr(argv[1], '/');
+  outfile = outfile ? outfile + 1 : argv[1];
+  sprintf(out, "/tmp/scops_detect_%s", outfile);
   printf("out %s\n", out);
   FILE *output = fopen(out, "w");
   size_t num_scops = 0;
