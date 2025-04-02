@@ -46,7 +46,7 @@ private:
 public:
   // ScopsPool();
   ~ScopsPool();
-  size_t add(char *input);
+  size_t add(Scops *scops_ptr);
   void remove(size_t pool_idx);
   Scops &operator[](size_t idx);
 };
