@@ -2,4 +2,4 @@
 
 set -x
 
-ls **/*.c* **/*.C* | while read -r file; do scop_detector "$file"; done
+find -iname '*.c*' -exec scop_detector {} \;
