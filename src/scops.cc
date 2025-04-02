@@ -1,4 +1,6 @@
+#include <climits>
 #include <cstdio>
+#include <cstring>
 #include <deque>
 #include <sstream>
 #include <vector>
@@ -56,6 +58,33 @@ Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
   // printf("Scops::Scops(ctx=%p)\n", ctx);
 };
 
+Scops::Scops(char *compiler, char *input)
+    : ctx(isl_ctx_alloc_with_pet_options()) {
+  char cmd[LINE_MAX];
+  char *line = NULL;
+  size_t size = 0;
+  snprintf(
+      cmd, LINE_MAX,
+      "%s -S -emit-llvm %s -O1 -o - "
+      "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
+      "-polly-export-jscop -o %s.ll 2>&1",
+      compiler, input, input);
+  printf("cmd: %s\n", cmd);
+  FILE *out = popen(cmd, "r");
+  while (getline(&line, &size, out) != -1) {
+    char *ptr = line;
+    ptr = strstr(ptr, "' to '");
+    if (ptr) {
+      ptr += 6;
+      *strchr(ptr, '\'') = '\0';
+      printf("xx%s**\n", ptr);
+    }
+  }
+  free(line);
+  pclose(out);
+  printf("init_scops_from_json DONE\n");
+}
+
 Scops::~Scops() {
   scops.clear();
   // printf("Scops::~Scops(ctx=%p)\n", ctx);
@@ -85,9 +114,8 @@ ScopsPool::~ScopsPool() {
 }
 
 size_t
-ScopsPool::add(char *input) {
+ScopsPool::add(Scops *scops_ptr) {
   size_t index = scops_vector.size();
-  Scops *scops_ptr = new Scops(input);
   if (!free_indexes.empty()) {
     index = free_indexes.front();
     free_indexes.pop_front();

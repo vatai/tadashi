@@ -39,45 +39,23 @@ ScopsPool SCOPS_POOL;
 
 /// Entry point.
 extern "C" size_t
-init_scops(char *input) { // Entry point
-                          // pet_options_set_autodetect(ctx, 1);
-                          // pet_options_set_signed_overflow(ctx, 1);
+init_scops(char *input) {
+  // Entry point (PET backend)
+  // pet_options_set_autodetect(ctx, 1);
+  // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   // printf(">>> init_scops()\n");
-
-  Scops *scops_ptr = new Scops(input);
-  size_t pool_idx = SCOPS_POOL.add(scops_ptr);
+  size_t pool_idx = SCOPS_POOL.add(new Scops(input));
   // printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
   return pool_idx;
 }
 
 extern "C" size_t
 init_scops_from_json(char *compiler, char *input) {
-  char cmd[LINE_MAX];
-  char *line = NULL;
-  size_t size = 0;
-  snprintf(
-      cmd, LINE_MAX,
-      "%s -S -emit-llvm %s -O1 -o - "
-      "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
-      "-polly-export-jscop -o %s.ll 2>&1",
-      compiler, input, input);
-  printf("cmd: %s\n", cmd);
-  FILE *out = popen(cmd, "r");
-  while (getline(&line, &size, out) != -1) {
-    char *ptr = line;
-    ptr = strstr(ptr, "' to '");
-    if (ptr) {
-      ptr += 6;
-      *strchr(ptr, '\'') = '\0';
-      printf("xx%s**\n", ptr);
-    }
-  }
-  free(line);
-  pclose(out);
-  printf("init_scops_from_json DONE\n");
-  return 0;
+  // Entry point (Polly backend)
+  size_t pool_idx = SCOPS_POOL.add(new Scops(compiler, input));
+  return pool_idx;
 }
 
 extern "C" size_t

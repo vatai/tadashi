@@ -30,6 +30,7 @@ class Scops {
 
 public:
   Scops(char *input);
+  Scops(char *compiler, char *input);
   ~Scops();
   int num_scops();
 
