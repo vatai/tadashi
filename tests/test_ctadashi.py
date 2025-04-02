@@ -129,6 +129,11 @@ class TestCtadashiRegression(unittest.TestCase):
             app = app.generate_code()
 
 
+class TestCtadashiLLVM(unittest.TestCase):
+    def test_foobar(self):
+        pass
+
+
 def setup():
     if "-v" in sys.argv:
         logging.basicConfig(level=logging.INFO)
