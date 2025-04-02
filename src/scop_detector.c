@@ -18,9 +18,9 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
   struct tadashi_scop *ts = allocate_tadashi_scop(scop);
   isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
-  p = isl_printer_print_str(p, "BEGIN_SCOP\n");
+  p = isl_printer_print_str(p, "// #pragma scop ////////////////////\n");
   p = pet_scop_print_original(scop, p);
-  p = isl_printer_print_str(p, "END_SCOP\n");
+  p = isl_printer_print_str(p, "\n// #pragma endscop ////////////////////\n");
   (*num_scops)++;
   return p;
 }
