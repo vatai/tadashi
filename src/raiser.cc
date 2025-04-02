@@ -98,6 +98,35 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
   return schedule;
 }
 
+struct tadashi_scop *
+allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
+  struct tadashi_scop *ts = (struct tadashi_scop *)malloc(sizeof(*ts));
+  isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
+  isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
+  for (auto &s : statements) {
+    auto accesses = s["accesses"];
+    auto name = s["name"];
+
+    isl_union_set *domain = isl_union_set_read_from_str(
+        ctx, s["domain"].template get<std::string>().c_str());
+    union_domain = isl_union_set_union(union_domain, domain);
+
+    isl_union_map *schedule = isl_union_map_read_from_str(
+        ctx, s["schedule"].template get<std::string>().c_str());
+    union_schedule = isl_union_map_union(union_schedule, schedule);
+  }
+  ts->domain = isl_union_set_copy(union_domain);
+  ts->schedule = umap_to_schedule_tree(union_domain, union_schedule);
+  return ts;
+}
+
+void
+free_tadashi_scop_from_json(struct tadashi_scop *ts) {
+  isl_union_set_free(ts->domain);
+  isl_schedule_free(ts->schedule);
+  free(ts);
+}
+
 int
 main(int argc, char *argv[]) {
   isl_ctx *ctx = isl_ctx_alloc();
@@ -108,29 +137,13 @@ main(int argc, char *argv[]) {
   json data;
   istream >> data;
   // data.keys: arrays,context,name,statements,
-  struct tadashi_scop ts;
-  auto stmts = data["statements"];
-  isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
-  isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
-  for (auto &stmt : stmts) {
-    auto accesses = stmt["accesses"];
-    auto name = stmt["name"];
-
-    isl_union_set *domain = isl_union_set_read_from_str(
-        ctx, stmt["domain"].template get<std::string>().c_str());
-    union_domain = isl_union_set_union(union_domain, domain);
-
-    isl_union_map *schedule = isl_union_map_read_from_str(
-        ctx, stmt["schedule"].template get<std::string>().c_str());
-    union_schedule = isl_union_map_union(union_schedule, schedule);
-  }
-
-  // ==========
-  isl_schedule *sched = umap_to_schedule_tree(union_domain, union_schedule);
-  isl_schedule_node *node = isl_schedule_get_root(sched);
+  json stmts = data["statements"];
+  struct tadashi_scop *ts =
+      allocate_tadashi_scop_from_json(ctx, data["statements"]);
+  isl_schedule_node *node = isl_schedule_get_root(ts->schedule);
   isl_schedule_node_dump(node);
   isl_schedule_node_free(node);
-  isl_schedule_free(sched);
+  free_tadashi_scop_from_json(ts);
 
   isl_ctx_free(ctx);
   std::printf("Done!\n");
