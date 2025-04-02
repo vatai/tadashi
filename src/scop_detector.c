@@ -12,6 +12,38 @@
 
 #include "legality.h"
 
+/*
+ * This is a utility which helps finding good candidates for tadashi
+ * to optimise.
+ *
+ * Output:
+ *
+ * scop_detector prints the scops one by one as they are detected. A
+ * /tmp/scops_<original_filename>.c is also created, with comments
+ * marking the begin/end of the detected scops inserted.
+ *
+ * Usage is:
+ *
+ * $ scop_detector some_c_or_cpp_file.c [-a]
+ *
+ * The `-a` disables the scop autodetection and must be the second
+ * parameter (i.e. scop_detector -a file.c doesn't work).  If header
+ * files are found, you need to set the C_INCLUDE_PATH and/or
+ * CPLUS_INCLUDE_PATH.
+ *
+ * Practical usage:
+ *
+ * If (one of) the detected scops look big, the file and the scops are
+ * a good candidate!  Then we should inspect/read the code (possibly
+ * the one in /tmp with the begin/end scop comments). If the code
+ * looks good, we can insert proper `#pragma scop` and `#pragma
+ * endscop` and switch to using tadashi's `tadashi.apps.Simple` to
+ * transform the file.  Since `tadashi.apps.Simple` is aimed for
+ * single .c file apps, `app.compile()` and `app.measure()` probably
+ * won't work, i.e. you need manually (from the terminal) to compile
+ * the transformed code (by `app.generate_code()`).
+ *
+ */
 isl_printer *
 transform(isl_printer *p, pet_scop *scop, void *user) {
   size_t *num_scops = user;
