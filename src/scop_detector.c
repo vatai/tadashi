@@ -28,10 +28,11 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
 int
 main(int argc, char *argv[]) {
   char *input = argv[1];
+  printf(">>>>>>>>>>>>>>>>> %s\n", input);
   isl_ctx *ctx = isl_ctx_alloc_with_pet_options();
   char out[PATH_MAX];
-  char *outfile = strrchr(argv[1], '/');
-  outfile = outfile ? outfile + 1 : argv[1];
+  char *outfile = strrchr(input, '/');
+  outfile = outfile ? outfile + 1 : input;
   sprintf(out, "/tmp/scops_detect_%s", outfile);
   printf("out %s\n", out);
   FILE *output = fopen(out, "w");
