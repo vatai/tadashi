@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <isl/aff_type.h>
 #include <isl/space_type.h>
 #include <sstream>
@@ -52,12 +53,24 @@ init_scops(char *input) { // Entry point
 extern "C" size_t
 init_scops_from_json(char *compiler, char *input) {
   char cmd[LINE_MAX];
-  sprintf(cmd,
-          "%s -S -emit-llvm %s -O1 -o - "
-          "| opt -disable-polly-legality -polly-canonicalize "
-          "-polly-export-jscop -o %s.ll",
-          compiler, input, input);
+  char line[LINE_MAX];
+  sprintf(
+      cmd,
+      "%s -S -emit-llvm %s -O1 -o - "
+      "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
+      "-polly-export-jscop -o %s.ll 2>&1",
+      compiler, input, input);
   printf("cmd: %s\n", cmd);
+  FILE *out = popen(cmd, "r");
+  while (fgets(line, LINE_MAX, out)) {
+    char *ptr = line;
+    ptr = strstr(ptr, "' to '");
+    ptr += 6;
+    char *end = strchr(ptr, '\'');
+    end[0] = 0;
+    printf("xx%s**\n", ptr);
+  }
+  pclose(out);
   return 0;
 }
 
