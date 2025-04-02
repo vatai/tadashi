@@ -8,7 +8,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
-from . import Scops
+from . import LLVMScops, Scops
 
 Result = namedtuple("Result", ["legal", "walltime"])
 
@@ -30,6 +30,7 @@ class App:
         source: str | Path,
         include_paths: Optional[list[str | Path]] = None,
         compiler_options: Optional[list[str]] = None,
+        scops_cls=Scops,
     ):
         if include_paths is None:
             include_paths = []
@@ -38,7 +39,7 @@ class App:
         self.user_compiler_options = compiler_options
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         self.source = Path(source)
-        self.scops = Scops(str(self.source))
+        self.scops = scops_cls(str(self.source))
 
     @classmethod
     def make_ephemeral(cls, *args, **kwargs):
@@ -274,3 +275,20 @@ class Polybench(App):
         except IndexError as e:
             print(f"App probaly crashed: {e}")
         return result
+
+
+class SimpleLLVM(App):
+    def __init__(
+        self,
+        source: str | Path,
+        compiler_options: Optional[list[str]] = None,
+        runtime_prefix: str = "WALLTIME: ",
+    ):
+        if compiler_options:
+            compiler_options = []
+        self.runtime_prefix = runtime_prefix
+        self._finalize_object(
+            source,
+            compiler_options=compiler_options,
+            scops_cls=LLVMScops,
+        )

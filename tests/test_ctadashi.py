@@ -25,6 +25,11 @@ class TransformData:
     transformation_args: list[int] = field(default_factory=list)
 
 
+def get_inputs_path() -> Path:
+    base = Path(__file__).parent.parent
+    return base / "examples/inputs"
+
+
 class TestCtadashi(unittest.TestCase):
     @staticmethod
     def _read_app_comments(app):
@@ -131,7 +136,9 @@ class TestCtadashiRegression(unittest.TestCase):
 
 class TestCtadashiLLVM(unittest.TestCase):
     def test_foobar(self):
-        pass
+        app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
+        print(app.source.exists())
+        node = app.scops[0]
 
 
 def setup():

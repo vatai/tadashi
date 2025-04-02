@@ -620,3 +620,8 @@ class Scops:
 
     def __getitem__(self, idx):
         return self.scops[idx]
+
+
+class LLVMScops:
+    def __init__(self, source: str):
+        pass
