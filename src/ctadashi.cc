@@ -5,6 +5,7 @@
 // This file is the "C side" between the C and Python code of tadashi.
 
 #include <cassert>
+#include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -46,6 +47,18 @@ init_scops(char *input) { // Entry point
   size_t pool_idx = SCOPS_POOL.add(input);
   // printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
   return pool_idx;
+}
+
+extern "C" size_t
+init_scops_from_json(char *compiler, char *input) {
+  char cmd[LINE_MAX];
+  sprintf(cmd,
+          "%s -S -emit-llvm %s -O1 -o - "
+          "| opt -disable-polly-legality -polly-canonicalize "
+          "-polly-export-jscop -o %s.ll",
+          compiler, input, input);
+  printf("cmd: %s\n", cmd);
+  return 0;
 }
 
 extern "C" size_t

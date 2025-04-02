@@ -7,6 +7,8 @@ extern "C" {
 
 size_t init_scops(char *input);
 
+size_t init_scops_from_json(char *compiler, char *input);
+
 size_t num_scops(size_t pool_idx);
 
 void free_scops(size_t pool_idx);

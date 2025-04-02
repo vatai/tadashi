@@ -336,7 +336,7 @@ class SplitInfo(TransformInfo):
         return 0 < split_idx and split_idx < nc
 
     @staticmethod
-    def available_args(node: Node) -> Optional[list]:
+    def available_args(node: Node) -> list:
         nc = len(node.children)
         return [LowerUpperBound(lower=1, upper=nc)]
 
@@ -622,15 +622,11 @@ class Scops:
         return self.scops[idx]
 
 
-class LLVMScops:
-    pool_idx: int
-    num_scops: int
-    scops: list[Scop]
+class LLVMScops(Scops):
 
-    def __init__(self, source_path: Path):
+    def __init__(self, source_path: Path, compiler: str):
         _check_missing_file(Path(source_path))
-        # self.generate_jsons()
-        self.pool_idx = ctadashi.init_scops(str(source_path))
+        self.pool_idx = ctadashi.init_scops_from_json(compiler, str(source_path))
         # self.pool_idx = ctadashi.init_scops_from_json(str(source_path))
         self.num_scops = ctadashi.num_scops(self.pool_idx)
         # print(f"{str(source_path)=}")
