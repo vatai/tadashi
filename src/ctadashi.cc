@@ -53,24 +53,28 @@ init_scops(char *input) { // Entry point
 extern "C" size_t
 init_scops_from_json(char *compiler, char *input) {
   char cmd[LINE_MAX];
-  char line[LINE_MAX];
-  sprintf(
-      cmd,
+  char *line = NULL;
+  size_t size = 0;
+  snprintf(
+      cmd, LINE_MAX,
       "%s -S -emit-llvm %s -O1 -o - "
       "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
       "-polly-export-jscop -o %s.ll 2>&1",
       compiler, input, input);
   printf("cmd: %s\n", cmd);
   FILE *out = popen(cmd, "r");
-  while (fgets(line, LINE_MAX, out)) {
+  while (getline(&line, &size, out) != -1) {
     char *ptr = line;
     ptr = strstr(ptr, "' to '");
-    ptr += 6;
-    char *end = strchr(ptr, '\'');
-    end[0] = 0;
-    printf("xx%s**\n", ptr);
+    if (ptr) {
+      ptr += 6;
+      *strchr(ptr, '\'') = '\0';
+      printf("xx%s**\n", ptr);
+    }
   }
+  free(line);
   pclose(out);
+  printf("init_scops_from_json DONE\n");
   return 0;
 }
 
