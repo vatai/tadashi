@@ -8,11 +8,11 @@ class MCTSNode_Transformation(MCTSNode):
     def set_actions_transformations(self):
         node = self.app.scops[0].schedule_tree[self.action]
         # available_transformations = node.available_transformations
+        allowed_transformations = [TrEnum.TILE, TrEnum.INTERCHANGE]
         available_transformations = []
-        if TrEnum.TILE in node.available_transformations:
-            available_transformations = [TrEnum.TILE]
-        if TrEnum.INTERCHANGE in node.available_transformations:
-            available_transformations.append(TrEnum.INTERCHANGE)
+        for tr in node.available_transformations:
+            if tr in allowed_transformations:
+                available_transformations.append(tr)
         self.children = [tadashi.mcts.node_params.MCTSNode_Params(parent=self,
                                                                   app=self.app.clone(),
                                                                   action=tr) for tr in available_transformations]
