@@ -460,14 +460,14 @@ _partial_pa_var(__isl_take isl_set_list *sets, isl_size set_loop_idx,
 }
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_var(__isl_take isl_schedule_node *node, long coeff,
-                       long var_idx) {
+tadashi_full_shift_var(__isl_take isl_schedule_node *node, long var_idx,
+                       long coeff) {
   return _tadashi_shift(node, _full_pa_var, 0, coeff, var_idx);
 }
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
-                          long coeff, long id_idx) {
+                          long id_idx, long coeff) {
   return _tadashi_shift(node, _partial_pa_var, pa_idx, coeff, id_idx);
 }
 
@@ -494,14 +494,14 @@ _partial_pa_param(__isl_keep isl_set_list *sets, isl_size set_loop_idx,
 }
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_param(__isl_take isl_schedule_node *node, long coeff,
-                         long param_idx) {
+tadashi_full_shift_param(__isl_take isl_schedule_node *node, long param_idx,
+                         long coeff) {
   return _tadashi_shift(node, _full_pa_param, 0, coeff, param_idx);
 }
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
-                            long coeff, long param_idx) {
+                            long param_idx, long coeff) {
   return _tadashi_shift(node, _partial_pa_param, pa_idx, coeff, param_idx);
 }
 
