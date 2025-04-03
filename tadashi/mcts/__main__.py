@@ -74,6 +74,10 @@ def main():
     print("sampled tree as follows:\n")
     root.set_best()
     root.print()
+
+    print()
+    print("BEST:")
+    root.print_best()
     root.show_best_source()
     del root
     del app
