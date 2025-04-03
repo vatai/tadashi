@@ -2,7 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define SIZE 1024
+#define SIZE 2200
 
 int main() {
     //double mat1[SIZE][SIZE], mat2[SIZE][SIZE], result[SIZE][SIZE];
