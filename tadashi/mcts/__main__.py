@@ -9,7 +9,7 @@ from tadashi.mcts.node_node import MCTSNode_Node
 
 
 # TODO (Emil): move it to apps later, just don't want to deal with merges now
-def clone(self):
+def clone_simple(self):
     file_path = Path(self.source)
     directory = file_path.parent
     extension = file_path.suffix  # Get the file extension
@@ -20,11 +20,16 @@ def clone(self):
     # new_app.remove_source()
     return new_app
 
+def clone_poly(self):
+    new_app = self.generate_code(uuid4(), ephemeral=True)
+    # new_app.remove_source()
+    return new_app
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     # logger = logging.getLogger(__name__)
     # logger.info('message')
-    setattr(Polybench, "clone", clone)
+    setattr(Polybench, "clone", clone_poly)
     random.seed(18) # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
     base = "examples/polybench"
