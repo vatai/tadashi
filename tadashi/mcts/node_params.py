@@ -42,6 +42,8 @@ class MCTSNode_Params(MCTSNode):
         lubs = [MCTSNode_Params.expand_lub(lub) for lub in arg_groups]
         # print(lubs)
         expanded = list(product(*lubs))
+        if isinstance(expanded[0][0], list):
+            expanded = [[*trp[0], trp[1]] for trp in expanded]
         # print(expanded)
         return expanded
 
