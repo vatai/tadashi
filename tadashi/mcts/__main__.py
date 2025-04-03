@@ -20,12 +20,18 @@ def clone(self):
     return new_app
 
 if __name__ == "__main__":
-    setattr(Simple, "clone", clone)
+    setattr(Polybench, "clone", clone)
     random.seed(18) # good seed that finds interchange right away
     # random.seed(21) # some errors
-    # app = Polybench("linear-algebra/blas/gemm", "./examples/polybench/", compiler_options=["-D", "LARGE_DATASET"])
+    base = "examples/polybench"
+    app = Polybench(
+        "linear-algebra/blas/gemm",
+        base,
+        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+    )
     # app = Simple("./examples/inputs/simple/two_loops.c")
-    app = Simple("./examples/inputs/simple/gemm.c")
+#     app = Simple("./examples/inputs/simple/gemm.c")
+
     print(app.scops[0].schedule_tree[0].yaml_str)
     app.compile()
     initial_time = app.measure()
@@ -44,7 +50,7 @@ if __name__ == "__main__":
     #app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
-    for rollout in range(100):
+    for rollout in range(2):
         print(f"---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
