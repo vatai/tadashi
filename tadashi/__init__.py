@@ -458,6 +458,15 @@ class PartialShiftParamInfo(TransformInfo):
     arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
     @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
     def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
         args = PartialShiftParamInfo.available_args(node)
         if not args:
