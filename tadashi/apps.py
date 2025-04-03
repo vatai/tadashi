@@ -91,8 +91,7 @@ class App:
         for scop in self.scops:
             scop.reset()
 
-    @staticmethod
-    def extract_runtime(stdout) -> float:
+    def extract_runtime(self, stdout) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
 
@@ -186,9 +185,12 @@ class Simple(App):
             str(self.output_binary),
         ]
 
-    def extract_runtime(self, stdout):
-        num = stdout.split(self.runtime_prefix)[1]
-        return float(num)
+    def extract_runtime(self, stdout) -> float:
+        for line in stdout.split("\n"):
+            if line.startswith(self.runtime_prefix):
+                num = line.split(self.runtime_prefix)[1]
+                return float(num)
+        return 0.0
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
@@ -270,8 +272,7 @@ class Polybench(App):
     def _source_with_infix(source: Path, infix: str):
         return f"{source.with_suffix('')}{infix}{source.suffix}"
 
-    @staticmethod
-    def extract_runtime(stdout) -> float:
+    def extract_runtime(self, stdout) -> float:
         result = 0.0
         try:
             result = float(stdout.split()[0])
