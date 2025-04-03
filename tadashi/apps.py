@@ -212,19 +212,21 @@ class Polybench(App):
         self,
         benchmark: str,
         base: str,
-        infix: str = "",
         compiler_options: Optional[list[str]] = None,
+        source: Optional[Path] = None,
     ):
         if compiler_options is None:
             compiler_options = []
         self.benchmark = Path(benchmark)
         self.base = Path(base)
         path = self.base / self.benchmark
-        source = path / Path(self.benchmark.name).with_suffix(".c")
+        if source is None:
+            source = path / Path(self.benchmark.name).with_suffix(".c")
         # "-DMEDIUM_DATASET",
         self.utilities = base / Path("utilities")
+        print(f"{source=}")
         self._finalize_object(
-            source=self._source_with_infix(source, infix),
+            source=source,
             compiler_options=compiler_options,
             include_paths=[self.utilities],
         )
@@ -260,17 +262,15 @@ class Polybench(App):
         #     alt_infix = f".{now_str}"
         # new_file = self._source_with_infix(self.source, alt_infix)
         new_file = self.make_new_filename()
+        print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         kwargs = {
+            "source": new_file,
             "benchmark": self.benchmark,
             "base": self.base,
             # "infix": alt_infix,
         }
         return self.make_new_app(ephemeral, **kwargs)
-
-    @staticmethod
-    def _source_with_infix(source: Path, infix: str):
-        return f"{source.with_suffix('')}{infix}{source.suffix}"
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
