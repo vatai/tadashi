@@ -446,20 +446,16 @@ class PartialShiftParamInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, param_idx)
-            and 0 <= param_idx
-            and param_idx < len(node.loop_signature[stmt_idx]["params"]),
-        )
+        args = PartialShiftParamInfo.available_args(node)[0]
+        return [stmt_idx, param_idx] in args
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(0, min_np),
-            LowerUpperBound(),
-        ]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
 
 
 class SetParallelInfo(TransformInfo):
