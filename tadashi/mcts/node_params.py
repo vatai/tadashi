@@ -59,5 +59,5 @@ class MCTSNode_Params(MCTSNode):
         child = self.select_child()
         # print("select as ", child)
         child.evaluate()
-        if depth < 5:
+        if depth < 7:
             child.roll(depth + 1)

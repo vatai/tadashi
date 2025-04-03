@@ -36,7 +36,7 @@ class MCTSNode_Node(MCTSNode):
         tr = self.parent.action
         args = self.action
         trs = [[node, tr, *args]]
-        print("selected transform:", trs)
+        print("\nselected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
         # TODO: 1 where we do not apply, but keep growing list of 
