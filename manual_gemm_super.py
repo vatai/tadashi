@@ -21,11 +21,12 @@ for tile_size in [64, 100, 128]:
         [0, 1, TrEnum.TILE, tile_size],
         [0, 3, TrEnum.TILE, tile_size],
         [0, 5, TrEnum.TILE, tile_size],
+        [0, 2, TrEnum.INTERCHANGE],
         [0, 4, TrEnum.INTERCHANGE],
         [0, 3, TrEnum.INTERCHANGE],
     ]
     gemm.transform_list(trs)
-    #print(gemm.scops[0].schedule_tree[3].yaml_str)
+    # print(gemm.scops[0].schedule_tree[3].yaml_str)
     tiled = gemm.generate_code(ephemeral=False)
 
     tiled.compile()
