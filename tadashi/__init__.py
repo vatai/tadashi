@@ -434,7 +434,7 @@ class FullShiftParamInfo(TransformInfo):
 
     @staticmethod
     def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
+        if not all(s["params"] for s in node.loop_signature):
             return []
         min_np = len(node.loop_signature[0]["params"])
         return [range(min_np), LowerUpperBound()]
