@@ -406,21 +406,16 @@ class PartialShiftVarInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, stmt_idx)
-            and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
-        )
+        args = PartialShiftVarInfo.available_args(node)[0]
+        return [stmt_idx, var_idx] in args
 
     @staticmethod
     def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
-            return []
-        min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(0, min_nv),
-            LowerUpperBound(),
-        ]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
 
 
 class FullShiftParamInfo(TransformInfo):
