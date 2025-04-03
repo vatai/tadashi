@@ -224,7 +224,6 @@ class Polybench(App):
             source = path / Path(self.benchmark.name).with_suffix(".c")
         # "-DMEDIUM_DATASET",
         self.utilities = base / Path("utilities")
-        print(f"{source=}")
         self._finalize_object(
             source=source,
             compiler_options=compiler_options,
