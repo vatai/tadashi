@@ -378,17 +378,26 @@ class FullShiftVarInfo(TransformInfo):
     arg_help = ["Variable index", "Coefficient"]
 
     @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        return FullShiftVarInfo.available_args(node)[0]
+
+    @staticmethod
     def valid_args(node: Node, var_idx: int, _coeff: int):
-        return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
+        return var_idx in FullShiftVarInfo.available_args(node)[0]
 
     @staticmethod
     def available_args(node: Node):
         if not all(s["vars"] for s in node.loop_signature):
             return []
-        min_nv = 0
-        if node.loop_signature:
-            min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [LowerUpperBound(lower=0, upper=min_nv), LowerUpperBound()]
+        # "transpose" loop signatures
+        zs = zip(*[s["vars"] for s in node.loop_signature])
+        # var is same at idx for all loop_signatures
+        same = [len(set(z)) == 1 for z in zs]
+        # index of the first "false" in same (or len(same))
+        diff_idx = same.index(False) if not all(same) else len(same)
+        return [range(diff_idx), LowerUpperBound()]
 
 
 class PartialShiftVarInfo(TransformInfo):
@@ -422,17 +431,16 @@ class FullShiftParamInfo(TransformInfo):
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        min_num_params = min(len(s["params"]) for s in node.loop_signature)
-        return min_num_params > 0
+        return FullShiftParamInfo.available_args(node)[0]
 
     @staticmethod
     def valid_args(node: Node, param_idx: int, coeff: int):
-        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
+        return param_idx in FullShiftParamInfo.available_args(node)[0]
 
     @staticmethod
     def available_args(node: Node):
         min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [LowerUpperBound(0, min_np), LowerUpperBound()]
+        return [range(min_np), LowerUpperBound()]
 
 
 class PartialShiftParamInfo(TransformInfo):
