@@ -21,27 +21,31 @@ def clone_simple(self):
     return new_app
 
 def clone_poly(self):
-    new_app = self.generate_code(uuid4(), ephemeral=True)
+    new_app = self.generate_code(f"{uuid4()}", ephemeral=True)
+    print("SOURCE")
+    print(new_app.source)
     # new_app.remove_source()
     return new_app
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.INFO)
     # logger = logging.getLogger(__name__)
     # logger.info('message')
+    setattr(Simple, "clone", clone_simple)
     setattr(Polybench, "clone", clone_poly)
     random.seed(18) # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
-    base = "examples/polybench"
-    app = Polybench(
-        "linear-algebra/blas/gemm",
-        base,
-        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
-    )
-    # app = Simple("./examples/inputs/simple/two_loops.c")
+    # base = "examples/polybench"
+    # app = Polybench(
+    #     "linear-algebra/blas/gemm",
+    #     base,
+    #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+    # )
+    app = Simple("./examples/inputs/simple/two_loops.c")
 #     app = Simple("./examples/inputs/simple/gemm.c")
 
     print(app.scops[0].schedule_tree[0].yaml_str)
+    return
     app.compile()
     initial_time = app.measure()
     # print("initial time:", initial_time)
@@ -59,7 +63,7 @@ if __name__ == "__main__":
     #app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
-    for rollout in range(2):
+    for rollout in range(3):
         print(f"---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
@@ -70,3 +74,6 @@ if __name__ == "__main__":
     del root
     del app
     print("all done")
+
+if __name__ == "__main__":
+    main()

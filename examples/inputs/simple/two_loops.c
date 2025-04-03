@@ -6,7 +6,7 @@
 #define ITERS 200UL
 
 
-int main(int argx, const char * argv[])
+int main(int argc, const char * argv[])
 {
     clock_t start, end;
     double cpu_time_used;
