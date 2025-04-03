@@ -294,10 +294,11 @@ class FuseInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         nc = len(node.children)
-        return [
-            LowerUpperBound(lower=0, upper=nc),
-            LowerUpperBound(lower=0, upper=nc),
-        ]
+        args = []
+        for arg1 in range(nc):
+            for arg2 in range(arg1 + 1, nc):
+                args.append([arg1, arg2])
+        return args
 
 
 class FullFuseInfo(TransformInfo):
