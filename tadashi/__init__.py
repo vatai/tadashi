@@ -381,7 +381,7 @@ class FullShiftVarInfo(TransformInfo):
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        return FullShiftVarInfo.available_args(node)[0]
+        return bool(FullShiftVarInfo.available_args(node)[0])
 
     @staticmethod
     def valid_args(node: Node, var_idx: int, _coeff: int):
@@ -431,7 +431,7 @@ class FullShiftParamInfo(TransformInfo):
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        return FullShiftParamInfo.available_args(node)[0]
+        return bool(FullShiftParamInfo.available_args(node)[0])
 
     @staticmethod
     def valid_args(node: Node, param_idx: int, coeff: int):
@@ -439,7 +439,9 @@ class FullShiftParamInfo(TransformInfo):
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
+        min_np = len(node.loop_signature[0]["params"])
         return [range(min_np), LowerUpperBound()]
 
 
