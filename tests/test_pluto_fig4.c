@@ -1,7 +1,7 @@
 /// TRANSFORMATION: 0, 6, "FULL_FUSE"
-/// TRANSFORMATION: 0, 6, "FULL_SHIFT_VAR",  2, 0
-/// TRANSFORMATION: 0, 6, "PARTIAL_SHIFT_VAL",  0, 1
-/// TRANSFORMATION: 0, 6, "SET_LOOP_OPT",  0, 3
+/// TRANSFORMATION: 0, 6, "FULL_SHIFT_VAR", 0, 2
+/// TRANSFORMATION: 0, 6, "PARTIAL_SHIFT_VAL", 0, 1
+/// TRANSFORMATION: 0, 6, "SET_LOOP_OPT", 0, 3
 /// #include <stdlib.h>
 ///
 /// void f(int N, int T, double a[N], double b[N]) {

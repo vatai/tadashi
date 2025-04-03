@@ -110,7 +110,7 @@ class TestCtadashi(unittest.TestCase):
             [1, tadashi.TrEnum.FULL_SHIFT_VAL, -47],
             [3, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 39],
             [1, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 34],
-            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, -22, 0],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, 0, -22],
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         legals = scop.transform_list(transformations)

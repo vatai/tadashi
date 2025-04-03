@@ -294,10 +294,11 @@ class FuseInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         nc = len(node.children)
-        return [
-            LowerUpperBound(lower=0, upper=nc),
-            LowerUpperBound(lower=0, upper=nc),
-        ]
+        args = []
+        for arg1 in range(nc):
+            for arg2 in range(arg1 + 1, nc):
+                args.append([arg1, arg2])
+        return args
 
 
 class FullFuseInfo(TransformInfo):
@@ -374,86 +375,87 @@ class PartialShiftValInfo(TransformInfo):
 
 class FullShiftVarInfo(TransformInfo):
     func_name = "full_shift_var"
-    arg_help = ["Coefficient", "Variable index"]
-
-    @staticmethod
-    def valid_args(node: Node, _coeff: int, var_idx: int):
-        return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
-
-    @staticmethod
-    def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
-            return []
-        min_nv = 0
-        if node.loop_signature:
-            min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
-
-
-class PartialShiftVarInfo(TransformInfo):
-    func_name = "partial_shift_var"
-    arg_help = ["Statement index", "Coefficient", "Variable index"]
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, coeff: int, var_idx: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, stmt_idx)
-            and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
-        )
-
-    @staticmethod
-    def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
-            return []
-        min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(),
-            LowerUpperBound(0, min_nv),
-        ]
-
-
-class FullShiftParamInfo(TransformInfo):
-    func_name = "full_shift_param"
-    arg_help = ["Coefficient", "Parameter index"]
+    arg_help = ["Variable index", "Coefficient"]
 
     @staticmethod
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        min_num_params = min(len(s["params"]) for s in node.loop_signature)
-        return min_num_params > 0
+        return bool(FullShiftVarInfo.available_args(node)[0])
 
     @staticmethod
-    def valid_args(node: Node, coeff: int, param_idx: int):
-        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
+    def valid_args(node: Node, var_idx: int, _coeff: int):
+        return var_idx in FullShiftVarInfo.available_args(node)[0]
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(0, min_np)]
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
+        # "transpose" loop signatures
+        zs = zip(*[s["vars"] for s in node.loop_signature])
+        # var is same at idx for all loop_signatures
+        same = [len(set(z)) == 1 for z in zs]
+        # index of the first "false" in same (or len(same))
+        diff_idx = same.index(False) if not all(same) else len(same)
+        return [range(diff_idx), LowerUpperBound()]
+
+
+class PartialShiftVarInfo(TransformInfo):
+    func_name = "partial_shift_var"
+    arg_help = ["Statement index", "Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
+        args = PartialShiftVarInfo.available_args(node)[0]
+        return [stmt_idx, var_idx] in args
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
+
+
+class FullShiftParamInfo(TransformInfo):
+    func_name = "full_shift_param"
+    arg_help = ["Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        return bool(FullShiftParamInfo.available_args(node)[0])
+
+    @staticmethod
+    def valid_args(node: Node, param_idx: int, coeff: int):
+        return param_idx in FullShiftParamInfo.available_args(node)[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        if not all(s["params"] for s in node.loop_signature):
+            return []
+        min_np = len(node.loop_signature[0]["params"])
+        return [range(min_np), LowerUpperBound()]
 
 
 class PartialShiftParamInfo(TransformInfo):
     func_name = "partial_shift_param"
-    arg_help = ["Statement index", "Coefficient", "Parameter index"]
+    arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
     @staticmethod
-    def valid_args(node: Node, stmt_idx: int, coeff: int, param_idx: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, param_idx)
-            and 0 <= param_idx
-            and param_idx < len(node.loop_signature[stmt_idx]["params"]),
-        )
+    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
+        args = PartialShiftParamInfo.available_args(node)[0]
+        return [stmt_idx, param_idx] in args
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(),
-            LowerUpperBound(0, min_np),
-        ]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
 
 
 class SetParallelInfo(TransformInfo):
