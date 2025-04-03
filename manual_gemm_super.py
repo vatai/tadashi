@@ -28,6 +28,7 @@ for tile_size in [64, 100, 128]:
     gemm.transform_list(trs)
     # print(gemm.scops[0].schedule_tree[3].yaml_str)
     tiled = gemm.generate_code(ephemeral=False)
+    print(f"{tiled.source=}")
 
     tiled.compile()
     print(f"{tile_size=} : {tiled.measure()=}")
