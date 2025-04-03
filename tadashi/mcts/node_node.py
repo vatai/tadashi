@@ -1,5 +1,8 @@
-import tadashi.mcts.node_transformation
+import logging
+
 from colorama import Fore, Style
+
+import tadashi.mcts.node_transformation
 from tadashi import TrEnum
 
 from .base import MCTSNode
@@ -65,7 +68,7 @@ class MCTSNode_Node(MCTSNode):
 
 
     def roll(self, depth=0):
-        # print("### selecting a node to transform")
+        logging.info('selecting a node to transform')
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()

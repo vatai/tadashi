@@ -1,3 +1,4 @@
+import logging
 import random
 from pathlib import Path
 from uuid import uuid4
@@ -20,8 +21,11 @@ def clone(self):
     return new_app
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    # logger = logging.getLogger(__name__)
+    # logger.info('message')
     setattr(Polybench, "clone", clone)
-    random.seed(18) # good seed that finds interchange right away
+    random.seed(18) # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
     base = "examples/polybench"
     app = Polybench(
