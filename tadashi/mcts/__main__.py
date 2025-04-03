@@ -13,19 +13,23 @@ def clone_simple(self):
     file_path = Path(self.source)
     directory = file_path.parent
     extension = file_path.suffix  # Get the file extension
-    if not directory: #if the given file_path is just a filename in the current directory
-        directory = pathlib.Path(".") #use the current directory
+    if (
+        not directory
+    ):  # if the given file_path is just a filename in the current directory
+        directory = pathlib.Path(".")  # use the current directory
     new_filename = f"clone_{uuid4()}.{extension}"
     new_app = self.generate_code(directory / new_filename, ephemeral=True)
     # new_app.remove_source()
     return new_app
 
+
 def clone_poly(self):
-    new_app = self.generate_code(f"{uuid4()}", ephemeral=True)
+    new_app = self.generate_code(ephemeral=True)
     print("SOURCE")
     print(new_app.source)
     # new_app.remove_source()
     return new_app
+
 
 def main():
     logging.basicConfig(level=logging.INFO)
@@ -33,7 +37,7 @@ def main():
     # logger.info('message')
     setattr(Simple, "clone", clone_simple)
     setattr(Polybench, "clone", clone_poly)
-    random.seed(18) # good seed that finds interchange right away for two loops
+    random.seed(18)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
     # base = "examples/polybench"
     # app = Polybench(
@@ -42,7 +46,7 @@ def main():
     #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
     # )
     app = Simple("./examples/inputs/simple/two_loops.c")
-#     app = Simple("./examples/inputs/simple/gemm.c")
+    #     app = Simple("./examples/inputs/simple/gemm.c")
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     return
@@ -58,9 +62,9 @@ def main():
     # print("optimized time:", new_time)
     # with Simple(lalala) as app:
     # do things
-    #app2 = app.generate_code()
-    #app3 = app2.generate_code()
-    #app4 = app3.generate_code()
+    # app2 = app.generate_code()
+    # app3 = app2.generate_code()
+    # app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.speedup = 1
     for rollout in range(3):
@@ -74,6 +78,7 @@ def main():
     del root
     del app
     print("all done")
+
 
 if __name__ == "__main__":
     main()
