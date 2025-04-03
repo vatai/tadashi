@@ -171,7 +171,7 @@ class Simple(App):
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
     ):
-        if compiler_options:
+        if not compiler_options:
             compiler_options = []
         self.runtime_prefix = runtime_prefix
         self._finalize_object(source, compiler_options=compiler_options)
