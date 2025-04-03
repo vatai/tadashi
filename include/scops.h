@@ -7,6 +7,8 @@
 
 #include <pet.h>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 #include <isl/schedule_node.h>
 
 #include "legality.h"
@@ -14,6 +16,7 @@
 class Scop {
 private:
   std::vector<std::string> strings;
+  std::vector<std::pair<std::string, json>> jsons; // for LLVM Scops
 
 public:
   struct tadashi_scop *scop;

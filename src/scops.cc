@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <deque>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -71,13 +72,14 @@ Scops::Scops(char *compiler, char *input)
       compiler, input, input);
   printf("cmd: %s\n", cmd);
   FILE *out = popen(cmd, "r");
+  size_t count = 0;
   while (getline(&line, &size, out) != -1) {
     char *ptr = line;
     ptr = strstr(ptr, "' to '");
     if (ptr) {
       ptr += 6;
       *strchr(ptr, '\'') = '\0';
-      printf("xx%s**\n", ptr);
+      printf("%d: xx%s**\n", count++, ptr);
     }
   }
   free(line);
