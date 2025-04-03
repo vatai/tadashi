@@ -50,6 +50,17 @@ class App:
         kwargs["compiler_options"] = self.user_compiler_options
         return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
 
+    def make_new_filename(self) -> Path:
+        mark = "TMPFILE"
+        now = datetime.datetime.now()
+        now_str = datetime.datetime.isoformat(now)
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{now_str}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+
     def __del__(self):
         if self.ephemeral:
             self.remove_binary()
@@ -183,15 +194,7 @@ class Simple(App):
         if alt_source:
             new_file = Path(alt_source).absolute()
         else:
-            mark = "TMPFILE"
-            now = datetime.datetime.now()
-            now_str = datetime.datetime.isoformat(now)
-            suffix = self.source.suffix
-            pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
-            m = re.match(pattern, str(self.source))
-            filename = m.groups()[0] if m else self.source.with_suffix("")
-            prefix = f"{filename}-{mark}-{now_str}-"
-            new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+            new_file = self.make_new_filename()
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {"source": new_file}
         return self.make_new_app(ephemeral, **kwargs)
@@ -248,17 +251,18 @@ class Polybench(App):
             str(self.output_binary),
         ]
 
-    def generate_code(self, alt_infix="", ephemeral: bool = True):
-        if not alt_infix:
-            now = datetime.datetime.now()
-            now_str = datetime.datetime.isoformat(now)
-            alt_infix = f".{now_str}"
-        new_file = self._source_with_infix(self.source, alt_infix)
+    def generate_code(self, ephemeral: bool = True):
+        # if alt_infix:
+        #     now = datetime.datetime.now()
+        #     now_str = datetime.datetime.isoformat(now)
+        #     alt_infix = f".{now_str}"
+        # new_file = self._source_with_infix(self.source, alt_infix)
+        new_file = self.make_new_filename()
         self.scops.generate_code(self.source, new_file)
         kwargs = {
             "benchmark": self.benchmark,
             "base": self.base,
-            "infix": alt_infix,
+            # "infix": alt_infix,
         }
         return self.make_new_app(ephemeral, **kwargs)
 
