@@ -1,4 +1,5 @@
 import random
+from turtle import speed
 
 from colorama import Fore, Style, init
 
@@ -87,6 +88,12 @@ class MCTSNode:
             self.best.print_best(depth+1)
 
     def update_stats(self, speedup):
+        epsilon = 0.1
+        if abs(speedup-1) < epsilon:
+            speedup = 1
+            #print("QUIT ON ", speedup)
+            #return
+
         if self.speedup is None or speedup > self.speedup:
             self.speedup = speedup
             if self.parent:
