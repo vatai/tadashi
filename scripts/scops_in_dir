@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+set -x
+
+find -iname '*.c*' -exec scop_detector {} \;
