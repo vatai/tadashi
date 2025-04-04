@@ -27,7 +27,7 @@ class MCTSNode_Transformation(MCTSNode):
         if self.children:
             child = self.select_child()
             # print("selected transform as tr")
-            child.roll(depth+1)
+            child.roll(depth + 1)
         else:
             print("HOW COME WE CHOOSE NODE WITHOUT TRANSFORMS??")
             print("selected node:", self.action)
