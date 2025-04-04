@@ -1,7 +1,13 @@
 import random
 from turtle import speed
+from zoneinfo import available_timezones
 
 from colorama import Fore, Style, init
+
+from tadashi import TrEnum
+
+# TODO: make this proper config
+allowed_transformations = {TrEnum.TILE, TrEnum.INTERCHANGE}
 
 
 class MCTSNode:
@@ -98,3 +104,11 @@ class MCTSNode:
             self.speedup = speedup
             if self.parent:
                 self.parent.update_stats(speedup)
+
+    @staticmethod
+    def get_ISL_node_transformations(node):
+        available_transformations = []
+        for tr in node.available_transformations:
+            if tr in allowed_transformations:
+                available_transformations.append(tr)
+        return available_transformations
