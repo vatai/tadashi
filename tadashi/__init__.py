@@ -441,6 +441,7 @@ class FullShiftParamInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node: Node, param_idx: int, coeff: int):
+        args = FullShiftParamInfo.available_args(node)
         if not args:
             return False
         return param_idx in args[0]
@@ -471,7 +472,7 @@ class PartialShiftParamInfo(TransformInfo):
         args = PartialShiftParamInfo.available_args(node)
         if not args:
             return False
-        return [stmt_idx, param_idx] in args
+        return [stmt_idx, param_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
