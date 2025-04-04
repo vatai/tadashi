@@ -1,3 +1,5 @@
+from zoneinfo import available_timezones
+
 import tadashi.mcts.node_params
 from tadashi import TrEnum
 
@@ -7,10 +9,9 @@ from .base import MCTSNode
 class MCTSNode_Transformation(MCTSNode):
     def set_actions_transformations(self):
         node = self.app.scops[0].schedule_tree[self.action]
-        available_transformations = node.available_transformations
-        if TrEnum.TILE in available_transformations:
-            available_transformations = [TrEnum.TILE]
+        available_transformations = self.get_ISL_node_transformations(node)
 
+        # print("AVAIL:", available_transformations)
         self.children = [tadashi.mcts.node_params.MCTSNode_Params(parent=self,
                                                                   app=self.app.clone(),
                                                                   action=tr) for tr in available_transformations]
@@ -23,7 +24,7 @@ class MCTSNode_Transformation(MCTSNode):
         if self.children:
             child = self.select_child()
             # print("selected transform as tr")
-            child.roll(depth+1)
+            child.roll(depth + 1)
         else:
             print("HOW COME WE CHOOSE NODE WITHOUT TRANSFORMS??")
             print("selected node:", self.action)

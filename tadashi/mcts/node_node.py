@@ -1,6 +1,8 @@
-import tadashi.mcts.node_transformation
+import logging
+
 from colorama import Fore, Style
-from tadashi import TrEnum
+
+import tadashi.mcts.node_transformation
 
 from .base import MCTSNode
 
@@ -14,7 +16,7 @@ class MCTSNode_Node(MCTSNode):
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
-            if nodes[i].available_transformations:
+            if self.get_ISL_node_transformations(nodes[i]):
                 nodes_transformable.append(i)
                 # print("trans node", i)
                 # print("\t", nodes[i], nodes[i].available_transformations)
@@ -33,7 +35,7 @@ class MCTSNode_Node(MCTSNode):
         tr = self.parent.action
         args = self.action
         trs = [[node, tr, *args]]
-        print("selected transform:", trs)
+        print("\nselected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
         # TODO: 1 where we do not apply, but keep growing list of 
@@ -58,14 +60,14 @@ class MCTSNode_Node(MCTSNode):
         except Exception as e:
             print(Fore.RED, end="")
             print("failed to transform with the following exception:")
-            print(e
+            print(e)
             print(Style.RESET_ALL, end="")
         # finally:
             # self.app = app_backup
 
 
     def roll(self, depth=0):
-        # print("### selecting a node to transform")
+        logging.info('selecting a node to transform')
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()

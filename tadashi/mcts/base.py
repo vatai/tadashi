@@ -1,6 +1,13 @@
 import random
+from turtle import speed
+from zoneinfo import available_timezones
 
 from colorama import Fore, Style, init
+
+from tadashi import TrEnum
+
+# TODO: make this proper config
+allowed_transformations = {TrEnum.TILE, TrEnum.INTERCHANGE}
 
 
 class MCTSNode:
@@ -45,14 +52,21 @@ class MCTSNode:
         if self.best:
             self.best.show_best_source()
         else:
-            print ("best source:", self.app.source)
+            print()
+            print ("speedup :", self.speedup)
+            print ("soruce  :", self.app.source)
 
     def set_best(self):
+        self.is_best = True
         if self._number_of_visits == 0:
             return
         if self.children:
             best = max(self.children, key=lambda x: x.speedup)
             if best._number_of_visits == 0:
+                return
+            if best.speedup < self.speedup:
+                return
+            if self.parent and hasattr(self, "evaluate") and  best.speedup == self.speedup:
                 return
             best.is_best = True
             self.best= best
@@ -71,8 +85,30 @@ class MCTSNode:
         for c in self.children:
             c.print(depth+1)
 
+    def print_best(self, depth=0):
+        if self._number_of_visits == 0:
+            return
+        print(f"{' '*depth}", end="")
+        print(f"V:{self._number_of_visits} S:{self.speedup:0.4f} |", self.action)
+        if self.best:
+            self.best.print_best(depth+1)
+
     def update_stats(self, speedup):
+        epsilon = 0.1
+        if abs(speedup-1) < epsilon:
+            speedup = 1
+            #print("QUIT ON ", speedup)
+            #return
+
         if self.speedup is None or speedup > self.speedup:
             self.speedup = speedup
             if self.parent:
                 self.parent.update_stats(speedup)
+
+    @staticmethod
+    def get_ISL_node_transformations(node):
+        available_transformations = []
+        for tr in node.available_transformations:
+            if tr in allowed_transformations:
+                available_transformations.append(tr)
+        return available_transformations
