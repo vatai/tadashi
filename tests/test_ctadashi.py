@@ -25,6 +25,11 @@ class TransformData:
     transformation_args: list[int] = field(default_factory=list)
 
 
+def get_inputs_path() -> Path:
+    base = Path(__file__).parent.parent
+    return base / "examples/inputs"
+
+
 class TestCtadashi(unittest.TestCase):
     @staticmethod
     def _read_app_comments(app):
@@ -124,9 +129,17 @@ class TestCtadashi(unittest.TestCase):
 class TestCtadashiRegression(unittest.TestCase):
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent
-        app = Simple(base / "examples/inputs/simple/two_loops.c")
+        app = Simple(get_inputs_path() / "simple/two_loops.c")
         for i in range(10):
             app = app.generate_code()
+
+
+class TestCtadashiLLVM(unittest.TestCase):
+    # @unittest.skip("wip")
+    def test_foobar(self):
+        app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
+        print(app.source.exists())
+        node = app.scops[0]
 
 
 def setup():

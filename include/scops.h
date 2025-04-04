@@ -5,15 +5,19 @@
 #include <string>
 #include <vector>
 
-#include <pet.h>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 #include <isl/schedule_node.h>
+
+#include <pet.h>
 
 #include "legality.h"
 
 class Scop {
 private:
   std::vector<std::string> strings;
+  std::vector<std::pair<std::string, json>> jsons; // for LLVM Scops
 
 public:
   struct tadashi_scop *scop;
@@ -21,6 +25,7 @@ public:
   isl_schedule_node *tmp_node;
   int modified;
   Scop(pet_scop *scop);
+  Scop(isl_ctx *ctx, std::string &jscop_path);
   ~Scop();
   const char *add_string(char *str);
   const char *add_string(std::stringstream &ss);
@@ -30,6 +35,7 @@ class Scops {
 
 public:
   Scops(char *input);
+  Scops(char *compiler, char *input);
   ~Scops();
   int num_scops();
 
@@ -46,7 +52,7 @@ private:
 public:
   // ScopsPool();
   ~ScopsPool();
-  size_t add(char *input);
+  size_t add(Scops *scops_ptr);
   void remove(size_t pool_idx);
   Scops &operator[](size_t idx);
 };

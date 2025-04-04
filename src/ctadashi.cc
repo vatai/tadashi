@@ -5,9 +5,11 @@
 // This file is the "C side" between the C and Python code of tadashi.
 
 #include <cassert>
+#include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <isl/aff_type.h>
 #include <isl/space_type.h>
 #include <sstream>
@@ -37,14 +39,22 @@ ScopsPool SCOPS_POOL;
 
 /// Entry point.
 extern "C" size_t
-init_scops(char *input) { // Entry point
+init_scops(char *input) {
+  // Entry point (PET backend)
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   // printf(">>> init_scops()\n");
-  size_t pool_idx = SCOPS_POOL.add(input);
+  size_t pool_idx = SCOPS_POOL.add(new Scops(input));
   // printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
+  return pool_idx;
+}
+
+extern "C" size_t
+init_scops_from_json(char *compiler, char *input) {
+  // Entry point (Polly backend)
+  size_t pool_idx = SCOPS_POOL.add(new Scops(compiler, input));
   return pool_idx;
 }
 
