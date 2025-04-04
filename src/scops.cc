@@ -3,10 +3,12 @@
 #include <cstring>
 #include <deque>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <vector>
 
 #include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <pet.h>
 
 #include "legality.h"
@@ -15,6 +17,42 @@
 Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
   scop = allocate_tadashi_scop(ps);
   current_node = isl_schedule_get_root(scop->schedule);
+}
+
+Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
+    : tmp_node(nullptr), modified(false) {
+  std::ifstream istream(jscop_path);
+  std::cout << "jscop_path: " << jscop_path << std::endl;
+  json jscop;
+  istream >> jscop;
+  isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
+  isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
+  std::map<std::string, isl_union_map *> acc_map;
+  acc_map["read"] = isl_union_map_empty_ctx(ctx);
+  acc_map["write"] = isl_union_map_empty_ctx(ctx);
+  for (auto &s : jscop["statements"]) {
+    json accesses = s["accesses"];
+    for (auto av : accesses) {
+      std::string k = av["kind"].template get<std::string>();
+      std::string rel = av["relation"].template get<std::string>();
+      isl_union_map *acc_rel = isl_union_map_read_from_str(ctx, rel.c_str());
+      acc_map[k] = isl_union_map_union(acc_map[k], acc_rel);
+    }
+    std::string name = s["name"];
+    std::cout << "name: " << name << std::endl;
+    std::cout << "domain: " << s["domain"].template get<std::string>()
+              << std::endl;
+    isl_union_set *domain = isl_union_set_read_from_str(
+        ctx, s["domain"].template get<std::string>().c_str());
+    union_domain = isl_union_set_union(union_domain, domain);
+    isl_union_map *schedule = isl_union_map_read_from_str(
+        ctx, s["schedule"].template get<std::string>().c_str());
+    union_schedule = isl_union_map_union(union_schedule, schedule);
+  }
+  scop = allocate_tadashi_scop_from_json(union_domain, union_schedule,
+                                         acc_map["write"], acc_map["reads"]);
+  // current_node = isl_schedule_get_root(scop->schedule);
+  std::cout << "done4" << std::endl;
 }
 
 Scop::~Scop() {
@@ -70,21 +108,22 @@ Scops::Scops(char *compiler, char *input)
       "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
       "-polly-export-jscop -o %s.ll 2>&1",
       compiler, input, input);
-  printf("cmd: %s\n", cmd);
+  std::vector<std::string> json_paths;
   FILE *out = popen(cmd, "r");
-  size_t count = 0;
   while (getline(&line, &size, out) != -1) {
     char *ptr = line;
     ptr = strstr(ptr, "' to '");
     if (ptr) {
       ptr += 6;
       *strchr(ptr, '\'') = '\0';
-      printf("%d: xx%s**\n", count++, ptr);
+      json_paths.emplace_back(ptr);
     }
   }
   free(line);
   pclose(out);
-  printf("init_scops_from_json DONE\n");
+  for (auto json_path : json_paths)
+    scops.emplace_back(ctx, json_path);
+  std::cout << "init_scops_from_json DONE" << std::endl;
 }
 
 Scops::~Scops() {

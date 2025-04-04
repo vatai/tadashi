@@ -29,6 +29,11 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
 
 __isl_give isl_union_map *get_dependencies_from_json();
 
+struct tadashi_scop *allocate_tadashi_scop_from_json(isl_ctx *ctx,
+                                                     json &statements);
+/*
+ *
+ */
 struct tadashi_scop *
 allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
   isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
@@ -58,6 +63,7 @@ allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
   }
   isl_union_map *must_write = acc_map["write"];
   isl_union_map *may_read = acc_map["read"];
+  // must_write, may_read, union_domain, union_schedule
 
   struct tadashi_scop *ts = (struct tadashi_scop *)malloc(sizeof(*ts));
   ts->domain = isl_union_set_copy(union_domain);

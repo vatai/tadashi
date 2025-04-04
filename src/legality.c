@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <isl/union_map.h>
 #include <stdio.h>
 
 #include <isl/aff.h>
@@ -8,6 +7,7 @@
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/set.h>
+#include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
 
@@ -368,8 +368,40 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
 }
 
 __isl_give isl_union_map *
-get_dependencies_from_json() {
-  return NULL;
+get_dependencies_from_json(isl_union_set *domain, isl_schedule *schedule,
+                           isl_union_map *must_writes,
+                           isl_union_map *may_reads) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  isl_union_access_info *access;
+  printf("dep dep: %s\n", isl_union_map_to_str(dep));
+  access = isl_union_access_info_from_sink(may_reads);
+  access = isl_union_access_info_set_kill(access, must_writes);
+  access = isl_union_access_info_set_schedule(access, schedule);
+  flow = isl_union_access_info_compute_flow(access);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  printf("dep dep: %s\n", isl_union_map_to_str(dep));
+  return dep;
+}
+
+struct tadashi_scop *
+allocate_tadashi_scop_from_json(isl_union_set *domain, isl_union_map *schedule,
+                                isl_union_map *must_writes,
+                                isl_union_map *may_reads) {
+  struct tadashi_scop *ts = malloc(sizeof(struct tadashi_scop));
+  ts->domain = domain;
+  ts->call = NULL;
+  ts->may_writes = NULL;
+  ts->must_writes = must_writes;
+  ts->must_kills = NULL;
+  ts->may_reads = may_reads;
+  ts->schedule = umap_to_schedule_tree(domain, schedule);
+  ts->dep_flow = get_dependencies_from_json(
+      domain, isl_schedule_copy(ts->schedule), must_writes, may_reads);
+  ts->live_out = NULL;
+  ts->pet_scop = NULL;
+  return ts;
 }
 
 void

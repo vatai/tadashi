@@ -27,6 +27,11 @@ __isl_give isl_union_map *get_dependencies(__isl_keep struct pet_scop *scop);
 
 struct tadashi_scop *allocate_tadashi_scop(struct pet_scop *ps);
 
+struct tadashi_scop *allocate_tadashi_scop_from_json(isl_union_set *domain,
+                                                     isl_union_map *schedule,
+                                                     isl_union_map *must_writes,
+                                                     isl_union_map *may_reads);
+
 void free_tadashi_scop(struct tadashi_scop *ts);
 
 isl_bool tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,

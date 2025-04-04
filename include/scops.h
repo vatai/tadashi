@@ -5,11 +5,12 @@
 #include <string>
 #include <vector>
 
-#include <pet.h>
-
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
 #include <isl/schedule_node.h>
+
+#include <pet.h>
 
 #include "legality.h"
 
@@ -24,6 +25,7 @@ public:
   isl_schedule_node *tmp_node;
   int modified;
   Scop(pet_scop *scop);
+  Scop(isl_ctx *ctx, std::string &jscop_path);
   ~Scop();
   const char *add_string(char *str);
   const char *add_string(std::stringstream &ss);
