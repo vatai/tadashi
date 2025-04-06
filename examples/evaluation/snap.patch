@@ -1,5 +1,5 @@
 diff --git a/ports/snap-c/Makefile b/ports/snap-c/Makefile
-index 0881e9e..3e8c24e 100644
+index 0881e9e..8a62bd1 100644
 --- a/ports/snap-c/Makefile
 +++ b/ports/snap-c/Makefile
 @@ -2,14 +2,14 @@ A_PREFIX=snap
@@ -23,7 +23,12 @@ index 0881e9e..3e8c24e 100644
  CXXFLAGS=-O3 -std=c++11 -openmp	# C++ compiler flags
  CXXCPP=				# C++ preprocessor flags
  
-@@ -24,7 +24,7 @@ OUTPUT_FILE=$(OUTPUT_PREFIX)$(OUTPUT_SUFFIX)
+@@ -21,10 +21,12 @@ OUTPUT_PREFIX=snap_test
+ OUTPUT_SUFFIX=.out
+ OUTPUT_FILE=$(OUTPUT_PREFIX)$(OUTPUT_SUFFIX)
+ 
++DIM1_SWEEP_C=dim1_sweep.c
++DIM3_SWEEP_C=dim3_sweep.c
  SRCS = snap.h snap_main.c utils.c version.c plib.c geom.c \
         sn.c data.c control.c input.c setup.c dealloc.c \
         translv.c solvar.c outer.c expxs.c inner.c sweep.c \
