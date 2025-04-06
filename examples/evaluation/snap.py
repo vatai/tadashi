@@ -17,7 +17,7 @@ class Snap(App):
             "make",
             "-j",
             f"-C{self.source.parent}",
-            f"DIM{target}_SWEEP_C={self.source.name}",
+            f"DIM{self.target}_SWEEP_C={self.source.name}",
         ]
 
     def generate_code(self):
