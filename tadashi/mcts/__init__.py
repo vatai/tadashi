@@ -13,9 +13,13 @@ class TimestampedJsonLogger:
     call to the log method for a given instance of this class.
     Subsequent calls append to the same file.
     """
-    def __init__(self):
+    def __init__(self, prefix):
         """Initializes the logger, filename is not yet set."""
-        self._filename = None
+        now = datetime.datetime.now()
+        # Generate a filename like YYYYMMDD_HHMMSSffffff.jsonl
+        # Including microseconds (%f) increases uniqueness chances
+        self._filename = f"{prefix}_{now.strftime('%Y%m%d_%H%M%S')}.jsonl"
+        # print(f"Initializing log file: {self._filename}") # Optional: Inform user
 
     def log(self, speedup):
         """
@@ -28,15 +32,6 @@ class TimestampedJsonLogger:
         Args:
             value: The data/value to log. Can be any JSON-serializable type.
         """
-        # 1. Determine filename (only if it hasn't been set for this instance)
-        if self._filename is None:
-            now = datetime.datetime.now()
-            # Generate a filename like YYYYMMDD_HHMMSSffffff.jsonl
-            # Including microseconds (%f) increases uniqueness chances
-            self._filename = f"{now.strftime('%Y%m%d_%H%M%S')}.jsonl"
-            print(f"Initializing log file: {self._filename}") # Optional: Inform user
-
-        # 2. Prepare the data payload for the current log entry
         current_timestamp = datetime.datetime.now().isoformat() # ISO format is standard
         log_entry = {
             "timestamp": current_timestamp,

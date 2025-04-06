@@ -68,7 +68,7 @@ def main():
     # app3 = app2.generate_code()
     # app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
-    root.logger = TimestampedJsonLogger()
+    root.logger = TimestampedJsonLogger(app.source.name)
     root.logger.log(1)
     root.speedup = 1
     for rollout in range(15):
