@@ -1,4 +1,6 @@
 #!/usr/bin/eval python
+from pathlib import Path
+
 from tadashi.apps import App
 
 
@@ -11,7 +13,12 @@ class Snap(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return ["make", "-j", f"DIM{target}_SWEEP_C={self.source}"]
+        return [
+            "make",
+            "-j",
+            f"-C{self.source.parent}",
+            f"DIM{target}_SWEEP_C={self.source.name}",
+        ]
 
     def generate_code(self):
         if alt_source:
@@ -24,10 +31,11 @@ class Snap(App):
             "target": self.target,
             "compiler_options": self.user_compiler_options,
         }
+        print(f"{new_file=}")
         return self.make_new_app(ephemeral, **kwargs)
 
 
-snap = Snap("examples/inputs/depnodep.c")
+snap = Snap(Path(__file__) / "SNAP/ports/snap-c/dim1_sweep.c")
 
 print(" ".join(snap.compile_cmd))
 
