@@ -1,0 +1,72 @@
+diff --git a/ports/snap-c/dim1_sweep.c b/ports/snap-c/dim1_sweep.c
+index e72a5a2..c0bb23c 100644
+--- a/ports/snap-c/dim1_sweep.c
++++ b/ports/snap-c/dim1_sweep.c
+@@ -56,7 +56,7 @@ void dim1_sweep_data_init ( dim_sweep_data *dim_sweep_vars )
+ /***********************************************************************
+  * 1-D slab mesh sweeper
+  ***********************************************************************/
+-void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
++void dim1_sweep ( input_data *input_vars, int NANG, geom_data *geom_vars,
+                   sn_data *sn_vars, data_data *data_vars,
+                   control_data *control_vars, solvar_data *solvar_vars,
+                   dim_sweep_data *dim_sweep_vars, int id, int oct, int d1,
+@@ -75,9 +75,9 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+ 
+     for ( ang = 0; ang < NANG; ang++ )
+     {
+-        psi[NANG] = 0;
+-        pc[NANG]  = 0;
+-        den[NANG] = 0;
++        psi[ang] = 0;
++        pc[ang]  = 0;
++        den[ang] = 0;
+     }
+ 
+     double hv[NANG*2], fxhv[NANG*2], qm[NANG*NX];
+diff --git a/ports/snap-c/dim3_sweep.c b/ports/snap-c/dim3_sweep.c
+index 7175b3a..6b2a286 100644
+--- a/ports/snap-c/dim3_sweep.c
++++ b/ports/snap-c/dim3_sweep.c
+@@ -56,7 +56,7 @@ void dim3_sweep_data_init ( dim_sweep_data *dim_sweep_vars )
+ /***********************************************************************
+  *  3-D slab mesh sweeper.
+  ***********************************************************************/
+-void dim3_sweep ( input_data *input_vars, para_data *para_vars,
++void dim3_sweep ( input_data *input_vars, int NANG, para_data *para_vars,
+                   geom_data *geom_vars, sn_data *sn_vars,
+                   data_data *data_vars, control_data *control_vars,
+                   solvar_data *solvar_vars, dim_sweep_data *dim_sweep_vars,
+diff --git a/ports/snap-c/octsweep.c b/ports/snap-c/octsweep.c
+index 2ef5f01..7507437 100644
+--- a/ports/snap-c/octsweep.c
++++ b/ports/snap-c/octsweep.c
+@@ -63,13 +63,13 @@ void octsweep ( input_data *input_vars, para_data *para_vars, geom_data *geom_va
+  ***********************************************************************/
+     if ( NDIMEN == 1 )
+     {
+-        dim1_sweep ( input_vars, geom_vars, sn_vars, data_vars,
++        dim1_sweep ( input_vars, input_vars->nang, geom_vars, sn_vars, data_vars,
+                      control_vars, solvar_vars, dim_sweep_vars,
+                      id, oct, d1, d2, d3, d4, i1, i2, g, ierr );
+     }
+     else
+     {
+-        dim3_sweep ( input_vars, para_vars, geom_vars, sn_vars, data_vars,
++        dim3_sweep ( input_vars, input_vars->nang, para_vars, geom_vars, sn_vars, data_vars,
+                      control_vars, solvar_vars, dim_sweep_vars, ich, id,
+                      d1, d2, d3, d4, jd, kd, jlo, klo, jhi, khi, jst, kst,
+                      i1, i2, oct, g, ierr );
+diff --git a/ports/snap-c/snap.h b/ports/snap-c/snap.h
+index 0b1c5d9..09ac6c8 100644
+--- a/ports/snap-c/snap.h
++++ b/ports/snap-c/snap.h
+@@ -1275,7 +1275,7 @@ void output_flux_file ( input_data *input_vars, para_data *para_vars,
+ /* nang */
+ #define NANG_IN(IN)     IN->nang
+ // Assuming 'IN=input_vars'
+-#define NANG            NANG_IN(input_vars)
++// #define NANG            NANG_IN(input_vars)
+ 
+ /* ng */
+ #define NG_IN(IN)       IN->ng
