@@ -10,7 +10,7 @@ class Snap(App):
         msg = "Target should be 1 or 3 based on which filme source points to (dim1_sweep.c or dim3_sweep.c)"
         assert target in [1, 3], msg
         self.target = target
-        result = run("mpicc -compile_info", stdout=PIPE)
+        result = run(["mpicc", "-compile_info"], stdout=PIPE)
         stdout = result.stdout.decode()
         opts = stdout.split()
         include_path = [inc for inc in opts if inc.startswith("-I")]
