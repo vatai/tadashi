@@ -81,23 +81,3 @@ index 7175b3a..157c884 100644
  /***********************************************************************
   * Loop over cells along the diagonals. When only 1 diagonal, it's
   * normal sweep order. Otherwise, nested threading performs mini-KBA.
-diff --git a/ports/snap-c/octsweep.c b/ports/snap-c/octsweep.c
-index 2ef5f01..7507437 100644
---- a/ports/snap-c/octsweep.c
-+++ b/ports/snap-c/octsweep.c
-@@ -63,13 +63,13 @@ void octsweep ( input_data *input_vars, para_data *para_vars, geom_data *geom_va
-  ***********************************************************************/
-     if ( NDIMEN == 1 )
-     {
--        dim1_sweep ( input_vars, geom_vars, sn_vars, data_vars,
-+        dim1_sweep ( input_vars, input_vars->nang, geom_vars, sn_vars, data_vars,
-                      control_vars, solvar_vars, dim_sweep_vars,
-                      id, oct, d1, d2, d3, d4, i1, i2, g, ierr );
-     }
-     else
-     {
--        dim3_sweep ( input_vars, para_vars, geom_vars, sn_vars, data_vars,
-+        dim3_sweep ( input_vars, input_vars->nang, para_vars, geom_vars, sn_vars, data_vars,
-                      control_vars, solvar_vars, dim_sweep_vars, ich, id,
-                      d1, d2, d3, d4, jd, kd, jlo, klo, jhi, khi, jst, kst,
-                      i1, i2, oct, g, ierr );
