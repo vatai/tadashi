@@ -13,7 +13,7 @@ class Snap(App):
         result = run(["mpicc", "-compile_info"], stdout=PIPE)
         stdout = result.stdout.decode()
         opts = stdout.split()
-        include_path = [inc for inc in opts if inc.startswith("-I")]
+        include_path = [inc[2:] for inc in opts if inc.startswith("-I")]
         print(f"{include_path=}")
         self._finalize_object(
             source,
