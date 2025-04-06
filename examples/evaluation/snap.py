@@ -35,7 +35,7 @@ class Snap(App):
         return self.make_new_app(ephemeral, **kwargs)
 
 
-snap = Snap(Path(__file__) / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 
 print(" ".join(snap.compile_cmd))
 
