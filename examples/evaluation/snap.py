@@ -20,7 +20,7 @@ class Snap(App):
             f"DIM{self.target}_SWEEP_C={self.source.name}",
         ]
 
-    def generate_code(self):
+    def generate_code(self, alt_source=None):
         if alt_source:
             new_file = Path(alt_source).absolute()
         else:
