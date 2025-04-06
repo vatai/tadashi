@@ -3,7 +3,6 @@ from turtle import speed
 from zoneinfo import available_timezones
 
 from colorama import Fore, Style, init
-
 from tadashi import TrEnum
 
 # TODO: make this proper config
@@ -104,6 +103,8 @@ class MCTSNode:
             self.speedup = speedup
             if self.parent:
                 self.parent.update_stats(speedup)
+            else:
+                self.logger.log(speedup)
 
     @staticmethod
     def get_ISL_node_transformations(node):
