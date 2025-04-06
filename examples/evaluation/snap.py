@@ -10,16 +10,35 @@ class Snap(App):
         msg = "Target should be 1 or 3 based on which filme source points to (dim1_sweep.c or dim3_sweep.c)"
         assert target in [1, 3], msg
         self.target = target
-        result = run(["mpicc", "-compile_info"], stdout=PIPE)
-        stdout = result.stdout.decode()
-        opts = stdout.split()
-        include_path = [inc[2:] for inc in opts if inc.startswith("-I")]
         print(f"{include_path=}")
+        include_path = self.mpi_include_paths()
+        include_path += self.gcc_includes()
         self._finalize_object(
             source,
             include_paths=include_path,
             compiler_options=compiler_options,
         )
+
+    def mpi_include_paths():
+        result = run(["mpicc", "-compile_info"], stdout=PIPE)
+        stdout = result.stdout.decode()
+        opts = stdout.split()
+        return [inc[2:] for inc in opts if inc.startswith("-I")]
+
+    def gcc_includes():
+        cmd = ["gcc", "-xc", "-E", "-v", "/dev/null"]
+        result = run(["mpicc", "-compile_info"], stdout=PIPE)
+        stdout = result.stdout.decode()
+        include_paths = []
+        collect = False
+        for line in stdout.split("\n"):
+            if collect:
+                if not line.startswith(" "):
+                    break
+                include_paths.append(line[1:])
+            if line.startswith("#include <"):
+                collect = True
+        return include_paths
 
     @property
     def compile_cmd(self) -> list[str]:
