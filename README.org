@@ -96,7 +96,7 @@ Check the available arguments for the given node-transformation pair.
 
 Perform the transformation and check legality.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
-  args = [13, 1]
+  args = [1, 13]
   print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
   print(f"{legal=}")

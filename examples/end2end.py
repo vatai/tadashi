@@ -20,7 +20,7 @@ print(f"{lu[0]=}")
 print(f"{lu[1]=}")
 # output:
 
-args = [13, 1]
+args = [1, 13]
 print(f"{node.valid_args(tr, *args)=}")
 legal = node.transform(tr, *args)
 print(f"{legal=}")

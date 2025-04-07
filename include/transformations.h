@@ -10,8 +10,14 @@
 extern "C" {
 #endif
 
-__isl_give isl_schedule_node *tadashi_tile(__isl_take isl_schedule_node *node,
-                                           int tile_size);
+__isl_give isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node,
+                                              int tile_size);
+
+__isl_give isl_schedule_node *tadashi_tile_2d(isl_schedule_node *node,
+                                              int size1, int size2);
+
+__isl_give isl_schedule_node *tadashi_tile_3d(isl_schedule_node *node,
+                                              int size1, int size2, int size3);
 
 __isl_give isl_schedule_node *
 tadashi_interchange(__isl_take isl_schedule_node *node);
