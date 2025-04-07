@@ -17,8 +17,8 @@ for tile_size in [64, 100, 128]:
     gemm.reset_scops()
     trs = [
         [0, 2, TrEnum.FULL_SPLIT],
-        [0, 3, TrEnum.TILE2D, tile_size],
-        [0, 9, TrEnum.TILE3D, tile_size],
+        [0, 3, TrEnum.TILE2D, tile_size, tile_size],
+        [0, 9, TrEnum.TILE3D, tile_size, tile_size, tile_size],
     ]
     gemm.transform_list(trs)
     # print(gemm.scops[0].schedule_tree[9].yaml_str)
