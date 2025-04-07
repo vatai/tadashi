@@ -20,22 +20,31 @@ gemm.compile()
 print(f"{gemm.measure()=}")
 
 #For jacobi-2d -DEXTRALARGE, the best tile_size i found in my machine was 31
-for tile_size in range(30,37): 
+for tile_size in [5, 6, 7, 16, 64, 128]: 
 	gemm.reset_scops()
 	
 	trs=[ 
 	[0,2, TrEnum.FULL_SPLIT],
-    [0, 4, TrEnum.TILE, tile_size],
-    [0, 6, TrEnum.TILE, tile_size],
-    [0, 3, TrEnum.INTERCHANGE],
-    [0, 5, TrEnum.INTERCHANGE],
-    [0, 4, TrEnum.INTERCHANGE],
-    [0, 11, TrEnum.TILE, tile_size],
-    [0, 13, TrEnum.TILE, tile_size],
-    [0, 10, TrEnum.INTERCHANGE],
-    [0, 12, TrEnum.INTERCHANGE],
-    [0, 11, TrEnum.INTERCHANGE],
-    ]
+	[0, 4, TrEnum.TILE, tile_size],
+	[0, 6, TrEnum.TILE, tile_size],
+	[0, 3, TrEnum.INTERCHANGE],
+	[0, 5, TrEnum.INTERCHANGE],
+	[0, 4, TrEnum.INTERCHANGE],
+	[0, 11, TrEnum.TILE, tile_size],
+	[0, 13, TrEnum.TILE, tile_size],
+	[0, 10, TrEnum.INTERCHANGE],
+	[0, 12, TrEnum.INTERCHANGE],
+	[0, 11, TrEnum.INTERCHANGE],
+	]
+
+	# Also works, not as good but has 5 operations instead of 11
+	trs=[ 
+	[0,2, TrEnum.FULL_SPLIT],
+	[0, 4, TrEnum.TILE, tile_size],
+	[0, 3, TrEnum.INTERCHANGE],
+	[0, 10, TrEnum.TILE, tile_size],
+	[0, 9, TrEnum.INTERCHANGE],
+	]
 
 
 	gemm.transform_list(trs)
