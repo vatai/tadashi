@@ -1,5 +1,5 @@
 import random
-from turtle import speed
+# from turtle import speed
 from zoneinfo import available_timezones
 
 from colorama import Fore, Style, init
