@@ -1,6 +1,6 @@
 #!/usr/bin/eval python
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import DEVNULL, PIPE, run
 
 from tadashi.apps import App
 
@@ -26,7 +26,7 @@ class Snap(App):
 
     def gcc_includes(self):
         cmd = ["gcc", "-xc", "-E", "-v", "/dev/null"]
-        result = run(cmd, stderr=PIPE)
+        result = run(cmd, stdout=DEVNULL, stderr=PIPE)
         stderr = result.stderr.decode()
         include_paths = []
         collect = False
