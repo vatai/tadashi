@@ -46,9 +46,9 @@ def main():
     #     base,
     #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
     # )
-    app = Simple("./examples/inputs/simple/two_loops.c")
+    # app = Simple("./examples/inputs/simple/two_loops.c")
     # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
-    #app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
+    app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
