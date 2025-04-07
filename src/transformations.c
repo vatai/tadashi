@@ -122,12 +122,12 @@ tadashi_tile_3d(isl_schedule_node *node, int size1, int size2, int size3) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_val_list *vl = isl_val_list_from_val(isl_val_int_from_si(ctx, size1));
   vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size2));
-  vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size3));
+  vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size3)); // 1
   isl_space *space = isl_schedule_node_band_get_space(node);
-  space = isl_space_add_dims(space, isl_dim_out, 2);
+  space = isl_space_add_dims(space, isl_dim_out, 2); // 2
   isl_multi_val *sizes = isl_multi_val_from_val_list(isl_space_copy(space), vl);
-  upas = isl_union_pw_aff_list_alloc(ctx, 3);
-  for (size_t i = 0; i < 3; ++i) {
+  upas = isl_union_pw_aff_list_alloc(ctx, 3); // 3
+  for (size_t i = 0; i < 3; ++i) {            // 4
     mupa = isl_schedule_node_band_get_partial_schedule(node);
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
     mupa = isl_multi_union_pw_aff_free(mupa);
@@ -139,10 +139,10 @@ tadashi_tile_3d(isl_schedule_node *node, int size1, int size2, int size3) {
   node = isl_schedule_node_band_tile(node, sizes);
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_band_split(node, 2);
-  node = isl_schedule_node_band_split(node, 1);
+  node = isl_schedule_node_band_split(node, 1); // 5
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_band_split(node, 2);
-  node = isl_schedule_node_band_split(node, 1);
+  node = isl_schedule_node_band_split(node, 1); // 6
   return node;
 }
 
