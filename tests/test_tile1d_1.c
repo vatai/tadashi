@@ -1,4 +1,4 @@
-/// TRANSFORMATION: 0, 1, "TILE", 4
+/// TRANSFORMATION: 0, 1, "TILE1D", 4
 /// #include <stdlib.h>
 ///
 /// void f(size_t N, double A[N][N]) {
