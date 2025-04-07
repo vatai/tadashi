@@ -1,8 +1,9 @@
 import datetime
 import json
 import os
-from turtle import \
-    speed  # os is implicitly used by open(), but good to be aware
+
+#from turtle import \
+    #speed  # os is implicitly used by open(), but good to be aware
 
 
 class TimestampedJsonLogger:
