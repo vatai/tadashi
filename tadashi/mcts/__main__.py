@@ -70,7 +70,7 @@ def main():
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.logger = TimestampedJsonLogger(app.source.name)
     root.logger.log(1)
-    root.speedup = 1
+    root.speedup    = 1
     for rollout in range(15):
         print(f"---- doing rollout {rollout}")
         root.roll()
