@@ -43,7 +43,7 @@ class Model:
         return self.node_idx, key, tr, args
 
     def random_args(self, node, tr):
-        if tr == TRANSFORMATIONS[TrEnum.TILE]:
+        if tr == TRANSFORMATIONS[TrEnum.TILE1D]:
             tile_size = random.choice([2**x for x in range(5, 12)])
             return [tile_size]
         lubs = tr.available_args(node)
