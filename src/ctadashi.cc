@@ -246,9 +246,24 @@ post_transform(size_t pool_idx, size_t scop_idx) {
 }
 
 extern "C" int
-tile(size_t pool_idx, size_t scop_idx, size_t tile_size) {
+tile1d(size_t pool_idx, size_t scop_idx, size_t tile_size) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile(si->tmp_node, tile_size);
+  si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
+  return post_transform(pool_idx, scop_idx);
+}
+
+extern "C" int
+tile2d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_tile_2d(si->tmp_node, size1, size2);
+  return post_transform(pool_idx, scop_idx);
+}
+
+extern "C" int
+tile3d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2,
+       size_t size3) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node = tadashi_tile_3d(si->tmp_node, size1, size2, size3);
   return post_transform(pool_idx, scop_idx);
 }
 
