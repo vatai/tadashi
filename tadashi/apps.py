@@ -36,7 +36,7 @@ class App:
         if compiler_options is None:
             compiler_options = []
         self.user_compiler_options = compiler_options
-        prev_include_path = os.environ["C_INCLUDE_PATH"]
+        prev_include_path = os.getenv("C_INCLUDE_PATH", [])
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         if prev_include_path:
             os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
