@@ -1,0 +1,3 @@
+module load system/genoa mpi/mpich-x86_64
+set_env $(git rev-parse --show-toplevel)/deps/opt
+source $(git rev-parse --show-toplevel)/venv/bin/activate

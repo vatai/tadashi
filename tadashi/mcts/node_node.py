@@ -3,7 +3,6 @@ import logging
 from colorama import Fore, Style
 
 import tadashi.mcts.node_transformation
-from tadashi import TrEnum
 
 from .base import MCTSNode
 
@@ -17,7 +16,7 @@ class MCTSNode_Node(MCTSNode):
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
-            if nodes[i].available_transformations:
+            if self.get_ISL_node_transformations(nodes[i]):
                 nodes_transformable.append(i)
                 # print("trans node", i)
                 # print("\t", nodes[i], nodes[i].available_transformations)

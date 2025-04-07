@@ -3,8 +3,9 @@ import random
 from pathlib import Path
 from uuid import uuid4
 
-from tadashi import TrEnum
+# from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
+from tadashi.mcts import TimestampedJsonLogger
 from tadashi.mcts.node_node import MCTSNode_Node
 
 
@@ -25,8 +26,8 @@ def clone_simple(self):
 
 def clone_poly(self):
     new_app = self.generate_code(ephemeral=True)
-    print("SOURCE")
-    print(new_app.source)
+    # print("SOURCE")
+    # print(new_app.source)
     # new_app.remove_source()
     return new_app
 
@@ -39,14 +40,15 @@ def main():
     setattr(Polybench, "clone", clone_poly)
     random.seed(18)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
-    base = "examples/polybench"
+    #base = "examples/polybench"
     # app = Polybench(
     #     "linear-algebra/blas/gemm",
     #     base,
     #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
     # )
     # app = Simple("./examples/inputs/simple/two_loops.c")
-    app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
+    # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
+    app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
@@ -66,8 +68,10 @@ def main():
     # app3 = app2.generate_code()
     # app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
+    root.logger = TimestampedJsonLogger(app.source.name)
+    root.logger.log(1)
     root.speedup = 1
-    for rollout in range(3):
+    for rollout in range(15):
         print(f"---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
