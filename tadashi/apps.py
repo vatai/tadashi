@@ -257,13 +257,22 @@ class Polybench(App):
             str(self.output_binary),
         ]
 
-    def generate_code(self, ephemeral: bool = True):
-        # if alt_infix:
-        #     now = datetime.datetime.now()
-        #     now_str = datetime.datetime.isoformat(now)
-        #     alt_infix = f".{now_str}"
-        # new_file = self._source_with_infix(self.source, alt_infix)
-        new_file = self.make_new_filename()
+    def _source_with_infix(self, alt_infix: str):
+        mark = "INFIX"
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{alt_infix}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        suffix = self.source.suffix
+        return self.source.with_suffix(f".{alt_infix}{suffix}")
+
+    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
+        else:
+            new_file = self.make_new_filename()
         print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         kwargs = {

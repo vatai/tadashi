@@ -22,7 +22,7 @@ for tile_size in [64, 100, 128]:
     ]
     gemm.transform_list(trs)
     # print(gemm.scops[0].schedule_tree[9].yaml_str)
-    tiled = gemm.generate_code(alt_infix="_tiled{tile_size}", ephemeral=False)
+    tiled = gemm.generate_code(alt_infix=f"tiled{tile_size}", ephemeral=False)
 
     tiled.compile()
     print(f"{tile_size=} : {tiled.measure()=}")
