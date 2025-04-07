@@ -11,24 +11,26 @@ gemm = Polybench(
 )
 print(f"{gemm.user_compiler_options=}")
 
-gemm.compile()
-print(f"{gemm.measure()=}")
-for tile_size in [64, 100, 128]:
+# gemm.compile()
+# print(f"{gemm.measure()=}")
+for tile_size in [100]:
     gemm.reset_scops()
     trs = [
         [0, 2, TrEnum.FULL_SPLIT],
-        [0, 7, TrEnum.TILE, tile_size],
-        [0, 9, TrEnum.TILE, tile_size],
-        [0, 11, TrEnum.TILE, tile_size],
-        [0, 8, TrEnum.INTERCHANGE],
-        [0, 10, TrEnum.INTERCHANGE],
-        [0, 9, TrEnum.INTERCHANGE],
+        # [0, 7, TrEnum.TILE1D, tile_size],
+        # [0, 9, TrEnum.TILE1D, tile_size],
+        # [0, 11, TrEnum.TILE1D, tile_size],
+        # [0, 8, TrEnum.INTERCHANGE],
+        # [0, 10, TrEnum.INTERCHANGE],
+        # [0, 9, TrEnum.INTERCHANGE],
+        ###
+        [0, 7, TrEnum.TILE3D, tile_size, tile_size, tile_size],
     ]
     gemm.transform_list(trs)
-    # print(gemm.scops[0].schedule_tree[9].yaml_str)
-    tiled = gemm.generate_code(alt_infix="_tiled{tile_size}", ephemeral=False)
+    print(gemm.scops[0].schedule_tree[7].yaml_str)
+    tiled = gemm.generate_code(alt_infix=f"_tiled{tile_size}", ephemeral=False)
 
-    tiled.compile()
-    print(f"{tile_size=} : {tiled.measure()=}")
+    # tiled.compile()
+    # print(f"{tile_size=} : {tiled.measure()=}")
 
 print("DONE")

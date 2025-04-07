@@ -66,7 +66,9 @@ class TrEnum(StrEnum):
     args) to perform the transformation.
     """
 
-    TILE = auto()
+    TILE1D = auto()
+    TILE2D = auto()
+    TILE3D = auto()
     INTERCHANGE = auto()
     FUSE = auto()
     FULL_FUSE = auto()
@@ -247,8 +249,8 @@ class TransformInfo:
         return []
 
 
-class TileInfo(TransformInfo):
-    func_name = "tile"
+class Tile1DInfo(TransformInfo):
+    func_name = "tile1d"
     arg_help = ["Tile size"]
 
     @staticmethod
@@ -258,6 +260,57 @@ class TileInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [LowerUpperBound(lower=1, upper=None)]
+
+
+class Tile2DInfo(TransformInfo):
+    func_name = "tile2d"
+    arg_help = ["Size1", "Size2"]
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type != NodeType.BAND:
+            return False
+        if node.children[0].node_type != NodeType.BAND:
+            return False
+        return True
+
+    @staticmethod
+    def valid_args(node, size1, size2):
+        return size1 > 0 and size2 > 0
+
+    @staticmethod
+    def available_args(node: Node):
+        return [
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+        ]
+
+
+class Tile3DInfo(TransformInfo):
+    func_name = "tile3d"
+    arg_help = ["Size1", "Size2", "Size3"]
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type != NodeType.BAND:
+            return False
+        if node.children[0].node_type != NodeType.BAND:
+            return False
+        if node.children[0].children[0].node_type != NodeType.BAND:
+            return False
+        return True
+
+    @staticmethod
+    def valid_args(node, size1, size2, size3):
+        return size1 > 0 and size2 > 0 and size3 > 0
+
+    @staticmethod
+    def available_args(node: Node):
+        return [
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+        ]
 
 
 class InterchangeInfo(TransformInfo):
@@ -490,7 +543,9 @@ class SetLoopOptInfo(TransformInfo):
 """A dictionary which connects the simple `TrEnum` to the detailed
 `TranformInfo`."""
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
-    TrEnum.TILE: TileInfo(),
+    TrEnum.TILE1D: Tile1DInfo(),
+    TrEnum.TILE2D: Tile2DInfo(),
+    TrEnum.TILE3D: Tile3DInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
     TrEnum.FULL_FUSE: FullFuseInfo(),
