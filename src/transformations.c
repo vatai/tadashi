@@ -102,6 +102,7 @@ tadashi_tile_2d(isl_schedule_node *node, int size1, int size2) {
 isl_schedule_node *
 tadashi_tile_3d(isl_schedule_node *node, int size1, int size2, int size3) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  printf("NODE: %s\n", isl_schedule_node_to_str(node));
   isl_val *val = isl_val_int_from_si(ctx, size1);
   isl_val_list *vl = isl_val_list_from_val(val);
   vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size2));
@@ -131,6 +132,13 @@ tadashi_tile_3d(isl_schedule_node *node, int size1, int size2, int size3) {
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
 
   node = isl_schedule_node_band_tile(node, sizes);
+
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_band_split(node, 2);
+  node = isl_schedule_node_band_split(node, 1);
+  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_band_split(node, 2);
+  node = isl_schedule_node_band_split(node, 1);
   printf("NODE: %s\n", isl_schedule_node_to_str(node));
   return node;
 }
