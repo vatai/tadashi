@@ -63,7 +63,8 @@ class Snap(App):
         return self.make_new_app(ephemeral, **kwargs)
 
 
-snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+# snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 tr = TrEnum.INTERCHANGE
 for node_idx, node in enumerate(snap.scops[0].schedule_tree):
     if tr in node.available_transformations:
@@ -71,7 +72,6 @@ for node_idx, node in enumerate(snap.scops[0].schedule_tree):
         node.transform(tr)
         break
 snap.generate_code(ephemeral=False)
-# snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 
 # print(" ".join(snap.compile_cmd))
 
