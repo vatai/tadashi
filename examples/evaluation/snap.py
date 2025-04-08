@@ -2,6 +2,7 @@
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, run
 
+from tadashi import TrEnum
 from tadashi.apps import App, Simple
 
 
@@ -63,7 +64,13 @@ class Snap(App):
 
 
 snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.pp.c", 1)
-print(snap.scops[0].schedule_tree[0].yaml_str)
+tr = TrEnum.INTERCHANGE
+for node_idx, node in enumerate(snap.scops[0].schedule_tree):
+    if tr in node.available_transformations:
+        print(f"{node_idx=}")
+        node.transform(tr)
+        break
+snap.generate_code(ephemeral=False)
 # snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 
 # print(" ".join(snap.compile_cmd))
