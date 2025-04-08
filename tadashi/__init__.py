@@ -201,6 +201,22 @@ class Node:
         """Describe available args."""
         return TRANSFORMATIONS[tr].available_args(self)
 
+    def get_args(self, tr: TrEnum, start: int, end: int) -> list:
+        expanded = [[]]
+        params = self.available_args(tr)
+        for param in params:
+            args = param
+            if isinstance(param, LowerUpperBound):
+                if param.lower is not None and param.lower > start:
+                    start = param.lower
+                if param.upper is not None and param.upper < end:
+                    end = param.upper
+                args = list(range(start, end))
+                expanded = [[*e, a] for e in expanded for a in args]
+            elif isinstance(param, list):
+                expanded = [[*e, *a] for e in expanded for a in args]
+        return expanded
+
 
 LowerUpperBound = namedtuple(
     "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
