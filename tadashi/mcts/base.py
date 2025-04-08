@@ -1,6 +1,6 @@
 import random
 
-from colorama import Fore, Style, init
+from colorama import Fore, Style
 from tadashi import TrEnum
 
 # TODO: make this proper config
