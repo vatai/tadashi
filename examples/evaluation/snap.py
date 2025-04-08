@@ -65,25 +65,25 @@ class Snap(App):
 
 # snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-tr = TrEnum.FULL_SPLIT
-for node_idx, node in enumerate(snap.scops[0].schedule_tree):
-    available_transformations = node.available_transformations
-    if available_transformations:
-        print(f"{node_idx=}")
-        print(f"{available_transformations=}")
-        if tr in node.available_transformations:
+splits_exist = True
+while splits_exist:
+    splits_exist = False
+    for node_idx, node in enumerate(snap.scops[0].schedule_tree):
+        available_transformations = node.available_transformations
+        if available_transformations:
             print(f"{node_idx=}")
-            node.transform(tr)
-            break
+            print(f"{available_transformations=}")
+            if TrEnum.FULL_SPLIT in available_transformations:
+                print(f"{node_idx=}")
+                node.transform(TrEnum.FULL_SPLIT)
+                splits_exist = True
+
+
 for node_idx, node in enumerate(snap.scops[0].schedule_tree):
     available_transformations = node.available_transformations
     if available_transformations:
         print(f"(ii) {node_idx=}")
         print(f"(ii) {available_transformations=}")
-        if tr in node.available_transformations:
-            print(f"{node_idx=}")
-            node.transform(tr)
-            break
 
 # print(" ".join(snap.compile_cmd))
 
