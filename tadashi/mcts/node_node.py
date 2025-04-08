@@ -6,13 +6,13 @@ import tadashi.mcts.node_transformation
 
 from .base import MCTSNode
 
-
+default_scop = 0
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
 class MCTSNode_Node(MCTSNode):
 
     def set_actions_from_nodes(self):
-        nodes = self.app.scops[0].schedule_tree
+        nodes = self.app.scops[default_scop].schedule_tree
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
@@ -44,7 +44,6 @@ class MCTSNode_Node(MCTSNode):
 
     def evaluate(self):
         self._number_of_visits += 1
-        default_scop = 0
         trs = self.get_transform_chain()
         print("\nselected transform:", trs)
         # TODO: make a copy of the app to continue on it
@@ -52,6 +51,7 @@ class MCTSNode_Node(MCTSNode):
         # TODO: 1 where we do not apply, but keep growing list of 
         # app_backup = self.app.generate_code()
         # print("!we are in app ", self.app)
+        self.app.reset_scops()
         try:
             legal = self.app.scops[default_scop].transform_list(trs)[0]
             print("transform legal: ", legal)
@@ -80,6 +80,11 @@ class MCTSNode_Node(MCTSNode):
 
     def roll(self, depth=0):
         logging.info('selecting a node to transform')
+        print("retplaying transforms up to current")
+        if self.parent:
+            self.app.reset_scops()
+            trs = self.get_transform_chain()
+            self.app.scops[default_scop].transform_list(trs)[0]
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()
