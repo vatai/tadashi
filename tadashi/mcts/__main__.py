@@ -1,3 +1,4 @@
+import argparse
 import logging
 import random
 from pathlib import Path
@@ -32,23 +33,27 @@ def clone_poly(self):
     return new_app
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
+    return parser.parse_args()
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     # logger = logging.getLogger(__name__)
     # logger.info('message')
+    args = get_args()
     setattr(Simple, "clone", clone_simple)
     setattr(Polybench, "clone", clone_poly)
     random.seed(18)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
-    #base = "examples/polybench"
-    # app = Polybench(
-    #     "linear-algebra/blas/gemm",
-    #     base,
-    #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
-    # )
-    # app = Simple("./examples/inputs/simple/two_loops.c")
-    # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
-    app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
+    base = "examples/polybench"
+    app = Polybench(
+        args.benchmark,
+        base,
+        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+    )
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
@@ -70,7 +75,7 @@ def main():
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.logger = TimestampedJsonLogger(app.source.name)
     root.logger.log(1)
-    root.speedup    = 1
+    root.speedup = 1
     for rollout in range(15):
         print(f"---- doing rollout {rollout}")
         root.roll()
