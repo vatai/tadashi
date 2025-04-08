@@ -23,18 +23,29 @@ class MCTSNode_Node(MCTSNode):
         # print("transformable nodes:", len(nodes_transformable))
         # TODO: do this lazily to avoid expensive cloning through code generation
         self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
-                                                                                  app=self.app.clone(),
+                                                                                  app=self.app,
                                                                                   action=node) for node in nodes_transformable]
         # print("done")
 
-    def evaluate(self):
-        self._number_of_visits += 1
-        # cloned_app = self.app.generate_code()
-        default_scop = 0
+    def get_transform_chain(self):
+        # print("GETING CHAIN from", self)
+        # self.print()
+        # print("-----")
+        if self.parent.parent.parent.parent:
+            # print(self.parent.parent.parent.parent)
+            transforms = self.parent.parent.parent.get_transform_chain()
+        else:
+            transforms = []
         node = self.parent.parent.action
         tr = self.parent.action
         args = self.action
-        trs = [[node, tr, *args]]
+        transforms.append([node, tr, *args])
+        return transforms
+
+    def evaluate(self):
+        self._number_of_visits += 1
+        default_scop = 0
+        trs = self.get_transform_chain()
         print("\nselected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
