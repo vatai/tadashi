@@ -65,7 +65,7 @@ class Snap(App):
 
 # snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-tr = TrEnum.INTERCHANGE
+tr = TrEnum.FULL_SPLIT
 for node_idx, node in enumerate(snap.scops[0].schedule_tree):
     available_transformations = node.available_transformations
     if available_transformations:
@@ -75,7 +75,15 @@ for node_idx, node in enumerate(snap.scops[0].schedule_tree):
             print(f"{node_idx=}")
             node.transform(tr)
             break
-snap.generate_code(ephemeral=False)
+for node_idx, node in enumerate(snap.scops[0].schedule_tree):
+    available_transformations = node.available_transformations
+    if available_transformations:
+        print(f"(ii) {node_idx=}")
+        print(f"(ii) {available_transformations=}")
+        if tr in node.available_transformations:
+            print(f"{node_idx=}")
+            node.transform(tr)
+            break
 
 # print(" ".join(snap.compile_cmd))
 
