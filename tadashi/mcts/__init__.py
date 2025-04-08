@@ -2,9 +2,6 @@ import datetime
 import json
 import os
 
-#from turtle import \
-    #speed  # os is implicitly used by open(), but good to be aware
-
 
 class TimestampedJsonLogger:
     """
@@ -14,6 +11,7 @@ class TimestampedJsonLogger:
     call to the log method for a given instance of this class.
     Subsequent calls append to the same file.
     """
+
     def __init__(self, prefix):
         """Initializes the logger, filename is not yet set."""
         now = datetime.datetime.now()
@@ -33,16 +31,15 @@ class TimestampedJsonLogger:
         Args:
             value: The data/value to log. Can be any JSON-serializable type.
         """
-        current_timestamp = datetime.datetime.now().isoformat() # ISO format is standard
-        log_entry = {
-            "timestamp": current_timestamp,
-            "speedup": speedup
-        }
+        current_timestamp = (
+            datetime.datetime.now().isoformat()
+        )  # ISO format is standard
+        log_entry = {"timestamp": current_timestamp, "speedup": speedup}
 
         # 3. Append the JSON line to the file
         try:
             # Use 'a' mode for appending. utf-8 encoding is generally recommended.
-            with open(self._filename, 'a', encoding='utf-8') as f:
+            with open(self._filename, "a", encoding="utf-8") as f:
                 # Convert the dictionary to a JSON string
                 json_line = json.dumps(log_entry)
                 # Write the JSON string followed by a newline (JSON Lines format)
@@ -51,6 +48,7 @@ class TimestampedJsonLogger:
             print(f"Error: Could not write to log file {self._filename}: {e}")
         except TypeError as e:
             print(f"Error: Value provided is not JSON serializable: {e}")
+
 
 # --- Example Usage ---
 
