@@ -288,10 +288,11 @@ allocate_tadashi_scop(struct pet_scop *ps) {
   compute_live_out(ts);
   ts->dep_flow = get_dependencies(ps);
   printf("%p %p %p\n", ts->domain, ts->schedule, ts->dep_flow);
-  if (ts->domain)
-    eliminate_dead_code(ts);
-  else
+  if (ts->domain == NULL)
     ts->domain = isl_schedule_get_domain(ts->schedule);
+  else
+    eliminate_dead_code(ts);
+
   ts->pet_scop = ps;
   printf("%p %p %p\n", ts->domain, ts->schedule, ts->dep_flow);
   return ts;
