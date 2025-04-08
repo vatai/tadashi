@@ -40,7 +40,7 @@ def main():
     setattr(Polybench, "clone", clone_poly)
     random.seed(18)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
-    #base = "examples/polybench"
+    base = "examples/polybench"
     # app = Polybench(
     #     "linear-algebra/blas/gemm",
     #     base,
@@ -48,7 +48,12 @@ def main():
     # )
     # app = Simple("./examples/inputs/simple/two_loops.c")
     # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
-    app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
+    # app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
+    app = Polybench(
+	    "stencils/jacobi-2d",
+	    base,
+	    compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+    )
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return

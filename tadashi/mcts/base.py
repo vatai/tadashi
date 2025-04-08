@@ -53,7 +53,7 @@ class MCTSNode:
         else:
             print()
             print ("speedup :", self.speedup)
-            print ("soruce  :", self.app.source)
+            print ("source  :", self.app.source)
 
     def set_best(self):
         self.is_best = True

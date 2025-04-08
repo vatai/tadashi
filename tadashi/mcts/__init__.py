@@ -2,9 +2,6 @@ import datetime
 import json
 import os
 
-#from turtle import \
-    #speed  # os is implicitly used by open(), but good to be aware
-
 
 class TimestampedJsonLogger:
     """
@@ -39,13 +36,9 @@ class TimestampedJsonLogger:
             "speedup": speedup
         }
 
-        # 3. Append the JSON line to the file
         try:
-            # Use 'a' mode for appending. utf-8 encoding is generally recommended.
             with open(self._filename, 'a', encoding='utf-8') as f:
-                # Convert the dictionary to a JSON string
                 json_line = json.dumps(log_entry)
-                # Write the JSON string followed by a newline (JSON Lines format)
                 f.write(json_line + "\n")
         except IOError as e:
             print(f"Error: Could not write to log file {self._filename}: {e}")
