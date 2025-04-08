@@ -46,24 +46,25 @@ class MCTSNode_Node(MCTSNode):
             print("transform legal: ", legal)
             if legal:
                 # print("try generate code")
-                self.app = self.app.generate_code(ephemeral=False)
+                new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
-                self.app.compile()
-                new_time = self.app.measure()
+                new_app.compile()
+                new_time = new_app.measure()
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
+                self.update_stats(speedup, trs, new_app.source.name)
             else:
                 speedup = -1
-            self.update_stats(speedup)
+                self.update_stats(speedup, trs, "")
             print("speedup:", speedup)
         except Exception as e:
             print(Fore.RED, end="")
             print("failed to transform with the following exception:")
             print(e)
             print(Style.RESET_ALL, end="")
-        # finally:
-            # self.app = app_backup
+        finally:
+            self.app.reset_scops()
 
 
     def roll(self, depth=0):

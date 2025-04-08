@@ -20,7 +20,7 @@ class TimestampedJsonLogger:
         self._filename = f"{prefix}_{now.strftime('%Y%m%d_%H%M%S')}.jsonl"
         # print(f"Initializing log file: {self._filename}") # Optional: Inform user
 
-    def log(self, speedup):
+    def log(self, speedup, transforms, source):
         """
         Logs a value to the file.
 
@@ -34,7 +34,8 @@ class TimestampedJsonLogger:
         current_timestamp = (
             datetime.datetime.now().isoformat()
         )  # ISO format is standard
-        log_entry = {"timestamp": current_timestamp, "speedup": speedup}
+        log_entry = {"timestamp": current_timestamp, "speedup": speedup,
+                     "transform": transforms, "source": source}
 
         # 3. Append the JSON line to the file
         try:

@@ -99,7 +99,7 @@ class MCTSNode:
         if self.best:
             self.best.print_best(depth + 1)
 
-    def update_stats(self, speedup):
+    def update_stats(self, speedup, transforms, source):
         epsilon = 0.1
         if abs(speedup - 1) < epsilon:
             speedup = 1
@@ -109,9 +109,9 @@ class MCTSNode:
         if self.speedup is None or speedup > self.speedup:
             self.speedup = speedup
             if self.parent:
-                self.parent.update_stats(speedup)
+                self.parent.update_stats(speedup, transforms, source)
             else:
-                self.logger.log(speedup)
+                self.logger.log(speedup, transforms, source)
 
     @staticmethod
     def get_ISL_node_transformations(node):
