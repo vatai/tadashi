@@ -14,4 +14,5 @@ class TestTadashi(unittest.TestCase):
         tr = TrEnum.PARTIAL_SHIFT_VAR
         avail_args = node.available_args(tr)
         args = node.get_args(tr, -3, 2)
+        node.transform(tr, *args[0])
         self.assertEqual(len(avail_args[0]) * 5, len(args))
