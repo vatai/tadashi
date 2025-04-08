@@ -273,7 +273,7 @@ class Polybench(App):
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self.make_new_filename()
-        print(f"{new_file=}")
+        # print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         kwargs = {
             "source": new_file,
