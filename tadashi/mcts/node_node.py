@@ -60,7 +60,7 @@ class MCTSNode_Node(MCTSNode):
                 new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
                 new_app.compile()
-                new_time = new_app.measure()
+                new_time = new_app.measure(repeat=5)
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
@@ -80,11 +80,11 @@ class MCTSNode_Node(MCTSNode):
 
     def roll(self, depth=0):
         logging.info('selecting a node to transform')
-        print("retplaying transforms up to current")
+        # print("replaying transforms up to current")
         if self.parent:
             self.app.reset_scops()
             trs = self.get_transform_chain()
-            self.app.scops[default_scop].transform_list(trs)[0]
+            self.app.scops[default_scop].transform_list(trs)
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()

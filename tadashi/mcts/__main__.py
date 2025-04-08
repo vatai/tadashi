@@ -58,7 +58,7 @@ def main():
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
     app.compile()
-    initial_time = app.measure()
+    initial_time = app.measure(repeat=5)
     # print("initial time:", initial_time)
     # Try do transformations manually
     # trs = [[0, 3, TrEnum.INTERCHANGE]]
