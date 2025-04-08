@@ -77,6 +77,7 @@ while splits_exist:
                 print(f"{node_idx=}")
                 node.transform(TrEnum.FULL_SPLIT)
                 splits_exist = True
+                break
 
 
 for node_idx, node in enumerate(snap.scops[0].schedule_tree):
