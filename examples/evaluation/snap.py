@@ -2,7 +2,7 @@
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, run
 
-from tadashi.apps import App
+from tadashi.apps import App, Simple
 
 
 class Snap(App):
@@ -62,8 +62,10 @@ class Snap(App):
         return self.make_new_app(ephemeral, **kwargs)
 
 
-snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.pp.c", 1)
+print(snap.scops[0].schedule_tree[0].yaml_str)
+# snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 
-print(" ".join(snap.compile_cmd))
+# print(" ".join(snap.compile_cmd))
 
-snap.generate_code()
+# snap.generate_code()
