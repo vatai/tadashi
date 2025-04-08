@@ -4,7 +4,12 @@ from colorama import Fore, Style, init
 from tadashi import TrEnum
 
 # TODO: make this proper config
-allowed_transformations = {TrEnum.TILE, TrEnum.INTERCHANGE}
+allowed_transformations = {
+    TrEnum.TILE1D,
+    TrEnum.TILE2D,
+    TrEnum.TILE3D,
+    TrEnum.FULL_SPLIT,
+}
 
 
 class MCTSNode:
