@@ -67,9 +67,9 @@ class Snap(App):
 snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 tr = TrEnum.INTERCHANGE
 for node_idx, node in enumerate(snap.scops[0].schedule_tree):
-    print(f"{node_idx=}")
     available_transformations = node.available_transformations
     if available_transformations:
+        print(f"{node_idx=}")
         print(f"{available_transformations=}")
         if tr in node.available_transformations:
             print(f"{node_idx=}")
