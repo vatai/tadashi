@@ -58,21 +58,27 @@ class Snap(App):
     @property
     def run_cmd(self) -> list[str]:
         cmd = [
-                "mpirun", "-n", "4",
-                str(self.output_binary),
-                "--fi", str(self.input_file),
-                "--fo", str(self.output_file),
-                ]
+            "mpirun",
+            "-n",
+            "4",
+            str(self.output_binary),
+            "--fi",
+            str(self.input_file),
+            "--fo",
+            str(self.output_file),
+        ]
         return cmd
 
     def extract_runtime(self, stdout) -> list[str]:
-        assert(stdout == "Success! Done in a SNAP!\n")
+        assert (
+            stdout == "Success! Done in a SNAP!\n"
+        ), "SNAP didn't crashed or something else went wrong"
         with open(self.output_file) as output_file:
             for line in output_file:
                 if line.strip() == "Timing Summary":
                     break
             for line in output_file:
-                if "." in line :
+                if "." in line:
                     print(line[:-1])
         return 42.0
 
@@ -90,33 +96,37 @@ class Snap(App):
         return self.make_new_app(ephemeral, **kwargs)
 
 
-snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-snap.compile()
-print(f"{snap.measure()=}")
-exit()
+def main():
+    snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+    snap.compile()
+    orig_times = snap.measure()
 
-snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-splits_exist = True
-while splits_exist:
-    splits_exist = False
+    splits_exist = True
+    count = 0
+    while splits_exist and count < 3:
+        splits_exist = False
+        for node_idx, node in enumerate(snap.scops[0].schedule_tree):
+            available_transformations = node.available_transformations
+            if available_transformations:
+                print(f"{available_transformations=}")
+                if TrEnum.FULL_SPLIT in available_transformations:
+                    if node.transform(TrEnum.FULL_SPLIT):
+                        # legal
+                        print(f"[{node_idx}, FULL_SPLIT]")
+                        app = snap.generate_code()
+                        print(app.measure())
+                        splits_exist = True
+                        count += 1
+                        break
+                    else:
+                        node.rollback()
+    return
     for node_idx, node in enumerate(snap.scops[0].schedule_tree):
         available_transformations = node.available_transformations
         if available_transformations:
-            print(f"{node_idx=}")
-            print(f"{available_transformations=}")
-            if TrEnum.FULL_SPLIT in available_transformations:
-                print(f"{node_idx=}")
-                node.transform(TrEnum.FULL_SPLIT)
-                splits_exist = True
-                break
+            print(f"(ii) {node_idx=}")
+            print(f"(ii) {available_transformations=}")
 
 
-for node_idx, node in enumerate(snap.scops[0].schedule_tree):
-    available_transformations = node.available_transformations
-    if available_transformations:
-        print(f"(ii) {node_idx=}")
-        print(f"(ii) {available_transformations=}")
-
-# print(" ".join(snap.compile_cmd))
-
-# snap.generate_code()
+if __name__ == "__main__":
+    main()
