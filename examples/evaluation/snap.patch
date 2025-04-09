@@ -38,10 +38,10 @@ index 0881e9e..8a62bd1 100644
  
  all: $(A_TARGET) 			# Build all targets
 diff --git a/ports/snap-c/dim1_sweep.c b/ports/snap-c/dim1_sweep.c
-index e72a5a2..94c7687 100644
+index e72a5a2..40f3215 100644
 --- a/ports/snap-c/dim1_sweep.c
 +++ b/ports/snap-c/dim1_sweep.c
-@@ -73,11 +73,16 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+@@ -73,11 +73,17 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
  
      double psi[NANG], pc[NANG], den[NANG];
  
@@ -49,6 +49,7 @@ index e72a5a2..94c7687 100644
 +    int NANG = input_vars->nang;
 +    #undef NX
 +    int NX = input_vars->nx;
++    int NANG_x_NX = NANG * x;
 +    #pragma scop
      for ( ang = 0; ang < NANG; ang++ )
      {
@@ -61,7 +62,16 @@ index e72a5a2..94c7687 100644
      }
  
      double hv[NANG*2], fxhv[NANG*2], qm[NANG*NX];
-@@ -368,5 +373,6 @@ A
+@@ -88,7 +94,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+         fxhv[ang] = 0;
+     }
+ 
+-    for ( ang = 0; ang < (NANG*NX); ang++ )
++    for ( ang = 0; ang < (NANG_x_NX); ang++ )
+     {
+         den[ang] = 0;
+     }
+@@ -368,5 +374,6 @@ A
  //    FREE(hv);
  //    FREE(fxhv);
  //    FREE(qm);
