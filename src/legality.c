@@ -291,7 +291,6 @@ allocate_tadashi_scop(struct pet_scop *ps) {
     ts->domain = isl_schedule_get_domain(ts->schedule);
   else
     eliminate_dead_code(ts);
-
   ts->pet_scop = ps;
   return ts;
 }
