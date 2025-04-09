@@ -172,26 +172,6 @@ Tiling with size 32: 1.064292
 -----------------------------------------
 
 [STARTING NEW APP]
-linear-algebra/blas/matmul
-app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
-App probaly crashed: list index out of range
-Baseline measure: 0.000000
-App probaly crashed: list index out of range
-App probaly crashed: list index out of range
-transformation_list=[
-   [0, 1, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
-]
-Tiling with size 32 ...
-App probaly crashed: list index out of range
-new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/matmul/matmul-INFIX-_tiled32-_wr1u21j.c')
-App probaly crashed: list index out of range
-Tiling with size 32: 0.000000
-[FINISHED APP]
-
-
------------------------------------------
-
-[STARTING NEW APP]
 linear-algebra/kernels/atax
 app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
 Baseline measure: 0.003804
