@@ -18,6 +18,8 @@ class Snap(App):
             include_paths=include_path,
             compiler_options=compiler_options,
         )
+        self.input_file = Path(__file__).parent / "snap_input_1"
+        self.output_file = Path(__file__).parent / "snap_output_1"
 
     def mpi_include_paths(self):
         result = run(["mpicc", "-compile_info"], stdout=PIPE)
@@ -55,10 +57,23 @@ class Snap(App):
 
     @property
     def run_cmd(self) -> list[str]:
-        cmd = ["mpirun", str(self.output_binary), "--fi", "myinput", "--fo", "myoutput"]
+        cmd = [
+                "mpirun", "-n", "4",
+                str(self.output_binary),
+                "--fi", str(self.input_file),
+                "--fo", str(self.output_file),
+                ]
         return cmd
 
     def extract_runtime(self, stdout) -> list[str]:
+        assert(stdout == "Success! Done in a SNAP!\n")
+        with open(self.output_file) as output_file:
+            for line in output_file:
+                if line.strip() == "Timing Summary":
+                    break
+            for line in output_file:
+                if "." in line :
+                    print(line[:-1])
         return 42.0
 
     def generate_code(self, alt_source=None, ephemeral=True):
