@@ -21,8 +21,9 @@ class Snap(App):
         self.input_file = Path(__file__).parent / "snap_input_1"
 
     @property
-    def output_file:
+    def output_file(self):
         return Path(__file__).parent / f"{self.source}.out"
+
     def mpi_include_paths(self):
         result = run(["mpicc", "-compile_info"], stdout=PIPE)
         stdout = result.stdout.decode()
