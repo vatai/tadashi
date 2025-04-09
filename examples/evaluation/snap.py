@@ -7,18 +7,43 @@ from tadashi.apps import App, Simple
 
 
 class Snap(App):
-    def __init__(self, source, target, compiler_options=[]):
+    def __init__(self, source: Path, target: int, compiler_options: list = None):
         msg = "Target should be 1 or 3 based on which filme source points to (dim1_sweep.c or dim3_sweep.c)"
         assert target in [1, 3], msg
         self.target = target
         include_path = self.mpi_include_paths()
         include_path += self.gcc_includes()
+        self.preproc(source)
         self._finalize_object(
             source,
             include_paths=include_path,
             compiler_options=compiler_options,
         )
         self.input_file = Path(__file__).parent / "snap_input_1"
+
+    def preproc(self, source: Path):
+        suffix = source.suffix
+        orig_file = source.rename(source.with_suffix(f".orig{suffix}"))
+        result = run(["gcc", "-E", str(orig_file)], stdout=PIPE)
+        with open(orig_file, "r") as input_file:
+            with open(source, "w") as output_file:
+                for input_line in input_file:
+                    if "#pragma scop" in input_line:
+                        break
+                    output_file.write(input_line)
+                pp_lines = result.stdout.decode().split("\n")
+                for i, pp_line in enumerate(pp_lines[0:]):
+                    if "#pragma scop" in pp_line:
+                        break
+                for i, pp_line in enumerate(pp_lines[i:]):
+                    output_file.write(pp_line + "\n")
+                    if "#pragma endscop" in pp_line:
+                        break
+                for input_line in input_file:
+                    if "#pragma endscop" in input_line:
+                        break
+                for input_line in input_file:
+                    output_file.write(input_line)
 
     @property
     def output_file(self):
