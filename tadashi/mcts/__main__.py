@@ -1,6 +1,7 @@
 import argparse
 import logging
 import random
+import time
 
 # from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
@@ -40,6 +41,7 @@ def get_args():
     parser.add_argument("--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3")
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--rollouts", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=time.time())
     args = parser.parse_args()
     config.update(vars(args))
     return args
