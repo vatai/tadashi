@@ -1,13 +1,15 @@
 import argparse
 import logging
 import random
-from pathlib import Path
-from uuid import uuid4
 
 # from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
-from tadashi.mcts import TimestampedJsonLogger
+from tadashi.mcts import TimestampedJsonLogger, config
 from tadashi.mcts.node_node import MCTSNode_Node
+
+# from pathlib import Path
+# from uuid import uuid4
+
 
 # TODO (Emil): move it to apps later, just don't want to deal with merges now
 # def clone_simple(self):
@@ -35,7 +37,10 @@ from tadashi.mcts.node_node import MCTSNode_Node
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
-    return parser.parse_args()
+    parser.add_argument("--repeats", type=int, default=5)
+    args = parser.parse_args()
+    config.update(vars(args))
+    return args
 
 
 def main():
@@ -65,7 +70,7 @@ def main():
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
     app.compile()
-    initial_time = app.measure(repeat=5)
+    initial_time = app.measure(repeat=config["cnt_repeats"])
     # print("initial time:", initial_time)
     # Try do transformations manually
     # trs = [[0, 3, TrEnum.INTERCHANGE]]

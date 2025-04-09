@@ -3,6 +3,7 @@ import logging
 from colorama import Fore, Style
 
 import tadashi.mcts.node_transformation
+from tadashi.mcts import config
 
 from .base import MCTSNode
 
@@ -60,7 +61,7 @@ class MCTSNode_Node(MCTSNode):
                 new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
                 new_app.compile()
-                new_time = new_app.measure(repeat=5)
+                new_time = new_app.measure(repeat=config["cnt_repeats"])
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
