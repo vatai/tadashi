@@ -23,7 +23,9 @@ class Snap(App):
         result = run(["mpicc", "-compile_info"], stdout=PIPE)
         stdout = result.stdout.decode()
         opts = stdout.split()
-        return [inc[2:] for inc in opts if inc.startswith("-I")]
+        include_paths = [inc[2:] for inc in opts if inc.startswith("-I")]
+        print(f"mpi {include_paths=}")
+        return include_paths
 
     def gcc_includes(self):
         cmd = ["gcc", "-xc", "-E", "-v", "/dev/null"]
@@ -38,16 +40,30 @@ class Snap(App):
                 include_paths.append(line[1:])
             if line.startswith("#include <"):
                 collect = True
+        print(f"gcc {include_paths=}")
         return include_paths
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
+        cmd =  [
             "make",
             "-j",
             f"-C{self.source.parent}",
             f"DIM{self.target}_SWEEP_C={self.source.name}",
+            "A_PREFIX=\"\"",
+            f"A_SUFFIX={self.output_binary.name}",
         ]
+        print(" ".join(cmd))
+        return cmd
+
+    @property
+    def run_cmd(self) -> list[str]:
+        cmd = ["mpirun", str(self.output_binary), "--fi", "myinput", "--fo", "myoutput"]
+        print(f"{' '.join(cmd)=}")
+        return cmd
+
+    def extract_runtime(self, stdout) -> list[str]:
+        return 42.0
 
     def generate_code(self, alt_source=None, ephemeral=True):
         if alt_source:
@@ -62,9 +78,11 @@ class Snap(App):
         }
         return self.make_new_app(ephemeral, **kwargs)
 
-
-snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+snap.compile()
+print(f"{snap.measure()=}")
 exit()
+
 snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 splits_exist = True
 while splits_exist:
