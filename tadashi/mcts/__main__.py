@@ -71,7 +71,7 @@ def main():
     app.compile()
     print(config)
     initial_time = app.measure(repeat=config["repeats"])
-    config["timeout"] = initial_time * 1.5
+    config["timeout"] = initial_time * 1.5 + 1
     print("initial time:", initial_time)
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.logger = TimestampedJsonLogger(app.source.name)
