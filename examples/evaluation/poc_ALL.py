@@ -18,7 +18,6 @@ app_names = [
 "linear-algebra/blas/symm",
 "linear-algebra/blas/syrk",
 "linear-algebra/blas/gemm",
-"linear-algebra/blas/matmul",
 "linear-algebra/kernels/atax",
 "linear-algebra/kernels/bicg",
 "linear-algebra/kernels/2mm",
@@ -126,35 +125,5 @@ for app_name in app_names:
 
 
 	print("[FINISHED APP]\n\n")
-
-
-
-
-
-#datamining/correlation
-#app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
-#app.measure()=33.517485
-
-# tile 2D
-	trs=[ 
-	[0, 41, TrEnum.FULL_SPLIT],
-	[0, 36, TrEnum.FULL_SPLIT],
-	[0, 29, TrEnum.FULL_SPLIT],
-	[0, 14, TrEnum.FULL_SPLIT],
-	[0, 4,  TrEnum.FULL_SPLIT],
-	[0, 53, TrEnum.TILE2D, tile_size, tile_size],
-	[0, 20, TrEnum.TILE2D, tile_size, tile_size],
-	[0, 8,  TrEnum.TILE2D, tile_size, tile_size],
-	[0, 52, TrEnum.FULL_FUSE],
-	[0, 46, TrEnum.FULL_FUSE],
-	[0, 38, TrEnum.FULL_FUSE],
-	[0, 17, TrEnum.FULL_FUSE],
-	[0, 3,  TrEnum.FULL_FUSE],
-	]
-
-# Tiling with size 32: 1.974256
-# Tiling with size 64: 2.009392
-# Tiling with size 128: 2.137372
-# Tiling with size 256: 2.188174
 
 
