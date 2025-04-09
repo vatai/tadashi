@@ -1,0 +1,556 @@
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/floyd-warshall
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 108.595845
+transformation_list=[
+   [0, 1, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/medley/floyd-warshall/floyd-warshall-INFIX-_tiled32-1_k9eo2f.c')
+Tiling with size 32: 14.464184
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/nussinov
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 64.185067
+transformation_list=[
+   [0, 3, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 17, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/medley/nussinov/nussinov-INFIX-_tiled32-khay467e.c')
+Tiling with size 32: 1.559498
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/deriche
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.820966
+transformation_list=[
+   [0, 99, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 88, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 77, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 68, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 51, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 40, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 29, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 20, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 139, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 77, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/medley/deriche/deriche-INFIX-_tiled32-l76zizvn.c')
+Tiling with size 32: 0.292239
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syr2k
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 6.232343
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/syr2k/syr2k-INFIX-_tiled32-xw14l4ca.c')
+Tiling with size 32: 2.577629
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gesummv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.006229
+transformation_list=[
+   [0, 9, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/gesummv/gesummv-INFIX-_tiled32-79v8aweo.c')
+Tiling with size 32: 0.009755
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemver
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.066787
+transformation_list=[
+   [0, 14, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 7, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/gemver/gemver-INFIX-_tiled32-dpkbqxby.c')
+Tiling with size 32: 0.016050
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/trmm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 27.256580
+transformation_list=[
+   [0, 3, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 4, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/trmm/trmm-INFIX-_tiled32-m8y_v98a.c')
+Tiling with size 32: 1.567807
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/symm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 27.806235
+transformation_list=[
+   [0, 8, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 3, <TrEnum.FULL_SPLIT: 'full_split'>],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/symm/symm-INFIX-_tiled32-7f6kggoq.c')
+Tiling with size 32: 15.936823
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syrk
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.323586
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/syrk/syrk-INFIX-_tiled32-qxay9dhw.c')
+Tiling with size 32: 1.160944
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 4.571492
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/gemm/gemm-INFIX-_tiled32-rfubk9yb.c')
+Tiling with size 32: 1.064292
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/matmul
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+App probaly crashed: list index out of range
+Baseline measure: 0.000000
+App probaly crashed: list index out of range
+App probaly crashed: list index out of range
+transformation_list=[
+   [0, 1, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+]
+Tiling with size 32 ...
+App probaly crashed: list index out of range
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/blas/matmul/matmul-INFIX-_tiled32-_wr1u21j.c')
+App probaly crashed: list index out of range
+Tiling with size 32: 0.000000
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/atax
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.003804
+transformation_list=[
+   [0, 7, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 15, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 11, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/atax/atax-INFIX-_tiled32-33b7c2py.c')
+Tiling with size 32: 0.002430
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/bicg
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.002616
+transformation_list=[
+   [0, 12, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.FULL_SPLIT: 'full_split'>],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/bicg/bicg-INFIX-_tiled32-_6cgl0zz.c')
+Tiling with size 32: 0.004374
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/2mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 12.586467
+transformation_list=[
+   [0, 14, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 5, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 19, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 9, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/2mm/2mm-INFIX-_tiled32-o7ts755v.c')
+Tiling with size 32: 2.536142
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/doitgen
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 1.155169
+transformation_list=[
+   [0, 6, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 3, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 14, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 10, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/doitgen/doitgen-INFIX-_tiled32-juszs1fv.c')
+Tiling with size 32: 1.006081
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/3mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 23.130597
+transformation_list=[
+   [0, 23, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 14, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 5, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 29, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 19, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 9, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/3mm/3mm-INFIX-_tiled32-2elprpfg.c')
+Tiling with size 32: 4.181119
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/mvt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.050318
+transformation_list=[
+   [0, 7, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/kernels/mvt/mvt-INFIX-_tiled32-p5wlnb99.c')
+Tiling with size 32: 0.012553
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/lu
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 50.415299
+transformation_list=[
+   [0, 5, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 13, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 6, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/lu/lu-INFIX-_tiled32-he2fmalj.c')
+Tiling with size 32: 4.376727
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/durbin
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.011129
+transformation_list=[
+   [0, 10, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 28, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 24, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 17, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/durbin/durbin-INFIX-_tiled32-mq2su1vr.c')
+Tiling with size 32: 0.015960
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/ludcmp
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 46.953310
+transformation_list=[
+   [0, 37, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 27, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 17, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 4, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 48, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 36, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 24, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 11, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/ludcmp/ludcmp-INFIX-_tiled32-f77azvp1.c')
+Tiling with size 32: 14.502622
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/cholesky
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.491837
+transformation_list=[
+   [0, 5, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 13, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 6, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/cholesky/cholesky-INFIX-_tiled32-d0ciq1wg.c')
+Tiling with size 32: 2.708648
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/trisolv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.009469
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 6, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/trisolv/trisolv-INFIX-_tiled32-24rc_rpk.c')
+Tiling with size 32: 0.011753
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/gramschmidt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 97.669487
+transformation_list=[
+   [0, 15, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 27, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 23, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 13, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 6, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/linear-algebra/solvers/gramschmidt/gramschmidt-INFIX-_tiled32-m6jdvnk3.c')
+Tiling with size 32: 4.074029
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/heat-3d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 18.787134
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 10, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 4, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/heat-3d/heat-3d-INFIX-_tiled32-_0e_t1gy.c')
+Tiling with size 32: 4.559038
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-1d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.003547
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 7, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/jacobi-1d/jacobi-1d-INFIX-_tiled32-mu1d2lzv.c')
+Tiling with size 32: 0.001935
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/fdtd-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 12.774546
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 17, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 12, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 7, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 3, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/fdtd-2d/fdtd-2d-INFIX-_tiled32-8uglz4dk.c')
+Tiling with size 32: 2.690012
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/adi
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 63.600247
+transformation_list=[
+   [0, 63, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 54, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 42, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 33, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 30, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 83, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 55, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/adi/adi-INFIX-_tiled32-6n2u9ptq.c')
+Tiling with size 32: 49.288360
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 13.729468
+transformation_list=[
+   [0, 2, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 8, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+   [0, 3, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/jacobi-2d/jacobi-2d-INFIX-_tiled32-rglm5ggv.c')
+Tiling with size 32: 2.658409
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/seidel-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 113.995463
+transformation_list=[
+   [0, 1, <TrEnum.TILE3D: 'tile3d'>, 32, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/stencils/seidel-2d/seidel-2d-INFIX-_tiled32-n5ob8s3k.c')
+Tiling with size 32: 32.822184
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/covariance
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 65.646796
+transformation_list=[
+   [0, 19, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 4, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 25, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 15, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 8, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/datamining/covariance/covariance-INFIX-_tiled32-6kd3a_is.c')
+Tiling with size 32: 1.106649
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/correlation
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 32.564188
+transformation_list=[
+   [0, 41, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 36, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 29, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 14, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 4, <TrEnum.FULL_SPLIT: 'full_split'>],
+   [0, 53, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 20, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+   [0, 8, <TrEnum.TILE2D: 'tile2d'>, 32, 32],
+]
+Tiling with size 32 ...
+new_file=PosixPath('PolyBenchC-4.2.1/datamining/correlation/correlation-INFIX-_tiled32-6zrm3iar.c')
+Tiling with size 32: 1.133004
+[FINISHED APP]
+
+
