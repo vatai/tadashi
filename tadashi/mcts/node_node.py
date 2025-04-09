@@ -1,4 +1,6 @@
 import logging
+from socket import timeout
+from subprocess import TimeoutExpired
 
 from colorama import Fore, Style
 
@@ -46,7 +48,7 @@ class MCTSNode_Node(MCTSNode):
     def evaluate(self):
         self._number_of_visits += 1
         trs = self.get_transform_chain()
-        print("\nselected transform:", trs)
+        print("selected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
         # TODO: 1 where we do not apply, but keep growing list of 
@@ -61,7 +63,8 @@ class MCTSNode_Node(MCTSNode):
                 new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
                 new_app.compile()
-                new_time = new_app.measure(repeat=config["cnt_repeats"])
+                new_time = new_app.measure(repeat=config["repeats"],
+                                           timeout=config["timeout"])
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
@@ -70,6 +73,9 @@ class MCTSNode_Node(MCTSNode):
                 speedup = -1
                 self.update_stats(speedup, trs, "")
             print("speedup:", speedup)
+        except TimeoutExpired:
+            print("timed out")
+            self.update_stats(-1, trs, "")
         except Exception as e:
             print(Fore.RED, end="")
             print("failed to transform with the following exception:")

@@ -39,7 +39,7 @@ def get_args():
     parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
     parser.add_argument("--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3")
     parser.add_argument("--repeats", type=int, default=5)
-    parser.add_argument("--rollouts", type=int, default=5)
+    parser.add_argument("--rollouts", type=int, default=100)
     args = parser.parse_args()
     config.update(vars(args))
     return args
@@ -67,26 +67,16 @@ def main():
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
     app.compile()
-    initial_time = app.measure(repeat=config["cnt_repeats"])
+    print(config)
+    initial_time = app.measure(repeat=config["repeats"])
+    config["timeout"] = initial_time * 1.5
     print("initial time:", initial_time)
-    # Try do transformations manually
-    # trs = [[0, 3, TrEnum.INTERCHANGE]]
-    # app.transform_list(trs)
-    # new_app = app.generate_code()
-    # new_app.compile()
-    # new_time = new_app.measure()
-    # print("optimized time:", new_time)
-    # with Simple(lalala) as app:
-    # do things
-    # app2 = app.generate_code()
-    # app3 = app2.generate_code()
-    # app4 = app3.generate_code()
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
     root.logger = TimestampedJsonLogger(app.source.name)
     root.logger.log(1, [], app.source.name)
     root.speedup = 1
     for rollout in range(config["rollouts"]):
-        print(f"---- doing rollout {rollout}")
+        print(f"\n---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
     print("sampled tree as follows:\n")
