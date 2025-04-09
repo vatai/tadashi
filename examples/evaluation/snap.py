@@ -75,14 +75,18 @@ class Snap(App):
         assert (
             stdout == "Success! Done in a SNAP!\n"
         ), "SNAP didn't crashed or something else went wrong"
+        d = {}
         with open(self.output_file) as output_file:
             for line in output_file:
                 if line.strip() == "Timing Summary":
                     break
             for line in output_file:
                 if "." in line:
-                    print(line[:-1])
-        return 42.0
+                    words = line.strip().split()
+                    key = " ".join(words[:-1])
+                    val = float(words[-1])
+                    d[key] = val
+        return d
 
     def generate_code(self, alt_source=None, ephemeral=True):
         if alt_source:
