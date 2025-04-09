@@ -54,7 +54,7 @@ def main():
     args = get_args()
 #    setattr(Simple, "clone", clone_simple)
 #    setattr(Polybench, "clone", clone_poly)
-    random.seed(18)  # good seed that finds interchange right away for two loops
+    random.seed(args.seed)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
     base = "examples/polybench"
     # app = Simple("./examples/inputs/simple/two_loops.c")
