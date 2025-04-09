@@ -1,6 +1,7 @@
 import datetime
 import json
-import os
+
+# import os
 
 
 class TimestampedJsonLogger:
@@ -11,6 +12,7 @@ class TimestampedJsonLogger:
     call to the log method for a given instance of this class.
     Subsequent calls append to the same file.
     """
+
     def __init__(self, prefix):
         """Initializes the logger, filename is not yet set."""
         now = datetime.datetime.now()
@@ -19,7 +21,7 @@ class TimestampedJsonLogger:
         self._filename = f"{prefix}_{now.strftime('%Y%m%d_%H%M%S')}.jsonl"
         # print(f"Initializing log file: {self._filename}") # Optional: Inform user
 
-    def log(self, speedup):
+    def log(self, speedup, transforms, source):
         """
         Logs a value to the file.
 
@@ -30,11 +32,11 @@ class TimestampedJsonLogger:
         Args:
             value: The data/value to log. Can be any JSON-serializable type.
         """
-        current_timestamp = datetime.datetime.now().isoformat() # ISO format is standard
-        log_entry = {
-            "timestamp": current_timestamp,
-            "speedup": speedup
-        }
+        current_timestamp = (
+            datetime.datetime.now().isoformat()
+        )  # ISO format is standard
+        log_entry = {"timestamp": current_timestamp, "speedup": speedup,
+                     "transform": transforms, "source": source}
 
         try:
             with open(self._filename, 'a', encoding='utf-8') as f:
@@ -44,6 +46,7 @@ class TimestampedJsonLogger:
             print(f"Error: Could not write to log file {self._filename}: {e}")
         except TypeError as e:
             print(f"Error: Value provided is not JSON serializable: {e}")
+
 
 # --- Example Usage ---
 

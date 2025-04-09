@@ -1,5 +1,3 @@
-from zoneinfo import available_timezones
-
 import tadashi.mcts.node_params
 from tadashi import TrEnum
 
@@ -12,9 +10,12 @@ class MCTSNode_Transformation(MCTSNode):
         available_transformations = self.get_ISL_node_transformations(node)
 
         # print("AVAIL:", available_transformations)
-        self.children = [tadashi.mcts.node_params.MCTSNode_Params(parent=self,
-                                                                  app=self.app.clone(),
-                                                                  action=tr) for tr in available_transformations]
+        self.children = [
+            tadashi.mcts.node_params.MCTSNode_Params(
+                parent=self, app=self.app, action=tr
+            )
+            for tr in available_transformations
+        ]
 
     def roll(self, depth):
         # print("select transform")

@@ -57,7 +57,7 @@ class MCTSNode_Params(MCTSNode):
         if self.children is None:
             self.children = [
                 tadashi.mcts.node_node.MCTSNode_Node(
-                    parent=self, app=self.app.clone(), action=p
+                    parent=self, app=self.app, action=p
                 )
                 for p in param_sets
             ]

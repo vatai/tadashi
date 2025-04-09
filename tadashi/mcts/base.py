@@ -1,12 +1,16 @@
 import random
-# from turtle import speed
-from zoneinfo import available_timezones
 
-from colorama import Fore, Style, init
+from colorama import Fore, Style
+
 from tadashi import TrEnum
 
 # TODO: make this proper config
-allowed_transformations = {TrEnum.TILE, TrEnum.INTERCHANGE}
+allowed_transformations = {
+    TrEnum.TILE1D,
+    TrEnum.TILE2D,
+    TrEnum.TILE3D,
+    TrEnum.FULL_SPLIT,
+}
 
 
 class MCTSNode:
@@ -65,10 +69,14 @@ class MCTSNode:
                 return
             if best.speedup < self.speedup:
                 return
-            if self.parent and hasattr(self, "evaluate") and  best.speedup == self.speedup:
+            if (
+                self.parent
+                and hasattr(self, "evaluate")
+                and best.speedup == self.speedup
+            ):
                 return
             best.is_best = True
-            self.best= best
+            self.best = best
             best.set_best()
 
     def print(self, depth=0):
@@ -82,7 +90,7 @@ class MCTSNode:
         if self.children is None:
             return
         for c in self.children:
-            c.print(depth+1)
+            c.print(depth + 1)
 
     def print_best(self, depth=0):
         if self._number_of_visits == 0:
@@ -90,21 +98,21 @@ class MCTSNode:
         print(f"{' '*depth}", end="")
         print(f"V:{self._number_of_visits} S:{self.speedup:0.4f} |", self.action)
         if self.best:
-            self.best.print_best(depth+1)
+            self.best.print_best(depth + 1)
 
-    def update_stats(self, speedup):
+    def update_stats(self, speedup, transforms, source):
         epsilon = 0.1
-        if abs(speedup-1) < epsilon:
+        if abs(speedup - 1) < epsilon:
             speedup = 1
-            #print("QUIT ON ", speedup)
-            #return
+            # print("QUIT ON ", speedup)
+            # return
 
         if self.speedup is None or speedup > self.speedup:
             self.speedup = speedup
             if self.parent:
-                self.parent.update_stats(speedup)
+                self.parent.update_stats(speedup, transforms, source)
             else:
-                self.logger.log(speedup)
+                self.logger.log(speedup, transforms, source)
 
     @staticmethod
     def get_ISL_node_transformations(node):
