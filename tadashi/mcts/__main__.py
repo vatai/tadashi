@@ -37,7 +37,9 @@ from tadashi.mcts.node_node import MCTSNode_Node
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
+    parser.add_argument("--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3")
     parser.add_argument("--repeats", type=int, default=5)
+    parser.add_argument("--rollouts", type=int, default=5)
     args = parser.parse_args()
     config.update(vars(args))
     return args
@@ -53,25 +55,20 @@ def main():
     random.seed(18)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
     base = "examples/polybench"
-    # app = Polybench(
-    #     "linear-algebra/blas/gemm",
-    #     base,
-    #     compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
-    # )
     # app = Simple("./examples/inputs/simple/two_loops.c")
     # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
     # app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
     app = Polybench(
         args.benchmark,
         base,
-        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+        compiler_options=args.compiler_options.split(" "),
     )
 
     print(app.scops[0].schedule_tree[0].yaml_str)
     # return
     app.compile()
     initial_time = app.measure(repeat=config["cnt_repeats"])
-    # print("initial time:", initial_time)
+    print("initial time:", initial_time)
     # Try do transformations manually
     # trs = [[0, 3, TrEnum.INTERCHANGE]]
     # app.transform_list(trs)
@@ -88,7 +85,7 @@ def main():
     root.logger = TimestampedJsonLogger(app.source.name)
     root.logger.log(1, [], app.source.name)
     root.speedup = 1
-    for rollout in range(15):
+    for rollout in range(config["rollouts"]):
         print(f"---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
