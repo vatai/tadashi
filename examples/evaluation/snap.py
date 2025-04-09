@@ -64,7 +64,7 @@ class Snap(App):
 
 
 snap = Simple(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-return
+exit()
 snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
 splits_exist = True
 while splits_exist:
