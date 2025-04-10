@@ -1,10 +1,8 @@
 import logging
-from socket import timeout
 from subprocess import TimeoutExpired
 
-from colorama import Fore, Style
-
 import tadashi.mcts.node_transformation
+from colorama import Fore, Style
 from tadashi.mcts import config
 
 from .base import MCTSNode
@@ -59,6 +57,7 @@ class MCTSNode_Node(MCTSNode):
             legal = self.app.scops[default_scop].transform_list(trs)[0]
             print("transform legal: ", legal)
             if legal:
+                config["cnt_evals"] += 1
                 # print("try generate code")
                 new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")

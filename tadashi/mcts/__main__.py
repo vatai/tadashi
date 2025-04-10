@@ -5,7 +5,8 @@ import time
 
 # from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
-from tadashi.mcts import TimestampedJsonLogger, config
+from tadashi.mcts import config
+from tadashi.mcts.logger import TimestampedJsonLogger
 from tadashi.mcts.node_node import MCTSNode_Node
 
 # from pathlib import Path
@@ -39,7 +40,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
     parser.add_argument("--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3")
-    parser.add_argument("--repeats", type=int, default=5)
+    parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
     args = parser.parse_args()
@@ -78,6 +79,7 @@ def main():
     root.logger.log(1, [], app.source.name)
     root.speedup = 1
     for rollout in range(config["rollouts"]):
+        config["cnt_rollouts"] = rollout+1
         print(f"\n---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")

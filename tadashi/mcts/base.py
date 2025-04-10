@@ -1,7 +1,6 @@
 import random
 
 from colorama import Fore, Style
-
 from tadashi import TrEnum
 
 # TODO: make this proper config
@@ -9,6 +8,8 @@ allowed_transformations = {
     TrEnum.TILE1D,
     TrEnum.TILE2D,
     TrEnum.TILE3D,
+    TrEnum.INTERCHANGE,
+    TrEnum.FULL_FUSE,
     TrEnum.FULL_SPLIT,
 }
 
