@@ -11,8 +11,8 @@ class Snap(App):
         msg = "Target should be 1 or 3 based on which filme source points to (dim1_sweep.c or dim3_sweep.c)"
         assert target in [1, 3], msg
         self.target = target
-        include_path = self.gcc_includes()
-        # include_path = self.mpi_include_paths()
+        include_path = self.mpi_include_paths()
+        include_path += self.gcc_includes()
         source = self.preproc(source)
         print(f"{source=}")
         self._finalize_object(
@@ -26,7 +26,7 @@ class Snap(App):
         suffix = source.suffix
         # new_file = source.rename(source.with_suffix(f".pp{suffix}"))
         new_file = source.with_suffix(f".pp{suffix}")
-        result = run(["gcc", "-E", str(source)], stdout=PIPE, stderr=DEVNULL)
+        result = run(["mpicc", "-E", str(source)], stdout=PIPE, stderr=DEVNULL)
         with open(source, "r") as input_file:
             with open(new_file, "w") as output_file:
                 for line in input_file:
