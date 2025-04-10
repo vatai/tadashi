@@ -38,7 +38,7 @@ index 0881e9e..8a62bd1 100644
  
  all: $(A_TARGET) 			# Build all targets
 diff --git a/ports/snap-c/dim1_sweep.c b/ports/snap-c/dim1_sweep.c
-index e72a5a2..40f3215 100644
+index e72a5a2..89f1832 100644
 --- a/ports/snap-c/dim1_sweep.c
 +++ b/ports/snap-c/dim1_sweep.c
 @@ -73,11 +73,17 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
@@ -49,7 +49,7 @@ index e72a5a2..40f3215 100644
 +    int NANG = input_vars->nang;
 +    #undef NX
 +    int NX = input_vars->nx;
-+    int NANG_x_NX = NANG * x;
++    int NANG_x_NX = NANG * NX;
 +    #pragma scop
      for ( ang = 0; ang < NANG; ang++ )
      {
