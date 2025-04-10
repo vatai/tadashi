@@ -130,6 +130,7 @@ class Snap(App):
 
 def main():
     snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+    return
     snap.compile()
     orig_times = snap.measure()
 
