@@ -11,9 +11,10 @@ class Snap(App):
         msg = "Target should be 1 or 3 based on which filme source points to (dim1_sweep.c or dim3_sweep.c)"
         assert target in [1, 3], msg
         self.target = target
-        include_path = self.mpi_include_paths()
-        include_path += self.gcc_includes()
-        self.preproc(source)
+        include_path = self.gcc_includes()
+        # include_path = self.mpi_include_paths()
+        source = self.preproc(source)
+        print(f"{source=}")
         self._finalize_object(
             source,
             include_paths=include_path,
@@ -23,27 +24,34 @@ class Snap(App):
 
     def preproc(self, source: Path):
         suffix = source.suffix
-        orig_file = source.rename(source.with_suffix(f".orig{suffix}"))
-        result = run(["gcc", "-E", str(orig_file)], stdout=PIPE)
-        with open(orig_file, "r") as input_file:
-            with open(source, "w") as output_file:
-                for input_line in input_file:
-                    if "#pragma scop" in input_line:
+        # new_file = source.rename(source.with_suffix(f".pp{suffix}"))
+        new_file = source.with_suffix(f".pp{suffix}")
+        result = run(["gcc", "-E", str(source)], stdout=PIPE, stderr=DEVNULL)
+        with open(source, "r") as input_file:
+            with open(new_file, "w") as output_file:
+                for line in input_file:
+                    if "#pragma scop" in line:
                         break
-                    output_file.write(input_line)
+                    output_file.write(line)
                 pp_lines = result.stdout.decode().split("\n")
-                for i, pp_line in enumerate(pp_lines[0:]):
-                    if "#pragma scop" in pp_line:
+                for i, line in enumerate(pp_lines[0:]):
+                    if "#pragma scop" in line:
                         break
-                for i, pp_line in enumerate(pp_lines[i:]):
-                    output_file.write(pp_line + "\n")
-                    if "#pragma endscop" in pp_line:
+                for i, line in enumerate(pp_lines[i:]):
+                    output_file.write(
+                        line.replace("->", "___").replace(
+                            "data_vars___vdelt[g-1]", "cond1"
+                        )
+                        + "\n"
+                    )
+                    if "#pragma endscop" in line:
                         break
-                for input_line in input_file:
-                    if "#pragma endscop" in input_line:
+                for line in input_file:
+                    if "#pragma endscop" in line:
                         break
-                for input_line in input_file:
-                    output_file.write(input_line)
+                for line in input_file:
+                    output_file.write(line)
+        return new_file
 
     @property
     def output_file(self):
@@ -130,6 +138,7 @@ class Snap(App):
 
 def main():
     snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+    print(snap.scops[0].schedule_tree[0].yaml_str)
     return
     snap.compile()
     orig_times = snap.measure()

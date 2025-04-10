@@ -38,19 +38,35 @@ index 0881e9e..8a62bd1 100644
  
  all: $(A_TARGET) 			# Build all targets
 diff --git a/ports/snap-c/dim1_sweep.c b/ports/snap-c/dim1_sweep.c
-index e72a5a2..89f1832 100644
+index e72a5a2..a357429 100644
 --- a/ports/snap-c/dim1_sweep.c
 +++ b/ports/snap-c/dim1_sweep.c
-@@ -73,11 +73,17 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+@@ -73,11 +73,33 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
  
      double psi[NANG], pc[NANG], den[NANG];
  
-+    #undef NANG
-+    int NANG = input_vars->nang;
-+    #undef NX
-+    int NX = input_vars->nx;
++    double *data_vars___qim = data_vars->qim;
++    int sn_vars___noct = sn_vars->noct;
++    int input_vars___nz = input_vars->nz;
++    int input_vars___ny = input_vars->ny;
++    int input_vars___nx = input_vars->nx;
++    int input_vars___nang = input_vars->nang;
++    int input_vars___src_opt = input_vars->src_opt;
++    double *solvar_vars___psii = solvar_vars->psii;
++    double *solvar_vars___qtot = solvar_vars->qtot;
++    int sn_vars___cmom = sn_vars->cmom;
++    double *sn_vars___ec = sn_vars->ec;
++    double *sn_vars___mu = sn_vars->mu;
++    double geom_vars___hi = geom_vars->hi;
++    double *data_vars___vdelt = data_vars->vdelt;
++    double *solvar_vars___ptr_in = solvar_vars->ptr_in;
++    int input_vars___fixup = input_vars->fixup;
++    double *geom_vars___dinv = geom_vars->dinv;
++    double *solvar_vars___ptr_out = solvar_vars->ptr_out;
++    double *solvar_vars___t_xs = solvar_vars->t_xs;
++    double control_vars___tolr = control_vars->tolr;
 +    int NANG_x_NX = NANG * NX;
-+    #pragma scop
++    int cond1 = data_vars___vdelt[g-1];
      for ( ang = 0; ang < NANG; ang++ )
      {
 -        psi[NANG] = 0;
@@ -62,7 +78,7 @@ index e72a5a2..89f1832 100644
      }
  
      double hv[NANG*2], fxhv[NANG*2], qm[NANG*NX];
-@@ -88,7 +94,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+@@ -88,7 +110,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
          fxhv[ang] = 0;
      }
  
@@ -71,13 +87,22 @@ index e72a5a2..89f1832 100644
      {
          den[ang] = 0;
      }
-@@ -368,5 +374,6 @@ A
- //    FREE(hv);
- //    FREE(fxhv);
- //    FREE(qm);
-+    #pragma endscop
- }
+@@ -144,6 +166,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+     // i_loop
+     for ( i = ilo; i <= ihi; i+=ist )
+     {
++    #pragma scop
+         if ( i == ilo )
+         {
+             // PSII passed in as psii(nang)
+@@ -302,6 +325,7 @@ A
+             }
+         }
  
++    #pragma endscop
+ /***********************************************************************
+  * Clear the flux arrays
+  ***********************************************************************/
 diff --git a/ports/snap-c/dim3_sweep.c b/ports/snap-c/dim3_sweep.c
 index 7175b3a..157c884 100644
 --- a/ports/snap-c/dim3_sweep.c

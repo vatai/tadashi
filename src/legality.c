@@ -79,10 +79,12 @@ collect_domains(struct pet_scop *scop, int (*pred)(struct pet_stmt *stmt)) {
     if (!pred(stmt))
       continue;
 
-    if (stmt->n_arg > 0)
+    if (stmt->n_arg > 0) {
+      printf("loc: %d\n", pet_loc_get_line(scop->loc));
       isl_die(isl_union_set_get_ctx(domain), isl_error_unsupported,
               "data dependent conditions not supported",
               return isl_union_set_free(domain));
+    }
 
     domain_i = isl_set_copy(scop->stmts[i]->domain);
     domain = isl_union_set_add_set(domain, domain_i);
