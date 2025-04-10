@@ -38,10 +38,10 @@ index 0881e9e..8a62bd1 100644
  
  all: $(A_TARGET) 			# Build all targets
 diff --git a/ports/snap-c/dim1_sweep.c b/ports/snap-c/dim1_sweep.c
-index e72a5a2..a357429 100644
+index e72a5a2..1c3b487 100644
 --- a/ports/snap-c/dim1_sweep.c
 +++ b/ports/snap-c/dim1_sweep.c
-@@ -73,11 +73,33 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+@@ -73,11 +73,36 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
  
      double psi[NANG], pc[NANG], den[NANG];
  
@@ -65,6 +65,9 @@ index e72a5a2..a357429 100644
 +    double *solvar_vars___ptr_out = solvar_vars->ptr_out;
 +    double *solvar_vars___t_xs = solvar_vars->t_xs;
 +    double control_vars___tolr = control_vars->tolr;
++    double *sn_vars___w = sn_vars->w;
++    double *solvar_vars___flux = solvar_vars->flux;
++    double *solvar_vars___fluxm = solvar_vars->fluxm;
 +    int NANG_x_NX = NANG * NX;
 +    int cond1 = data_vars___vdelt[g-1];
      for ( ang = 0; ang < NANG; ang++ )
@@ -78,7 +81,7 @@ index e72a5a2..a357429 100644
      }
  
      double hv[NANG*2], fxhv[NANG*2], qm[NANG*NX];
-@@ -88,7 +110,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
+@@ -88,7 +113,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
          fxhv[ang] = 0;
      }
  
@@ -87,22 +90,22 @@ index e72a5a2..a357429 100644
      {
          den[ang] = 0;
      }
-@@ -144,6 +166,7 @@ void dim1_sweep ( input_data *input_vars, geom_data *geom_vars,
-     // i_loop
-     for ( i = ilo; i <= ihi; i+=ist )
-     {
-+    #pragma scop
-         if ( i == ilo )
-         {
-             // PSII passed in as psii(nang)
-@@ -302,6 +325,7 @@ A
-             }
-         }
- 
-+    #pragma endscop
+@@ -318,6 +343,7 @@ A
  /***********************************************************************
-  * Clear the flux arrays
+  * Compute the flux moments
   ***********************************************************************/
++    #pragma scop
+         sum_wpsi = 0;
+         for ( ang = 0; ang < NANG; ang++ )
+         {
+@@ -337,6 +363,7 @@ A
+             FLUXM_2D((l-1),(i-1)) += sum_ecwpsi;
+ 
+         }
++    #pragma endscop
+ 
+ /***********************************************************************
+  * Calculate min and max scalar fluxes (not used elsewhere currently)
 diff --git a/ports/snap-c/dim3_sweep.c b/ports/snap-c/dim3_sweep.c
 index 7175b3a..157c884 100644
 --- a/ports/snap-c/dim3_sweep.c
