@@ -1,0 +1,25 @@
+#+title: ~tadashi.App~ wrapper for miniAMR
+
+* Using the ~miniAMR(App)~ class
+
+** First steps
+
+#+begin_src sh
+  # go to miniAMR dir
+  cd examples/evaluation/miniAMR/
+
+  # download miniAMR
+  ./setup.sh
+
+  # go back to tadashi root
+  cd -
+
+  # run mini example
+  PYTHONPATH=. python examples/evaluation/miniAMR/app.py
+#+end_src
+
+** Suggested usage
+
+The ~miniAMR~ class should be imported into a python script.  It has the
+usual ~tadashi.App~ methods, such as ~app.generate_code()~, ~app.compile()~,
+~app.measure()~, a ~examples/evaluation/miniAMR/ml.py~
