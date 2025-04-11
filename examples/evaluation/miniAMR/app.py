@@ -14,7 +14,7 @@ class miniAMR(App):
         self,
         source: Path = BASE_PATH / "stencil.c",
         base: Path = BASE_PATH,
-        run_args: list[str] = None,
+        run_args: list[str] = ["--stencil", "0"],
         compiler_options: list = None,
     ):
         self.base = base
