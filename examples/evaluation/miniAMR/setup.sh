@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
-git clone https://github.com/Mantevo/miniAMR
-git apply patch
+[ -e miniAMR ] || git clone https://github.com/Mantevo/miniAMR
+git -C miniAMR apply ../patch
