@@ -24,14 +24,14 @@ index da3b4ee..c5d9a1b 100644
  
  util.o: block.h comm.h proto.h timer.h
 diff --git a/openmp/stencil.c b/openmp/stencil.c
-index 9aa0bb8..e157fe7 100644
+index 9aa0bb8..9ee2633 100644
 --- a/openmp/stencil.c
 +++ b/openmp/stencil.c
 @@ -44,6 +44,7 @@ void stencil_check(int);
  void stencil_driver(int var, int cacl_stage)
  {
     if (stencil)
-+// #pragma scop // [0] //////////////////
++#pragma scop // [0] //////////////////
        stencil_calc(var, stencil);
     else {
        if (!var)
@@ -40,7 +40,7 @@ index 9aa0bb8..e157fe7 100644
        } else
           stencil_calc(var, 7);
 +
-+// #pragma endscop // [0] //////////////////
++#pragma endscop // [0] //////////////////
     }
  }
  
@@ -48,7 +48,7 @@ index 9aa0bb8..e157fe7 100644
        #pragma omp parallel for shared(sorted_index, num_refine, blocks, sorted_list, x_block_size, y_block_size, z_block_size)
        for(int in = 0; in < sorted_index[num_refine+1]; in++) {
           block* bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [1] //////////////////
++#pragma scop // [1] //////////////////
           double work[x_block_size+2][y_block_size+2][z_block_size+2];
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
@@ -57,7 +57,7 @@ index 9aa0bb8..e157fe7 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [1] //////////////////
++#pragma endscop // [1] //////////////////
        }
        total_fp_divs += (double) num_active*num_cells;
        total_fp_adds += (double) 6*num_active*num_cells;
@@ -65,7 +65,7 @@ index 9aa0bb8..e157fe7 100644
        //#pragma omp parallel for default(shared) private(i, j, k, bp, v)
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [2] //////////////////
++#pragma scop // [2] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -73,7 +73,7 @@ index 9aa0bb8..e157fe7 100644
                       bp->array[var][i][j][k] += bp->array[v][i][j][k]*
                                                  bp->array[0][i][j][k];
 +
-+// #pragma endscop // [2] //////////////////
++#pragma endscop // [2] //////////////////
        }
        total_fp_adds += (double) mat*num_active*num_cells;
        total_fp_muls += (double) mat*num_active*num_cells;
@@ -81,7 +81,7 @@ index 9aa0bb8..e157fe7 100644
        //#pragma omp parallel for default(shared) private(i, j, k, bp, v)
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [3] //////////////////
++#pragma scop // [3] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -89,7 +89,7 @@ index 9aa0bb8..e157fe7 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [3] //////////////////
++#pragma endscop // [3] //////////////////
 +
        }
        total_fp_adds += (double) (mat+1)*num_active*num_cells;
@@ -98,7 +98,7 @@ index 9aa0bb8..e157fe7 100644
        {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [4] //////////////////
++#pragma scop // [4] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -106,7 +106,7 @@ index 9aa0bb8..e157fe7 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [4] //////////////////
++#pragma endscop // [4] //////////////////
 +
        }
        }
@@ -115,7 +115,7 @@ index 9aa0bb8..e157fe7 100644
        //#pragma omp parallel for default(shared) private(i, j, k, bp, v, tmp1, tmp2)
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [5] //////////////////
++#pragma scop // [5] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -123,7 +123,7 @@ index 9aa0bb8..e157fe7 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [5] //////////////////
++#pragma endscop // [5] //////////////////
 +
        }
        total_fp_adds += (double) (mat+1)*num_active*num_cells;
@@ -132,7 +132,7 @@ index 9aa0bb8..e157fe7 100644
        //#pragma omp parallel for default(shared) private(i, j, k, bp, v)
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [6] //////////////////
++#pragma scop // [6] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -141,7 +141,7 @@ index 9aa0bb8..e157fe7 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [6] //////////////////
++#pragma endscop // [6] //////////////////
        }
        total_fp_adds += (double) 7*num_active*num_cells;
        total_fp_muls += (double) 8*num_active*num_cells;
@@ -149,7 +149,7 @@ index 9aa0bb8..e157fe7 100644
        //#pragma omp parallel for default(shared) private(i, j, k, bp, v)
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [7] //////////////////
++#pragma scop // [7] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -158,7 +158,7 @@ index 9aa0bb8..e157fe7 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [7] //////////////////
++#pragma endscop // [7] //////////////////
        }
        total_fp_adds += (double) 27*num_active*num_cells;
        total_fp_divs += (double) num_active*num_cells;
@@ -166,7 +166,7 @@ index 9aa0bb8..e157fe7 100644
     //#pragma omp parallel for default(shared) private(i, j, k, bp, v)
     for (in = 0; in < sorted_index[num_refine+1]; in++) {
        bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [8] //////////////////
++#pragma scop // [8] //////////////////
        for (i = 1; i <= x_block_size; i++)
           for (j = 1; j <= y_block_size; j++)
              for (k = 1; k <= z_block_size; k++) {
@@ -174,7 +174,7 @@ index 9aa0bb8..e157fe7 100644
                    total_fp_adds += (double) 1;
                 }
              }
-+// #pragma endscop // [8] //////////////////
++#pragma endscop // [8] //////////////////
 +
     }
  }
@@ -204,14 +204,14 @@ index 5f9c11c..bd718b4 100644
  
  util.o: block.h comm.h proto.h timer.h
 diff --git a/ref/stencil.c b/ref/stencil.c
-index 42db9f9..80dc5e9 100644
+index 42db9f9..c30238c 100644
 --- a/ref/stencil.c
 +++ b/ref/stencil.c
 @@ -43,6 +43,7 @@ void stencil_check(int);
  void stencil_driver(int var, int cacl_stage)
  {
     if (stencil)
-+// #pragma scop // [0] //////////////////
++#pragma scop // [0] //////////////////
        stencil_calc(var, stencil);
     else
        if (!var)
@@ -220,7 +220,7 @@ index 42db9f9..80dc5e9 100644
        } else
            stencil_calc(var, 7);
 +
-+// #pragma endscop // [0] //////////////////
++#pragma endscop // [0] //////////////////
  }
  
  void stencil_calc(int var, int stencil_in)
@@ -228,7 +228,7 @@ index 42db9f9..80dc5e9 100644
     if (stencil_in == 7) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [1] //////////////////
++#pragma scop // [1] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -237,7 +237,7 @@ index 42db9f9..80dc5e9 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [1] //////////////////
++#pragma endscop // [1] //////////////////
        }
        total_fp_divs += (double) num_active*num_cells;
        total_fp_adds += (double) 6*num_active*num_cells;
@@ -245,7 +245,7 @@ index 42db9f9..80dc5e9 100644
     if (var == 1) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [2] //////////////////
++#pragma scop // [2] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -253,7 +253,7 @@ index 42db9f9..80dc5e9 100644
                       bp->array[var][i][j][k] += bp->array[v][i][j][k]*
                                                  bp->array[0][i][j][k];
 +
-+// #pragma endscop // [2] //////////////////
++#pragma endscop // [2] //////////////////
        }
        total_fp_adds += (double) mat*num_active*num_cells;
        total_fp_muls += (double) mat*num_active*num_cells;
@@ -261,7 +261,7 @@ index 42db9f9..80dc5e9 100644
     if (var == 1) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [3] //////////////////
++#pragma scop // [3] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -269,7 +269,7 @@ index 42db9f9..80dc5e9 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [3] //////////////////
++#pragma endscop // [3] //////////////////
 +
        }
        total_fp_adds += (double) (mat+1)*num_active*num_cells;
@@ -278,7 +278,7 @@ index 42db9f9..80dc5e9 100644
     if (var == 1) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [4] //////////////////
++#pragma scop // [4] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -286,7 +286,7 @@ index 42db9f9..80dc5e9 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [4] //////////////////
++#pragma endscop // [4] //////////////////
 +
        }
        total_fp_adds += (double) (mat+1)*num_active*num_cells;
@@ -295,7 +295,7 @@ index 42db9f9..80dc5e9 100644
     if (var == 1) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [5] //////////////////
++#pragma scop // [5] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++) {
@@ -303,7 +303,7 @@ index 42db9f9..80dc5e9 100644
                                                bp->array[0][i][j][k];
                    bp->array[1][i][j][k] /= (a1 + bp->array[1][i][j][k]);
                 }
-+// #pragma endscop // [5] //////////////////
++#pragma endscop // [5] //////////////////
 +
        }
        total_fp_adds += (double) (mat+1)*num_active*num_cells;
@@ -312,7 +312,7 @@ index 42db9f9..80dc5e9 100644
     if (var < mat) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [6] //////////////////
++#pragma scop // [6] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -321,7 +321,7 @@ index 42db9f9..80dc5e9 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [6] //////////////////
++#pragma endscop // [6] //////////////////
        }
        total_fp_adds += (double) 7*num_active*num_cells;
        total_fp_muls += (double) 8*num_active*num_cells;
@@ -329,7 +329,7 @@ index 42db9f9..80dc5e9 100644
     if (var < mat) {
        for (in = 0; in < sorted_index[num_refine+1]; in++) {
           bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [7] //////////////////
++#pragma scop // [7] //////////////////
           for (i = 1; i <= x_block_size; i++)
              for (j = 1; j <= y_block_size; j++)
                 for (k = 1; k <= z_block_size; k++)
@@ -338,7 +338,7 @@ index 42db9f9..80dc5e9 100644
                 for (k = 1; k <= z_block_size; k++)
                    bp->array[var][i][j][k] = work[i][j][k];
 +
-+// #pragma endscop // [7] //////////////////
++#pragma endscop // [7] //////////////////
        }
        total_fp_adds += (double) 27*num_active*num_cells;
        total_fp_divs += (double) num_active*num_cells;
@@ -346,7 +346,7 @@ index 42db9f9..80dc5e9 100644
  
     for (in = 0; in < sorted_index[num_refine+1]; in++) {
        bp = &blocks[sorted_list[in].n];
-+// #pragma scop // [8] //////////////////
++#pragma scop // [8] //////////////////
        for (i = 1; i <= x_block_size; i++)
           for (j = 1; j <= y_block_size; j++)
              for (k = 1; k <= z_block_size; k++) {
@@ -354,7 +354,7 @@ index 42db9f9..80dc5e9 100644
                    total_fp_adds += (double) 1;
                 }
              }
-+// #pragma endscop // [8] //////////////////
++#pragma endscop // [8] //////////////////
 +
     }
  }
