@@ -1,8 +1,8 @@
 diff --git a/ports/snap-c/Makefile b/ports/snap-c/Makefile
-index 0881e9e..8a62bd1 100644
+index 0881e9e..a6046a1 100644
 --- a/ports/snap-c/Makefile
 +++ b/ports/snap-c/Makefile
-@@ -2,14 +2,14 @@ A_PREFIX=snap
+@@ -2,29 +2,30 @@ A_PREFIX=snap
  A_SUFFIX=_mkl_vml
  A_TARGET=$(A_PREFIX)$(A_SUFFIX)
  
@@ -23,7 +23,11 @@ index 0881e9e..8a62bd1 100644
  CXXFLAGS=-O3 -std=c++11 -openmp	# C++ compiler flags
  CXXCPP=				# C++ preprocessor flags
  
-@@ -21,10 +21,12 @@ OUTPUT_PREFIX=snap_test
+-A_FILES := $(wildcard *.cpp) $(wildcard *.c)
+-A_OBJS := $(sort $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(A_FILES))))
+ 
+ INPUT_FILE=scale_test_8_4.inp
+ OUTPUT_PREFIX=snap_test
  OUTPUT_SUFFIX=.out
  OUTPUT_FILE=$(OUTPUT_PREFIX)$(OUTPUT_SUFFIX)
  
@@ -34,6 +38,7 @@ index 0881e9e..8a62bd1 100644
         translv.c solvar.c outer.c expxs.c inner.c sweep.c \
 -       octsweep.c dim1_sweep.c dim3_sweep.c output.c time.c mms.c
 +       octsweep.c ${DIM1_SWEEP_C} ${DIM3_SWEEP_C} output.c time.c mms.c
++A_OBJS := $(sort $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(SRCS))))
  
  
  all: $(A_TARGET) 			# Build all targets
