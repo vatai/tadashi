@@ -4,9 +4,11 @@ from pathlib import Path
 
 from tadashi.apps import App
 
+BASE_PATH = Path(__file__).parent / "miniAMR/ref"
+
 
 class miniAMR(App):
-    def __init__(self, base: Path = "ref", compiler_options: list = None):
+    def __init__(self, base: Path = BASE_PATH, compiler_options: list = None):
         self.base = base
         self._finalize_object(
             source=Path(f"{base}/stencil.c"),
@@ -68,3 +70,13 @@ class miniAMR(App):
             "compiler_options": self.user_compiler_options,
         }
         return self.make_new_app(ephemeral, **kwargs)
+
+
+def main():
+    app = miniAMR()
+    print(f"{app.source=}")
+    print("done")
+
+
+if __name__ == "__main__":
+    main()
