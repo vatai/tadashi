@@ -18,7 +18,7 @@
   PYTHONPATH=. python examples/evaluation/miniAMR/app.py
 #+end_src
 
-** Suggested usec
+** Suggested usage
 
 The ~miniAMR~ class should be imported into a python script.  It has the
 usual ~tadashi.App~ methods, such as ~app.generate_code()~, ~app.compile()~,
