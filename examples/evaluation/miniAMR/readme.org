@@ -1,6 +1,6 @@
-#+title: `tadashi.App` wrapper for miniAMR
+#+title: ~tadashi.App~ wrapper for miniAMR
 
-* Using the `miniAMR(App)` class
+* Using the ~miniAMR(App)~ class
 
 ** First steps
 
