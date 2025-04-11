@@ -135,30 +135,45 @@ class Snap(App):
         }
         return self.make_new_app(ephemeral, **kwargs)
 
-
-def main():
+def smain():
     snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
     snap.compile()
-    print(f"{snap.measure()=}")
-
-    node = snap.scops[0].schedule_tree[3]
+    key = "Solve"
+    base_time = snap.measure()[key]
+    print(f"{base_time=}")
+    node = snap.scops[0].schedule_tree[5] # simple
+    tr = [TrEnum.FULL_SHIFT_VAL, 13]  # simple
     print(node.yaml_str)
-    print(f"{node.available_transformations=}")
-
-    legal = node.transform(TrEnum.FULL_SHIFT_VAL, 13)
+    # print(f"{node.available_transformations=}")
+    legal = node.transform(*tr)
     print(f">>> TR1: {legal=}")
 
     tapp = snap.generate_code("tile2d.c", ephemeral=False)
     tapp.compile()
-    print(f"{tapp.measure()=}")
+    speedup = tapp.measure()[key] / base_time
+    print(f"{speedup=}")
+
+def main():
+    snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
+    snap.compile()
+    key = "Solve"
+    base_time = snap.measure()[key]
+    print(f"{base_time=}")
+    for ni, node in enumerate(snap.scops[0].schedule_tree):
+        for ti, tr in enumerate(node.available_transformations):
+            args = node.get_args(tr, -2, 2)[0]
+            try:
+                legal = node.transform(tr, *args)
+                tapp = snap.generate_code(f"transformed{ni}-{ti}.c", ephemeral=False)
+                tapp.compile()
+                speedup = tapp.measure()[key] / base_time
+                print(f">>> {speedup=}")
+            except:
+                print(f"EXCEPTION: {ni}-{ti}")
+
     return
 
-    node = snap.scops[0].schedule_tree[26]
-    # print(node.yaml_str)
-    print(f"{node.available_transformations=}")
-    legal = node.transform(TrEnum.TILE2D, 31, 31)
-    print(f">>> TILE: {legal=}")
-
+def oldmain():
     splits_exist = True
     count = 0
     while splits_exist and count < 3:
