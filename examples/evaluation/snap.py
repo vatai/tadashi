@@ -102,12 +102,13 @@ class Snap(App):
             "--fo",
             str(self.output_file),
         ]
+        print(f"{' '.join(cmd)}")
         return cmd
 
     def extract_runtime(self, stdout) -> list[str]:
         assert (
             stdout == "Success! Done in a SNAP!\n"
-        ), "SNAP didn't crashed or something else went wrong"
+            ), f"SNAP crashed or something else went wrong:\n {stdout}"
         d = {}
         with open(self.output_file) as output_file:
             for line in output_file:
@@ -161,15 +162,27 @@ def main():
     print(f"{base_time=}")
     for ni, node in enumerate(snap.scops[0].schedule_tree):
         for ti, tr in enumerate(node.available_transformations):
+            print("=== BEGIN INNER LOOP ===")
             args = node.get_args(tr, -2, 2)[0]
             try:
                 legal = node.transform(tr, *args)
-                tapp = snap.generate_code(f"transformed{ni}-{ti}.c", ephemeral=False)
+            except:
+                print(f"EXCEPTION (transform): {ni}-{tr}-{args}")
+                continue
+            try:
+                tapp = snap.generate_code(f"transformed-{ni}-{ti}.c", ephemeral=False)
+                node.rollback()
+                continue
+            except:
+                print(f"EXCEPTION (generate_code): {ni}-{tr}-{args}")
+            try:
                 tapp.compile()
                 speedup = tapp.measure()[key] / base_time
                 print(f">>> {speedup=}")
             except:
-                print(f"EXCEPTION: {ni}-{ti}")
+                node.rollback()
+                print(f"EXCEPTION (generate_code): {ni}-{tr}-{args}")
+            print("=== END INNER LOOP ===")
 
     return
 
