@@ -213,7 +213,7 @@ class Node:
                     end = param.upper
                 args = list(range(start, end))
                 expanded = [[*e, a] for e in expanded for a in args]
-            elif isinstance(param, list):
+            elif isinstance(param, list) and len(param) and isinstance(param[0], list):
                 expanded = [[*e, *a] for e in expanded for a in args]
         return expanded
 
