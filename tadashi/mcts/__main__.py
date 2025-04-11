@@ -6,8 +6,7 @@ import time
 # from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
 from tadashi.mcts import config
-from tadashi.mcts.logger import TimestampedJsonLogger
-from tadashi.mcts.node_node import MCTSNode_Node
+from tadashi.mcts.node_root import MCTSNode_Root
 
 # from pathlib import Path
 # from uuid import uuid4
@@ -74,10 +73,7 @@ def main():
     initial_time = app.measure(repeat=config["repeats"])
     config["timeout"] = initial_time * 1.5 + 1
     print("initial time:", initial_time)
-    root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
-    root.logger = TimestampedJsonLogger(app.source.name)
-    root.logger.log(1, [], app.source.name)
-    root.speedup = 1
+    root = MCTSNode_Root(app=app, action="START", initial_time=initial_time)
     for rollout in range(config["rollouts"]):
         config["cnt_rollouts"] = rollout+1
         print(f"\n---- doing rollout {rollout}")
