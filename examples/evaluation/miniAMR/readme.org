@@ -23,3 +23,15 @@
 The ~miniAMR~ class should be imported into a python script.  It has the
 usual ~tadashi.App~ methods, such as ~app.generate_code()~, ~app.compile()~,
 ~app.measure()~, a ~examples/evaluation/miniAMR/ml.py~
+
+* Issues
+
+** Multiple kernels
+
+The app has multiple kernels (~stencil_0()~, ~stencil_7()~, ~stencil_27()~, see ~stencil.c~ for details). We have to select the right ~--stencil X~ flag when running the app to activate the same kernel that was transformed.
+
+It is now set up so that ~--stencil 0~ is the flag used when running the app and a SCoP in ~stencil_0()~ is the only SCoP of the app (see next issue), so everything should work out of the box!
+
+** Only one SCoP
+
+Because of some C++ issues which I need to figure out, we are restricted to working with one SCoP in every file! I should have this issue resolved soon.
