@@ -65,18 +65,18 @@ free_scops(size_t pool_idx) {
 extern "C" int
 get_type(size_t pool_idx, size_t scop_idx) {
   return isl_schedule_node_get_type(
-      SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
+      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
 }
 
 extern "C" size_t
 get_num_children(size_t pool_idx, size_t scop_idx) {
   return isl_schedule_node_n_children(
-      SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
+      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
 }
 
 extern "C" const char *
 get_expr(size_t pool_idx, size_t idx) {
-  Scop *si = &SCOPS_POOL[pool_idx].scops[idx];
+  Scop *si = SCOPS_POOL[pool_idx].scops[idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
@@ -88,7 +88,7 @@ get_expr(size_t pool_idx, size_t idx) {
 
 extern "C" const char *
 get_loop_signature(size_t pool_idx, size_t scop_idx) {
-  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx];
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "[]";
   std::stringstream ss;
@@ -129,7 +129,7 @@ get_loop_signature(size_t pool_idx, size_t scop_idx) {
 
 extern "C" const char *
 print_schedule_node(size_t pool_idx, size_t scop_idx) {
-  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx].current_node;
+  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
   return isl_schedule_node_to_str(node);
 }
 
@@ -137,25 +137,25 @@ print_schedule_node(size_t pool_idx, size_t scop_idx) {
 
 extern "C" void
 goto_root(size_t pool_idx, size_t scop_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx].current_node =
-      isl_schedule_node_root(SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
+  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_root(
+      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
 }
 
 extern "C" void
 goto_parent(size_t pool_idx, size_t scop_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx].current_node = isl_schedule_node_parent(
-      SCOPS_POOL[pool_idx].scops[scop_idx].current_node);
+  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_parent(
+      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
 }
 
 extern "C" void
 goto_child(size_t pool_idx, size_t scop_idx, size_t child_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx].current_node = isl_schedule_node_child(
-      SCOPS_POOL[pool_idx].scops[scop_idx].current_node, child_idx);
+  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_child(
+      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node, child_idx);
 }
 
 extern "C" void
 rollback(size_t pool_idx, size_t scop_idx) {
-  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx];
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
   isl_schedule_node *tmp = si->tmp_node;
   si->tmp_node = si->current_node;
   si->current_node = tmp;
@@ -163,7 +163,7 @@ rollback(size_t pool_idx, size_t scop_idx) {
 
 void
 reset_scop(size_t pool_idx, size_t scop_idx) {
-  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx];
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
   si->current_node = isl_schedule_node_free(si->current_node);
   si->current_node = isl_schedule_get_root(si->scop->schedule);
   if (si->tmp_node)
@@ -178,7 +178,8 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
                        void *user) {
   isl_ctx *ctx;
   isl_schedule *sched;
-  Scop *si = (Scop *)user;
+  Scop **si_ptr = (Scop **)user;
+  Scop *si = *si_ptr;
   if (!scop || !p)
     return isl_printer_free(p);
   if (!si->modified) {
@@ -188,7 +189,7 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
     p = codegen(p, si->scop->pet_scop, sched);
   }
   pet_scop_free(scop);
-  si++;
+  si_ptr++;
   return p;
 }
 
@@ -203,7 +204,7 @@ generate_code(size_t pool_idx, const char *input_path,
   //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
-  Scop *si = SCOPS_POOL[pool_idx].scops.data();
+  Scop **si = SCOPS_POOL[pool_idx].scops.data();
   r = pet_transform_C_source(ctx, input_path, output_file,
                              generate_code_callback, si);
   fclose(output_file);
@@ -222,7 +223,7 @@ pre_transform(size_t pool_idx, size_t scop_idx) {
   // since we might wanna get to illegal states, temporarily of course
   // - the only requirement is that we're in a legal state at the
   // final output.
-  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
   if (si->tmp_node != nullptr)
     si->tmp_node = isl_schedule_node_free(si->tmp_node);
   si->tmp_node = isl_schedule_node_copy(si->current_node);
@@ -231,7 +232,7 @@ pre_transform(size_t pool_idx, size_t scop_idx) {
 
 extern "C" int
 post_transform(size_t pool_idx, size_t scop_idx) {
-  Scop *si = &SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
@@ -368,9 +369,9 @@ set_parallel(size_t pool_idx, size_t scop_idx, int num_threads) {
 
 extern "C" int
 set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt) {
-  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx].current_node;
+  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
-  SCOPS_POOL[pool_idx].scops[scop_idx].current_node = node;
+  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = node;
   return 1;
 }
