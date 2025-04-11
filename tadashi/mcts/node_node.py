@@ -1,71 +1,96 @@
+import logging
+from subprocess import TimeoutExpired
+
 import tadashi.mcts.node_transformation
 from colorama import Fore, Style
-from tadashi import TrEnum
+from tadashi.mcts import config
 
 from .base import MCTSNode
 
-
+default_scop = 0
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
 class MCTSNode_Node(MCTSNode):
 
     def set_actions_from_nodes(self):
-        nodes = self.app.scops[0].schedule_tree
+        nodes = self.app.scops[default_scop].schedule_tree
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
-            if nodes[i].available_transformations:
+            if self.get_ISL_node_transformations(nodes[i]):
                 nodes_transformable.append(i)
                 # print("trans node", i)
                 # print("\t", nodes[i], nodes[i].available_transformations)
         # print("transformable nodes:", len(nodes_transformable))
         # TODO: do this lazily to avoid expensive cloning through code generation
         self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
-                                                                                  app=self.app.clone(),
+                                                                                  app=self.app,
                                                                                   action=node) for node in nodes_transformable]
         # print("done")
 
-    def evaluate(self):
-        self._number_of_visits += 1
-        # cloned_app = self.app.generate_code()
-        default_scop = 0
+    def get_transform_chain(self):
+        # print("GETING CHAIN from", self)
+        # self.print()
+        # print("-----")
+        if self.parent.parent.parent.parent:
+            # print(self.parent.parent.parent.parent)
+            transforms = self.parent.parent.parent.get_transform_chain()
+        else:
+            transforms = []
         node = self.parent.parent.action
         tr = self.parent.action
         args = self.action
-        trs = [[node, tr, *args]]
+        transforms.append([node, tr, *args])
+        return transforms
+
+    def evaluate(self):
+        self._number_of_visits += 1
+        trs = self.get_transform_chain()
         print("selected transform:", trs)
         # TODO: make a copy of the app to continue on it
         # TODO: make another brach
         # TODO: 1 where we do not apply, but keep growing list of 
         # app_backup = self.app.generate_code()
         # print("!we are in app ", self.app)
+        self.app.reset_scops()
         try:
             legal = self.app.scops[default_scop].transform_list(trs)[0]
             print("transform legal: ", legal)
             if legal:
+                config["cnt_evals"] += 1
                 # print("try generate code")
-                self.app = self.app.generate_code(ephemeral=False)
+                new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
-                self.app.compile()
-                new_time = self.app.measure()
+                new_app.compile()
+                new_time = new_app.measure(repeat=config["repeats"],
+                                           timeout=config["timeout"])
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
+                self.update_stats(speedup, trs, new_app.source.name)
             else:
                 speedup = -1
-            self.update_stats(speedup)
+                self.update_stats(speedup, trs, "")
             print("speedup:", speedup)
+        except TimeoutExpired:
+            print("timed out")
+            self.update_stats(-1, trs, "")
         except Exception as e:
             print(Fore.RED, end="")
             print("failed to transform with the following exception:")
-            print(e
+            print(e)
             print(Style.RESET_ALL, end="")
-        # finally:
-            # self.app = app_backup
+        finally:
+            self.app.reset_scops()
 
 
     def roll(self, depth=0):
-        # print("### selecting a node to transform")
+        logging.info('selecting a node to transform')
+        # print("replaying transforms up to current")
+        if self.parent:
+            self.app.reset_scops()
+            trs = self.get_transform_chain()
+            self.app.scops[default_scop].transform_list(trs)
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()

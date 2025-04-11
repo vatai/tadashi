@@ -1,57 +1,100 @@
+import argparse
+import logging
 import random
-from pathlib import Path
-from uuid import uuid4
+import time
 
-from tadashi import TrEnum
+# from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
+from tadashi.mcts import config
+from tadashi.mcts.logger import TimestampedJsonLogger
 from tadashi.mcts.node_node import MCTSNode_Node
+
+# from pathlib import Path
+# from uuid import uuid4
 
 
 # TODO (Emil): move it to apps later, just don't want to deal with merges now
-def clone(self):
-    file_path = Path(self.source)
-    directory = file_path.parent
-    extension = file_path.suffix  # Get the file extension
-    if not directory: #if the given file_path is just a filename in the current directory
-        directory = pathlib.Path(".") #use the current directory
-    new_filename = f"clone_{uuid4()}.{extension}"
-    new_app = self.generate_code(directory / new_filename, ephemeral=True)
-    # new_app.remove_source()
-    return new_app
+# def clone_simple(self):
+#     file_path = Path(self.source)
+#     directory = file_path.parent
+#     extension = file_path.suffix  # Get the file extension
+#     if (
+#         not directory
+#     ):  # if the given file_path is just a filename in the current directory
+#         directory = pathlib.Path(".")  # use the current directory
+#     new_filename = f"clone_{uuid4()}.{extension}"
+#     new_app = self.generate_code(directory / new_filename, ephemeral=True)
+#     # new_app.remove_source()
+#     return new_app
 
-if __name__ == "__main__":
-    setattr(Simple, "clone", clone)
-    random.seed(18) # good seed that finds interchange right away
+
+# def clone_poly(self):
+#     new_app = self.generate_code(ephemeral=True)
+#     # print("SOURCE")
+#     # print(new_app.source)
+#     # new_app.remove_source()
+#     return new_app
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
+    parser.add_argument("--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3")
+    parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument("--rollouts", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=time.time())
+    args = parser.parse_args()
+    config.update(vars(args))
+    return args
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    # logger = logging.getLogger(__name__)
+    # logger.info('message')
+    args = get_args()
+#    setattr(Simple, "clone", clone_simple)
+#    setattr(Polybench, "clone", clone_poly)
+    random.seed(args.seed)  # good seed that finds interchange right away for two loops
     # random.seed(21) # some errors
-    # app = Polybench("linear-algebra/blas/gemm", "./examples/polybench/", compiler_options=["-D", "LARGE_DATASET"])
+    base = "examples/polybench"
     # app = Simple("./examples/inputs/simple/two_loops.c")
-    app = Simple("./examples/inputs/simple/gemm.c")
+    # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
+    # app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
+    app = Polybench(
+        args.benchmark,
+        base,
+        compiler_options=args.compiler_options.split(" "),
+    )
+
     print(app.scops[0].schedule_tree[0].yaml_str)
+    # return
     app.compile()
-    initial_time = app.measure()
-    # print("initial time:", initial_time)
-    # Try do transformations manually
-    # trs = [[0, 3, TrEnum.INTERCHANGE]]
-    # app.transform_list(trs)
-    # new_app = app.generate_code()
-    # new_app.compile()
-    # new_time = new_app.measure()
-    # print("optimized time:", new_time)
-    # with Simple(lalala) as app:
-    # do things
-    #app2 = app.generate_code()
-    #app3 = app2.generate_code()
-    #app4 = app3.generate_code()
+    print(config)
+    initial_time = app.measure(repeat=config["repeats"])
+    config["timeout"] = initial_time * 1.5 + 1
+    print("initial time:", initial_time)
     root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
+    root.logger = TimestampedJsonLogger(app.source.name)
+    root.logger.log(1, [], app.source.name)
     root.speedup = 1
-    for rollout in range(100):
-        print(f"---- doing rollout {rollout}")
+    for rollout in range(config["rollouts"]):
+        config["cnt_rollouts"] = rollout+1
+        print(f"\n---- doing rollout {rollout}")
         root.roll()
     print("\n**************************\n")
     print("sampled tree as follows:\n")
     root.set_best()
     root.print()
+
+    print()
+    print("BEST:")
+    root.print_best()
     root.show_best_source()
     del root
     del app
     print("all done")
+
+
+if __name__ == "__main__":
+    main()

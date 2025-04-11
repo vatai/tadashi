@@ -7,13 +7,15 @@ from .base import MCTSNode
 class MCTSNode_Transformation(MCTSNode):
     def set_actions_transformations(self):
         node = self.app.scops[0].schedule_tree[self.action]
-        available_transformations = node.available_transformations
-        if TrEnum.TILE1D in available_transformations:
-            available_transformations = [TrEnum.TILE1D]
+        available_transformations = self.get_ISL_node_transformations(node)
 
-        self.children = [tadashi.mcts.node_params.MCTSNode_Params(parent=self,
-                                                                  app=self.app.clone(),
-                                                                  action=tr) for tr in available_transformations]
+        # print("AVAIL:", available_transformations)
+        self.children = [
+            tadashi.mcts.node_params.MCTSNode_Params(
+                parent=self, app=self.app, action=tr
+            )
+            for tr in available_transformations
+        ]
 
     def roll(self, depth):
         # print("select transform")
@@ -23,7 +25,7 @@ class MCTSNode_Transformation(MCTSNode):
         if self.children:
             child = self.select_child()
             # print("selected transform as tr")
-            child.roll(depth+1)
+            child.roll(depth + 1)
         else:
             print("HOW COME WE CHOOSE NODE WITHOUT TRANSFORMS??")
             print("selected node:", self.action)

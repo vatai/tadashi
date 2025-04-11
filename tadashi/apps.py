@@ -36,7 +36,10 @@ class App:
         if compiler_options is None:
             compiler_options = []
         self.user_compiler_options = compiler_options
+        prev_include_path = os.getenv("C_INCLUDE_PATH", [])
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
+        if prev_include_path:
+            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
         self.source = Path(source)
         self.scops = Scops(str(self.source))
 
@@ -49,6 +52,17 @@ class App:
     def make_new_app(self, ephemeral, **kwargs):
         kwargs["compiler_options"] = self.user_compiler_options
         return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
+
+    def make_new_filename(self) -> Path:
+        mark = "TMPFILE"
+        now = datetime.datetime.now()
+        now_str = datetime.datetime.isoformat(now)
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{now_str}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
     def __del__(self):
         if self.ephemeral:
@@ -80,8 +94,7 @@ class App:
         for scop in self.scops:
             scop.reset()
 
-    @staticmethod
-    def extract_runtime(stdout) -> float:
+    def extract_runtime(self, stdout) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
 
@@ -160,7 +173,7 @@ class Simple(App):
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
     ):
-        if compiler_options:
+        if compiler_options is None:
             compiler_options = []
         self.runtime_prefix = runtime_prefix
         self._finalize_object(source, compiler_options=compiler_options)
@@ -175,23 +188,18 @@ class Simple(App):
             str(self.output_binary),
         ]
 
-    def extract_runtime(self, stdout):
-        num = stdout.split(self.runtime_prefix)[1]
-        return float(num)
+    def extract_runtime(self, stdout) -> float:
+        for line in stdout.split("\n"):
+            if line.startswith(self.runtime_prefix):
+                num = line.split(self.runtime_prefix)[1]
+                return float(num)
+        return 0.0
 
     def generate_code(self, alt_source=None, ephemeral: bool = True):
         if alt_source:
             new_file = Path(alt_source).absolute()
         else:
-            mark = "TMPFILE"
-            now = datetime.datetime.now()
-            now_str = datetime.datetime.isoformat(now)
-            suffix = self.source.suffix
-            pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
-            m = re.match(pattern, str(self.source))
-            filename = m.groups()[0] if m else self.source.with_suffix("")
-            prefix = f"{filename}-{mark}-{now_str}-"
-            new_file = Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+            new_file = self.make_new_filename()
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {"source": new_file}
         return self.make_new_app(ephemeral, **kwargs)
@@ -207,19 +215,20 @@ class Polybench(App):
         self,
         benchmark: str,
         base: str,
-        infix: str = "",
         compiler_options: Optional[list[str]] = None,
+        source: Optional[Path] = None,
     ):
         if compiler_options is None:
             compiler_options = []
         self.benchmark = Path(benchmark)
         self.base = Path(base)
         path = self.base / self.benchmark
-        source = path / Path(self.benchmark.name).with_suffix(".c")
+        if source is None:
+            source = path / Path(self.benchmark.name).with_suffix(".c")
         # "-DMEDIUM_DATASET",
         self.utilities = base / Path("utilities")
         self._finalize_object(
-            source=self._source_with_infix(source, infix),
+            source=source,
             compiler_options=compiler_options,
             include_paths=[self.utilities],
         )
@@ -248,26 +257,33 @@ class Polybench(App):
             str(self.output_binary),
         ]
 
-    def generate_code(self, alt_infix="", ephemeral: bool = True):
-        if not alt_infix:
-            now = datetime.datetime.now()
-            now_str = datetime.datetime.isoformat(now)
-            alt_infix = f".{now_str}"
-        new_file = self._source_with_infix(self.source, alt_infix)
+    def _source_with_infix(self, alt_infix: str):
+        mark = "INFIX"
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{alt_infix}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        suffix = self.source.suffix
+        return self.source.with_suffix(f".{alt_infix}{suffix}")
+
+    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
+        else:
+            new_file = self.make_new_filename()
+        # print(f"{new_file=}")
         self.scops.generate_code(self.source, new_file)
         kwargs = {
+            "source": new_file,
             "benchmark": self.benchmark,
             "base": self.base,
-            "infix": alt_infix,
+            # "infix": alt_infix,
         }
         return self.make_new_app(ephemeral, **kwargs)
 
-    @staticmethod
-    def _source_with_infix(source: Path, infix: str):
-        return f"{source.with_suffix('')}{infix}{source.suffix}"
-
-    @staticmethod
-    def extract_runtime(stdout) -> float:
+    def extract_runtime(self, stdout) -> float:
         result = 0.0
         try:
             result = float(stdout.split()[0])

@@ -434,11 +434,17 @@ class FullShiftVarInfo(TransformInfo):
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        return bool(FullShiftVarInfo.available_args(node)[0])
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
 
     @staticmethod
     def valid_args(node: Node, var_idx: int, _coeff: int):
-        return var_idx in FullShiftVarInfo.available_args(node)[0]
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return var_idx in args[0]
 
     @staticmethod
     def available_args(node: Node):
@@ -459,8 +465,10 @@ class PartialShiftVarInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
-        args = PartialShiftVarInfo.available_args(node)[0]
-        return [stmt_idx, var_idx] in args
+        args = PartialShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return [stmt_idx, var_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
@@ -479,11 +487,17 @@ class FullShiftParamInfo(TransformInfo):
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        return bool(FullShiftParamInfo.available_args(node)[0])
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
 
     @staticmethod
     def valid_args(node: Node, param_idx: int, coeff: int):
-        return param_idx in FullShiftParamInfo.available_args(node)[0]
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return param_idx in args[0]
 
     @staticmethod
     def available_args(node: Node):
@@ -498,9 +512,20 @@ class PartialShiftParamInfo(TransformInfo):
     arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
     @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
     def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
-        args = PartialShiftParamInfo.available_args(node)[0]
-        return [stmt_idx, param_idx] in args
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return [stmt_idx, param_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
