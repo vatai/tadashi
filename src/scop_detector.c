@@ -52,11 +52,10 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
   struct tadashi_scop *ts = allocate_tadashi_scop(scop);
   isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
-  sprintf(line, "// #pragma %s // [%zu] //////////////////\n", "scop",
-          *num_scops);
+  sprintf(line, "// #pragma scop // [%zu] //////////////////\n", *num_scops);
   p = isl_printer_print_str(p, line);
   p = pet_scop_print_original(scop, p);
-  sprintf(line, "// #pragma %s // [%zu] //////////////////\n", "scop",
+  sprintf(line, "\n// #pragma endscop // [%zu] //////////////////\n",
           *num_scops);
   p = isl_printer_print_str(p, line);
   (*num_scops)++;
@@ -81,7 +80,9 @@ main(int argc, char *argv[]) {
     pet_options_set_autodetect(ctx, 0);
   }
   pet_transform_C_source(ctx, input, output, transform, &num_scops);
-  if (num_scops)
+  if (num_scops) {
     printf("Number of scops in %s: %d\n", input, num_scops);
+    printf("Based on this we generated: %s\n", out);
+  }
   return !num_scops;
 }
