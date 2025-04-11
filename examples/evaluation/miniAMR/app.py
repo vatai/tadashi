@@ -74,6 +74,8 @@ class miniAMR(App):
 
 def main():
     app = miniAMR()
+    node = app.scops[0].schedule_tree[0]
+    print(node.yaml_str)
     print(f"{app.source=}")
     print("done")
 
