@@ -24,21 +24,20 @@ class Snap(App):
 
     def preproc(self, source: Path):
         suffix = source.suffix
-        # new_file = source.rename(source.with_suffix(f".pp{suffix}"))
-        new_file = source.with_suffix(f".pp{suffix}")
+        pp_c_path = source.with_suffix(f".pp{suffix}")
         result = run(["mpicc", "-E", str(source)], stdout=PIPE, stderr=DEVNULL)
         with open(source, "r") as input_file:
-            with open(new_file, "w") as output_file:
+            with open(pp_c_path, "w") as pp_c_file:
                 for line in input_file:
                     if "#pragma scop" in line:
                         break
-                    output_file.write(line)
+                    pp_c_file.write(line)
                 pp_lines = result.stdout.decode().split("\n")
                 for i, line in enumerate(pp_lines[0:]):
                     if "#pragma scop" in line:
                         break
                 for i, line in enumerate(pp_lines[i:]):
-                    output_file.write(
+                    pp_c_file.write(
                         line.replace("->", "___").replace(
                             "data_vars___vdelt[g-1]", "cond1"
                         )
@@ -50,8 +49,8 @@ class Snap(App):
                     if "#pragma endscop" in line:
                         break
                 for line in input_file:
-                    output_file.write(line)
-        return new_file
+                    pp_c_file.write(line)
+        return pp_c_path
 
     @property
     def output_file(self):
@@ -124,9 +123,10 @@ class Snap(App):
 
     def generate_code(self, alt_source=None, ephemeral=True):
         if alt_source:
-            new_file = Path(alt_source).absolute()
+            new_file = self.source.parent / alt_source
         else:
             new_file = self.make_new_filename()
+        print(f"{new_file}")
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {
             "source": new_file,
@@ -138,10 +138,26 @@ class Snap(App):
 
 def main():
     snap = Snap(Path(__file__).parent / "SNAP/ports/snap-c/dim1_sweep.c", 1)
-    print(snap.scops[0].schedule_tree[0].yaml_str)
-    return
     snap.compile()
-    orig_times = snap.measure()
+    print(f"{snap.measure()=}")
+
+    node = snap.scops[0].schedule_tree[3]
+    print(node.yaml_str)
+    print(f"{node.available_transformations=}")
+
+    legal = node.transform(TrEnum.FULL_SHIFT_VAL, 13)
+    print(f">>> TR1: {legal=}")
+
+    tapp = snap.generate_code("tile2d.c", ephemeral=False)
+    tapp.compile()
+    print(f"{tapp.measure()=}")
+    return
+
+    node = snap.scops[0].schedule_tree[26]
+    # print(node.yaml_str)
+    print(f"{node.available_transformations=}")
+    legal = node.transform(TrEnum.TILE2D, 31, 31)
+    print(f">>> TILE: {legal=}")
 
     splits_exist = True
     count = 0
