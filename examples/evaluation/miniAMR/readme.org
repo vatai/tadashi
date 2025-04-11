@@ -37,6 +37,10 @@ It is now set up so that ~--stencil 0~ is the flag used when running the
 app and a SCoP in ~stencil_0()~ is the only SCoP of the app (see next
 issue), so everything should work out of the box!
 
+Also, if the runtime is too short, you can vary the parameters using
+the constructors ~run_args~ just make sure you include ~["--stencil",
+"0"]~ for now.
+
 ** Only one SCoP
 
 Because of some C++ issues which I need to figure out, we are
