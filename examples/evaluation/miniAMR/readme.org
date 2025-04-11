@@ -1,0 +1,10 @@
+#+title: tadashi.App wrapper for miniAMR
+
+* Using 
+
+#+begin_src sh
+  cd examples/evaluation/miniAMR/ # go to miniAMR dir
+  ./setup.sh  # download miniAMR
+  cd - # go back to tadashi root
+  PYTHONPATH=. python examples/evaluation/miniAMR/app.py # run mini example
+#+end_src
