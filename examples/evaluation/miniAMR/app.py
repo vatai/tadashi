@@ -14,9 +14,13 @@ class miniAMR(App):
         self,
         source: Path = BASE_PATH / "stencil.c",
         base: Path = BASE_PATH,
+        run_args: list[str] = None,
         compiler_options: list = None,
     ):
         self.base = base
+        if not run_args:
+            run_args = []
+        self.run_args = run_args
         self._finalize_object(
             source=source,
             include_paths=[],
@@ -50,9 +54,7 @@ class miniAMR(App):
 
     @property
     def run_cmd(self) -> list[str]:
-        cmd = [
-            str(self.output_binary),
-        ]
+        cmd = [str(self.output_binary), *self.run_args]
         return cmd
 
     def extract_runtime(self, stdout: str) -> float:
