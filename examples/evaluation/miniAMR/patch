@@ -1,12 +1,12 @@
 diff --git a/openmp/Makefile b/openmp/Makefile
-index da3b4ee..c5d9a1b 100644
+index da3b4ee..19bf561 100644
 --- a/openmp/Makefile
 +++ b/openmp/Makefile
 @@ -6,10 +6,11 @@ LDFLAGS =
  LDLIBS = -lm -lgomp
  
  EXEC = miniAMR.x
-+$(STENCIL)=stencil
++STENCIL = stencil
  
  OBJS = block.o check_sum.o comm_block.o comm.o comm_parent.o comm_refine.o \
         comm_util.o driver.o init.o main.o move.o pack.o plot.o profile.o \
@@ -179,14 +179,14 @@ index 9aa0bb8..9ee2633 100644
     }
  }
 diff --git a/ref/Makefile b/ref/Makefile
-index 5f9c11c..bd718b4 100644
+index 5f9c11c..77a2197 100644
 --- a/ref/Makefile
 +++ b/ref/Makefile
 @@ -6,10 +6,11 @@ LDFLAGS =
  LDLIBS = -lm
  
  EXEC = miniAMR.x
-+$(STENCIL)=stencil
++STENCIL = stencil
  
  OBJS = block.o check_sum.o comm_block.o comm.o comm_parent.o comm_refine.o \
         comm_util.o driver.o init.o main.o move.o pack.o plot.o profile.o \
