@@ -12,7 +12,7 @@ class MCTSNode_Transformation(MCTSNode):
         # print("AVAIL:", available_transformations)
         self.children = [
             tadashi.mcts.node_params.MCTSNode_Params(
-                parent=self, app=self.app.clone(), action=tr
+                parent=self, app=self.app, action=tr
             )
             for tr in available_transformations
         ]
