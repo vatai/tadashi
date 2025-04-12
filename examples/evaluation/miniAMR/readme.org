@@ -24,25 +24,38 @@ The ~miniAMR~ class should be imported into a python script.  It has the
 usual ~tadashi.App~ methods, such as ~app.generate_code()~, ~app.compile()~,
 ~app.measure()~, a ~examples/evaluation/miniAMR/ml.py~
 
-* Issues
+* Good to know
 
-** Multiple kernels
+** We're using ~ref~ (not ~openmp~)
 
-Not really an issue, but good to know: The app has multiple kernels
-(~stencil_0()~, ~stencil_7()~, ~stencil_27()~, see ~stencil.c~ for
-details). We have to select the right ~--stencil X~ flag when running
-the app to activate the same kernel that was transformed.
+In the miniAMR repo, there are two implementations. We're using ~ref~
+and not ~openmp~.
 
-It is now set up so that ~--stencil 0~ is the flag used when running the
-app and a SCoP in ~stencil_0()~ is the only SCoP of the app (see next
-issue), so everything should work out of the box!
 
-Also, if the runtime is too short, you can vary the parameters using
-the constructors ~run_args~ just make sure you include ~["--stencil",
-"0"]~ for now.
+** MiniAMR has many kernels
 
-** Only one SCoP
+The miniAMR has multiple kernels (~stencil_0()~, ~stencil_7()~,
+~stencil_27()~, see ~stencil.c~ for details). You invoke miniAMR with a
+~--stencil X~ flag to select the kernel which it will be running. So for
+the SC submission *we need to pay make sure that we are running the
+same kernel we are optimizing!*
+
+The simples kernel is ~stencil_0()~ and currently things are set up to
+optimize and run this kernel: the miniAMR C code is patched so that
+~stencil_0()~ is the only SCoP detected, and running it from Tadashi
+forcefully adds the ~--stencil 0~.
+
+Also, if the runtime is too short, you can create your ~app~ like this
+#+begin_src python
+  app = miniAMR(run_args=["--nx", "30", "--ny", "30", "--nz", "30"])
+#+end_src
+
+** [FIXED, you can skip this] Only one SCoP
 
 Because of some C++ issues which I need to figure out, we are
 restricted to working with one SCoP in every file! I should have this
 issue resolved soon.
+
+If you pull, and rebuild which ~ninja -C build install~ this will be
+fixed. But it is actually a non issue, since we probably only want to
+optimiez and run only kernel ~stencil_0~.
