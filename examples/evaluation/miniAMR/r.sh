@@ -10,7 +10,6 @@
 #source /etc/profile.d/modules.sh
 #source modules.sh
 
-. ~/.bashrc
 module load system/genoa mpi/mpich-x86_64
 . ../../../scripts/genoa/source
 
