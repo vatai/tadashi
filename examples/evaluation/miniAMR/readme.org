@@ -24,11 +24,15 @@ The ~miniAMR~ class should be imported into a python script.  It has the
 usual ~tadashi.App~ methods, such as ~app.generate_code()~, ~app.compile()~,
 ~app.measure()~, a ~examples/evaluation/miniAMR/ml.py~
 
-* Issues
+* Good to know
+
+** We're using ~ref~ (not ~openmp~)
+
+In the miniAMR repo, there are two implementations. We're using ~ref~
+and not ~openmp~.
+
 
 ** MiniAMR has many kernels
-
-Not really an issue, but good to know!
 
 The miniAMR has multiple kernels (~stencil_0()~, ~stencil_7()~,
 ~stencil_27()~, see ~stencil.c~ for details). You invoke miniAMR with a
