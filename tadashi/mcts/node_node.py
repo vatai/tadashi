@@ -26,8 +26,6 @@ class MCTSNode_Node(MCTSNode):
         self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
                                                                                   app=self.app,
                                                                                   action=node) for node in nodes_transformable]
-        # print("done")
-
     def get_transform_chain(self):
         # print("GETING CHAIN from", self)
         # self.print()
@@ -45,13 +43,10 @@ class MCTSNode_Node(MCTSNode):
 
     def evaluate(self):
         self._number_of_visits += 1
+        if self._number_of_visits > 4:
+            return
         trs = self.get_transform_chain()
         print("selected transform:", trs)
-        # TODO: make a copy of the app to continue on it
-        # TODO: make another brach
-        # TODO: 1 where we do not apply, but keep growing list of 
-        # app_backup = self.app.generate_code()
-        # print("!we are in app ", self.app)
         self.app.reset_scops()
         try:
             legal = self.app.scops[default_scop].transform_list(trs)[0]

@@ -1,3 +1,4 @@
+import math
 import random
 
 from colorama import Fore, Style
@@ -26,19 +27,45 @@ class MCTSNode:
         self.is_best = False
         self.best = None
 
-    # TODO: implement Upper Confidence Bound for sampling strategy
-    # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
-
-    # Q(node): Average reward (win rate) of the node (exploitation).
-    # N(parent): Number of visits to the parent node.
-    # N(node): Number of visits to the node.
-    # C: Exploration constant (balances exploration vs. exploitation).
-    # can start from C=1
-
     # TODO: Neural scoring in the future
-    def select_child(self):
+
+    def select_child_random(self):
         child = random.choice(self.children)
         return child
+
+
+    def select_child(self):
+        '''Implement Upper Confidence Bound sampling strategy'''
+        # return random.choice(self.children)
+        # TODO: consider softmax
+        exploration_constant = 1
+        best_score = -1
+        best_child = self.children[0]
+        for child in self.children:
+            if child._number_of_visits == 0:
+                return child
+            else:
+                # UCB
+                # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
+                # Q(node): Average reward (win rate) of the node (exploitation).
+                # N(parent): Number of visits to the parent node.
+                # N(node): Number of visits to the node.
+                # C: Exploration constant (balances exploration vs. exploitation).
+                # can start from C=1
+                exploitation_term = child.speedup / child._number_of_visits
+                #exploration_term = exploration_constant * math.sqrt(math.log(self._number_of_visits) / child._number_of_visits)
+                #ucb_score = exploitation_term + exploration_term
+                # PUCT
+                # adding a component from policy
+                policy_child = 1 / len(self.children)
+                exploitation_term = policy_child * (math.sqrt(self._number_of_visits) / (1 + child._number_of_visits))
+                ucb_score = exploitation_term + exploration_constant * exploitation_term
+                if ucb_score > best_score:
+                    best_score = ucb_score
+                    best_child = child
+        #print("SCORES:",scores)
+        #child = random.choice(self.children)
+        return best_child
 
     def get_initial_time(self):
         if self.initial_time is not None:
