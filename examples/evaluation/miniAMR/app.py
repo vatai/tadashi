@@ -52,6 +52,7 @@ class miniAMR(App):
                 include_paths.append(line[1:])
             if line.startswith("#include <"):
                 collect = True
+        return include_paths
 
     def generate_code(self, alt_source: str = None, ephemeral=True):
         if alt_source:
