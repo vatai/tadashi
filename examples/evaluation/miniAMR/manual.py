@@ -3,11 +3,12 @@ from tadashi import TrEnum
 
 from app import miniAMR
 
-app = miniAMR(run_args=["--nx", "42", "--ny", "42", "--nz", "42"])
+app = miniAMR(run_args=["--nx", "52", "--ny", "52", "--nz", "52"])
 
 
 app.compile()
-print(f"{app.measure()=}")
+original_time = app.measure()
+print(f"{original_time=}")
 app.reset_scops()
 trs = [
         [0, 6, TrEnum.FULL_SPLIT],
@@ -16,8 +17,10 @@ trs = [
     ]
 app.transform_list(trs)
 new_app = app.generate_code(ephemeral=False)
-
 new_app.compile()
-print(f"{new_app.measure()=}")
+new_time = new_app.measure()
+print(f"{new_time=}")
+speedup = original_time /new_time
+print(f"{speedup=}")
 
 print("DONE")
