@@ -3,7 +3,8 @@ import tadashi.mcts.node_root
 from tadashi.mcts import config
 
 
-def optimize_app(app):
+def optimize_app(app, rollouts=1):
+    config["rollouts"] = rollouts
     app.compile()
     print(config)
     initial_time = app.measure(repeat=config["repeats"])
