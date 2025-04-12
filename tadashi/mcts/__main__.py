@@ -6,7 +6,7 @@ import time
 # from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
 from tadashi.mcts import config
-from tadashi.mcts.node_root import MCTSNode_Root
+from tadashi.mcts.optimize import optimize_app
 
 # from pathlib import Path
 # from uuid import uuid4
@@ -65,29 +65,8 @@ def main():
         base,
         compiler_options=args.compiler_options.split(" "),
     )
-
     print(app.scops[0].schedule_tree[0].yaml_str)
-    # return
-    app.compile()
-    print(config)
-    initial_time = app.measure(repeat=config["repeats"])
-    config["timeout"] = initial_time * 1.5 + 1
-    print("initial time:", initial_time)
-    root = MCTSNode_Root(app=app, action="START", initial_time=initial_time)
-    for rollout in range(config["rollouts"]):
-        config["cnt_rollouts"] = rollout+1
-        print(f"\n---- doing rollout {rollout}")
-        root.roll()
-    print("\n**************************\n")
-    print("sampled tree as follows:\n")
-    root.set_best()
-    root.print()
-
-    print()
-    print("BEST:")
-    root.print_best()
-    root.show_best_source()
-    del root
+    optimize_app(app)
     del app
     print("all done")
 

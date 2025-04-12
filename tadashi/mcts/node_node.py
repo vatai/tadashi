@@ -1,16 +1,17 @@
 import logging
 from subprocess import TimeoutExpired
 
+import tadashi.mcts.base
 import tadashi.mcts.node_transformation
 from colorama import Fore, Style
 from tadashi.mcts import config
 
-from .base import MCTSNode
+#from .base import MCTSNode
 
 default_scop = 0
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
-class MCTSNode_Node(MCTSNode):
+class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
 
     def set_actions_from_nodes(self):
         nodes = self.app.scops[default_scop].schedule_tree

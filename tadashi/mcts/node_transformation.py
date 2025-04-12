@@ -1,10 +1,11 @@
+import tadashi.mcts.base
 import tadashi.mcts.node_params
 from tadashi import TrEnum
 
-from .base import MCTSNode
+#import MCTSNode
 
 
-class MCTSNode_Transformation(MCTSNode):
+class MCTSNode_Transformation(tadashi.mcts.base.MCTSNode):
     def set_up_children(self):
         if self.children:
             return
