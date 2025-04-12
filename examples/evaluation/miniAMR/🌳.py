@@ -2,7 +2,7 @@ from tadashi.mcts.optimize import optimize_app
 
 from app import miniAMR
 
-app = miniAMR(run_args=["--nx", "50", "--ny", "50", "--nz", "50"])
+app = miniAMR(run_args=["--nx", "42", "--ny", "42", "--nz", "42"])
 
 # print(f"{len(app.scops)}")
 optimize_app(app,
