@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from pathlib import Path
+from subprocess import DEVNULL, PIPE, run
 from typing import Optional
 
 from colorama import Fore as CF
@@ -22,11 +23,35 @@ class miniAMR(App):
         if not run_args:
             run_args = []
         self.run_args = run_args
+        include_paths = self.mpi_includes + self.gcc_includes
         self._finalize_object(
             source=source,
-            include_paths=["/usr/lib/x86_64-linux-gnu/openmpi/include"],
+            include_paths=include_paths,
             compiler_options=compiler_options,
         )
+
+    @property
+    def mpi_includes(self):
+        result = run(["mpicc", "-compile_info"], stdout=PIPE, check=True)
+        stdout = result.stdout.decode()
+        opts = stdout.split()
+        include_paths = [inc[2:] for inc in opts if inc.startswith("-I")]
+        return include_paths
+
+    @property
+    def gcc_includes(self):
+        cmd = ["gcc", "-xc", "-E", "-v", "/dev/null"]
+        result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=True)
+        stderr = result.stderr.decode()
+        include_paths = []
+        collect = False
+        for line in stderr.split("\n"):
+            if collect:
+                if not line.startswith(" "):
+                    break
+                include_paths.append(line[1:])
+            if line.startswith("#include <"):
+                collect = True
 
     def generate_code(self, alt_source: str = None, ephemeral=True):
         if alt_source:
