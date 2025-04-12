@@ -3,7 +3,7 @@ from tadashi import TrEnum
 
 from app import miniAMR
 
-app = miniAMR(run_args=["--nx", "46", "--ny", "46", "--nz", "46"])
+app = miniAMR(run_args=["--nx", "40", "--ny", "40", "--nz", "40"])
 
 
 app.compile()
