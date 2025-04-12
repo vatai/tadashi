@@ -23,7 +23,7 @@ class miniAMR(App):
         self.run_args = run_args
         self._finalize_object(
             source=source,
-            include_paths=[],
+            include_paths=["/usr/lib/x86_64-linux-gnu/openmpi/include"],
             compiler_options=compiler_options,
         )
 
