@@ -35,5 +35,6 @@ function set_env
 }
 
 module load system/genoa mpi/mpich-x86_64
+[ -e $(git rev-parse --show-toplevel)/venv ] || python3 -m venv $(git rev-parse --show-toplevel)/venv
 set_env $(git rev-parse --show-toplevel)/deps/opt
 source $(git rev-parse --show-toplevel)/venv/bin/activate

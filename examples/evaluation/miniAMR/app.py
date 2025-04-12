@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from pathlib import Path
+from typing import Optional
 
 from colorama import Fore as CF
 from tadashi import TrEnum
@@ -14,7 +15,7 @@ class miniAMR(App):
         self,
         source: Path = BASE_PATH / "stencil.c",
         base: Path = BASE_PATH,
-        run_args: list[str] = ["--stencil", "0"],
+        run_args: Optional[list[str]] = None,
         compiler_options: list = None,
     ):
         self.base = base
@@ -38,6 +39,7 @@ class miniAMR(App):
         kwargs = {
             "source": new_file,
             "base": self.base,
+            "run_args": self.run_args,
         }
         return self.make_new_app(ephemeral, **kwargs)
 
@@ -54,7 +56,7 @@ class miniAMR(App):
 
     @property
     def run_cmd(self) -> list[str]:
-        cmd = [str(self.output_binary), *self.run_args]
+        cmd = [str(self.output_binary), "--stencil", "0", *self.run_args]
         return cmd
 
     def extract_runtime(self, stdout: str) -> float:
@@ -67,7 +69,9 @@ class miniAMR(App):
 
 
 def main():
-    app = miniAMR()
+    # app = miniAMR()
+
+    app = miniAMR(run_args=["--nx", "30", "--ny", "30", "--nz", "30"])
     app.compile()
     orig_time = app.measure()
 
