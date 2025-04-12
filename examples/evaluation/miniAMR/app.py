@@ -23,24 +23,35 @@ class miniAMR(App):
         if not run_args:
             run_args = []
         self.run_args = run_args
-        include_paths = self.mpi_includes + self.gcc_includes
+        include_paths = (
+            self.mpich_includes()
+            + self.gcc_includes("gcc")
+            + self.gcc_includes("mpicc")
+        )
         self._finalize_object(
             source=source,
             include_paths=include_paths,
             compiler_options=compiler_options,
         )
 
-    @property
-    def mpi_includes(self):
-        result = run(["mpicc", "-compile_info"], stdout=PIPE, check=True)
+    @staticmethod
+    def mpich_includes():
+        result = run(
+            ["mpicc", "-compile_info"],
+            stdout=PIPE,
+            stderr=DEVNULL,
+            check=False,
+        )
+        if result.returncode == 1:
+            return []
         stdout = result.stdout.decode()
         opts = stdout.split()
         include_paths = [inc[2:] for inc in opts if inc.startswith("-I")]
         return include_paths
 
-    @property
-    def gcc_includes(self):
-        cmd = ["gcc", "-xc", "-E", "-v", "/dev/null"]
+    @staticmethod
+    def gcc_includes(compiler):
+        cmd = [compiler, "-xc", "-E", "-v", "/dev/null"]
         result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=True)
         stderr = result.stderr.decode()
         include_paths = []
