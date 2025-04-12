@@ -8,7 +8,7 @@ def optimize_app(app, rollouts=1):
     app.compile()
     print(config)
     initial_time = app.measure(repeat=config["repeats"])
-    config["timeout"] = initial_time * 1.5 + 1
+    config["timeout"] = initial_time * 1.5 + 5
     print("initial time:", initial_time)
     root = tadashi.mcts.node_root.MCTSNode_Root(app=app, action="START", initial_time=initial_time)
     for rollout in range(config["rollouts"]):
