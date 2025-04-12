@@ -56,9 +56,9 @@ class App:
     def make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now)
+        now_str = datetime.datetime.isoformat(now).replace(":", "-")
         suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
+        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
         m = re.match(pattern, str(self.source))
         filename = m.groups()[0] if m else self.source.with_suffix("")
         prefix = f"{filename}-{mark}-{now_str}-"
