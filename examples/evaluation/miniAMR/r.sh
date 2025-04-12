@@ -13,5 +13,4 @@
 module load system/genoa mpi/mpich-x86_64
 . ../../../scripts/genoa/source
 
-
 PYTHONPATH=../../../ python3 🌳.py
