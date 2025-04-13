@@ -1,4 +1,3 @@
-import random
 from itertools import product
 
 import tadashi.mcts.node_node

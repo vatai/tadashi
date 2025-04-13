@@ -2,17 +2,7 @@ import math
 import random
 
 from colorama import Fore, Style
-from tadashi import TrEnum
-
-# TODO: make this proper config
-allowed_transformations = {
-    TrEnum.TILE1D,
-    TrEnum.TILE2D,
-    TrEnum.TILE3D,
-    TrEnum.INTERCHANGE,
-    TrEnum.FULL_FUSE,
-    TrEnum.FULL_SPLIT,
-}
+from tadashi.mcts import config
 
 
 class MCTSNode:
@@ -27,14 +17,16 @@ class MCTSNode:
         self.is_best = False
         self.best = None
 
-    # TODO: Neural scoring in the future
+    # TODO: make this config
+    def select_child(self):
+        return self.select_child_random()
 
     def select_child_random(self):
         child = random.choice(self.children)
         return child
 
-
-    def select_child(self):
+    # TODO: add policy component
+    def select_child_PUCT(self):
         '''Implement Upper Confidence Bound sampling strategy'''
         # return random.choice(self.children)
         # TODO: consider softmax
@@ -143,9 +135,11 @@ class MCTSNode:
                 self.logger.log(speedup, transforms, source)
 
     @staticmethod
-    def get_ISL_node_transformations(node):
-        available_transformations = []
-        for tr in node.available_transformations:
-            if tr in allowed_transformations:
-                available_transformations.append(tr)
+    def filter_transformations(available_transformations):
+        filtered_transformations = []
+        if "whitelist_transformations" in config:
+            for tr in available_transformations:
+                if tr in config["whitelist_transformations"]:
+                    filtered_transformations.append(tr)
+            return filtered_transformations
         return available_transformations

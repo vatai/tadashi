@@ -16,7 +16,7 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
-            if self.get_ISL_node_transformations(nodes[i]):
+            if self.filter_transformations(nodes[i].available_transformations):
                 nodes_transformable.append(i)
                 # print("trans node", i)
                 # print("\t", nodes[i], nodes[i].available_transformations)

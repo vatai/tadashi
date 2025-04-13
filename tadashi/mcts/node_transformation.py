@@ -13,7 +13,7 @@ class MCTSNode_Transformation(tadashi.mcts.base.MCTSNode):
         if self.children:
             return
         node = self.app.scops[scop_idx].schedule_tree[self.action]
-        available_transformations = self.get_ISL_node_transformations(node)
+        available_transformations = self.filter_transformations(node.available_transformations)
 
         # print("AVAIL:", available_transformations)
         self.children = [
