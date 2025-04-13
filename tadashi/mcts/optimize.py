@@ -5,10 +5,12 @@ import tadashi.mcts.node_root
 from tadashi.mcts import config
 
 
-def optimize_app(app, rollouts=1, repeats=1, scop_idx=0):
+def optimize_app(app, rollouts=1, repeats=1, scop_idx=0, whitelist_transformations=None):
     config["rollouts"] = rollouts
     config["repeats"] = repeats
     config["scop_idx"] = scop_idx
+    if whitelist_transformations:
+        config["whitelist_transformations"] = whitelist_transformations
     app.compile()
     print(config)
     start_time = timer()
