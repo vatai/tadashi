@@ -4,7 +4,7 @@ import random
 import time
 from timeit import repeat
 
-# from tadashi import TrEnum
+from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
 from tadashi.mcts import config
 from tadashi.mcts.optimize import optimize_app
@@ -67,7 +67,21 @@ def main():
         compiler_options=args.compiler_options.split(" "),
     )
     print(app.scops[0].schedule_tree[0].yaml_str)
-    optimize_app(app, rollouts=args.rollouts, repeats=args.repeats)
+    allowed_transformations = {
+        TrEnum.TILE1D,
+        TrEnum.TILE2D,
+        TrEnum.TILE3D,
+        TrEnum.INTERCHANGE,
+        # TrEnum.FUSE,
+        TrEnum.FULL_FUSE,
+        TrEnum.SPLIT,
+        TrEnum.FULL_SPLIT,
+    }
+
+    optimize_app(app,
+                 rollouts=args.rollouts,
+                 repeats=args.repeats,
+                 whitelist_transformations=allowed_transformations)
     del app
     print("all done")
 
