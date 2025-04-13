@@ -322,7 +322,7 @@ main() {
     }
     printf(" \n");
   }
-  fclose(fp);
+  // fclose(fp);
 
   /*       Calculate gay,gby  */
   for (i = ia; i < ib; i++) {
@@ -354,7 +354,7 @@ main() {
     }
     printf(" \n");
   }
-  fclose(fp);
+  // fclose(fp);
 
   /*       Calculate gaz,gbz  */
   for (i = ia; i < ib; i++) {
@@ -386,7 +386,7 @@ main() {
     }
     printf(" \n");
   }
-  fclose(fp);
+  // fclose(fp);
 
   t0 = 40.0;
   spread = 10.0;
