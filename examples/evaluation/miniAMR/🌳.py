@@ -5,7 +5,7 @@ from app import miniAMR
 
 app = miniAMR(run_args=["--nx", "42", "--ny", "42", "--nz", "42"])
 
-# print(f"{len(app.scops)}")
+print(f"cnt scops: {len(app.scops)}")
 
 allowed_transformations = {
     TrEnum.TILE1D,
@@ -13,6 +13,7 @@ allowed_transformations = {
     TrEnum.TILE3D,
     TrEnum.INTERCHANGE,
     TrEnum.FULL_FUSE,
+    #TrEnum.SPLIT,
     TrEnum.FULL_SPLIT,
 }
 
