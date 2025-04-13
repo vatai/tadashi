@@ -6,10 +6,10 @@
 #define IE 40
 #define JE 40
 #define KE 40
-#define ia 37
-#define ja 37
-#define ka 37
-#define NFREQS 13
+#define ia 7
+#define ja 7
+#define ka 7
+#define NFREQS 3
 
 int
 main() {
@@ -181,7 +181,7 @@ main() {
 
   printf("npml --> ");
   // scanf("%f", &npml);
-  npml = 5;
+  npml = 7;
   printf("%f \n", npml);
   n_pml = npml;
 
@@ -207,8 +207,8 @@ main() {
 
   printf("f \n");
   for (i = 0; i < IE; i++) {
-    printf("%2d  %6.4f %6.4f %6.4f %6.4f\n", i, fi1[i], gi2[i], gi3[i]);
-    printf("    %6.4f %6.4f %6.4f %6.4f\n", gi1[i], fi2[i], fi3[i]);
+    printf("%2d  %6.4f %6.4f %6.4f\n", i, fi1[i], gi2[i], gi3[i]);
+    printf("    %6.4f %6.4f %6.4f\n", gi1[i], fi2[i], fi3[i]);
   }
 
   for (j = 0; j < n_pml; j++) {
@@ -232,8 +232,8 @@ main() {
 
   printf("fj & gj \n");
   for (j = 0; j < JE; j++) {
-    printf("%2d  %6.4f %6.4f %6.4f %6.4f\n", j, fj1[j], gj2[j], gj3[j]);
-    printf("    %6.4f %6.4f %6.4f %6.4f\n", gj1[j], fj2[j], fj3[j]);
+    printf("%2d  %6.4f %6.4f %6.4f\n", j, fj1[j], gj2[j], gj3[j]);
+    printf("    %6.4f %6.4f %6.4f\n", gj1[j], fj2[j], fj3[j]);
   }
 
   for (k = 0; k < n_pml; k++) {
@@ -257,8 +257,8 @@ main() {
 
   printf("fk & gk \n");
   for (k = 0; k < JE; k++) {
-    printf("%2d  %6.4f %6.4f %6.4f %6.4f\n", k, fk1[k], gk2[k], gk3[k]);
-    printf("    %6.4f %6.4f %6.4f %6.4f\n", gk1[k], fk2[k], fk3[k]);
+    printf("%2d  %6.4f %6.4f %6.4f\n", k, fk1[k], gk2[k], gk3[k]);
+    printf("    %6.4f %6.4f %6.4f\n", gk1[k], fk2[k], fk3[k]);
   }
 
   /* Specify the dielectric sphere */
@@ -266,26 +266,25 @@ main() {
   epsilon[0] = 1.;
   sigma[0] = 0;
 
-  printf("Number spheres --> ");
+  // printf("Number spheres --> ");
   // scanf("%d", &numsph);
-  numsph = 2;
+  numsph = 1;
   printf("numsph= %d \n ", numsph);
 
-  radius[0] = 1;
-  epsilon[0] = 0.1;
-  sigma[0] = 0.1;
-  radius[1] = 2;
-  epsilon[1] = 0.2;
-  sigma[1] = 0.2;
-  /* radius[2] = 0.3; */
-  /* epsilon[2] = 0.003; */
-  /* sigma[2] = 0.003; */
-  for (n = 1; n <= numsph; n++) {
-    printf("Sphere radius (cells), epsilon, sigma --> ");
-    /* scanf("%f %f %f", &radius[n], &epsilon[n], &sigma[n]); */
-    printf("Radius = %6.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n],
-           epsilon[n], sigma[n]);
-  }
+  epsilon[0] = 2;
+  sigma[0] = 0;
+  radius[1] = 1;
+  epsilon[1] = 20;
+  sigma[1] = 0.3;
+  radius[2] = 0.3;
+  epsilon[2] = 30;
+  sigma[2] = 0.1;
+  // for (n = 1; n <= numsph; n++) {
+  // printf("Sphere radius (cells), epsilon, sigma --> ");
+  // scanf("%f %f %f", &radius[n], &epsilon[n], &sigma[n]);
+  // printf("Radius = %6.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n],
+  // epsilon[n], sigma[n]);
+  // }
 
   for (n = 0; n <= numsph; n++) {
     printf("Radius = %5.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n],
@@ -391,12 +390,12 @@ main() {
   t0 = 40.0;
   spread = 10.0;
   T = 0;
-  nsteps = 1;
+  nsteps = 1000;
 
   /* while (nsteps > 0) { */
   /* printf("nsteps --> "); */
   /* scanf("%d", &nsteps); */
-  nsteps = 5;
+  /* nsteps = 5; */
   printf("%d \n", nsteps);
 
   for (n = 1; n <= nsteps; n++) {
