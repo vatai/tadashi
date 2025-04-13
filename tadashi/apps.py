@@ -183,7 +183,9 @@ class Simple(App):
         source: str | Path,
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
+        ephemeral: bool = False,
     ):
+        self.ephemeral = ephemeral
         if compiler_options is None:
             compiler_options = []
         self.runtime_prefix = runtime_prefix
@@ -225,23 +227,24 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
-        base: str,
+        base: Path,
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
+        ephemeral: bool = False,
     ):
         if compiler_options is None:
             compiler_options = []
+        self.ephemeral = ephemeral
         self.benchmark = Path(benchmark)
         self.base = Path(base)
         path = self.base / self.benchmark
         if source is None:
             source = path / Path(self.benchmark.name).with_suffix(".c")
         # "-DMEDIUM_DATASET",
-        self.utilities = base / Path("utilities")
         self._finalize_object(
             source=source,
             compiler_options=compiler_options,
-            include_paths=[self.utilities],
+            include_paths=[base / "utilities"],
         )
 
     def _codegen_init_args(self):
@@ -265,7 +268,7 @@ class Polybench(App):
         return [
             self.compiler(),
             str(self.source),
-            str(self.utilities / "polybench.c"),
+            str(self.base / "utilities/polybench.c"),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
             "-lm",

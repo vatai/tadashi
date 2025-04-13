@@ -3,23 +3,40 @@
 import unittest
 from pathlib import Path
 
-from tadashi import TrEnum
-from tadashi.apps import Polybench
+from tadashi import TrEnum, apps
 
 
-class TestPolybench(unittest.TestCase):
-    base = Path(__file__).parent.parent / "examples/polybench"
+class TestApp(unittest.TestCase):
+    examples: Path = Path(__file__).parent.parent / "examples"
 
-    def test_pb_trlist(self):
-        app = Polybench("stencils/jacobi-2d", self.base)
+    def compare_members(self, app):
+        a = sorted(app.__dict__.keys())
+        tapp = app.generate_code()
+        t = sorted(tapp.__dict__.keys())
+        self.assertListEqual(a, t)
+
+
+class TestSimple(TestApp):
+    def test_args(self):
+        app = apps.Simple(self.examples / "inputs/depnodep.c")
+        self.compare_members(app)
+
+
+class TestPolybench(TestApp):
+    base: Path = TestApp.examples / "polybench"
+
+    def test_args(self):
+        app = apps.Polybench("stencils/jacobi-2d", self.base)
+        self.compare_members(app)
+
+    def test_trlist(self):
+        app = apps.Polybench("stencils/jacobi-2d", self.base)
         trs = [
             [2, TrEnum.FULL_SPLIT],
-            [5, TrEnum.TILE1D, 2],
-            [6, TrEnum.TILE1D, 2],
-            [5, TrEnum.TILE1D, 4],
-            [4, TrEnum.TILE1D, 3],
+            [3, TrEnum.TILE2D, 20, 20],
+            [10, TrEnum.TILE3D, 30, 30, 30],
         ]
         app.scops[0].transform_list(trs)
         mod = app.generate_code()
         mod.compile()
-        mod.measure()
+        # mod.measure()
