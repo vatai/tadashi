@@ -28,7 +28,8 @@ def main():
     node = nodes[7]
     tr = [TrEnum.FULL_SPLIT]
     node.transform(*tr)
-    tapp = app.generate_code("foobar.c")
+    tapp = app.generate_code("foobar", ephemeral=False)
+    print(f"{tapp.source=}")
     tapp.compile()
     new_time = tapp.measure()
 

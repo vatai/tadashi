@@ -204,9 +204,9 @@ class Simple(App):
                 return float(num)
         return 0.0
 
-    def generate_code(self, alt_source=None, ephemeral: bool = True):
-        if alt_source:
-            new_file = Path(alt_source).absolute()
+    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self.make_new_filename()
         self.scops.generate_code(self.source, Path(new_file))
