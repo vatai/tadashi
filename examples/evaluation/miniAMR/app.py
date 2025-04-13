@@ -12,12 +12,14 @@ BASE_PATH = Path(__file__).parent / "miniAMR/ref"
 
 
 class miniAMR(App):
+    base: Path
+
     def __init__(
         self,
         source: Path = BASE_PATH / "stencil.c",
-        base: Path = BASE_PATH,
         run_args: Optional[list[str]] = None,
         compiler_options: list = None,
+        base: Path = BASE_PATH,
     ):
         self.base = base
         if not run_args:
@@ -36,12 +38,8 @@ class miniAMR(App):
 
     @staticmethod
     def mpich_includes():
-        result = run(
-            ["mpicc", "-compile_info"],
-            stdout=PIPE,
-            stderr=DEVNULL,
-            check=False,
-        )
+        cmd = ["mpicc", "-compile_info"]
+        result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
         if result.returncode == 1:
             return []
         stdout = result.stdout.decode()
@@ -52,7 +50,9 @@ class miniAMR(App):
     @staticmethod
     def gcc_includes(compiler):
         cmd = [compiler, "-xc", "-E", "-v", "/dev/null"]
-        result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=True)
+        result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=False)
+        if result.returncode == 1:
+            return []
         stderr = result.stderr.decode()
         include_paths = []
         collect = False
@@ -98,27 +98,33 @@ class miniAMR(App):
 
     def extract_runtime(self, stdout: str) -> float:
         lines = stdout.split("\n")
+        # scop_idx_check = set([])
         for line in lines:
+            # if line.startswith("@@@") and scop_idx_check != line:
+            #     scop_idx_check.add(line)
             if line.startswith("Summary:"):
                 match = re.match(r".*time (\d+.\d+).*", line)
+                # print(f"{scop_idx_check=}")
                 return float(match.groups()[0])
         raise Exception("No output found")
 
 
 def main():
-    # app = miniAMR()
-
-    app = miniAMR(run_args=["--nx", "30", "--ny", "30", "--nz", "30"])
+    scop_idx = 2
+    app = miniAMR(
+        run_args=["--nx", "20", "--ny", "20", "--nz", "20"],
+    )
     app.compile()
     orig_time = app.measure()
 
-    node = app.scops[0].schedule_tree[0]
+    node = app.scops[scop_idx].schedule_tree[0]
     # print(node.yaml_str)
-    for i, node in enumerate(app.scops[0].schedule_tree):
+    for i, node in enumerate(app.scops[scop_idx].schedule_tree):
         at = node.available_transformations
         if at and False:
             print(f"{CF.RED}{i}{CF.RESET} {at}")
-    node = app.scops[0].schedule_tree[6]
+    node = app.scops[scop_idx].schedule_tree[6]
+
     tr = [TrEnum.FULL_SPLIT]
     legal = node.transform(*tr)
     print(f"{legal=}")
