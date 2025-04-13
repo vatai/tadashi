@@ -55,6 +55,7 @@ main() {
   float amp[IE][JE], phase[IE][JE];
   float real_in[5], imag_in[5], amp_in[5], phase_in[5];
 
+// #pragma scop // [0] //////////////////
   ic = IE / 2;
   jc = JE / 2;
   kc = KE / 2;
@@ -111,6 +112,8 @@ main() {
   freq[0] = 10.e6;
   freq[1] = 100.e6;
   freq[2] = 433.e6;
+
+// #pragma endscop // [0] //////////////////
 
   for (n = 0; n < NFREQS; n++) {
     arg[n] = 2 * pi * freq[n] * dt;
