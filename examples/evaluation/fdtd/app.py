@@ -20,10 +20,22 @@ def main():
     app.compile()
     orig_time = app.measure()
     print(f"{orig_time=}")
-    for i, node in enumerate(app.scops[0].schedule_tree):
+    nodes = app.scops[0].schedule_tree
+    for i, node in enumerate(nodes):
         at = node.available_transformations
-        if at:
+        if at and i < 10:
             print(f"{i}: {at}")
+    node = nodes[7]
+    tr = [TrEnum.FULL_SPLIT]
+    node.transform(*tr)
+    tapp = app.generate_code("foobar.c")
+    tapp.compile()
+    new_time = tapp.measure()
+
+    print(f"{orig_time=}")
+    print(f"{new_time=}")
+    speedup = orig_time / new_time
+    print(f"{speedup=}")
 
     print("Done")
 
