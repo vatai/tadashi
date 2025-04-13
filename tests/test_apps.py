@@ -7,6 +7,8 @@ from tadashi import TrEnum, apps
 
 
 class TestApp(unittest.TestCase):
+    examples: Path = Path(__file__).parent.parent / "examples"
+
     def compare_members(self, app):
         a = sorted(app.__dict__.keys())
         tapp = app.generate_code()
@@ -16,12 +18,12 @@ class TestApp(unittest.TestCase):
 
 class TestSimple(TestApp):
     def test_args(self):
-        app = apps.Simple("examples/inputs/depnodep.c")
+        app = apps.Simple(self.examples / "inputs/depnodep.c")
         self.compare_members(app)
 
 
 class TestPolybench(TestApp):
-    base: Path = Path(__file__).parent.parent / "examples/polybench"
+    base: Path = TestApp.examples / "polybench"
 
     def test_args(self):
         app = apps.Polybench("stencils/jacobi-2d", self.base)
