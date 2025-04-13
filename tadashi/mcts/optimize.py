@@ -5,9 +5,15 @@ import tadashi.mcts.node_root
 from tadashi.mcts import config
 
 
-def optimize_app(app, rollouts=1, repeats=1, scop_idx=0, whitelist_transformations=None):
+def optimize_app(app,
+                 rollouts=1,
+                 repeats=1,
+                 scop_idx=0,
+                 max_depth=2,
+                 whitelist_transformations=None):
     config["rollouts"] = rollouts
     config["repeats"] = repeats
+    config["max_depth"] = max_depth
     config["scop_idx"] = scop_idx
     if whitelist_transformations:
         config["whitelist_transformations"] = whitelist_transformations
