@@ -33,6 +33,9 @@ class App:
             state[k] = None if k == "scops" else v
         return state
 
+    def _codegen_init_args(self) -> dict:
+        return {}
+
     def _finalize_object(
         self,
         source: str | Path,
@@ -238,6 +241,12 @@ class Polybench(App):
             compiler_options=compiler_options,
             include_paths=[self.utilities],
         )
+
+    def _codegen_init_args(self):
+        return {
+            "benchmark": self.benchmark,
+            "base": self.base,
+        }
 
     @staticmethod
     def get_benchmarks(path):
