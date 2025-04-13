@@ -6,15 +6,13 @@ import tadashi.mcts.node_transformation
 from colorama import Fore, Style
 from tadashi.mcts import config
 
-#from .base import MCTSNode
-
-default_scop = 0
+scop_idx = config["scop_idx"]
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
 class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
 
     def set_actions_from_nodes(self):
-        nodes = self.app.scops[default_scop].schedule_tree
+        nodes = self.app.scops[scop_idx].schedule_tree
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
@@ -50,7 +48,7 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
         print("selected transform:", trs)
         self.app.reset_scops()
         try:
-            legal = self.app.scops[default_scop].transform_list(trs)[0]
+            legal = self.app.scops[scop_idx].transform_list(trs)[0]
             print("transform legal: ", legal)
             if legal:
                 config["cnt_evals"] += 1
@@ -86,7 +84,7 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
         if self.parent:
             self.app.reset_scops()
             trs = self.get_transform_chain()
-            self.app.scops[default_scop].transform_list(trs)
+            self.app.scops[scop_idx].transform_list(trs)
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()

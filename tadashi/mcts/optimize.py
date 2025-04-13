@@ -1,15 +1,21 @@
 #from .node_root import MCTSNode_Root
+from timeit import default_timer as timer
+
 import tadashi.mcts.node_root
 from tadashi.mcts import config
 
 
-def optimize_app(app, rollouts=1, repeats=1):
+def optimize_app(app, rollouts=1, repeats=1, scop_idx=0):
     config["rollouts"] = rollouts
     config["repeats"] = repeats
+    config["scop_idx"] = scop_idx
     app.compile()
     print(config)
+    start_time = timer()
     initial_time = app.measure(repeat=config["repeats"])
-    config["timeout"] = initial_time * 1.5 + 5
+    end_time = timer()
+    total_runtime = end_time - start_time
+    config["timeout"] = total_runtime * 1.5 + 1
     print("initial time:", initial_time)
     root = tadashi.mcts.node_root.MCTSNode_Root(app=app, action="START", initial_time=initial_time)
     for rollout in range(config["rollouts"]):

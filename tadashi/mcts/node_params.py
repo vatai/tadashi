@@ -3,8 +3,11 @@ from itertools import product
 
 import tadashi.mcts.node_node
 from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
+from tadashi.mcts import config
 
 from .base import MCTSNode
+
+scop_idx = config["scop_idx"]
 
 
 class MCTSNode_Params(MCTSNode):
@@ -32,7 +35,7 @@ class MCTSNode_Params(MCTSNode):
     def get_args(self):
         tr = self.action
         tr_obj = TRANSFORMATIONS[tr]
-        node = self.app.scops[0].schedule_tree[self.parent.action]
+        node = self.app.scops[scop_idx].schedule_tree[self.parent.action]
         # args = self.get_args(tr_obj, node)
         # return args
         arg_groups = tr_obj.available_args(node)

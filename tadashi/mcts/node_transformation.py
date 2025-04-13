@@ -1,15 +1,18 @@
 import tadashi.mcts.base
 import tadashi.mcts.node_params
 from tadashi import TrEnum
+from tadashi.mcts import config
 
 #import MCTSNode
 
+
+scop_idx = config["scop_idx"]
 
 class MCTSNode_Transformation(tadashi.mcts.base.MCTSNode):
     def set_up_children(self):
         if self.children:
             return
-        node = self.app.scops[0].schedule_tree[self.action]
+        node = self.app.scops[scop_idx].schedule_tree[self.action]
         available_transformations = self.get_ISL_node_transformations(node)
 
         # print("AVAIL:", available_transformations)

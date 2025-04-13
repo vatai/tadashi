@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from pathlib import Path
+from subprocess import DEVNULL, PIPE, run
 from typing import Optional
 
 from colorama import Fore as CF
@@ -11,22 +12,58 @@ BASE_PATH = Path(__file__).parent / "miniAMR/ref"
 
 
 class miniAMR(App):
+    base: Path
+
     def __init__(
         self,
         source: Path = BASE_PATH / "stencil.c",
-        base: Path = BASE_PATH,
         run_args: Optional[list[str]] = None,
         compiler_options: list = None,
+        base: Path = BASE_PATH,
     ):
         self.base = base
         if not run_args:
             run_args = []
         self.run_args = run_args
+        include_paths = (
+            self.mpich_includes()
+            + self.gcc_includes("gcc")
+            + self.gcc_includes("mpicc")
+        )
         self._finalize_object(
             source=source,
-            include_paths=["/usr/lib/x86_64-linux-gnu/openmpi/include"],
+            include_paths=include_paths,
             compiler_options=compiler_options,
         )
+
+    @staticmethod
+    def mpich_includes():
+        cmd = ["mpicc", "-compile_info"]
+        result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
+        if result.returncode == 1:
+            return []
+        stdout = result.stdout.decode()
+        opts = stdout.split()
+        include_paths = [inc[2:] for inc in opts if inc.startswith("-I")]
+        return include_paths
+
+    @staticmethod
+    def gcc_includes(compiler):
+        cmd = [compiler, "-xc", "-E", "-v", "/dev/null"]
+        result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=False)
+        if result.returncode == 1:
+            return []
+        stderr = result.stderr.decode()
+        include_paths = []
+        collect = False
+        for line in stderr.split("\n"):
+            if collect:
+                if not line.startswith(" "):
+                    break
+                include_paths.append(line[1:])
+            if line.startswith("#include <"):
+                collect = True
+        return include_paths
 
     def generate_code(self, alt_source: str = None, ephemeral=True):
         if alt_source:
@@ -61,27 +98,33 @@ class miniAMR(App):
 
     def extract_runtime(self, stdout: str) -> float:
         lines = stdout.split("\n")
+        # scop_idx_check = set([])
         for line in lines:
+            # if line.startswith("@@@") and scop_idx_check != line:
+            #     scop_idx_check.add(line)
             if line.startswith("Summary:"):
                 match = re.match(r".*time (\d+.\d+).*", line)
+                # print(f"{scop_idx_check=}")
                 return float(match.groups()[0])
         raise Exception("No output found")
 
 
 def main():
-    # app = miniAMR()
-
-    app = miniAMR(run_args=["--nx", "30", "--ny", "30", "--nz", "30"])
+    scop_idx = 2
+    app = miniAMR(
+        run_args=["--nx", "20", "--ny", "20", "--nz", "20"],
+    )
     app.compile()
     orig_time = app.measure()
 
-    node = app.scops[0].schedule_tree[0]
+    node = app.scops[scop_idx].schedule_tree[0]
     # print(node.yaml_str)
-    for i, node in enumerate(app.scops[0].schedule_tree):
+    for i, node in enumerate(app.scops[scop_idx].schedule_tree):
         at = node.available_transformations
         if at and False:
             print(f"{CF.RED}{i}{CF.RESET} {at}")
-    node = app.scops[0].schedule_tree[6]
+    node = app.scops[scop_idx].schedule_tree[6]
+
     tr = [TrEnum.FULL_SPLIT]
     legal = node.transform(*tr)
     print(f"{legal=}")
