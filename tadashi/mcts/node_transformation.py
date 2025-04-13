@@ -27,4 +27,4 @@ class MCTSNode_Transformation(tadashi.mcts.base.MCTSNode):
         self._number_of_visits += 1
         self.set_up_children()
         child = self.select_child()
-        child.roll(depth + 1)
+        child.roll(depth)

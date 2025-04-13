@@ -78,7 +78,7 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
             self.app.reset_scops()
 
 
-    def roll(self, depth=0):
+    def roll(self, depth=1):
         logging.info('selecting a node to transform')
         # print("replaying transforms up to current")
         if self.parent:
@@ -91,7 +91,7 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
         # print("selected node as ", child)
         if self.children:
             child = self.select_child()
-            child.roll(depth+1)
+            child.roll(depth)
         else:
             print("NO NODES TO CHOOSE FROM")
             self.update_stats(-1)

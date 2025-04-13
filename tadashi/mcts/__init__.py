@@ -18,6 +18,7 @@ config = {"cnt_rollouts": 0,
           "rollouts": 1,
           "cnt_evals": 0,
           "scop_idx": 0,
+          "max_depth": 2,
           #"whitelist_transformations": allowed_transformations
           }
 

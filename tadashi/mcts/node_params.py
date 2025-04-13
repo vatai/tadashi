@@ -68,5 +68,5 @@ class MCTSNode_Params(MCTSNode):
         self.set_up_children()
         child = self.select_child()
         child.evaluate()
-        if depth < 7:
+        if depth < config["max_depth"]:
             child.roll(depth + 1)
