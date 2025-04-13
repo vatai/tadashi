@@ -5,11 +5,6 @@
 #SBATCH --mail-type=begin        # send email when job begins
 #SBATCH --mail-type=end          # send email when job ends
 
-# ======== Modules ========
-#source /etc/profile.d/modules.sh
-#source modules.sh
-
-module load system/genoa mpi/mpich-x86_64
-. ../../../scripts/genoa/source
+source ../../../scripts/genoa/source
 
 PYTHONPATH=../../../ python3 🌳.py
