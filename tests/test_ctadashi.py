@@ -47,12 +47,8 @@ class TestCtadashi(unittest.TestCase):
         return transforms, target_code
 
     def _get_generated_code(self, app: Simple):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            suffix = Path(app.source).suffix
-            outfile = Path(tmpdir) / Path(self._testMethodName).with_suffix(suffix)
-            outfile_bytes = str(outfile).encode()
-            app.generate_code(outfile, ephemeral=False)
-            generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
+        tapp = app.generate_code(ephemeral=True)
+        generated_code = tapp.source.read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
     def check(self, app_file):

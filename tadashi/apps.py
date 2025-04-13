@@ -71,7 +71,9 @@ class App:
         app.ephemeral = True
         return app
 
-    def make_new_app(self, ephemeral, **kwargs):
+    def make_new_app(self, source: Path, ephemeral: bool):
+        kwargs = self._codegen_init_args()
+        kwargs["source"] = source
         kwargs["compiler_options"] = self.user_compiler_options
         return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
 
@@ -95,9 +97,13 @@ class App:
         """Command executed for compilation (list of strings)."""
         raise NotImplementedError()
 
-    def generate_code(self):
-        """Create a transformed copy of the app object."""
-        raise NotImplementedError()
+    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
+        else:
+            new_file = self.make_new_filename()
+        self.scops.generate_code(self.source, Path(new_file))
+        return self.make_new_app(new_file, ephemeral)
 
     def reset_scops(self):
         for scop in self.scops:
@@ -204,15 +210,6 @@ class Simple(App):
                 return float(num)
         return 0.0
 
-    def generate_code(self, alt_source=None, ephemeral: bool = True):
-        if alt_source:
-            new_file = Path(alt_source).absolute()
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, Path(new_file))
-        kwargs = {"source": new_file}
-        return self.make_new_app(ephemeral, **kwargs)
-
 
 class Polybench(App):
     """A single benchmark in of the Polybench suite."""
@@ -271,20 +268,6 @@ class Polybench(App):
             "-o",
             str(self.output_binary),
         ]
-
-    def generate_code(self, alt_infix=None, ephemeral: bool = True):
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, new_file)
-        kwargs = {
-            "source": new_file,
-            "benchmark": self.benchmark,
-            "base": self.base,
-            # "infix": alt_infix,
-        }
-        return self.make_new_app(ephemeral, **kwargs)
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
