@@ -19,7 +19,15 @@ class App:
     user_compiler_options: list[str]
     ephemeral: bool = False
 
+    def __del__(self):
+        if self.ephemeral:
+            binary = self.output_binary
+            if binary.exists():
+                binary.unlink()
+            self.source.unlink()
+
     def __getstate__(self):
+        """This was probably needed for serialisation."""
         state = {}
         for k, v in self.__dict__.items():
             state[k] = None if k == "scops" else v
@@ -63,19 +71,6 @@ class App:
         filename = m.groups()[0] if m else self.source.with_suffix("")
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-
-    def __del__(self):
-        if self.ephemeral:
-            self.remove_binary()
-            self.remove_source()
-
-    def remove_binary(self):
-        binary = self.output_binary
-        if binary.exists():
-            binary.unlink()
-
-    def remove_source(self):
-        self.source.unlink()
 
     @staticmethod
     def compiler():
