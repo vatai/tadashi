@@ -3,7 +3,7 @@ from tadashi.mcts.optimize import optimize_app
 
 from fdtd.app import MakefileApp
 
-app = MakefileApp("fdtd/fd3d_4.2.c")
+app = MakefileApp("fd3d_4.2.c")
 
 print(f"cnt scops: {len(app.scops)}")
 
