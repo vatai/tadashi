@@ -6,10 +6,10 @@
 #define IE 40
 #define JE 40
 #define KE 40
-#define ia 7
-#define ja 7
-#define ka 7
-#define NFREQS 3
+#define ia 37
+#define ja 37
+#define ka 37
+#define NFREQS 13
 
 int
 main() {
@@ -181,7 +181,7 @@ main() {
 
   printf("npml --> ");
   // scanf("%f", &npml);
-  npml = 3;
+  npml = 5;
   printf("%f \n", npml);
   n_pml = npml;
 
@@ -268,24 +268,24 @@ main() {
 
   printf("Number spheres --> ");
   // scanf("%d", &numsph);
-  numsph = 3;
+  numsph = 2;
   printf("numsph= %d \n ", numsph);
 
-  radius[0] = 0.1;
-  epsilon[0] = 0.001;
-  sigma[0] = 0.001;
-  radius[1] = 0.2;
-  epsilon[1] = 0.002;
-  sigma[1] = 0.002;
-  radius[2] = 0.3;
-  epsilon[2] = 0.003;
-  sigma[2] = 0.003;
-  /* for (n = 1; n <= numsph; n++) { */
-  /*   printf("Sphere radius (cells), epsilon, sigma --> "); */
-  /*   scanf("%f %f %f", &radius[n], &epsilon[n], &sigma[n]); */
-  /*   printf("Radius = %6.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n], */
-  /*          epsilon[n], sigma[n]); */
-  /* } */
+  radius[0] = 1;
+  epsilon[0] = 0.1;
+  sigma[0] = 0.1;
+  radius[1] = 2;
+  epsilon[1] = 0.2;
+  sigma[1] = 0.2;
+  /* radius[2] = 0.3; */
+  /* epsilon[2] = 0.003; */
+  /* sigma[2] = 0.003; */
+  for (n = 1; n <= numsph; n++) {
+    printf("Sphere radius (cells), epsilon, sigma --> ");
+    /* scanf("%f %f %f", &radius[n], &epsilon[n], &sigma[n]); */
+    printf("Radius = %6.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n],
+           epsilon[n], sigma[n]);
+  }
 
   for (n = 0; n <= numsph; n++) {
     printf("Radius = %5.2f  Eps = %6.2f Sigma = %6.2f \n ", radius[n],
@@ -396,7 +396,7 @@ main() {
   /* while (nsteps > 0) { */
   /* printf("nsteps --> "); */
   /* scanf("%d", &nsteps); */
-  nsteps = 500;
+  nsteps = 5;
   printf("%d \n", nsteps);
 
   for (n = 1; n <= nsteps; n++) {
