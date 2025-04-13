@@ -94,7 +94,7 @@ class App:
         for scop in self.scops:
             scop.reset()
 
-    def extract_runtime(self, stdout) -> float:
+    def extract_runtime(self, stdout: str) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
 
