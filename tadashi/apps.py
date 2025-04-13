@@ -52,6 +52,8 @@ class App:
         if prev_include_path:
             os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
         self.source = Path(source)
+        if not self.source.exists():
+            raise ValueError(f"{self.source=} doesn't exist!")
         self.scops = Scops(str(self.source))
 
     def _source_with_infix(self, alt_infix: str):
