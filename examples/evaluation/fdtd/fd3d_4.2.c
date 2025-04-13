@@ -396,7 +396,7 @@ main() {
   /* while (nsteps > 0) { */
   /* printf("nsteps --> "); */
   /* scanf("%d", &nsteps); */
-  nstep = 500;
+  nsteps = 500;
   printf("%d \n", nsteps);
 
   for (n = 1; n <= nsteps; n++) {
