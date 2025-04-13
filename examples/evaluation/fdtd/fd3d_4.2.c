@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define IE 40
 #define JE 40
@@ -11,8 +12,16 @@
 #define ka 7
 #define NFREQS 3
 
+static inline double
+get_time() {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_nsec / 1000000000.0 + ts.tv_sec;
+}
+
 int
 main() {
+  double time;
   float dx[IE][JE][KE], dy[IE][JE][KE], dz[IE][JE][KE];
   float ex[IE][JE][KE], ey[IE][JE][KE], ez[IE][JE][KE];
   float hx[IE][JE][KE], hy[IE][JE][KE], hz[IE][JE][KE];
@@ -398,6 +407,7 @@ main() {
   /* nsteps = 5; */
   printf("%d \n", nsteps);
 
+  time = get_time();
   for (n = 1; n <= nsteps; n++) {
     T = T + 1;
 
@@ -421,7 +431,7 @@ main() {
     /* pulse =  sin(2*pi*400*1e6*dt*T);  */
     pulse = exp(-.5 * (pow((t0 - T) / spread, 2.0)));
     ez_inc[3] = pulse;
-    printf("%4.0f  %6.2f\n", T, pulse);
+    // printf("%4.0f  %6.2f\n", T, pulse);
 
     /* Boundary conditions for the incident buffer*/
 
@@ -794,6 +804,7 @@ main() {
   fclose(fp);
 
   printf("T = %4.0f \n", T);
+  printf("WALLTIME: %f\n", get_time() - time);
 
   /* Calculate the Fouier amplitude and phase of the incident pulse */
   /*     for ( m=0; m < NFREQS; m++ )
