@@ -5,4 +5,5 @@
 config = {"cnt_rollouts": 0,
           "repeats": 1,
           "rollouts": 1,
-          "cnt_evals": 0}
+          "cnt_evals": 0,
+          "scop_idx": 0}

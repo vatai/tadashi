@@ -6,5 +6,6 @@ app = miniAMR(run_args=["--nx", "42", "--ny", "42", "--nz", "42"])
 
 # print(f"{len(app.scops)}")
 optimize_app(app,
-             rollouts=10)
+             rollouts=10000,
+             scop_idx=0)
 print("all done")
