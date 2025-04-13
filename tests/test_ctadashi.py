@@ -3,14 +3,13 @@ import ast
 import difflib
 import logging
 import sys
-import tempfile
 import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 import tadashi
-from tadashi import Scops, TrEnum
+from tadashi import TrEnum
 from tadashi.apps import Simple
 
 HEADER = "/// TRANSFORMATION: "
