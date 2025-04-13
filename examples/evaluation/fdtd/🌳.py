@@ -1,7 +1,7 @@
 from tadashi import TrEnum
 from tadashi.mcts.optimize import optimize_app
 
-from fdtd.app import MakefileApp
+from app import MakefileApp
 
 app = MakefileApp("fd3d_4.2.c")
 
