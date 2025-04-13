@@ -55,7 +55,6 @@ main() {
   float amp[IE][JE], phase[IE][JE];
   float real_in[5], imag_in[5], amp_in[5], phase_in[5];
 
-// #pragma scop // [0] //////////////////
   ic = IE / 2;
   jc = JE / 2;
   kc = KE / 2;
@@ -112,8 +111,6 @@ main() {
   freq[0] = 10.e6;
   freq[1] = 100.e6;
   freq[2] = 433.e6;
-
-// #pragma endscop // [0] //////////////////
 
   for (n = 0; n < NFREQS; n++) {
     arg[n] = 2 * pi * freq[n] * dt;
@@ -405,6 +402,7 @@ main() {
     T = T + 1;
 
     /*  ----   Start of the Main FDTD loop ----  */
+#pragma scop // [0]//////////////////
 
     /* Calculate the incident buffer */
 
@@ -423,7 +421,7 @@ main() {
     /* pulse =  sin(2*pi*400*1e6*dt*T);  */
     pulse = exp(-.5 * (pow((t0 - T) / spread, 2.0)));
     ez_inc[3] = pulse;
-    printf("%4.0f  %6.2f \n ", T, pulse);
+    printf("%4.0f  %6.2f\n", T, pulse);
 
     /* Boundary conditions for the incident buffer*/
 
@@ -749,6 +747,7 @@ main() {
         }
       }
     }
+#pragma endscop // [0] //////////////////
   }
   /*  ----  End of the main FDTD loop ---- */
 
