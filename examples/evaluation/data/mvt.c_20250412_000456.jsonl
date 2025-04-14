@@ -1,0 +1,6 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-12T00:04:56.130907", "speedup": 1, "transform": [], "source": "mvt.c"}
+{"cnt_rollouts": 9, "cnt_evals": 25, "timestamp": "2025-04-12T00:05:06.585747", "speedup": 1.1205034477029159, "transform": [[7, "tile2d", 4, 2]], "source": "mvt-TMPFILE-2025-04-12T00:05:06.212712-21g8x6bw.c"}
+{"cnt_rollouts": 17, "cnt_evals": 51, "timestamp": "2025-04-12T00:05:16.845654", "speedup": 1.57656341320865, "transform": [[8, "tile1d", 2], [8, "tile1d", 1], [7, "interchange"]], "source": "mvt-TMPFILE-2025-04-12T00:05:16.472048-yy3pz1r0.c"}
+{"cnt_rollouts": 49, "cnt_evals": 145, "timestamp": "2025-04-12T00:05:57.197257", "speedup": 1.585272684532205, "transform": [[7, "interchange"]], "source": "mvt-TMPFILE-2025-04-12T00:05:56.844744-th68bjx9.c"}
+{"cnt_rollouts": 69, "cnt_evals": 205, "timestamp": "2025-04-12T00:06:23.923474", "speedup": 1.5857386397037212, "transform": [[7, "interchange"]], "source": "mvt-TMPFILE-2025-04-12T00:06:23.537168-7vol3g38.c"}
+{"cnt_rollouts": 85, "cnt_evals": 255, "timestamp": "2025-04-12T00:06:45.460593", "speedup": 3.424092409240924, "transform": [[3, "tile1d", 4], [4, "interchange"], [8, "interchange"]], "source": "mvt-TMPFILE-2025-04-12T00:06:45.139794-ipcq9616.c"}

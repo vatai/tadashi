@@ -19,11 +19,22 @@ class App:
     user_compiler_options: list[str]
     ephemeral: bool = False
 
+    def __del__(self):
+        if self.ephemeral:
+            binary = self.output_binary
+            if binary.exists():
+                binary.unlink()
+            self.source.unlink()
+
     def __getstate__(self):
+        """This was probably needed for serialisation."""
         state = {}
         for k, v in self.__dict__.items():
             state[k] = None if k == "scops" else v
         return state
+
+    def _codegen_init_args(self) -> dict:
+        return {}
 
     def _finalize_object(
         self,
@@ -36,12 +47,25 @@ class App:
         if compiler_options is None:
             compiler_options = []
         self.user_compiler_options = compiler_options
-        prev_include_path = os.getenv("C_INCLUDE_PATH", [])
+        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
         os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
         if prev_include_path:
             os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
         self.source = Path(source)
+        if not self.source.exists():
+            raise ValueError(f"{self.source=} doesn't exist!")
         self.scops = Scops(str(self.source))
+
+    def _source_with_infix(self, alt_infix: str):
+        mark = "INFIX"
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{alt_infix}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
+        suffix = self.source.suffix
+        return self.source.with_suffix(f".{alt_infix}{suffix}")
 
     @classmethod
     def make_ephemeral(cls, *args, **kwargs):
@@ -56,26 +80,13 @@ class App:
     def make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now)
+        now_str = datetime.datetime.isoformat(now).replace(":", "-")
         suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+:\d+:\d+.\d+-.*)({suffix})"
+        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
         m = re.match(pattern, str(self.source))
         filename = m.groups()[0] if m else self.source.with_suffix("")
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-
-    def __del__(self):
-        if self.ephemeral:
-            self.remove_binary()
-            self.remove_source()
-
-    def remove_binary(self):
-        binary = self.output_binary
-        if binary.exists():
-            binary.unlink()
-
-    def remove_source(self):
-        self.source.unlink()
 
     @staticmethod
     def compiler():
@@ -94,7 +105,7 @@ class App:
         for scop in self.scops:
             scop.reset()
 
-    def extract_runtime(self, stdout) -> float:
+    def extract_runtime(self, stdout: str) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
 
@@ -172,7 +183,9 @@ class Simple(App):
         source: str | Path,
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
+        ephemeral: bool = False,
     ):
+        self.ephemeral = ephemeral
         if compiler_options is None:
             compiler_options = []
         self.runtime_prefix = runtime_prefix
@@ -195,9 +208,9 @@ class Simple(App):
                 return float(num)
         return 0.0
 
-    def generate_code(self, alt_source=None, ephemeral: bool = True):
-        if alt_source:
-            new_file = Path(alt_source).absolute()
+    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self.make_new_filename()
         self.scops.generate_code(self.source, Path(new_file))
@@ -214,24 +227,31 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
-        base: str,
+        base: Path,
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
+        ephemeral: bool = False,
     ):
         if compiler_options is None:
             compiler_options = []
+        self.ephemeral = ephemeral
         self.benchmark = Path(benchmark)
         self.base = Path(base)
         path = self.base / self.benchmark
         if source is None:
             source = path / Path(self.benchmark.name).with_suffix(".c")
         # "-DMEDIUM_DATASET",
-        self.utilities = base / Path("utilities")
         self._finalize_object(
             source=source,
             compiler_options=compiler_options,
-            include_paths=[self.utilities],
+            include_paths=[base / "utilities"],
         )
+
+    def _codegen_init_args(self):
+        return {
+            "benchmark": self.benchmark,
+            "base": self.base,
+        }
 
     @staticmethod
     def get_benchmarks(path):
@@ -248,7 +268,7 @@ class Polybench(App):
         return [
             self.compiler(),
             str(self.source),
-            str(self.utilities / "polybench.c"),
+            str(self.base / "utilities/polybench.c"),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
             "-lm",
@@ -256,17 +276,6 @@ class Polybench(App):
             "-o",
             str(self.output_binary),
         ]
-
-    def _source_with_infix(self, alt_infix: str):
-        mark = "INFIX"
-        suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
-        prefix = f"{filename}-{mark}-{alt_infix}-"
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-        suffix = self.source.suffix
-        return self.source.with_suffix(f".{alt_infix}{suffix}")
 
     def generate_code(self, alt_infix=None, ephemeral: bool = True):
         if alt_infix:

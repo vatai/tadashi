@@ -1,23 +1,22 @@
 import logging
 from subprocess import TimeoutExpired
 
+import tadashi.mcts.base
 import tadashi.mcts.node_transformation
 from colorama import Fore, Style
 from tadashi.mcts import config
 
-from .base import MCTSNode
-
-default_scop = 0
+scop_idx = config["scop_idx"]
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
-class MCTSNode_Node(MCTSNode):
+class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
 
     def set_actions_from_nodes(self):
-        nodes = self.app.scops[default_scop].schedule_tree
+        nodes = self.app.scops[scop_idx].schedule_tree
         nodes_transformable = []
         for i in range(len(nodes)):
             # print(i, nodes[i])
-            if self.get_ISL_node_transformations(nodes[i]):
+            if self.filter_transformations(nodes[i].available_transformations):
                 nodes_transformable.append(i)
                 # print("trans node", i)
                 # print("\t", nodes[i], nodes[i].available_transformations)
@@ -26,8 +25,6 @@ class MCTSNode_Node(MCTSNode):
         self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
                                                                                   app=self.app,
                                                                                   action=node) for node in nodes_transformable]
-        # print("done")
-
     def get_transform_chain(self):
         # print("GETING CHAIN from", self)
         # self.print()
@@ -45,16 +42,13 @@ class MCTSNode_Node(MCTSNode):
 
     def evaluate(self):
         self._number_of_visits += 1
+        if self._number_of_visits > 4:
+            return
         trs = self.get_transform_chain()
         print("selected transform:", trs)
-        # TODO: make a copy of the app to continue on it
-        # TODO: make another brach
-        # TODO: 1 where we do not apply, but keep growing list of 
-        # app_backup = self.app.generate_code()
-        # print("!we are in app ", self.app)
         self.app.reset_scops()
         try:
-            legal = self.app.scops[default_scop].transform_list(trs)[0]
+            legal = self.app.scops[scop_idx].transform_list(trs)[0]
             print("transform legal: ", legal)
             if legal:
                 config["cnt_evals"] += 1
@@ -84,20 +78,20 @@ class MCTSNode_Node(MCTSNode):
             self.app.reset_scops()
 
 
-    def roll(self, depth=0):
+    def roll(self, depth=1):
         logging.info('selecting a node to transform')
         # print("replaying transforms up to current")
         if self.parent:
             self.app.reset_scops()
             trs = self.get_transform_chain()
-            self.app.scops[default_scop].transform_list(trs)
+            self.app.scops[scop_idx].transform_list(trs)
         self._number_of_visits += 1
         if self.children is None:
             self.set_actions_from_nodes()
         # print("selected node as ", child)
         if self.children:
             child = self.select_child()
-            child.roll(depth+1)
+            child.roll(depth)
         else:
             print("NO NODES TO CHOOSE FROM")
             self.update_stats(-1)

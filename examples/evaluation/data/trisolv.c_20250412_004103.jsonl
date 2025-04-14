@@ -1,0 +1,4 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-12T00:41:03.551544", "speedup": 1, "transform": [], "source": "trisolv.c"}
+{"cnt_rollouts": 40, "cnt_evals": 75, "timestamp": "2025-04-12T00:41:33.572730", "speedup": 1.3945189274447949, "transform": [[6, "tile1d", 3], [2, "full_split"], [6, "tile3d", 4, 1, 4]], "source": "trisolv-TMPFILE-2025-04-12T00:41:33.212306-nbch95kg.c"}
+{"cnt_rollouts": 2114, "cnt_evals": 4269, "timestamp": "2025-04-12T01:11:25.572720", "speedup": 1.5001060445387064, "transform": [[6, "tile1d", 4], [2, "full_split"], [6, "tile2d", 3, 4]], "source": "trisolv-TMPFILE-2025-04-12T01:11:25.083654-t5792kbu.c"}
+{"cnt_rollouts": 2211, "cnt_evals": 4467, "timestamp": "2025-04-12T01:13:00.874096", "speedup": 1.5273159144893114, "transform": [[6, "tile1d", 4], [2, "full_split"], [6, "tile2d", 4, 2]], "source": "trisolv-TMPFILE-2025-04-12T01:13:00.418905-n6t7d3n6.c"}

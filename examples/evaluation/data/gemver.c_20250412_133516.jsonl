@@ -1,0 +1,5 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-12T13:35:16.926008", "speedup": 1, "transform": [], "source": "gemver.c"}
+{"cnt_rollouts": 10, "cnt_evals": 28, "timestamp": "2025-04-12T13:35:29.529872", "speedup": 1.4241657174197362, "transform": [[7, "tile2d", 4, 1]], "source": "gemver-TMPFILE-2025-04-12T13:35:29.152462-7q1_1l8t.c"}
+{"cnt_rollouts": 49, "cnt_evals": 131, "timestamp": "2025-04-12T13:36:16.478340", "speedup": 1.716079507905038, "transform": [[3, "tile2d", 3, 4], [9, "interchange"]], "source": "gemver-TMPFILE-2025-04-12T13:36:15.978740-wa09ch9y.c"}
+{"cnt_rollouts": 278, "cnt_evals": 738, "timestamp": "2025-04-12T13:40:53.548564", "speedup": 2.090346151464487, "transform": [[7, "interchange"], [8, "tile1d", 2], [15, "tile2d", 4, 4]], "source": "gemver-TMPFILE-2025-04-12T13:40:53.132016-_67jmjcy.c"}
+{"cnt_rollouts": 337, "cnt_evals": 893, "timestamp": "2025-04-12T13:42:04.842592", "speedup": 2.2661788399570355, "transform": [[7, "interchange"], [14, "tile2d", 2, 1]], "source": "gemver-TMPFILE-2025-04-12T13:42:04.465610-hpxse8oy.c"}
