@@ -1,6 +1,6 @@
 
 #f = open("output_ALL_XL.txt").readlines()
-f = open("slurm-53369.out").readlines()
+f = open("results_ScriptPolybench.txt").readlines()
 
 
 names = []
@@ -47,9 +47,9 @@ params = {
     "axes.titlesize": 16,
     "axes.labelsize": 16,
     "legend.fontsize": 16,
-    "text.usetex": False, #True,
+    "text.usetex": True,
     "font.size": 11,
-    "font.family": "serif", #"libertine",
+    "font.family": "libertine",
     # "text.latex.unicode": True,
 }
 plt.rcParams.update(params)
