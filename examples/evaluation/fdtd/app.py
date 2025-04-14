@@ -15,24 +15,16 @@ class MakefileApp(Simple):
 
 def main():
     path = Path(__file__).parent / "fd3d_4.2.c"
-    print(f"{path.exists()=}")
     app = MakefileApp(path)
-    app.compile()
-    orig_time = app.measure()
-    print(f"{orig_time=}")
-    nodes = app.scops[0].schedule_tree
-    for i, node in enumerate(nodes):
-        at = node.available_transformations
-        if at and i < 10:
-            print(f"{i}: {at}")
-    node = nodes[7]
-    tr = [TrEnum.FULL_SPLIT]
-    node.transform(*tr)
-    tapp = app.generate_code("foobar", ephemeral=False)
+    tr = [[155, "interchange"], [122, "full_split"]]
+    legals=app.scops[0].transform_list(tr)
+    print(f"{legals=}")
+    tapp = app.generate_code()
     print(f"{tapp.source=}")
+    app.compile()
     tapp.compile()
+    orig_time = app.measure()
     new_time = tapp.measure()
-
     print(f"{orig_time=}")
     print(f"{new_time=}")
     speedup = orig_time / new_time

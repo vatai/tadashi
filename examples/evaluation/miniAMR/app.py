@@ -110,21 +110,23 @@ class miniAMR(App):
 
 
 def main():
-    scop_idx = 2
+    scop_idx = 0
     app = miniAMR(
-        run_args=["--nx", "20", "--ny", "20", "--nz", "20"],
+        run_args=["--nx", "120", "--ny", "10", "--nz", "10"],
     )
-    app.compile()
-    orig_time = app.measure()
 
-    node = app.scops[scop_idx].schedule_tree[0]
+    # node = app.scops[scop_idx].schedule_tree[0]
     # print(node.yaml_str)
+
     for i, node in enumerate(app.scops[scop_idx].schedule_tree):
         at = node.available_transformations
-        if at and False:
-            print(f"{CF.RED}{i}{CF.RESET} {at}")
-    node = app.scops[scop_idx].schedule_tree[6]
+        if at:
+            print(f"{i} {at}")
+    return
 
+    app.compile()
+    orig_time = app.measure(5)
+    node = app.scops[scop_idx].schedule_tree[6]
     tr = [TrEnum.FULL_SPLIT]
     legal = node.transform(*tr)
     print(f"{legal=}")

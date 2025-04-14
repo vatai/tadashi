@@ -1,1 +1,2 @@
 LDLIBS=-lm
+CFLAGS=-O3
