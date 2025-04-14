@@ -16,12 +16,14 @@ class miniAMR(App):
 
     def __init__(
         self,
+        num_ranks: int,
         source: Path = BASE_PATH / "stencil.c",
         run_args: Optional[list[str]] = None,
         compiler_options: list = None,
         base: Path = BASE_PATH,
     ):
         self.base = base
+        self.num_ranks = num_ranks
         if not run_args:
             run_args = []
         self.run_args = run_args
@@ -76,6 +78,7 @@ class miniAMR(App):
         kwargs = {
             "source": new_file,
             "base": self.base,
+            "num_ranks": self.num_ranks,
             "run_args": self.run_args,
         }
         return self.make_new_app(ephemeral, **kwargs)
@@ -93,7 +96,7 @@ class miniAMR(App):
 
     @property
     def run_cmd(self) -> list[str]:
-        cmd = [str(self.output_binary), "--stencil", "0", *self.run_args]
+        cmd = ["mpirun", "-N", str(self.num_ranks), str(self.output_binary), "--stencil", "0", *self.run_args,]
         return cmd
 
     def extract_runtime(self, stdout: str) -> float:
@@ -112,32 +115,60 @@ class miniAMR(App):
 def main():
     scop_idx = 0
     app = miniAMR(
-        run_args=["--nx", "120", "--ny", "10", "--nz", "10"],
+        num_ranks=6,
+        run_args=["--nx", "10", "--ny", "10", "--nz", "82", "--npz", "3", "--npx", "2"],
+        # run_args=["--nx", "10", "--ny", "10", "--nz", "80", "--npz", "3", "--npx", "2"],
     )
 
     # node = app.scops[scop_idx].schedule_tree[0]
     # print(node.yaml_str)
 
+    node = app.scops[scop_idx].schedule_tree[16]
+    tr = [
+                [16, TrEnum.FULL_SPLIT],
+                [20, TrEnum.INTERCHANGE],
+                [15, TrEnum.FULL_FUSE],
+                [11, TrEnum.FULL_SPLIT],
+                [10, TrEnum.FULL_FUSE],
+                [6, TrEnum.FULL_SPLIT],
+                [17, TrEnum.FULL_SPLIT],
+                # [5, TrEnum.FULL_FUSE],
+            ]
+    legals = app.scops[scop_idx].transform_list(tr)
+    print(f"{legals=}")
+    if not all(legals):
+        return
     for i, node in enumerate(app.scops[scop_idx].schedule_tree):
         at = node.available_transformations
         if at:
             print(f"{i} {at}")
-    return
+    # return
 
+    repeat=10
     app.compile()
-    orig_time = app.measure(5)
-    node = app.scops[scop_idx].schedule_tree[6]
-    tr = [TrEnum.FULL_SPLIT]
-    legal = node.transform(*tr)
-    print(f"{legal=}")
-
-    tapp = app.generate_code("foobar.c", ephemeral=False)
-    tapp.compile()
-    tr_time = tapp.measure()
-    speedup = orig_time / tr_time
-    print(f"{orig_time=}")
-    print(f"{tr_time=}")
-    print(f"{speedup=}")
+    orig_time = app.measure(repeat)
+    for ts in [61]:
+        #tr = [
+        #        [16, TrEnum.FULL_SPLIT],
+        #        [20, TrEnum.INTERCHANGE],
+        #        [15, TrEnum.FULL_FUSE],
+        #        [11, TrEnum.FULL_SPLIT],
+        #        [10, TrEnum.FULL_FUSE],
+        #        [6, TrEnum.FULL_SPLIT],
+        #        ]
+        app.scops[scop_idx].reset()
+        legals = app.scops[scop_idx].transform_list(tr)
+        print(f"{legals=}")
+        if not all(legals):
+            continue
+        tapp = app.generate_code(f"{ts=}.c", ephemeral=False)
+        tapp.compile()
+        tr_time = tapp.measure(repeat)
+        speedup = orig_time / tr_time
+        print(f"{ts=}")
+        print(f"{orig_time=}")
+        print(f"{tr_time=}")
+        print(f"{speedup=}")
 
     print("done")
 
