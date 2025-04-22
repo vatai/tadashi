@@ -2,7 +2,8 @@ import math
 import random
 
 from colorama import Fore, Style
-from tadashi.mcts import config
+
+from mcts import config
 
 
 class MCTSNode:
@@ -27,7 +28,7 @@ class MCTSNode:
 
     # TODO: add policy component
     def select_child_PUCT(self):
-        '''Implement Upper Confidence Bound sampling strategy'''
+        """Implement Upper Confidence Bound sampling strategy"""
         # return random.choice(self.children)
         # TODO: consider softmax
         exploration_constant = 1
@@ -45,18 +46,20 @@ class MCTSNode:
                 # C: Exploration constant (balances exploration vs. exploitation).
                 # can start from C=1
                 exploitation_term = child.speedup / child._number_of_visits
-                #exploration_term = exploration_constant * math.sqrt(math.log(self._number_of_visits) / child._number_of_visits)
-                #ucb_score = exploitation_term + exploration_term
+                # exploration_term = exploration_constant * math.sqrt(math.log(self._number_of_visits) / child._number_of_visits)
+                # ucb_score = exploitation_term + exploration_term
                 # PUCT
                 # adding a component from policy
                 policy_child = 1 / len(self.children)
-                exploitation_term = policy_child * (math.sqrt(self._number_of_visits) / (1 + child._number_of_visits))
+                exploitation_term = policy_child * (
+                    math.sqrt(self._number_of_visits) / (1 + child._number_of_visits)
+                )
                 ucb_score = exploitation_term + exploration_constant * exploitation_term
                 if ucb_score > best_score:
                     best_score = ucb_score
                     best_child = child
-        #print("SCORES:",scores)
-        #child = random.choice(self.children)
+        # print("SCORES:",scores)
+        # child = random.choice(self.children)
         return best_child
 
     def get_initial_time(self):
@@ -76,8 +79,8 @@ class MCTSNode:
             self.best.show_best_source()
         else:
             print()
-            print ("speedup :", self.speedup)
-            print ("source  :", self.app.source)
+            print("speedup :", self.speedup)
+            print("source  :", self.app.source)
 
     def set_best(self):
         self.is_best = True

@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from tadashi.mcts import config
+from mcts import config
 
 
 class TimestampedJsonLogger:
@@ -36,14 +36,17 @@ class TimestampedJsonLogger:
             datetime.datetime.now().isoformat()
         )  # ISO format is standard
         print(config)
-        log_entry = {"cnt_rollouts": config["cnt_rollouts"],
-                     "cnt_evals": config["cnt_evals"],
-                     "timestamp": current_timestamp,
-                     "speedup": speedup,
-                     "transform": transforms, "source": source}
+        log_entry = {
+            "cnt_rollouts": config["cnt_rollouts"],
+            "cnt_evals": config["cnt_evals"],
+            "timestamp": current_timestamp,
+            "speedup": speedup,
+            "transform": transforms,
+            "source": source,
+        }
 
         try:
-            with open(self._filename, 'a', encoding='utf-8') as f:
+            with open(self._filename, "a", encoding="utf-8") as f:
                 json_line = json.dumps(log_entry)
                 f.write(json_line + "\n")
         except IOError as e:
