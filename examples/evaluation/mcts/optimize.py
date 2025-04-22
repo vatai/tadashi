@@ -22,7 +22,7 @@ def optimize_app(
     total_runtime = end_time - start_time
     config["timeout"] = total_runtime * 1.5 + 1
     print("initial time:", initial_time)
-    root = tadashi.mcts.node_root.MCTSNode_Root(
+    root = mcts.node_root.MCTSNode_Root(
         app=app, action="START", initial_time=initial_time
     )
     for rollout in range(config["rollouts"]):
