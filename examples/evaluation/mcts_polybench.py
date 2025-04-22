@@ -11,32 +11,6 @@ from tadashi.apps import Polybench, Simple
 from mcts import config
 from mcts.optimize import optimize_app
 
-# from pathlib import Path
-# from uuid import uuid4
-
-
-# TODO (Emil): move it to apps later, just don't want to deal with merges now
-# def clone_simple(self):
-#     file_path = Path(self.source)
-#     directory = file_path.parent
-#     extension = file_path.suffix  # Get the file extension
-#     if (
-#         not directory
-#     ):  # if the given file_path is just a filename in the current directory
-#         directory = pathlib.Path(".")  # use the current directory
-#     new_filename = f"clone_{uuid4()}.{extension}"
-#     new_app = self.generate_code(directory / new_filename, ephemeral=True)
-#     # new_app.remove_source()
-#     return new_app
-
-
-# def clone_poly(self):
-#     new_app = self.generate_code(ephemeral=True)
-#     # print("SOURCE")
-#     # print(new_app.source)
-#     # new_app.remove_source()
-#     return new_app
-
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -48,7 +22,6 @@ def get_args():
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
     args = parser.parse_args()
-    # config.update(vars(args))
     return args
 
 
@@ -57,14 +30,8 @@ def main():
     # logger = logging.getLogger(__name__)
     # logger.info('message')
     args = get_args()
-    #    setattr(Simple, "clone", clone_simple)
-    #    setattr(Polybench, "clone", clone_poly)
-    random.seed(args.seed)  # good seed that finds interchange right away for two loops
-    # random.seed(21) # some errors
+    random.seed(args.seed)
     base = "examples/polybench"
-    # app = Simple("./examples/inputs/simple/two_loops.c")
-    # app = Simple("./examples/inputs/simple/gemm.c", compiler_options=["-O3"],)
-    # app = Simple("./examples/inputs/simple/jacobi/base.c", compiler_options=["-O3"],)
     app = Polybench(
         args.benchmark,
         Path(base),
