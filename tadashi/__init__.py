@@ -101,6 +101,9 @@ class Node:
     #: according to `Scop.schedule_tree`.
     parent_idx: int
 
+    #: The index of the current node in `Scop.schedule_tree`.
+    index: int
+
     #: List of child indexes which determine the location of the node
     #: starting from the root.  See `Scop.locate`.
     location: list[int]
@@ -635,13 +638,14 @@ class Scop:
         loop_signature = ctadashi.get_loop_signature(self.pool_idx, self.scop_idx)
         return literal_eval(loop_signature)
 
-    def _make_node(self, parent, location):
+    def _make_node(self, parent, current_idx, location):
         num_children = ctadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
             node_type=NodeType(ctadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
+            index=current_idx,
             location=location,
             loop_signature=self.get_loop_signature(),
             expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),
@@ -650,8 +654,8 @@ class Scop:
         return node
 
     def _traverse(self, nodes, parent, location):
-        node = self._make_node(parent, location)
         current_idx = len(nodes)
+        node = self._make_node(parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
