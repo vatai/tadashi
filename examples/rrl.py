@@ -7,60 +7,30 @@ import time
 from pathlib import Path
 from subprocess import TimeoutExpired
 
-from tadashi import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
+from tadashi import TRANSFORMATIONS, LowerUpperBound, Scop, Scops, TrEnum
 from tadashi.apps import Polybench, Simple
-
-
-def get_polybench_list():
-    base = Path("examples/polybench")
-    result = []
-    for p in base.glob("**"):
-        if Path(p / (p.name + ".c")).exists():
-            result.append(p.relative_to(base))
-    return base, result
 
 
 class Model:
     def __init__(self):
         self.node_idx = 0
 
-    def random_node(self, scop):
-        node_idx_inc = random.choice([-1, 0, 1])
-        self.node_idx += node_idx_inc
-        self.node_idx = max(self.node_idx, 1)
-        self.node_idx = min(self.node_idx, len(scop.schedule_tree) - 1)
-        return scop.schedule_tree[self.node_idx]
-
-    def random_transform(self, scop):
-        node = self.random_node(scop)
-        key, tr = random.choice(list(TRANSFORMATIONS.items()))
-
-        while not tr.valid(node):
-            node = self.random_node(scop)
-            key, tr = random.choice(list(TRANSFORMATIONS.items()))
-
-        args = self.random_args(node, tr)
-        return self.node_idx, key, tr, args
-
-    def random_args(self, node, tr):
-        if tr == TRANSFORMATIONS[TrEnum.TILE1D]:
-            tile_size = random.choice([2**x for x in range(5, 12)])
-            return [tile_size]
-        lubs = tr.available_args(node)
-        args = []
-        for lub in lubs:
-            if isinstance(lub, LowerUpperBound):
-                lb, ub = lub
-                if lb is None:
-                    lb = -64
-                if ub is None:
-                    ub = 64
-                args.append(random.randrange(lb, ub))
-            else:
-                chosen_enum = random.choice(list(lub))
-                args.append(chosen_enum.value)
-
-        return args
+    def random_transform(self, scop: Scop):
+        node = scop.schedule_tree[self.node_idx]
+        indices = [node.parent_idx] if self.node_idx > 0 else []
+        self.node_idx = random.choice(indices + node.children_idx)
+        node = scop.schedule_tree[self.node_idx]
+        while not node.available_transformations:
+            indices = [node.parent_idx] if self.node_idx > 0 else []
+            self.node_idx = random.choice(indices + node.children_idx)
+            node = scop.schedule_tree[self.node_idx]
+        tr = random.choice(node.available_transformations)
+        args = node.get_args(tr, start=-64, end=64)
+        return node, tr, random.choice(args)
+        if args:
+            return node, tr, random.choice(args)
+        else:
+            return node, tr, []
 
 
 class Timer:
@@ -101,12 +71,15 @@ def run_model(app, num_steps, name=""):
     for i in range(num_steps):
         timer.times.append({})
         timer.reset()
-        loop_idx, tr, key, args = model.random_transform(scop)
+        node, tr, args = model.random_transform(scop)
+        # print(f">>>>> {node=}")
+        # print(f">>>>> {tr=}")
+        # print(f">>>>> {args=}")
         timer.time("Random transformation")
-        legal = scop.schedule_tree[loop_idx].transform(tr, *args)
+        legal = node.transform(tr, *args)
         timer.time("Transformation + legality")
         if not legal:
-            scop.schedule_tree[loop_idx].rollback()
+            node.rollback()
     timer.reset()
     app = app.generate_code()
     timer.time("Code generation")
@@ -128,8 +101,8 @@ def run_simple():
 
 
 def measure_polybench(num_steps):
-    base, poly = get_polybench_list()
-    for i, p in enumerate(poly):
+    base = Path("examples/polybench")
+    for i, p in enumerate(Polybench.get_benchmarks(base)):
         print(f"Start {i+1}. {p.name}")
         app = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
         run_model(app, num_steps=num_steps, name=p.name)

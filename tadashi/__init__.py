@@ -202,8 +202,13 @@ class Node:
         return TRANSFORMATIONS[tr].available_args(self)
 
     def get_args(self, tr: TrEnum, start: int, end: int) -> list:
-        expanded = [[]]
+        expanded: list[list] = [[]]
         params = self.available_args(tr)
+        if not params:
+            print(f"XXX {params=}")
+            return expanded
+        if all([isinstance(p, list) for p in params]):
+            return params
         for param in params:
             args = param
             if isinstance(param, LowerUpperBound):
@@ -215,6 +220,8 @@ class Node:
                 expanded = [[*e, a] for e in expanded for a in args]
             elif isinstance(param, list) and len(param) and isinstance(param[0], list):
                 expanded = [[*e, *a] for e in expanded for a in args]
+            else:
+                expanded = [[*e, a] for e in expanded for a in args]
         return expanded
 
 
@@ -401,7 +408,7 @@ class SplitInfo(TransformInfo):
         return 0 < split_idx and split_idx < nc
 
     @staticmethod
-    def available_args(node: Node) -> Optional[list]:
+    def available_args(node: Node) -> list:
         nc = len(node.children)
         return [LowerUpperBound(lower=1, upper=nc)]
 
@@ -472,7 +479,7 @@ class FullShiftVarInfo(TransformInfo):
         same = [len(set(z)) == 1 for z in zs]
         # index of the first "false" in same (or len(same))
         diff_idx = same.index(False) if not all(same) else len(same)
-        return [range(diff_idx), LowerUpperBound()]
+        return [list(range(diff_idx)), LowerUpperBound()]
 
 
 class PartialShiftVarInfo(TransformInfo):
@@ -520,7 +527,7 @@ class FullShiftParamInfo(TransformInfo):
         if not all(s["params"] for s in node.loop_signature):
             return []
         min_np = len(node.loop_signature[0]["params"])
-        return [range(min_np), LowerUpperBound()]
+        return [list(range(min_np)), LowerUpperBound()]
 
 
 class PartialShiftParamInfo(TransformInfo):
