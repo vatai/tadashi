@@ -26,11 +26,7 @@ class Model:
             node = scop.schedule_tree[self.node_idx]
         tr = random.choice(node.available_transformations)
         args = node.get_args(tr, start=-64, end=64)
-        return node, tr, random.choice(args)
-        if args:
-            return node, tr, random.choice(args)
-        else:
-            return node, tr, []
+        return [node.index, tr, *random.choice(args)]
 
 
 class Timer:
@@ -71,14 +67,18 @@ def run_model(app, num_steps, name=""):
     for i in range(num_steps):
         timer.times.append({})
         timer.reset()
-        node, tr, args = model.random_transform(scop)
+        trs = model.random_transform(scop)
         # print(f">>>>> {node=}")
         # print(f">>>>> {tr=}")
         # print(f">>>>> {args=}")
         timer.time("Random transformation")
-        legal = node.transform(tr, *args)
+        # legal = node.transform(tr, *args)
+        print(f"@@@ {trs=} @@@")
+        print(f"{trs=}")
+        legal = all(scop.transform_list([trs]))
         timer.time("Transformation + legality")
         if not legal:
+            node = scop.schedule_tree[trs[0]]
             node.rollback()
     timer.reset()
     app = app.generate_code()
