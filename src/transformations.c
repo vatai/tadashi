@@ -462,7 +462,8 @@ _tadashi_shift(__isl_take isl_schedule_node *node,
   }
   pa_domains = isl_set_list_free(pa_domains);
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
-  mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  if (id)
+    mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
   return isl_schedule_node_band_shift(node, mupa);
 }
 
@@ -507,7 +508,8 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   domain = isl_union_pw_aff_domain(upa);
   upa = isl_union_pw_aff_val_on_domain(domain, isl_val_int_from_si(ctx, val));
   mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
-  mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
+  if (id)
+    mupa = isl_multi_union_pw_aff_set_tuple_id(mupa, isl_dim_out, id);
   return isl_schedule_node_band_shift(node, mupa);
 }
 
