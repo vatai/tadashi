@@ -94,29 +94,26 @@ def run_model(app, num_steps, name=""):
     timer.custom("Kernel walltime", t)
     trs = []
     for i in range(num_steps):
-        print("------")
         timer.times.append({})
         timer.reset()
-        print(f"{i=} random tr")
         timer.time("Random transformation")
         scop.reset()
-        print(f"{trs=}")
         scop.transform_list(trs)
-        print(f"{i=} DONE: transform_list(trs)")
         tr = model.random_transform(scop)
-        print(f"random: {tr=}")
         legal = scop.transform_list([tr])[-1]
-        print(f"{i=} +1 tr")
         if legal:
             trs.append(tr)
         timer.time("Transformation + legality")
     timer.reset()
+    print("transformed")
     app = app.generate_code()
+    print("code ggenerated")
     timer.time("Code generation")
     app.compile()
+    print("compiled")
     timer.time("Compilation")
     try:
-        t = app.measure(timeout=60)
+        t = app.measure(timeout=10)
         timer.time("Total walltime")
         timer.custom("Kernel walltime", t)
     except TimeoutExpired as e:
