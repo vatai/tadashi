@@ -677,7 +677,7 @@ class Scop:
         for c in location:
             ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
-    def transform_list(self, trs: list) -> bool:
+    def transform_list(self, trs: list) -> list[bool]:
         result = []
         for node_idx, tr, *args in trs:
             node = self.schedule_tree[node_idx]
