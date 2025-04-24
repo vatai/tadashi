@@ -166,8 +166,6 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
-        # print(">>> In Node.transform(): <<<\n")
-        # print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -208,7 +206,6 @@ class Node:
         expanded: list[list] = [[]]
         params = self.available_args(tr)
         if not params:
-            print(f"XXX {params=}")
             return expanded
         if all([isinstance(p, list) for p in params]):
             return params
@@ -701,9 +698,6 @@ class Scops:
         self._check_missing_file(Path(source_path))
         self.pool_idx = ctadashi.init_scops(str(source_path))
         self.num_scops = ctadashi.num_scops(self.pool_idx)
-        # print(f"{str(source_path)=}")
-        # print(f"{self.num_scops=}")
-        # print(f"{self.pool_idx=}")
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):

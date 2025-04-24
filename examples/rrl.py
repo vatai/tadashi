@@ -68,13 +68,7 @@ def run_model(app, num_steps, name=""):
         timer.times.append({})
         timer.reset()
         trs = model.random_transform(scop)
-        # print(f">>>>> {node=}")
-        # print(f">>>>> {tr=}")
-        # print(f">>>>> {args=}")
         timer.time("Random transformation")
-        # legal = node.transform(tr, *args)
-        print(f"@@@ {trs=} @@@")
-        print(f"{trs=}")
         legal = all(scop.transform_list([trs]))
         timer.time("Transformation + legality")
         if not legal:
