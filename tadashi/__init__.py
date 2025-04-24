@@ -83,6 +83,9 @@ class TrEnum(StrEnum):
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
 
+    def __repr__(self):
+        return f"TrEnum.{self.value.upper()}"
+
 
 @dataclass
 class Node:
