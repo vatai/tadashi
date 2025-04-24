@@ -227,7 +227,7 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
-        base: Path,
+        base: Path = Path(__file__).parent.parent / "examples/polybench",
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
         ephemeral: bool = False,
@@ -254,7 +254,7 @@ class Polybench(App):
         }
 
     @staticmethod
-    def get_benchmarks(path):
+    def get_benchmarks(path: str = f"{__file__}/../../examples/polybench"):
         benchmarks = []
         for file in Path(path).glob("**/*.c"):
             filename = file.with_suffix("").name
