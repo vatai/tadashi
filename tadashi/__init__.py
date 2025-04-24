@@ -408,12 +408,12 @@ class SplitInfo(TransformInfo):
     @staticmethod
     def valid_args(node: Node, split_idx: int) -> bool:
         nc = len(node.children)
-        return 0 < split_idx and split_idx < nc
+        return 0 < split_idx and split_idx < nc - 1
 
     @staticmethod
     def available_args(node: Node) -> list:
         nc = len(node.children)
-        return [LowerUpperBound(lower=1, upper=nc)]
+        return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
 class FullSplitInfo(TransformInfo):
