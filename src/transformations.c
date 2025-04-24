@@ -447,7 +447,7 @@ _tadashi_shift(__isl_take isl_schedule_node *node,
   isl_id *id;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  // assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
+  assert(isl_multi_union_pw_aff_size(mupa) == 1);
   id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   upa = isl_multi_union_pw_aff_get_at(mupa, 0);
   mupa = isl_multi_union_pw_aff_free(mupa);
