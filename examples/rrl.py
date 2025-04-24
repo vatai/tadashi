@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import difflib
 import json
 import random
@@ -7,8 +8,31 @@ import time
 from pathlib import Path
 from subprocess import TimeoutExpired
 
-from tadashi import TRANSFORMATIONS, LowerUpperBound, Scop, Scops, TrEnum
+from tadashi import Scop
 from tadashi.apps import Polybench, Simple
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--verify",
+        default=False,
+        help="Verify instead of measure",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed",
+    )
+    parser.add_argument(
+        "--num-steps",
+        type=int,
+        default=1,
+        help="Number of transformations",
+    )
+    return parser.parse_args()
 
 
 class Model:
@@ -38,6 +62,7 @@ class Timer:
         t = time.monotonic()
         self.times[-1][key] = t - self.tick
         self.tick = t
+        return t
 
     def reset(self):
         self.tick = time.monotonic()
@@ -48,7 +73,10 @@ class Timer:
 
 def get_array(app: Polybench):
     result = subprocess.run(
-        app.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=40
+        app.run_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=40,
     )
     output = result.stderr.decode()
     return output.split("\n")
@@ -64,16 +92,24 @@ def run_model(app, num_steps, name=""):
     scop = app.scops[0]
     timer.time("Extraction")
     timer.custom("Kernel walltime", t)
+    trs = []
     for i in range(num_steps):
+        print("------")
         timer.times.append({})
         timer.reset()
-        trs = model.random_transform(scop)
+        print(f"{i=} random tr")
         timer.time("Random transformation")
-        legal = all(scop.transform_list([trs]))
+        scop.reset()
+        print(f"{trs=}")
+        scop.transform_list(trs)
+        print(f"{i=} DONE: transform_list(trs)")
+        tr = model.random_transform(scop)
+        print(f"random: {tr=}")
+        legal = scop.transform_list([tr])[-1]
+        print(f"{i=} +1 tr")
+        if legal:
+            trs.append(tr)
         timer.time("Transformation + legality")
-        if not legal:
-            node = scop.schedule_tree[trs[0]]
-            node.rollback()
     timer.reset()
     app = app.generate_code()
     timer.time("Code generation")
@@ -99,13 +135,14 @@ def measure_polybench(num_steps):
     for i, p in enumerate(Polybench.get_benchmarks(base)):
         print(f"Start {i+1}. {p.name}")
         app = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
+        print("app done")
         run_model(app, num_steps=num_steps, name=p.name)
 
 
 def verify_polybench():
-    base, poly = get_polybench_list()
     compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
-    for p in poly:
+    base = Path("examples/polybench")
+    for p in Polybench.get_benchmarks(base):
         app = Polybench(p, base, compiler_options)
         app.compile()
         gold = get_array(app)
@@ -113,7 +150,7 @@ def verify_polybench():
         run_model(app, num_steps=3, name=p.name)
         # app.compile()
         mod = get_array(app)
-        print(f"{mod [:3]=}")
+        # print(f"{mod [:3]=}")
         diff = "\n".join(difflib.unified_diff(gold, mod))
         if diff:
             print("<<<<<<<<<<<<< ERROR")
@@ -123,7 +160,9 @@ def verify_polybench():
 
 
 if __name__ == "__main__":
-    random.seed(42)
-    # verify_polybench()
-    measure_polybench(num_steps=1)
-    # measure_polybench(num_steps=10)
+    args = get_args()
+    random.seed(args.seed)
+    if args.verify:
+        verify_polybench()
+    else:
+        measure_polybench(num_steps=args.num_steps)
