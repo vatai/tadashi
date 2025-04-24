@@ -403,6 +403,8 @@ class SplitInfo(TransformInfo):
         if node.parent.node_type != NodeType.BAND:
             return False
         args = SplitInfo.available_args(node)
+        if any([isinstance(a, LowerUpperBound) and a.lower >= a.upper for a in args]):
+            return False
         return args is not None
 
     @staticmethod
