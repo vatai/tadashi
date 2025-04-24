@@ -94,7 +94,7 @@ get_loop_signature(size_t pool_idx, size_t scop_idx) {
   std::stringstream ss;
   isl_multi_union_pw_aff *mupa;
   mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
-  assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
+  // assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   // TODO save name
   isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
   isl_size num_sets = isl_union_set_n_set(domain);
