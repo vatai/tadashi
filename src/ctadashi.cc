@@ -252,7 +252,7 @@ post_transform(size_t pool_idx, size_t scop_idx) {
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
   isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
-  isl_bool legal = tadashi_check_legality(ctx, sched, dep);
+  isl_bool legal = tadashi_check_legality(sched, dep);
   isl_schedule_free(sched);
   si->modified = true;
   isl_schedule_node *node = si->current_node;

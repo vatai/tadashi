@@ -344,7 +344,7 @@ _check_legality(__isl_take isl_union_map *schedule_map,
 }
 
 isl_bool
-tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+tadashi_check_legality(__isl_keep isl_schedule *schedule,
                        __isl_take isl_union_map *dep) {
   isl_bool legal;
   isl_union_pw_multi_aff *dep_upma;
