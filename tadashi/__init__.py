@@ -107,6 +107,9 @@ class Node:
     #: The index of the current node in `Scop.schedule_tree`.
     index: int
 
+    #: A string identifying the node.
+    label: str
+
     #: List of child indexes which determine the location of the node
     #: starting from the root.  See `Scop.locate`.
     location: list[int]
@@ -648,6 +651,7 @@ class Scop:
             num_children=num_children,
             parent_idx=parent,
             index=current_idx,
+            label=ctadashi.get_label(self.pool_idx, self.scop_idx),
             location=location,
             loop_signature=self.get_loop_signature(),
             expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),

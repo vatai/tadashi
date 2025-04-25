@@ -10,7 +10,7 @@ from typing import Optional
 
 import tadashi
 from tadashi import TrEnum
-from tadashi.apps import Simple
+from tadashi.apps import Polybench, Simple
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -114,6 +114,26 @@ class TestCtadashi(unittest.TestCase):
         for legal in legals[:-1]:
             self.assertTrue(legal)
         self.assertFalse(legals[-1])
+
+    def test_labels(self):
+        app = Polybench(Path("correlation"))
+        node = app.scops[0].schedule_tree[3]
+        print(f"{node.node_type=}")
+        print(f"{node.label=}")
+        self.assertEqual(node.label, "bar")
+        trs = [
+            [35, TrEnum.TILE1D, 2],
+            [3, TrEnum.FULL_SHIFT_PARAM, 1, -50],
+            [13, TrEnum.TILE1D, 47],
+            [14, TrEnum.SET_LOOP_OPT, 0, 0],
+            [15, TrEnum.SPLIT, 3],
+            [16, TrEnum.FULL_SHIFT_PARAM, 0, 34],
+            [14, TrEnum.FULL_SPLIT],
+            [15, TrEnum.TILE2D, 56, 39],
+            [13, TrEnum.FULL_FUSE],
+            [14, TrEnum.FULL_SPLIT],
+        ]
+        print("@@@ DONE @@@")
 
 
 class TestCtadashiRegression(unittest.TestCase):

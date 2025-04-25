@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <isl/aff_type.h>
+#include <isl/schedule_type.h>
 #include <isl/space_type.h>
 #include <sstream>
 
@@ -84,6 +85,20 @@ get_expr(size_t pool_idx, size_t idx) {
   char *tmp = isl_multi_union_pw_aff_to_str(mupa);
   mupa = isl_multi_union_pw_aff_free(mupa);
   return si->add_string(tmp);
+}
+
+extern "C" const char *
+get_label(size_t pool_idx, size_t scop_idx) {
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
+  isl_multi_union_pw_aff *mupa;
+  if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
+    return "foo";
+  mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
+  char rv[10];
+  mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, rv);
+  printf("rv: %s\n", rv);
+  return "fuu";
+  si->add_string(rv);
 }
 
 extern "C" const char *
