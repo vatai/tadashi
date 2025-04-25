@@ -104,16 +104,19 @@ def run_model(app, num_steps, name=""):
         if legal:
             trs.append(tr)
         timer.time("Transformation + legality")
+    scop.reset()
+    scop.transform_list(trs)
     timer.reset()
+    print(f"{trs=}")
     print("transformed")
-    app = app.generate_code()
+    tapp = app.generate_code()
     print("code ggenerated")
     timer.time("Code generation")
-    app.compile()
+    tapp.compile()
     print("compiled")
     timer.time("Compilation")
     try:
-        t = app.measure(timeout=10)
+        t = tapp.measure(timeout=10)
         timer.time("Total walltime")
         timer.custom("Kernel walltime", t)
     except TimeoutExpired as e:
@@ -121,10 +124,6 @@ def run_model(app, num_steps, name=""):
     filename = f"./times/{name}-{num_steps}.json"
     json.dump(timer.times, open(filename, "w"))
     print(f"Written: {filename}")
-
-
-def run_simple():
-    run_model(Simple("./examples/inputs/depnodep.c"), num_steps=5)
 
 
 def measure_polybench(num_steps):
