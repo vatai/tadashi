@@ -1,8 +1,5 @@
 /** @file */
 #include <assert.h>
-#include <isl/aff_type.h>
-#include <isl/schedule_type.h>
-#include <isl/space_type.h>
 #include <limits.h>
 
 #include <isl/aff.h>
@@ -20,6 +17,8 @@
 #include <pet.h>
 
 #include "transformations.h"
+
+#define LABEL_BUFFER_SIZE 100
 
 /**
  * Insert a context node with param_idx to be less than
@@ -62,12 +61,29 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
  */
 isl_schedule_node *
 tadashi_tile_1d(isl_schedule_node *node, int tile_size) {
+  isl_multi_union_pw_aff *mupa;
+  char buffer[LABEL_BUFFER_SIZE];
+  const char *label;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   isl_val *val = isl_val_int_from_si(ctx, tile_size);
   isl_val_list *vl = isl_val_list_from_val(val);
   isl_space *space = isl_schedule_node_band_get_space(node);
+  label = isl_space_get_tuple_name(space, isl_dim_out);
   isl_multi_val *sizes = isl_multi_val_from_val_list(space, vl);
-  return isl_schedule_node_band_tile(node, sizes);
+  node = isl_schedule_node_band_tile(node, sizes);
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  sprintf(buffer, "%s-tile1d-outer", label);
+  mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, buffer);
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_first_child(node);
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  sprintf(buffer, "%s-tile1d-inner", label);
+  mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, buffer);
+  node = isl_schedule_node_delete(node);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_parent(node);
+  return node;
 }
 
 /**
@@ -86,8 +102,11 @@ tadashi_tile_2d(isl_schedule_node *node, int size1, int size2) {
   isl_val_list *vl = isl_val_list_from_val(isl_val_int_from_si(ctx, size1));
   vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size2)); // 1
   isl_space *space = isl_schedule_node_band_get_space(node);
+  printf("space1: %s\n", isl_space_to_str(space));
   space = isl_space_add_dims(space, isl_dim_out, 1); // 2
+  printf("space2: %s\n", isl_space_to_str(space));
   isl_multi_val *sizes = isl_multi_val_from_val_list(isl_space_copy(space), vl);
+  printf("mv: %s\n", isl_multi_val_to_str(sizes));
   upas = isl_union_pw_aff_list_alloc(ctx, 2); // 3
   for (size_t i = 0; i < 2; ++i) {            // 4
     mupa = isl_schedule_node_band_get_partial_schedule(node);
@@ -99,6 +118,7 @@ tadashi_tile_2d(isl_schedule_node *node, int size1, int size2) {
   mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upas);
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
   node = isl_schedule_node_band_tile(node, sizes);
+  printf("%s\n", isl_schedule_node_to_str(node));
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_band_split(node, 1); // 5
   node = isl_schedule_node_parent(node);
