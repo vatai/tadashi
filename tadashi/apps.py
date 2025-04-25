@@ -261,7 +261,7 @@ class Polybench(App):
             dirname = file.parent.name
             if filename == dirname:
                 benchmarks.append(file.parent.relative_to(path))
-        return benchmarks
+        return list(sorted(benchmarks))
 
     @property
     def compile_cmd(self) -> list[str]:
