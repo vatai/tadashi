@@ -94,11 +94,11 @@ get_label(size_t pool_idx, size_t scop_idx) {
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "foo";
   mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
-  char rv[10];
-  mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, rv);
-  printf("rv: %s\n", rv);
-  return "fuu";
-  si->add_string(rv);
+  const char *label = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  std::stringstream ss;
+  ss << label;
+  return si->add_string(ss);
 }
 
 extern "C" const char *
