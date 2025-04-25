@@ -40,3 +40,16 @@ class TestPolybench(TestApp):
         mod = app.generate_code()
         mod.compile()
         # mod.measure()
+
+    def test_get_benchmark(self):
+        app = apps.Polybench("correlation")
+        self.assertEqual(app.benchmark, "datamining/correlation")
+
+        app = apps.Polybench("datamining/correlation")  # old
+        self.assertEqual(app.benchmark, "datamining/correlation")
+
+        with self.assertRaises(ValueError):
+            app = apps.Polybench("polybench")  # special case
+
+        with self.assertRaises(ValueError):
+            app = apps.Polybench("does_not_exist")
