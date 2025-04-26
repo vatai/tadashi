@@ -60,7 +60,7 @@ split_and_sel_labels(__isl_take isl_schedule_node *node, const char **label,
   for (int i = 0; i < dim; i++) {
     if (i)
       node = isl_schedule_node_first_child(node);
-    if (dim > 1)
+    if (i < dim - 1)
       node = isl_schedule_node_band_split(node, 1);
     mupa = isl_schedule_node_band_get_partial_schedule(node);
     sprintf(buffer, "%s-tile%dd-%s", label[i], dim, str);
