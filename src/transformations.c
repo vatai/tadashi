@@ -52,6 +52,25 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
   return isl_schedule_node_first_child(node);
 }
 
+static __isl_give isl_schedule_node *
+set_label(__isl_take isl_schedule_node *node, const char **label, int dim,
+          const char *level) {
+  isl_multi_union_pw_aff *mupa;
+  char buffer[LABEL_BUFFER_SIZE];
+  for (int i = 0; i < dim; i++) {
+    if (i)
+      node = isl_schedule_node_first_child(node);
+    mupa = isl_schedule_node_band_get_partial_schedule(node);
+    sprintf(buffer, "%s-tile%dd-%s", label[i], dim, level);
+    mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, buffer);
+    node = isl_schedule_node_delete(node);
+    node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  }
+  for (int i = 0; i < dim - 1; i++)
+    node = isl_schedule_node_parent(node);
+  return node;
+}
+
 /**
  * 1D loop tiling.
  *
