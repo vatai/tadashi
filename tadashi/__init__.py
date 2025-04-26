@@ -278,17 +278,33 @@ class TransformInfo:
         return []
 
 
+def _tilable(node: Node, dim: int) -> bool:
+    for _ in range(dim):
+        if node.node_type != NodeType.BAND:
+            return False
+        if "tiled" in node.label and "outer" in node.label:
+            return False
+        node = node.children[0]
+    return True
+
+
 class Tile1DInfo(TransformInfo):
     func_name = "tile1d"
     arg_help = ["Tile size"]
 
     @staticmethod
-    def valid_args(node, arg):
-        return True
+    def valid(node: Node):
+        return _tilable(node, 1)
+
+    @staticmethod
+    def valid_args(node, size1):
+        return size1 > 1
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound(lower=1, upper=None)]
+        return [
+            LowerUpperBound(lower=1, upper=None),
+        ]
 
 
 class Tile2DInfo(TransformInfo):
@@ -297,15 +313,11 @@ class Tile2DInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        if node.node_type != NodeType.BAND:
-            return False
-        if node.children[0].node_type != NodeType.BAND:
-            return False
-        return True
+        return _tilable(node, 2)
 
     @staticmethod
     def valid_args(node, size1, size2):
-        return size1 > 0 and size2 > 0
+        return size1 > 1 and size2 > 1
 
     @staticmethod
     def available_args(node: Node):
@@ -321,13 +333,7 @@ class Tile3DInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        if node.node_type != NodeType.BAND:
-            return False
-        if node.children[0].node_type != NodeType.BAND:
-            return False
-        if node.children[0].children[0].node_type != NodeType.BAND:
-            return False
-        return True
+        return _tilable(node, 3)
 
     @staticmethod
     def valid_args(node, size1, size2, size3):
