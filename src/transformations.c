@@ -53,21 +53,49 @@ limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
 }
 
 static __isl_give isl_schedule_node *
-set_label(__isl_take isl_schedule_node *node, const char **label, int dim,
-          const char *level) {
+split_and_sel_labels(__isl_take isl_schedule_node *node, const char **label,
+                     int dim, const char *str) {
   isl_multi_union_pw_aff *mupa;
   char buffer[LABEL_BUFFER_SIZE];
   for (int i = 0; i < dim; i++) {
     if (i)
       node = isl_schedule_node_first_child(node);
+    if (dim > 1)
+      node = isl_schedule_node_band_split(node, 1);
     mupa = isl_schedule_node_band_get_partial_schedule(node);
-    sprintf(buffer, "%s-tile%dd-%s", label[i], dim, level);
+    sprintf(buffer, "%s-tile%dd-%s", label[i], dim, str);
     mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, buffer);
     node = isl_schedule_node_delete(node);
     node = isl_schedule_node_insert_partial_schedule(node, mupa);
   }
   for (int i = 0; i < dim - 1; i++)
     node = isl_schedule_node_parent(node);
+  return node;
+}
+
+__isl_give isl_schedule_node *
+tile_Nd(__isl_take isl_schedule_node *node, int N, int *sizes,
+        const char **labels) {
+  isl_multi_union_pw_aff *mupa;
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_space *space = isl_schedule_node_band_get_space(node);
+  space = isl_space_add_dims(space, isl_dim_out, N - 1);
+  isl_multi_val *mv = isl_multi_val_zero(isl_space_copy(space));
+  isl_union_pw_aff_list *upas = isl_union_pw_aff_list_alloc(ctx, N);
+  for (int i = 0; i < N; i++) {
+    isl_val *v = isl_val_int_from_si(ctx, sizes[i]);
+    mv = isl_multi_val_set_at(mv, i, v);
+    mv = isl_multi_val_set_dim_name(mv, isl_dim_out, i, "foo");
+    mupa = isl_schedule_node_band_get_partial_schedule(node);
+    labels[i] = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
+    mupa = isl_multi_union_pw_aff_free(mupa);
+    upas = isl_union_pw_aff_list_add(upas, upa);
+    node = isl_schedule_node_delete(node);
+  }
+  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upas);
+  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_band_tile(node, mv);
   return node;
 }
 
@@ -81,42 +109,11 @@ set_label(__isl_take isl_schedule_node *node, const char **label, int dim,
 __isl_give isl_schedule_node *
 tadashi_tile_1d(__isl_take isl_schedule_node *node, int tile_size) {
   const char *label[1];
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  isl_val *val = isl_val_int_from_si(ctx, tile_size);
-  isl_val_list *vl = isl_val_list_from_val(val);
-  isl_space *space = isl_schedule_node_band_get_space(node);
-  label[0] = isl_space_get_tuple_name(space, isl_dim_out);
-  isl_multi_val *sizes = isl_multi_val_from_val_list(space, vl);
-  node = isl_schedule_node_band_tile(node, sizes);
-  node = set_label(node, label, 1, "outer");
+  node = tile_Nd(node, 1, &tile_size, label);
+  node = split_and_sel_labels(node, label, 1, "outer");
   node = isl_schedule_node_first_child(node);
-  node = set_label(node, label, 1, "inner");
+  node = split_and_sel_labels(node, label, 1, "inner");
   node = isl_schedule_node_parent(node);
-  return node;
-}
-
-__isl_give isl_schedule_node *
-tile_Nd(__isl_take isl_schedule_node *node, int N, int *sizes) {
-  isl_val_list *vl;
-  isl_multi_union_pw_aff *mupa;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  isl_space *space = isl_schedule_node_band_get_space(node);
-  isl_union_pw_aff_list *upas = isl_union_pw_aff_list_alloc(ctx, N);
-  space = isl_space_add_dims(space, isl_dim_out, N - 1);
-  for (int i = 0; i < N; i++) {
-    isl_val *v = isl_val_int_from_si(ctx, sizes[i]);
-    vl = ((i == 0) ? isl_val_list_from_val(v) : isl_val_list_add(vl, v));
-    mupa = isl_schedule_node_band_get_partial_schedule(node);
-    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
-    mupa = isl_multi_union_pw_aff_free(mupa);
-    upas = isl_union_pw_aff_list_add(upas, upa);
-    node = isl_schedule_node_delete(node);
-  }
-  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(isl_space_copy(space),
-                                                       upas);
-  node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  isl_multi_val *mv = isl_multi_val_from_val_list(space, vl);
-  node = isl_schedule_node_band_tile(node, mv);
   return node;
 }
 
@@ -132,11 +129,11 @@ isl_schedule_node *
 tadashi_tile_2d(isl_schedule_node *node, int size1, int size2) {
   int sizes[] = {size1, size2};
   const char *label[2];
-  node = tile_Nd(node, 2, sizes);
+  node = tile_Nd(node, 2, sizes, label);
   node = isl_schedule_node_first_child(node);
-  node = isl_schedule_node_band_split(node, 1); // 5
+  node = split_and_sel_labels(node, label, 2, "inner");
   node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_band_split(node, 1); // 6
+  node = split_and_sel_labels(node, label, 2, "outer");
   return node;
 }
 
@@ -151,32 +148,13 @@ tadashi_tile_2d(isl_schedule_node *node, int size1, int size2) {
  */
 isl_schedule_node *
 tadashi_tile_3d(isl_schedule_node *node, int size1, int size2, int size3) {
-  isl_union_pw_aff_list *upas;
-  isl_multi_union_pw_aff *mupa;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  isl_val_list *vl = isl_val_list_from_val(isl_val_int_from_si(ctx, size1));
-  vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size2));
-  vl = isl_val_list_add(vl, isl_val_int_from_si(ctx, size3)); // 1
-  isl_space *space = isl_schedule_node_band_get_space(node);
-  space = isl_space_add_dims(space, isl_dim_out, 2); // 2
-  isl_multi_val *sizes = isl_multi_val_from_val_list(isl_space_copy(space), vl);
-  upas = isl_union_pw_aff_list_alloc(ctx, 3); // 3
-  for (size_t i = 0; i < 3; ++i) {            // 4
-    mupa = isl_schedule_node_band_get_partial_schedule(node);
-    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
-    mupa = isl_multi_union_pw_aff_free(mupa);
-    upas = isl_union_pw_aff_list_add(upas, upa);
-    node = isl_schedule_node_delete(node);
-  }
-  mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upas);
-  node = isl_schedule_node_insert_partial_schedule(node, mupa);
-  node = isl_schedule_node_band_tile(node, sizes);
+  int sizes[] = {size1, size2, size3};
+  const char *label[3];
+  node = tile_Nd(node, 3, sizes, label);
   node = isl_schedule_node_first_child(node);
-  node = isl_schedule_node_band_split(node, 2);
-  node = isl_schedule_node_band_split(node, 1); // 5
+  node = split_and_sel_labels(node, label, 3, "inner");
   node = isl_schedule_node_parent(node);
-  node = isl_schedule_node_band_split(node, 2);
-  node = isl_schedule_node_band_split(node, 1); // 6
+  node = split_and_sel_labels(node, label, 3, "outer");
   return node;
 }
 
