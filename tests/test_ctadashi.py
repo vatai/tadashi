@@ -117,30 +117,17 @@ class TestCtadashi(unittest.TestCase):
 
     def test_labels(self):
         app = Polybench(Path("correlation"))
-        node = app.scops[0].schedule_tree[35]
-        self.assertEqual(node.label, "L_6")
-        trs = [
-            [27, TrEnum.TILE1D, 11],
-            # [27, TrEnum.TILE2D, 11, 13],
-        ]
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4")
+        trs = [[27, TrEnum.TILE1D, 11]]
         app.scops[0].transform_list(trs)
-        trs = [
-            [35, TrEnum.TILE1D, 2],
-            # [3, TrEnum.FULL_SHIFT_PARAM, 1, -50],
-            # [13, TrEnum.TILE1D, 47],
-            # [14, TrEnum.SET_LOOP_OPT, 0, 0],
-            # [15, TrEnum.SPLIT, 3],
-            # [16, TrEnum.FULL_SHIFT_PARAM, 0, 34],
-            # [14, TrEnum.FULL_SPLIT],
-            # [15, TrEnum.TILE2D, 56, 39],
-            # [13, TrEnum.FULL_FUSE],
-            # [14, TrEnum.FULL_SPLIT],
-        ]
-        return
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile1d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4-tile1d-inner")
+
+        app.scops[0].reset()
+        trs = [[27, TrEnum.TILE2D, 11, 13]]
         app.scops[0].transform_list(trs)
-        print(f"{node.label=}")
-        node = app.scops[0].schedule_tree[36]
-        print(f"{node.label=}")
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_5-tile2d-outer")
 
 
 class TestCtadashiRegression(unittest.TestCase):
