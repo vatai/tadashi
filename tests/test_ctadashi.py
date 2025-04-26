@@ -127,7 +127,7 @@ class TestCtadashi(unittest.TestCase):
         trs = [[27, TrEnum.TILE2D, 11, 13]]
         app.scops[0].transform_list(trs)
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
-        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_5-tile2d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
 
 class TestCtadashiRegression(unittest.TestCase):
