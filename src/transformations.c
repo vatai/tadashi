@@ -347,12 +347,18 @@ make_subsequence(__isl_take isl_schedule_node *node,
   isl_multi_union_pw_aff *mupa;
   node = isl_schedule_node_first_child(node);
   node = isl_schedule_node_first_child(node);
-  map = isl_schedule_node_get_subtree_schedule_union_map(node);
-  map = isl_union_map_intersect_domain(map, set);
-  node = isl_schedule_node_cut(node);
-  mupa = isl_multi_union_pw_aff_from_union_map(map);
-  node = isl_schedule_node_insert_partial_schedule(node, mupa);
+
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_leaf) {
+    map = isl_schedule_node_get_subtree_schedule_union_map(node);
+    map = isl_union_map_intersect_domain(map, set);
+    node = isl_schedule_node_cut(node);
+    mupa = isl_multi_union_pw_aff_from_union_map(map);
+    node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  } else {
+    isl_union_set_free(set);
+  }
   node = isl_schedule_node_insert_sequence(node, list);
+
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
   return node;
