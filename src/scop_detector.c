@@ -45,6 +45,14 @@
  * the transformed code (by `app.generate_code()`).
  *
  */
+
+isl_bool
+count_descendants(struct isl_schedule_node *node, void *user) {
+  int *num_children = user;
+  ++*num_children;
+  return isl_bool_true;
+}
+
 isl_printer *
 transform(isl_printer *p, pet_scop *scop, void *user) {
   size_t *num_scops = user;
@@ -52,6 +60,11 @@ transform(isl_printer *p, pet_scop *scop, void *user) {
   struct tadashi_scop *ts = allocate_tadashi_scop(scop);
   isl_schedule_node *root = isl_schedule_get_root(ts->schedule);
   printf("scop[%d]:\n%s\n", *num_scops, isl_schedule_node_to_str(root));
+  int num_children = 0;
+  isl_schedule_node_foreach_descendant_top_down(root, count_descendants,
+                                                &num_children);
+  if (num_children)
+    printf("scop[%d].num_children=%d\n", *num_scops, num_children);
   sprintf(line, "// #pragma scop // [%zu] //////////////////\n", *num_scops);
   p = isl_printer_print_str(p, line);
   p = pet_scop_print_original(scop, p);

@@ -2,12 +2,12 @@ import argparse
 import logging
 import random
 import time
+from timeit import repeat
 
-# from tadashi import TrEnum
+from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
 from tadashi.mcts import config
-from tadashi.mcts.logger import TimestampedJsonLogger
-from tadashi.mcts.node_node import MCTSNode_Node
+from tadashi.mcts.optimize import optimize_app
 
 # from pathlib import Path
 # from uuid import uuid4
@@ -44,7 +44,7 @@ def get_args():
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
     args = parser.parse_args()
-    config.update(vars(args))
+    #config.update(vars(args))
     return args
 
 
@@ -66,32 +66,22 @@ def main():
         base,
         compiler_options=args.compiler_options.split(" "),
     )
-
     print(app.scops[0].schedule_tree[0].yaml_str)
-    # return
-    app.compile()
-    print(config)
-    initial_time = app.measure(repeat=config["repeats"])
-    config["timeout"] = initial_time * 1.5 + 1
-    print("initial time:", initial_time)
-    root = MCTSNode_Node(app=app, action="START", initial_time=initial_time)
-    root.logger = TimestampedJsonLogger(app.source.name)
-    root.logger.log(1, [], app.source.name)
-    root.speedup = 1
-    for rollout in range(config["rollouts"]):
-        config["cnt_rollouts"] = rollout+1
-        print(f"\n---- doing rollout {rollout}")
-        root.roll()
-    print("\n**************************\n")
-    print("sampled tree as follows:\n")
-    root.set_best()
-    root.print()
+    allowed_transformations = {
+        TrEnum.TILE1D,
+        TrEnum.TILE2D,
+        TrEnum.TILE3D,
+        TrEnum.INTERCHANGE,
+        # TrEnum.FUSE,
+        TrEnum.FULL_FUSE,
+        TrEnum.SPLIT,
+        TrEnum.FULL_SPLIT,
+    }
 
-    print()
-    print("BEST:")
-    root.print_best()
-    root.show_best_source()
-    del root
+    optimize_app(app,
+                 rollouts=args.rollouts,
+                 repeats=args.repeats,
+                 whitelist_transformations=allowed_transformations)
     del app
     print("all done")
 
