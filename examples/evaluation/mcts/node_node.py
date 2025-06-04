@@ -1,15 +1,18 @@
 import logging
 from subprocess import TimeoutExpired
 
-import tadashi.mcts.base
-import tadashi.mcts.node_transformation
 from colorama import Fore, Style
-from tadashi.mcts import config
+
+import mcts.base
+import mcts.node_transformation
+from mcts import config
 
 scop_idx = config["scop_idx"]
+
+
 # This is a bit confusing, but the name implies that we are on a level where we are
 # SELECTING node, maybe I should shift naming
-class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
+class MCTSNode_Node(mcts.base.MCTSNode):
 
     def set_actions_from_nodes(self):
         nodes = self.app.scops[scop_idx].schedule_tree
@@ -22,9 +25,13 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
                 # print("\t", nodes[i], nodes[i].available_transformations)
         # print("transformable nodes:", len(nodes_transformable))
         # TODO: do this lazily to avoid expensive cloning through code generation
-        self.children = [tadashi.mcts.node_transformation.MCTSNode_Transformation(parent=self,
-                                                                                  app=self.app,
-                                                                                  action=node) for node in nodes_transformable]
+        self.children = [
+            mcts.node_transformation.MCTSNode_Transformation(
+                parent=self, app=self.app, action=node
+            )
+            for node in nodes_transformable
+        ]
+
     def get_transform_chain(self):
         # print("GETING CHAIN from", self)
         # self.print()
@@ -56,8 +63,9 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
                 new_app = self.app.generate_code(ephemeral=False)
                 # print("try compile")
                 new_app.compile()
-                new_time = new_app.measure(repeat=config["repeats"],
-                                           timeout=config["timeout"])
+                new_time = new_app.measure(
+                    repeat=config["repeats"], timeout=config["timeout"]
+                )
                 print("optimized time:", new_time)
                 speedup = self.get_initial_time() / new_time
                 # self.source = new_app.source
@@ -77,9 +85,8 @@ class MCTSNode_Node(tadashi.mcts.base.MCTSNode):
         finally:
             self.app.reset_scops()
 
-
     def roll(self, depth=1):
-        logging.info('selecting a node to transform')
+        logging.info("selecting a node to transform")
         # print("replaying transforms up to current")
         if self.parent:
             self.app.reset_scops()

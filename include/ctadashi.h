@@ -17,6 +17,8 @@ size_t get_num_children(size_t pool_idx, size_t scop_idx);
 
 const char *get_expr(size_t pool_idx, size_t idx);
 
+const char *get_label(size_t pool_idx, size_t scop_idx);
+
 const char *get_loop_signature(size_t pool_idx, size_t scop_idx);
 
 const char *print_schedule_node(size_t pool_idx, size_t scop_idx);

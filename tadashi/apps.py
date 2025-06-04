@@ -221,13 +221,13 @@ class Simple(App):
 class Polybench(App):
     """A single benchmark in of the Polybench suite."""
 
-    benchmark: Path  # path to the benchmark dir from base
+    benchmark: str  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
     def __init__(
         self,
         benchmark: str,
-        base: Path,
+        base: Path = Path(__file__).parent.parent / "examples/polybench",
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
         ephemeral: bool = False,
@@ -235,17 +235,26 @@ class Polybench(App):
         if compiler_options is None:
             compiler_options = []
         self.ephemeral = ephemeral
-        self.benchmark = Path(benchmark)
         self.base = Path(base)
-        path = self.base / self.benchmark
+        self.benchmark = self._get_benchmark(benchmark)
         if source is None:
-            source = path / Path(self.benchmark.name).with_suffix(".c")
+            filename = Path(self.benchmark).with_suffix(".c").name
+            source = self.base / self.benchmark / filename
         # "-DMEDIUM_DATASET",
         self._finalize_object(
             source=source,
             compiler_options=compiler_options,
             include_paths=[base / "utilities"],
         )
+
+    def _get_benchmark(self, benchmark: str) -> str:
+        target = Path(benchmark).with_suffix(".c").name
+        for c_file in self.base.glob("**/*.c"):
+            if c_file.with_suffix(".c").name == target:
+                if c_file.parent.name == "utilities":
+                    break  # go to raise ValueError!
+                return str(c_file.relative_to(self.base).parent)
+        raise ValueError("Not a polybench benchmark")
 
     def _codegen_init_args(self):
         return {
@@ -254,14 +263,14 @@ class Polybench(App):
         }
 
     @staticmethod
-    def get_benchmarks(path):
+    def get_benchmarks(path: str = f"{__file__}/../../examples/polybench"):
         benchmarks = []
         for file in Path(path).glob("**/*.c"):
             filename = file.with_suffix("").name
             dirname = file.parent.name
             if filename == dirname:
                 benchmarks.append(file.parent.relative_to(path))
-        return benchmarks
+        return list(sorted(benchmarks))
 
     @property
     def compile_cmd(self) -> list[str]:

@@ -1,8 +1,9 @@
 from itertools import product
 
-import tadashi.mcts.node_node
 from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
-from tadashi.mcts import config
+
+import mcts.node_node
+from mcts import config
 
 from .base import MCTSNode
 
@@ -56,9 +57,7 @@ class MCTSNode_Params(MCTSNode):
         param_sets = self.get_args()
         if self.children is None:
             self.children = [
-                tadashi.mcts.node_node.MCTSNode_Node(
-                    parent=self, app=self.app, action=p
-                )
+                mcts.node_node.MCTSNode_Node(parent=self, app=self.app, action=p)
                 for p in param_sets
             ]
 

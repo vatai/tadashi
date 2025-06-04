@@ -28,7 +28,7 @@ struct tadashi_scop *allocate_tadashi_scop(struct pet_scop *ps);
 
 void free_tadashi_scop(struct tadashi_scop *ts);
 
-isl_bool tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+isl_bool tadashi_check_legality(__isl_keep isl_schedule *schedule,
                                 __isl_take isl_union_map *dep);
 
 isl_bool tadashi_check_legality_parallel(isl_ctx *ctx,

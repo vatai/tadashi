@@ -83,6 +83,9 @@ class TrEnum(StrEnum):
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
 
+    def __repr__(self):
+        return f"TrEnum.{self.value.upper()}"
+
 
 @dataclass
 class Node:
@@ -100,6 +103,12 @@ class Node:
     #: The index of the parent of the node in the schedule tree
     #: according to `Scop.schedule_tree`.
     parent_idx: int
+
+    #: The index of the current node in `Scop.schedule_tree`.
+    index: int
+
+    #: A string identifying the node.
+    label: str
 
     #: List of child indexes which determine the location of the node
     #: starting from the root.  See `Scop.locate`.
@@ -163,8 +172,6 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
-        # print(">>> In Node.transform(): <<<\n")
-        # print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -202,8 +209,12 @@ class Node:
         return TRANSFORMATIONS[tr].available_args(self)
 
     def get_args(self, tr: TrEnum, start: int, end: int) -> list:
-        expanded = [[]]
+        expanded: list[list] = [[]]
         params = self.available_args(tr)
+        if not params:
+            return expanded
+        if all([isinstance(p, list) for p in params]):
+            return params
         for param in params:
             args = param
             if isinstance(param, LowerUpperBound):
@@ -215,6 +226,8 @@ class Node:
                 expanded = [[*e, a] for e in expanded for a in args]
             elif isinstance(param, list) and len(param) and isinstance(param[0], list):
                 expanded = [[*e, *a] for e in expanded for a in args]
+            else:
+                expanded = [[*e, a] for e in expanded for a in args]
         return expanded
 
 
@@ -265,17 +278,33 @@ class TransformInfo:
         return []
 
 
+def _tilable(node: Node, dim: int) -> bool:
+    for _ in range(dim):
+        if node.node_type != NodeType.BAND:
+            return False
+        if "tiled" in node.label and "outer" in node.label:
+            return False
+        node = node.children[0]
+    return True
+
+
 class Tile1DInfo(TransformInfo):
     func_name = "tile1d"
     arg_help = ["Tile size"]
 
     @staticmethod
-    def valid_args(node, arg):
-        return True
+    def valid(node: Node):
+        return _tilable(node, 1)
+
+    @staticmethod
+    def valid_args(node, size1):
+        return size1 > 1
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound(lower=1, upper=None)]
+        return [
+            LowerUpperBound(lower=1, upper=None),
+        ]
 
 
 class Tile2DInfo(TransformInfo):
@@ -284,15 +313,11 @@ class Tile2DInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        if node.node_type != NodeType.BAND:
-            return False
-        if node.children[0].node_type != NodeType.BAND:
-            return False
-        return True
+        return _tilable(node, 2)
 
     @staticmethod
     def valid_args(node, size1, size2):
-        return size1 > 0 and size2 > 0
+        return size1 > 1 and size2 > 1
 
     @staticmethod
     def available_args(node: Node):
@@ -308,13 +333,7 @@ class Tile3DInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        if node.node_type != NodeType.BAND:
-            return False
-        if node.children[0].node_type != NodeType.BAND:
-            return False
-        if node.children[0].children[0].node_type != NodeType.BAND:
-            return False
-        return True
+        return _tilable(node, 3)
 
     @staticmethod
     def valid_args(node, size1, size2, size3):
@@ -393,17 +412,19 @@ class SplitInfo(TransformInfo):
         if node.parent.node_type != NodeType.BAND:
             return False
         args = SplitInfo.available_args(node)
+        if any([isinstance(a, LowerUpperBound) and a.lower >= a.upper for a in args]):
+            return False
         return args is not None
 
     @staticmethod
     def valid_args(node: Node, split_idx: int) -> bool:
         nc = len(node.children)
-        return 0 < split_idx and split_idx < nc
+        return 1 <= split_idx and split_idx < nc - 1
 
     @staticmethod
-    def available_args(node: Node) -> Optional[list]:
+    def available_args(node: Node) -> list:
         nc = len(node.children)
-        return [LowerUpperBound(lower=1, upper=nc)]
+        return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
 class FullSplitInfo(TransformInfo):
@@ -472,7 +493,7 @@ class FullShiftVarInfo(TransformInfo):
         same = [len(set(z)) == 1 for z in zs]
         # index of the first "false" in same (or len(same))
         diff_idx = same.index(False) if not all(same) else len(same)
-        return [range(diff_idx), LowerUpperBound()]
+        return [list(range(diff_idx)), LowerUpperBound()]
 
 
 class PartialShiftVarInfo(TransformInfo):
@@ -520,7 +541,7 @@ class FullShiftParamInfo(TransformInfo):
         if not all(s["params"] for s in node.loop_signature):
             return []
         min_np = len(node.loop_signature[0]["params"])
-        return [range(min_np), LowerUpperBound()]
+        return [list(range(min_np)), LowerUpperBound()]
 
 
 class PartialShiftParamInfo(TransformInfo):
@@ -628,13 +649,15 @@ class Scop:
         loop_signature = ctadashi.get_loop_signature(self.pool_idx, self.scop_idx)
         return literal_eval(loop_signature)
 
-    def _make_node(self, parent, location):
+    def _make_node(self, parent, current_idx, location):
         num_children = ctadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
             node_type=NodeType(ctadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
+            index=current_idx,
+            label=ctadashi.get_label(self.pool_idx, self.scop_idx),
             location=location,
             loop_signature=self.get_loop_signature(),
             expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),
@@ -643,8 +666,8 @@ class Scop:
         return node
 
     def _traverse(self, nodes, parent, location):
-        node = self._make_node(parent, location)
         current_idx = len(nodes)
+        node = self._make_node(parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
@@ -666,7 +689,7 @@ class Scop:
         for c in location:
             ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
-    def transform_list(self, trs: list) -> bool:
+    def transform_list(self, trs: list) -> list[bool]:
         result = []
         for node_idx, tr, *args in trs:
             node = self.schedule_tree[node_idx]
@@ -690,9 +713,6 @@ class Scops:
         self._check_missing_file(Path(source_path))
         self.pool_idx = ctadashi.init_scops(str(source_path))
         self.num_scops = ctadashi.num_scops(self.pool_idx)
-        # print(f"{str(source_path)=}")
-        # print(f"{self.num_scops=}")
-        # print(f"{self.pool_idx=}")
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):

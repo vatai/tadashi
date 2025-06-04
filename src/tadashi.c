@@ -128,7 +128,7 @@ transform_scop(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
 
   schedule = get_schedule(ctx, scop, user);
   if (user->opt->legality_check) {
-    if (!tadashi_check_legality(ctx, schedule, dependencies)) {
+    if (!tadashi_check_legality(schedule, dependencies)) {
       printf("Illegal schedule!\n");
       isl_schedule_free(schedule);
       schedule = pet_scop_get_schedule(scop);

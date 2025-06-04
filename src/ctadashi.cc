@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <isl/aff_type.h>
+#include <isl/schedule_type.h>
 #include <isl/space_type.h>
 #include <sstream>
 
@@ -87,6 +88,20 @@ get_expr(size_t pool_idx, size_t idx) {
 }
 
 extern "C" const char *
+get_label(size_t pool_idx, size_t scop_idx) {
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
+  isl_multi_union_pw_aff *mupa;
+  if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
+    return "foo";
+  mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
+  const char *label = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  std::stringstream ss;
+  ss << label;
+  return si->add_string(ss);
+}
+
+extern "C" const char *
 get_loop_signature(size_t pool_idx, size_t scop_idx) {
   Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
@@ -94,7 +109,7 @@ get_loop_signature(size_t pool_idx, size_t scop_idx) {
   std::stringstream ss;
   isl_multi_union_pw_aff *mupa;
   mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
-  assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
+  // assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   // TODO save name
   isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
   isl_size num_sets = isl_union_set_n_set(domain);
@@ -237,7 +252,7 @@ post_transform(size_t pool_idx, size_t scop_idx) {
   isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
   // Got `dep` and `sched`.
   isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
-  isl_bool legal = tadashi_check_legality(ctx, sched, dep);
+  isl_bool legal = tadashi_check_legality(sched, dep);
   isl_schedule_free(sched);
   si->modified = true;
   isl_schedule_node *node = si->current_node;

@@ -1,8 +1,8 @@
-import tadashi.mcts.node_node
-from tadashi.mcts.logger import TimestampedJsonLogger
+import mcts.node_node
+from mcts.logger import TimestampedJsonLogger
 
 
-class MCTSNode_Root(tadashi.mcts.node_node.MCTSNode_Node):
+class MCTSNode_Root(mcts.node_node.MCTSNode_Node):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
