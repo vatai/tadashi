@@ -6,16 +6,15 @@ import os
 import re
 import sys
 
-os.mknod("../build/__init__.py")
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, os.path.abspath("../tadashi"))
+parent = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Tadashi"
-copyright = "2024, Anonymous org"
-author = "Anonymous authors"
+copyright = "2024"
+author = "Vatai et al"
 release = re.sub("^v", "", os.popen("git describe --tags").read().strip())
 
 
