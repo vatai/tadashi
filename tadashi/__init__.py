@@ -13,7 +13,9 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-if os.environ.get("READTHEDOCS") != "True":
+rtd = os.environ.get("READTHEDOCS")
+print(f"{rtd=}")
+if rtd != "True":
     from ctadashi import ctadashi
 
 
