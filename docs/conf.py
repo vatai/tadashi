@@ -32,6 +32,7 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     # "sphinx_autodoc_typehints",  # did't work when I tried :(
+    "sphinxcontrib.mermaid",
     "sphinx_rtd_theme",
 ]
 
