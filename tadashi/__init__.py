@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import os
 from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
@@ -12,7 +13,8 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-from ctadashi import ctadashi
+if os.environ.get("READTHEDOCS") != "True":
+    from ctadashi import ctadashi
 
 
 class AstLoopType(Enum):
