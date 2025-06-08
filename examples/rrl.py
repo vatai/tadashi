@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import difflib
+import itertools
 import json
 import random
 import subprocess
@@ -8,7 +9,7 @@ import time
 from pathlib import Path
 from subprocess import TimeoutExpired
 
-from tadashi import Scop
+from tadashi import Scop, TrEnum
 from tadashi.apps import Polybench, Simple
 
 
@@ -49,7 +50,15 @@ class Model:
             self.node_idx = random.choice(indices + node.children_idx)
             node = scop.schedule_tree[self.node_idx]
         tr = random.choice(node.available_transformations)
-        args = node.get_args(tr, start=-64, end=64)
+        exps = [2**e for e in range(3, 12)]
+        if tr is TrEnum.TILE1D:
+            args = [[e] for e in exps]
+        elif tr is TrEnum.TILE2D:
+            args = [list(e) for e in itertools.product(exps, exps)]
+        elif tr is TrEnum.TILE3D:
+            args = [list(e) for e in itertools.product(exps, exps, exps)]
+        else:
+            args = node.get_args(tr, start=-64, end=64)
         return [node.index, tr, *random.choice(args)]
 
 
@@ -85,10 +94,14 @@ def get_array(app: Polybench):
 def run_model(app, num_steps, name=""):
     model = Model()
     timer = Timer()
+    print("Compiling original app... ", end="", flush=True)
     app.compile()
+    print("DONE!")
     timer.time("Compilation")
-    app.measure()
-    t = timer.time("Total walltime")
+    print("Running original app... ", end="", flush=True)
+    t = app.measure()
+    print("DONE!")
+    timer.time("Total walltime")
     scop = app.scops[0]
     timer.time("Extraction")
     timer.custom("Kernel walltime", t)
@@ -100,27 +113,35 @@ def run_model(app, num_steps, name=""):
         scop.reset()
         scop.transform_list(trs)
         tr = model.random_transform(scop)
+        print(f"{tr}, ", end="", flush=True)
         legal = scop.transform_list([tr])[-1]
+        print(f"# {legal}")
         if legal:
             trs.append(tr)
         timer.time("Transformation + legality")
+    print(f"Executing final tr {app.source.name}... ", end="", flush=True)
     scop.reset()
     scop.transform_list(trs)
+    print("DONE!")
     timer.reset()
-    print(f"{trs=}")
-    print("transformed")
+    # print(scop.schedule_tree[trs[-1][0]].yaml_str)
+    # print(f"{trs=}")
+    print("Generating code... ", end="", flush=True)
     tapp = app.generate_code()
-    print("code ggenerated")
+    print("DONE!")
     timer.time("Code generation")
+    print("Compiling... ", end="")
     tapp.compile()
-    print("compiled")
+    print("DONE!")
     timer.time("Compilation")
+    print(f"Running benchmark {app.source.name}... ", end="", flush=True)
     try:
         t = tapp.measure(timeout=10)
         timer.time("Total walltime")
         timer.custom("Kernel walltime", t)
     except TimeoutExpired as e:
-        print(f"Timeout expired: {e=}")
+        print(f"Timeout expired: {e=}", end="")
+    print("DONE!")
     filename = f"./times/{name}-{num_steps}.json"
     json.dump(timer.times, open(filename, "w"))
     print(f"Written: {filename}")
@@ -129,9 +150,9 @@ def run_model(app, num_steps, name=""):
 def measure_polybench(num_steps):
     base = Path("examples/polybench")
     for i, p in enumerate(Polybench.get_benchmarks(base)):
-        print(f"Start {i+1}. {p.name}")
+        print(f"Loading {p.name}...", end="")
         app = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
-        print("app done")
+        print("DONE!")
         run_model(app, num_steps=num_steps, name=p.name)
 
 
