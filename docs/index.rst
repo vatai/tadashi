@@ -17,16 +17,16 @@ Tadashi documentation
     end
     subgraph states["States of the polyhedral representation"]
       direction TB
-      S1["$$S_1$$"]
+      S1["$$S1$$"]
       S2["$$S_2$$"]
       S3["$$S_3$$"]
-      S1-- "`node\.transform()`" -->S2
-      S2-- "`node\.transform()`" -->S3
+      S1-- "`legal = node.transform()`" -->S2
+      S2-- "`legal = node.transform()`" -->S3
     end
     app-. "`node = app.scops[0].schedule_tree[42]`" .-> S1
-    S3-.->tapp
+    S3-. "`tapp = app.generate_code()`".-> tapp
 
-Add your content using ``reStructuredText`` syntax. See the
+Add your :math:`x` content using ``reStructuredText`` syntax. See the
 `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
 documentation for details.
 

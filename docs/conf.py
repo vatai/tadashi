@@ -27,11 +27,12 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.ifconfig",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.mathjax",
+    # "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     # "sphinx_autodoc_typehints",  # did't work when I tried :(
+    "sphinxcontrib.katex",
     "sphinxcontrib.mermaid",
     "sphinx_rtd_theme",
 ]
