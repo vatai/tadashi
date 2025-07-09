@@ -1,0 +1,40 @@
+function safe_prepend()
+{
+    if [ -z "$1" ]
+    then
+          echo $2
+
+    else
+          echo $1":"$2
+    fi
+}
+
+function set_env
+{
+    if [ -d "$1/bin" ]; then
+        export PATH=$(safe_prepend "$1/bin" "$PATH")
+    fi
+    if [ -d "$1/bin64" ]; then
+        export PATH=$(safe_prepend "$1/bin64" "$PATH")
+    fi
+    if [ -d "$1/lib" ]; then
+        export LD_LIBRARY_PATH=$(safe_prepend "$1/lib" "$LD_LIBRARY_PATH")
+        export LIBRARY_PATH=$(safe_prepend "$1/lib" "$LIBRARY_PATH")
+    fi
+    if [ -d "$1/lib64" ]; then
+    export LD_LIBRARY_PATH=$(safe_prepend "$1/lib64" "$LD_LIBRARY_PATH")
+        export LIBRARY_PATH=$(safe_prepend "$1/lib64" "$LIBRARY_PATH")
+    fi
+    if [ -d "$1/include" ]; then
+        export C_INCLUDE_PATH=$(safe_prepend "$1/include" "$C_INCLUDE_PATH")
+        export CPLUS_INCLUDE_PATH=$(safe_prepend "$1/include" "$CPLUS_INCLUDE_PATH")
+    fi
+    if [ -d "$1/man" ]; then
+        export MAN_PATH=$(safe_prepend "$1/man" "$MAN_PATH")
+    fi
+}
+
+module load system/genoa mpi/mpich-x86_64
+set_env $(git rev-parse --show-toplevel)/deps/opt
+[ -e $(git rev-parse --show-toplevel)/venv ] || python3 -m venv $(git rev-parse --show-toplevel)/venv
+source $(git rev-parse --show-toplevel)/venv/bin/activate

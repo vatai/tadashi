@@ -71,7 +71,9 @@ class TrEnum(StrEnum):
     args) to perform the transformation.
     """
 
-    TILE = auto()
+    TILE1D = auto()
+    TILE2D = auto()
+    TILE3D = auto()
     INTERCHANGE = auto()
     FUSE = auto()
     FULL_FUSE = auto()
@@ -85,6 +87,9 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
+
+    def __repr__(self):
+        return f"TrEnum.{self.value.upper()}"
 
 
 @dataclass
@@ -103,6 +108,12 @@ class Node:
     #: The index of the parent of the node in the schedule tree
     #: according to `Scop.schedule_tree`.
     parent_idx: int
+
+    #: The index of the current node in `Scop.schedule_tree`.
+    index: int
+
+    #: A string identifying the node.
+    label: str
 
     #: List of child indexes which determine the location of the node
     #: starting from the root.  See `Scop.locate`.
@@ -166,8 +177,6 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
-        # print(">>> In Node.transform(): <<<\n")
-        # print(self.yaml_str)
         return bool(legal)
 
     @property
@@ -203,6 +212,28 @@ class Node:
     def available_args(self, tr: TrEnum) -> list:
         """Describe available args."""
         return TRANSFORMATIONS[tr].available_args(self)
+
+    def get_args(self, tr: TrEnum, start: int, end: int) -> list:
+        expanded: list[list] = [[]]
+        params = self.available_args(tr)
+        if not params:
+            return expanded
+        if all([isinstance(p, list) for p in params]):
+            return params
+        for param in params:
+            args = param
+            if isinstance(param, LowerUpperBound):
+                if param.lower is not None and param.lower > start:
+                    start = param.lower
+                if param.upper is not None and param.upper < end:
+                    end = param.upper
+                args = list(range(start, end))
+                expanded = [[*e, a] for e in expanded for a in args]
+            elif isinstance(param, list) and len(param) and isinstance(param[0], list):
+                expanded = [[*e, *a] for e in expanded for a in args]
+            else:
+                expanded = [[*e, a] for e in expanded for a in args]
+        return expanded
 
 
 LowerUpperBound = namedtuple(
@@ -252,17 +283,74 @@ class TransformInfo:
         return []
 
 
-class TileInfo(TransformInfo):
-    func_name = "tile"
+def _tilable(node: Node, dim: int) -> bool:
+    for _ in range(dim):
+        if node.node_type != NodeType.BAND:
+            return False
+        if "tiled" in node.label and "outer" in node.label:
+            return False
+        node = node.children[0]
+    return True
+
+
+class Tile1DInfo(TransformInfo):
+    func_name = "tile1d"
     arg_help = ["Tile size"]
 
     @staticmethod
-    def valid_args(node, arg):
-        return True
+    def valid(node: Node):
+        return _tilable(node, 1)
+
+    @staticmethod
+    def valid_args(node, size1):
+        return size1 > 1
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound(lower=1, upper=None)]
+        return [
+            LowerUpperBound(lower=1, upper=None),
+        ]
+
+
+class Tile2DInfo(TransformInfo):
+    func_name = "tile2d"
+    arg_help = ["Size1", "Size2"]
+
+    @staticmethod
+    def valid(node: Node):
+        return _tilable(node, 2)
+
+    @staticmethod
+    def valid_args(node, size1, size2):
+        return size1 > 1 and size2 > 1
+
+    @staticmethod
+    def available_args(node: Node):
+        return [
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+        ]
+
+
+class Tile3DInfo(TransformInfo):
+    func_name = "tile3d"
+    arg_help = ["Size1", "Size2", "Size3"]
+
+    @staticmethod
+    def valid(node: Node):
+        return _tilable(node, 3)
+
+    @staticmethod
+    def valid_args(node, size1, size2, size3):
+        return size1 > 0 and size2 > 0 and size3 > 0
+
+    @staticmethod
+    def available_args(node: Node):
+        return [
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=1, upper=None),
+        ]
 
 
 class InterchangeInfo(TransformInfo):
@@ -299,10 +387,11 @@ class FuseInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         nc = len(node.children)
-        return [
-            LowerUpperBound(lower=0, upper=nc),
-            LowerUpperBound(lower=0, upper=nc),
-        ]
+        args = []
+        for arg1 in range(nc):
+            for arg2 in range(arg1 + 1, nc):
+                args.append([arg1, arg2])
+        return args
 
 
 class FullFuseInfo(TransformInfo):
@@ -328,17 +417,19 @@ class SplitInfo(TransformInfo):
         if node.parent.node_type != NodeType.BAND:
             return False
         args = SplitInfo.available_args(node)
+        if any([isinstance(a, LowerUpperBound) and a.lower >= a.upper for a in args]):
+            return False
         return args is not None
 
     @staticmethod
     def valid_args(node: Node, split_idx: int) -> bool:
         nc = len(node.children)
-        return 0 < split_idx and split_idx < nc
+        return 1 <= split_idx and split_idx < nc - 1
 
     @staticmethod
     def available_args(node: Node) -> list:
         nc = len(node.children)
-        return [LowerUpperBound(lower=1, upper=nc)]
+        return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
 class FullSplitInfo(TransformInfo):
@@ -379,86 +470,112 @@ class PartialShiftValInfo(TransformInfo):
 
 class FullShiftVarInfo(TransformInfo):
     func_name = "full_shift_var"
-    arg_help = ["Coefficient", "Variable index"]
-
-    @staticmethod
-    def valid_args(node: Node, _coeff: int, var_idx: int):
-        return TransformInfo._valid_idx_all_stmt(node, var_idx, "vars")
-
-    @staticmethod
-    def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
-            return []
-        min_nv = 0
-        if node.loop_signature:
-            min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(lower=0, upper=min_nv)]
-
-
-class PartialShiftVarInfo(TransformInfo):
-    func_name = "partial_shift_var"
-    arg_help = ["Statement index", "Coefficient", "Variable index"]
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, coeff: int, var_idx: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, stmt_idx)
-            and 0 <= var_idx < len(node.loop_signature[stmt_idx]["vars"]),
-        )
-
-    @staticmethod
-    def available_args(node: Node):
-        if not all(s["vars"] for s in node.loop_signature):
-            return []
-        min_nv = min(len(s["vars"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(),
-            LowerUpperBound(0, min_nv),
-        ]
-
-
-class FullShiftParamInfo(TransformInfo):
-    func_name = "full_shift_param"
-    arg_help = ["Coefficient", "Parameter index"]
+    arg_help = ["Variable index", "Coefficient"]
 
     @staticmethod
     def valid(node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
-        min_num_params = min(len(s["params"]) for s in node.loop_signature)
-        return min_num_params > 0
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
 
     @staticmethod
-    def valid_args(node: Node, coeff: int, param_idx: int):
-        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
+    def valid_args(node: Node, var_idx: int, _coeff: int):
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return var_idx in args[0]
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [LowerUpperBound(), LowerUpperBound(0, min_np)]
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
+        # "transpose" loop signatures
+        zs = zip(*[s["vars"] for s in node.loop_signature])
+        # var is same at idx for all loop_signatures
+        same = [len(set(z)) == 1 for z in zs]
+        # index of the first "false" in same (or len(same))
+        diff_idx = same.index(False) if not all(same) else len(same)
+        return [list(range(diff_idx)), LowerUpperBound()]
+
+
+class PartialShiftVarInfo(TransformInfo):
+    func_name = "partial_shift_var"
+    arg_help = ["Statement index", "Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
+        args = PartialShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return [stmt_idx, var_idx] in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
+
+
+class FullShiftParamInfo(TransformInfo):
+    func_name = "full_shift_param"
+    arg_help = ["Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, param_idx: int, coeff: int):
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return param_idx in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        if not all(s["params"] for s in node.loop_signature):
+            return []
+        min_np = len(node.loop_signature[0]["params"])
+        return [list(range(min_np)), LowerUpperBound()]
 
 
 class PartialShiftParamInfo(TransformInfo):
     func_name = "partial_shift_param"
-    arg_help = ["Statement index", "Coefficient", "Parameter index"]
+    arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
     @staticmethod
-    def valid_args(node: Node, stmt_idx: int, coeff: int, param_idx: int):
-        return (
-            TransformInfo._is_valid_stmt_idx(node, param_idx)
-            and 0 <= param_idx
-            and param_idx < len(node.loop_signature[stmt_idx]["params"]),
-        )
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return [stmt_idx, param_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
-        min_np = min(len(s["params"]) for s in node.loop_signature)
-        return [
-            LowerUpperBound(0, len(node.loop_signature)),
-            LowerUpperBound(),
-            LowerUpperBound(0, min_np),
-        ]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
 
 
 class SetParallelInfo(TransformInfo):
@@ -493,7 +610,9 @@ class SetLoopOptInfo(TransformInfo):
 """A dictionary which connects the simple `TrEnum` to the detailed
 `TranformInfo`."""
 TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
-    TrEnum.TILE: TileInfo(),
+    TrEnum.TILE1D: Tile1DInfo(),
+    TrEnum.TILE2D: Tile2DInfo(),
+    TrEnum.TILE3D: Tile3DInfo(),
     TrEnum.INTERCHANGE: InterchangeInfo(),
     TrEnum.FUSE: FuseInfo(),
     TrEnum.FULL_FUSE: FullFuseInfo(),
@@ -535,13 +654,15 @@ class Scop:
         loop_signature = ctadashi.get_loop_signature(self.pool_idx, self.scop_idx)
         return literal_eval(loop_signature)
 
-    def _make_node(self, parent, location):
+    def _make_node(self, parent, current_idx, location):
         num_children = ctadashi.get_num_children(self.pool_idx, self.scop_idx)
         node = Node(
             scop=self,
             node_type=NodeType(ctadashi.get_type(self.pool_idx, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
+            index=current_idx,
+            label=ctadashi.get_label(self.pool_idx, self.scop_idx),
             location=location,
             loop_signature=self.get_loop_signature(),
             expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),
@@ -550,8 +671,8 @@ class Scop:
         return node
 
     def _traverse(self, nodes, parent, location):
-        node = self._make_node(parent, location)
         current_idx = len(nodes)
+        node = self._make_node(parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
@@ -573,7 +694,7 @@ class Scop:
         for c in location:
             ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
 
-    def transform_list(self, trs: list) -> bool:
+    def transform_list(self, trs: list) -> list[bool]:
         result = []
         for node_idx, tr, *args in trs:
             node = self.schedule_tree[node_idx]
@@ -597,9 +718,6 @@ class Scops:
         _check_missing_file(Path(source_path))
         self.pool_idx = ctadashi.init_scops(str(source_path))
         self.num_scops = ctadashi.num_scops(self.pool_idx)
-        # print(f"{str(source_path)=}")
-        # print(f"{self.num_scops=}")
-        # print(f"{self.pool_idx=}")
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):

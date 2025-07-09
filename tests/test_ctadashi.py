@@ -3,15 +3,14 @@ import ast
 import difflib
 import logging
 import sys
-import tempfile
 import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 import tadashi
-from tadashi import Scops, TrEnum
-from tadashi.apps import Simple
+from tadashi import TrEnum
+from tadashi.apps import Polybench, Simple
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -52,12 +51,8 @@ class TestCtadashi(unittest.TestCase):
         return transforms, target_code
 
     def _get_generated_code(self, app: Simple):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            suffix = Path(app.source).suffix
-            outfile = Path(tmpdir) / Path(self._testMethodName).with_suffix(suffix)
-            outfile_bytes = str(outfile).encode()
-            app.generate_code(outfile, ephemeral=False)
-            generated_code = Path(outfile_bytes.decode()).read_text().split("\n")
+        tapp = app.generate_code()
+        generated_code = tapp.source.read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
     def check(self, app_file):
@@ -104,7 +99,7 @@ class TestCtadashi(unittest.TestCase):
 
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
-        self.assertRaises(ValueError, node.transform, TrEnum.TILE, 2, 3)
+        self.assertRaises(ValueError, node.transform, TrEnum.TILE1D, 2, 3)
 
     def test_transformation_list(self):
         app = Simple("examples/inputs/depnodep.c")
@@ -115,7 +110,7 @@ class TestCtadashi(unittest.TestCase):
             [1, tadashi.TrEnum.FULL_SHIFT_VAL, -47],
             [3, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 39],
             [1, tadashi.TrEnum.PARTIAL_SHIFT_VAL, 0, 34],
-            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, -22, 0],
+            [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, 0, -22],
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         legals = scop.transform_list(transformations)
@@ -124,6 +119,20 @@ class TestCtadashi(unittest.TestCase):
         for legal in legals[:-1]:
             self.assertTrue(legal)
         self.assertFalse(legals[-1])
+
+    def test_labels(self):
+        app = Polybench(Path("correlation"))
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4")
+        trs = [[27, TrEnum.TILE1D, 11]]
+        app.scops[0].transform_list(trs)
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile1d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4-tile1d-inner")
+
+        app.scops[0].reset()
+        trs = [[27, TrEnum.TILE2D, 11, 13]]
+        app.scops[0].transform_list(trs)
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
 
 class TestCtadashiRegression(unittest.TestCase):

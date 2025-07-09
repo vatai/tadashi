@@ -41,7 +41,7 @@ public:
 
 public:
   isl_ctx *ctx;
-  std::vector<Scop> scops;
+  std::vector<Scop *> scops;
 };
 
 class ScopsPool {

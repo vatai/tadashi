@@ -80,8 +80,8 @@ Scop::add_string(std::stringstream &ss) {
 
 __isl_give isl_printer *
 get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
-  std::vector<Scop> *scops = (std::vector<Scop> *)user;
-  scops->emplace_back(scop);
+  std::vector<Scop *> *scops = (std::vector<Scop *> *)user;
+  scops->push_back(new Scop(scop));
   return p;
 }
 
@@ -127,6 +127,8 @@ Scops::Scops(char *compiler, char *input)
 }
 
 Scops::~Scops() {
+  for (Scop *p : scops)
+    delete p;
   scops.clear();
   // printf("Scops::~Scops(ctx=%p)\n", ctx);
   isl_ctx_free(ctx);

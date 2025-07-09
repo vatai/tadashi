@@ -79,10 +79,12 @@ collect_domains(struct pet_scop *scop, int (*pred)(struct pet_stmt *stmt)) {
     if (!pred(stmt))
       continue;
 
-    if (stmt->n_arg > 0)
+    if (stmt->n_arg > 0) {
+      printf("loc: %d\n", pet_loc_get_line(scop->loc));
       isl_die(isl_union_set_get_ctx(domain), isl_error_unsupported,
               "data dependent conditions not supported",
               return isl_union_set_free(domain));
+    }
 
     domain_i = isl_set_copy(scop->stmts[i]->domain);
     domain = isl_union_set_add_set(domain, domain_i);
@@ -288,7 +290,10 @@ allocate_tadashi_scop(struct pet_scop *ps) {
   ts->schedule = isl_schedule_copy(ps->schedule);
   compute_live_out(ts);
   ts->dep_flow = get_dependencies(ps);
-  eliminate_dead_code(ts);
+  if (ts->domain == NULL)
+    ts->domain = isl_schedule_get_domain(ts->schedule);
+  else
+    eliminate_dead_code(ts);
   ts->pet_scop = ps;
   return ts;
 }
@@ -457,7 +462,7 @@ _check_legality(__isl_take isl_union_map *schedule_map,
 }
 
 isl_bool
-tadashi_check_legality(isl_ctx *ctx, __isl_keep isl_schedule *schedule,
+tadashi_check_legality(__isl_keep isl_schedule *schedule,
                        __isl_take isl_union_map *dep) {
   isl_bool legal;
   isl_union_pw_multi_aff *dep_upma;

@@ -10,8 +10,14 @@
 extern "C" {
 #endif
 
-__isl_give isl_schedule_node *tadashi_tile(__isl_take isl_schedule_node *node,
-                                           int tile_size);
+__isl_give isl_schedule_node *tadashi_tile_1d(isl_schedule_node *node,
+                                              int tile_size);
+
+__isl_give isl_schedule_node *tadashi_tile_2d(isl_schedule_node *node,
+                                              int size1, int size2);
+
+__isl_give isl_schedule_node *tadashi_tile_3d(isl_schedule_node *node,
+                                              int size1, int size2, int size3);
 
 __isl_give isl_schedule_node *
 tadashi_interchange(__isl_take isl_schedule_node *node);
@@ -39,20 +45,20 @@ tadashi_partial_shift_val(__isl_take isl_schedule_node *node, int pa_idx,
                           long val);
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_var(__isl_take isl_schedule_node *node, long coeff,
-                       long var_idx);
+tadashi_full_shift_var(__isl_take isl_schedule_node *node, long var_idx,
+                       long coeff);
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_var(__isl_take isl_schedule_node *node, int pa_idx,
-                          long coeff, long id_idx);
+                          long id_idx, long coeff);
 
 __isl_give isl_schedule_node *
-tadashi_full_shift_param(__isl_take isl_schedule_node *node, long coeff,
-                         long param_idx);
+tadashi_full_shift_param(__isl_take isl_schedule_node *node, long param_idx,
+                         long coeff);
 
 __isl_give isl_schedule_node *
 tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
-                            long coeff, long param_idx);
+                            long param_idx, long coeff);
 
 __isl_give isl_schedule_node *
 tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads);

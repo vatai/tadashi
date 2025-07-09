@@ -1,0 +1,3 @@
+#+title: FDTD code
+
+The code is copied from [[https://github.com/cvarin/FDTD/tree/master/Sullivan][this repo]], which copied it from [[https://lshoshia.science.tsu.ge/fdtd/Dennissullivan-fixed.pdf][this book]].

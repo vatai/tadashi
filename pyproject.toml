@@ -1,5 +1,3 @@
-# IGNORE THIS FILE FOR NOW
-
 [build-system]
 requires = ["setuptools", "cmake_build_extension", "wheel", "setuptools-git-versioning"]
 build-backend = "setuptools.build_meta"

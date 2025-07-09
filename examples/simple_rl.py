@@ -135,7 +135,7 @@ def get_device():
 
 
 def tr_args(node, tr):
-    if tr == tadashi.TRANSFORMATIONS[tadashi.TrEnum.TILE]:
+    if tr == tadashi.TRANSFORMATIONS[tadashi.TrEnum.TILE1D]:
         tile_size = random.choice([2**x for x in range(5, 12)])
         return [tile_size]
     tr = tadashi.TRANSFORMATIONS[tr]
