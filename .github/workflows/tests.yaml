@@ -11,8 +11,7 @@ jobs:
       run: >
         sudo apt-get install -y
         git build-essential autoconf pkg-config libtool libc++-dev
-        libyaml-dev libntl-dev libgmp-dev llvm clang llvm-dev
-        libclang-dev swig
+        libyaml-dev libntl-dev libgmp-dev llvm-toolchain-19 swig
         openmpi-bin openmpi-common libopenmpi-dev
 
     - name: Set up Python 🐍
