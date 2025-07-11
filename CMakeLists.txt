@@ -73,6 +73,7 @@ set(ENV{CFLAGS} ${CMAKE_C_FLAGS})
 set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 
 find_package(PkgConfig REQUIRED)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
   find_package(LLVM 19.1 REQUIRED CONFIG HINTS /usr/lib/llvm19 ${CMAKE_SOURCE_DIR}/deps/opt)
