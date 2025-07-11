@@ -141,7 +141,7 @@ target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_
 # =======
 
 install(
-  TARGETS legality code_gen transformations scops ctadashi nlohmann_json::nlohmann_json
+  TARGETS legality code_gen transformations scops ctadashi
   EXPORT CTadashiTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
