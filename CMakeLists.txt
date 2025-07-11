@@ -109,7 +109,7 @@ add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(scops SHARED src/scops.cc)
-target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET nlohmann_json::nlohmann_json)
+target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET PRIVATE nlohmann_json::nlohmann_json)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
