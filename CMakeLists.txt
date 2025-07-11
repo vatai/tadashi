@@ -109,7 +109,7 @@ add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(scops SHARED src/scops.cc)
-target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
+target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET nlohmann_json::nlohmann_json)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
@@ -125,7 +125,6 @@ add_executable(scop_detector src/scop_detector.c)
 target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET legality)
 
 add_executable(raiser src/raiser.cc)
-target_include_directories(raiser PUBLIC nlohmann_json::nlohmann_json)
 target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations nlohmann_json::nlohmann_json)
 
 # enable_testing()
