@@ -60,7 +60,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json
+    GIT_TAG v3.12.0)
 FetchContent_MakeAvailable(json)
 
 set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig:$ENV{PKG_CONFIG_PATH}")
