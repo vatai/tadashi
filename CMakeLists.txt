@@ -76,7 +76,11 @@ find_package(PkgConfig REQUIRED)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
-  find_package(LLVM 19.1 REQUIRED CONFIG HINTS /usr/lib/llvm19 ${CMAKE_SOURCE_DIR}/deps/opt)
+  find_package(LLVM 19.1 REQUIRED CONFIG
+    HINTS
+    /usr/lib/llvm19
+    /usr/lib/llvm-19
+    ${CMAKE_SOURCE_DIR}/deps/opt)
   execute_process(
     # TODO: remove "bundled"
     COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} ${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} ${LLVM_INSTALL_PREFIX}
