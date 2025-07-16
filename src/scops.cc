@@ -119,8 +119,9 @@ Scops::Scops(char *compiler, char *input)
   }
   free(line);
   pclose(out);
-  // for (auto json_path : json_paths)
-  //   scops.emplace_back(ctx, json_path);
+  for (auto json_path : json_paths)
+
+    ; // scops.emplace_back(ctx, json_path);
   std::cout << "init_scops_from_json DONE" << std::endl;
 }
 
