@@ -109,7 +109,11 @@ Scops::Scops(char *compiler, char *input)
   std::vector<std::string> json_paths;
   FILE *out = popen(cmd, "r");
   while (getline(&line, &size, out) != -1) {
-    char *ptr = line;
+    char *ptr = strstr(line, "command not found");
+    if (ptr) {
+      std::cout << "ptr: " << ptr << std::endl;
+    }
+    ptr = line;
     ptr = strstr(ptr, "' to '");
     if (ptr) {
       ptr += 6;
@@ -119,8 +123,11 @@ Scops::Scops(char *compiler, char *input)
   }
   free(line);
   pclose(out);
-  for (std::string json_path : json_paths)
+  std::cout << "json_paths.size(): " << json_paths.size() << std::endl;
+  for (std::string json_path : json_paths) {
+    std::cout << "json_path in loop: " << json_path << std::endl;
     this->scops.emplace_back(new Scop(ctx, json_path));
+  }
   std::cout << "init_scops_from_json DONE" << std::endl;
 }
 
