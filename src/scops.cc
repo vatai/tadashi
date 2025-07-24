@@ -35,8 +35,6 @@ Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
         ctx, s["schedule"].template get<std::string>().c_str());
     union_schedule = isl_union_map_union(union_schedule, schedule);
   }
-  fprintf(stderr, "%s\n", isl_union_set_to_str(union_domain));
-  fprintf(stderr, "%s\n", isl_union_map_to_str(union_schedule));
   scop = allocate_tadashi_scop_from_json(union_domain, union_schedule);
   current_node = isl_schedule_get_root(scop->schedule);
 }
@@ -106,25 +104,20 @@ Scops::Scops(char *compiler, char *input)
     if (ptr) {
       ptr += 6;
       *strchr(ptr, '\'') = '\0';
-      printf("json_path: %s\n", ptr);
       json_paths.emplace_back(ptr);
     }
   }
   free(line);
   pclose(out);
-  std::cout << "json_paths.size(): " << json_paths.size() << std::endl;
   for (std::string json_path : json_paths) {
-    std::cout << "json_path in loop: " << json_path << std::endl;
     this->scops.emplace_back(new Scop(ctx, json_path));
   }
-  std::cout << "init_scops_from_json DONE" << std::endl;
 }
 
 Scops::~Scops() {
   for (Scop *p : scops)
     delete p;
   scops.clear();
-  // printf("Scops::~Scops(ctx=%p)\n", ctx);
   isl_ctx_free(ctx);
 };
 
