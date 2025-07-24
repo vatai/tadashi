@@ -24,8 +24,8 @@
 using json = nlohmann::json;
 
 extern "C" __isl_give isl_schedule *
-umap_to_schedule_tree(__isl_take isl_union_set *domain,
-                      __isl_take isl_union_map *umap);
+_umap_to_schedule_tree(__isl_take isl_union_set *domain,
+                       __isl_take isl_union_map *umap);
 
 __isl_give isl_union_map *get_dependencies_from_json();
 
@@ -72,7 +72,7 @@ allocate_tadashi_scop_from_json(isl_ctx *ctx, json &statements) {
   ts->must_writes = must_write;
   ts->must_kills = NULL;
   ts->may_reads = may_read;
-  ts->schedule = umap_to_schedule_tree(union_domain, union_schedule);
+  ts->schedule = _umap_to_schedule_tree(union_domain, union_schedule);
   ts->dep_flow;
   ts->live_out = NULL;
   ts->pet_scop = NULL;

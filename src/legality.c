@@ -332,9 +332,8 @@ filter_cmp(struct isl_union_set *set1, struct isl_union_set *set2, void *_) {
 }
 
 __isl_give isl_schedule *
-umap_to_schedule_tree(__isl_take isl_union_set *domain,
-                      __isl_take isl_union_map *umap) {
-
+_umap_to_schedule_tree(__isl_take isl_union_set *domain,
+                       __isl_take isl_union_map *umap) {
   isl_multi_union_pw_aff *mupa;
   isl_schedule *schedule;
   isl_schedule_node *root;
@@ -382,7 +381,7 @@ allocate_tadashi_scop_from_json(isl_union_set *domain,
   ts->must_writes = NULL;
   ts->must_kills = NULL;
   ts->may_reads = NULL;
-  ts->schedule = umap_to_schedule_tree(domain, schedule);
+  ts->schedule = _umap_to_schedule_tree(domain, schedule);
   ts->dep_flow = NULL;
   ts->live_out = NULL;
   ts->pet_scop = NULL;
