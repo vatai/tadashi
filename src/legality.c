@@ -372,22 +372,6 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
   return schedule;
 }
 
-__isl_give isl_union_map *
-get_dependencies_from_json(isl_union_set *domain, isl_schedule *schedule,
-                           isl_union_map *must_writes,
-                           isl_union_map *may_reads) {
-  isl_union_map *dep;
-  isl_union_flow *flow;
-  isl_union_access_info *access;
-  access = isl_union_access_info_from_sink(may_reads);
-  access = isl_union_access_info_set_kill(access, must_writes);
-  access = isl_union_access_info_set_schedule(access, schedule);
-  flow = isl_union_access_info_compute_flow(access);
-  dep = isl_union_flow_get_may_dependence(flow);
-  isl_union_flow_free(flow);
-  return dep;
-}
-
 struct tadashi_scop *
 allocate_tadashi_scop_from_json(isl_union_set *domain,
                                 isl_union_map *schedule) {
