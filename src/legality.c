@@ -376,7 +376,7 @@ struct tadashi_scop *
 allocate_tadashi_scop_from_json(isl_union_set *domain,
                                 isl_union_map *schedule) {
   struct tadashi_scop *ts = malloc(sizeof(struct tadashi_scop));
-  ts->domain = domain;
+  ts->domain = isl_union_set_copy(domain);
   ts->call = NULL;
   ts->may_writes = NULL;
   ts->must_writes = NULL;
