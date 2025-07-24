@@ -360,9 +360,9 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
       isl_union_set_free(steps);
       isl_union_map_free(map);
     } else {
-      isl_multi_union_pw_aff *mupa =
+      isl_multi_union_pw_aff *tmp =
           isl_multi_union_pw_aff_from_union_pw_aff(upa);
-      root = isl_schedule_node_insert_partial_schedule(root, mupa);
+      root = isl_schedule_node_insert_partial_schedule(root, tmp);
     }
   }
 

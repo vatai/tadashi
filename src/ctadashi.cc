@@ -75,8 +75,8 @@ free_scops(size_t pool_idx) {
 
 extern "C" int
 get_type(size_t pool_idx, size_t scop_idx) {
-  return isl_schedule_node_get_type(
-      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
+  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
+  return isl_schedule_node_get_type(node);
 }
 
 extern "C" size_t
