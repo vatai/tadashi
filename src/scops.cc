@@ -97,8 +97,11 @@ Scops::Scops(char *compiler, char *input)
   while (getline(&line, &size, out) != -1) {
     char *ptr = strstr(line, "command not found");
     if (ptr) {
-      std::cout << "ptr: " << ptr << std::endl;
+      std::cout << line << std::endl;
+// TODO throw an exception here!
+#warning "TODO"
     }
+
     ptr = line;
     ptr = strstr(ptr, "' to '");
     if (ptr) {
