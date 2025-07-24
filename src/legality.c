@@ -379,31 +379,27 @@ get_dependencies_from_json(isl_union_set *domain, isl_schedule *schedule,
   isl_union_map *dep;
   isl_union_flow *flow;
   isl_union_access_info *access;
-  printf("dep dep: %s\n", isl_union_map_to_str(dep));
   access = isl_union_access_info_from_sink(may_reads);
   access = isl_union_access_info_set_kill(access, must_writes);
   access = isl_union_access_info_set_schedule(access, schedule);
   flow = isl_union_access_info_compute_flow(access);
   dep = isl_union_flow_get_may_dependence(flow);
   isl_union_flow_free(flow);
-  printf("dep dep: %s\n", isl_union_map_to_str(dep));
   return dep;
 }
 
 struct tadashi_scop *
-allocate_tadashi_scop_from_json(isl_union_set *domain, isl_union_map *schedule,
-                                isl_union_map *must_writes,
-                                isl_union_map *may_reads) {
+allocate_tadashi_scop_from_json(isl_union_set *domain,
+                                isl_union_map *schedule) {
   struct tadashi_scop *ts = malloc(sizeof(struct tadashi_scop));
   ts->domain = domain;
   ts->call = NULL;
   ts->may_writes = NULL;
-  ts->must_writes = must_writes;
+  ts->must_writes = NULL;
   ts->must_kills = NULL;
-  ts->may_reads = may_reads;
+  ts->may_reads = NULL;
   ts->schedule = umap_to_schedule_tree(domain, schedule);
-  ts->dep_flow = get_dependencies_from_json(
-      domain, isl_schedule_copy(ts->schedule), must_writes, may_reads);
+  ts->dep_flow = NULL;
   ts->live_out = NULL;
   ts->pet_scop = NULL;
   return ts;
@@ -416,12 +412,15 @@ free_tadashi_scop(struct tadashi_scop *ts) {
     ts->call = isl_union_set_free(ts->call);
   if (ts->may_writes != NULL)
     ts->may_writes = isl_union_map_free(ts->may_writes);
-  ts->must_writes = isl_union_map_free(ts->must_writes);
+  if (ts->must_writes != NULL)
+    ts->must_writes = isl_union_map_free(ts->must_writes);
   if (ts->must_kills != NULL)
     ts->must_kills = isl_union_map_free(ts->must_kills);
-  ts->may_reads = isl_union_map_free(ts->may_reads);
+  if (ts->may_reads != NULL)
+    ts->may_reads = isl_union_map_free(ts->may_reads);
   ts->schedule = isl_schedule_free(ts->schedule);
-  ts->dep_flow = isl_union_map_free(ts->dep_flow);
+  if (ts->dep_flow != NULL)
+    ts->dep_flow = isl_union_map_free(ts->dep_flow);
   if (ts->live_out != NULL)
     ts->live_out = isl_union_map_free(ts->live_out);
   if (ts->pet_scop != NULL)
