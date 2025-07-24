@@ -343,6 +343,7 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
   schedule = isl_schedule_from_domain(domain);
   mupa = isl_multi_union_pw_aff_from_union_map(umap);
   root = isl_schedule_get_root(schedule);
+  schedule = isl_schedule_free(schedule);
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   for (int pos = dim - 1; pos >= 0; pos--) {
@@ -366,7 +367,6 @@ umap_to_schedule_tree(__isl_take isl_union_set *domain,
   }
 
   isl_multi_union_pw_aff_free(mupa);
-  schedule = isl_schedule_free(schedule);
   schedule = isl_schedule_node_get_schedule(root);
   isl_schedule_node_free(root);
   return schedule;
