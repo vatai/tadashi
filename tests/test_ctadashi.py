@@ -148,8 +148,12 @@ class TestCtadashiLLVM(unittest.TestCase):
     def test_foobar(self):
         app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
         print(app.source.exists())
-        node = app.scops[0].schedule_tree[0]
+        node = app.scops[0].schedule_tree[1]
         print(node.yaml_str)
+        tr = tadashi.TrEnum.FULL_SHIFT_VAR
+        args = [1, 13]
+        legal = node.transform(tr, *args)
+        print(f"{legal=}")
         self.assertTrue(True)
 
 
