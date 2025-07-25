@@ -10,9 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <isl/aff_type.h>
-#include <isl/schedule_type.h>
-#include <isl/space_type.h>
 #include <sstream>
 
 #include <isl/aff.h>
