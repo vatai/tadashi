@@ -16,7 +16,7 @@ PLUTO_CONFIGURE_ARGS=(
 )
 
 pushd ${BUILD}
-[ -e pluto ] || git clone --recurse-submodule git@github.com:bondhugula/pluto.git
+[ -e pluto ] || git clone --recurse-submodule https://github.com/bondhugula/pluto.git
 pushd pluto
 
 ./autogen.sh
