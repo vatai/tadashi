@@ -1,22 +1,63 @@
 #! /usr/bin/bash
 
 source set_env.src
-source llvm.src
+set -x
+set -e
+
+ROOT=$(pwd)
+DOWNLOAD="${ROOT}/downloads"
+OPT="${ROOT}/pluto-opt"
+BUILD="${ROOT}/build"
+mkdir -p "$DOWNLOAD"
+mkdir -p "$OPT"
+mkdir -p "$BUILD"
+
+LLVM_VERSION="11.0.0"
+LLVM_URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz"
+LLVM_CMAKE_ARGS=(
+    -G Ninja
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX="$OPT"
+    # -DLLVM_PARALLEL_COMPILE_JOBS=8
+    -DLLVM_PARALLEL_LINK_JOBS=1
+    -DLLVM_ENABLE_PROJECTS="clang"
+)
+
+wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
+
+pushd "${BUILD}"
+[ -e "$(basename ${LLVM_URL%.tar.xz})" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
+pushd "$(basename ${LLVM_URL%.tar.xz})"
+
+exit
+
+mkdir -p build
+sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
+sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
+cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
+cmake --build build
+
+rm -rf "${LLVM_PREFIX}"
+ninja -C build install
+
+popd
+popd
 
 set_env "${LLVM_PREFIX}"
 
-PLUTO_EXT="tar.gz"
-PLUTO_VERSION="0.11.4"
-PLUTO_PREFIX="${OPT}/pluto-${PLUTO_VERSION}"
+PLUTO_VERSION="0.13.0"
+PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
 
 PLUTO_CONFIGURE_ARGS=(
-    --prefix=${PLUTO_PREFIX}
-    --with-clang-prefix=${LLVM_PREFIX}
+    --prefix=${OPT}
+    --with-clang-prefix=${OPT}
     --enable-debug
 )
 
+wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
+
 pushd ${BUILD}
-[ -e pluto ] || git clone --recurse-submodule https://github.com/bondhugula/pluto.git
+[ -e pluto ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
 pushd pluto
 
 ./autogen.sh
