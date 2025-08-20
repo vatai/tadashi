@@ -21,7 +21,7 @@ pushd pluto
 
 ./autogen.sh
 ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
-bear -- make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
+make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
 make -j test
 
 rm -rf "${PLUTO_PREFIX}"
