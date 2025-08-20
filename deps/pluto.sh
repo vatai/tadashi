@@ -29,8 +29,6 @@ pushd "${BUILD}"
 [ -e "$(basename ${LLVM_URL%.tar.xz})" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
 pushd "$(basename ${LLVM_URL%.tar.xz})"
 
-exit
-
 mkdir -p build
 sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
 sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
