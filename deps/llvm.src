@@ -5,7 +5,7 @@ set -e
 
 ROOT=$(pwd)
 DOWNLOAD="${ROOT}/downloads"
-OPT="${ROOT}/opt"
+OPT="${ROOT}/opt-llvm11"
 BUILD="${ROOT}/build"
 mkdir -p "$DOWNLOAD"
 mkdir -p "${OPT}"
