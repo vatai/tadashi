@@ -25,7 +25,7 @@ mkdir -p build
 sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
 sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
-cmake --build build -j8
+cmake --build build
 
 rm -rf "${LLVM_PREFIX}"
 ninja -C build install
