@@ -13,7 +13,7 @@ mkdir -p "$OPT"
 mkdir -p "$BUILD"
 
 LLVM_VERSION="15.0.0"
-LLVM_URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz"
+LLVM_URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz"
 LLVM_CMAKE_ARGS=(
     -G Ninja
     -DCMAKE_BUILD_TYPE=Release
