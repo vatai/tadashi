@@ -26,8 +26,8 @@ LLVM_CMAKE_ARGS=(
 wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
 
 pushd "${BUILD}"
-[ -e "$(basename ${LLVM_URL%.tar.xz})" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
-pushd "$(basename ${LLVM_URL%.tar.xz})"
+[ -e "llvm-project-${LLVM_VERSION}" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
+pushd "llvm-project-${LLVM_VERSION}"
 
 mkdir -p build
 sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
