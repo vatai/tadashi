@@ -27,8 +27,8 @@ LLVM_CMAKE_ARGS=(
 GMP_VERSION="6.3.0"
 GMP_URL="https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz"
 
-TEXINFO_VERSION="3.1"
-TEXINFO_URL="https://ftp.gnu.org/gnu/texinfo/texinfo-${TEXINFO_VERSION}.tar.gz"
+TEXINFO_VERSION="7.2"
+TEXINFO_URL="https://ftp.gnu.org/gnu/texinfo/texinfo-${TEXINFO_VERSION}.tar.xz"
 
 PLUTO_VERSION="0.13.0"
 PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
@@ -103,8 +103,8 @@ build_pluto() {
 set_env "$OPT"
 # build_llvm
 # build_gmp
-# build_texinfo
-spack load texinfo
+build_texinfo
+# spack load texinfo
 build_pluto
 
 
