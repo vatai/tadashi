@@ -55,8 +55,8 @@ PLUTO_CONFIGURE_ARGS=(
 wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
 
 pushd ${BUILD}
-[ -e pluto ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
-pushd pluto
+[ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
+pushd "pluto-$PLUTO_VERSION"
 
 ./autogen.sh
 ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
