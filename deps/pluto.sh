@@ -21,6 +21,7 @@ LLVM_CMAKE_ARGS=(
     # -DLLVM_PARALLEL_COMPILE_JOBS=8
     -DLLVM_PARALLEL_LINK_JOBS=1
     -DLLVM_ENABLE_PROJECTS="clang;llvm;clang-tools-extra"
+    -DLLVM_INSTALL_UTILS=ON
 )
 
 wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
