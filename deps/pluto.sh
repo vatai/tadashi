@@ -93,7 +93,7 @@ build_pluto() {
     ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
     make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
     make -j test
-    make install
+    # make install
 
     popd
     popd
@@ -103,6 +103,7 @@ set_env "$OPT"
 # build_llvm
 # build_gmp
 # build_texinfo
+ln -sf /usr/bin/true "${OPT}/bin/texi2dvi"
 build_pluto
 
 
