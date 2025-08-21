@@ -66,8 +66,9 @@ build_gmp() {
     ./configure --prefix="$OPT"
     make -j
     make install
-    popd || exit
-    popd || exit
+
+    popd
+    popd
 }
 
 build_texinfo() {
@@ -79,8 +80,8 @@ build_texinfo() {
     ./configure --prefix="$OPT"
     make -j CFLAGS='-O2 -fomit-frame-pointer'
     make install
-    popd || exit
-    popd || exit
+    popd
+    popd
 }
 
 build_pluto() {
@@ -102,7 +103,8 @@ build_pluto() {
 set_env "$OPT"
 # build_llvm
 # build_gmp
-build_texinfo
+# build_texinfo
+spack load texinfo
 build_pluto
 
 
