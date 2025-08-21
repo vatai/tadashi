@@ -24,46 +24,64 @@ LLVM_CMAKE_ARGS=(
     -DLLVM_INSTALL_UTILS=ON
 )
 
-wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
-
-pushd "${BUILD}"
-[ -e "llvm-project-${LLVM_VERSION}.src" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
-pushd "llvm-project-${LLVM_VERSION}.src"
-
-mkdir -p build
-# sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
-# sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
-cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
-cmake --build build
-
-ninja -C build install
-
-popd
-popd
-
-set_env "$OPT"
+GMP_VERSION="6.3.0"
+GMP_URL="https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz"
 
 PLUTO_VERSION="0.13.0"
 PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
-
 PLUTO_CONFIGURE_ARGS=(
     --prefix="$OPT"
     --with-clang-prefix="$OPT"
     --enable-debug
 )
 
-wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
+build_llvm() {
+    [ -e "${DOWNLOAD}/$(basename $LLVM_URL)" ] || wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
+    pushd "${BUILD}"
+    [ -e "llvm-project-${LLVM_VERSION}.src" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
+    pushd "llvm-project-${LLVM_VERSION}.src"
 
-pushd "$BUILD"
-[ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
-pushd "pluto-$PLUTO_VERSION"
+    mkdir -p build
+    # sed -i.bak -e '/#include \"llvm\/Support\/Signals.h\"/i #include <stdint.h>' llvm/lib/Support/Signals.cpp
+    # sed -i.bak -e "/#include <vector>/i #include <limits>" llvm/utils/benchmark/src/benchmark_register.h
+    cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
+    cmake --build build
+    ninja -C build install
 
-./autogen.sh
-./configure "${PLUTO_CONFIGURE_ARGS[@]}"
-make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
-make -j test
+    popd
+    popd
+}
 
-make install
+build_gmp() {
+    [ -e "${DOWNLOAD}/$(basename $GMP_URL)" ] || wget -nc "$GMP_URL" -O "${DOWNLOAD}/$(basename $GMP_URL)" || true
+    pushd "$BUILD"
+    [ -e "gmp-$GMP_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $GMP_URL)"
+    pushd "gmp-$GMP_VERSION"
 
-popd
-popd
+    ./configure --prefix="$OPT"
+    make -j
+    make install
+    popd || exit
+    popd || exit
+}
+
+build_pluto() {
+    [ -e "${DOWNLOAD}/$(basename $PLUTO_URL)" ] || wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
+    pushd "$BUILD"
+    [ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
+    pushd "pluto-$PLUTO_VERSION"
+
+    ./autogen.sh
+    ./configure "${PLUTO_CONFIGURE_ARGS[@]}"
+    make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
+    make -j test
+    make install
+
+    popd
+    popd
+}
+
+set_env "$OPT"
+build_llvm
+build_gmp
+build_pluto
