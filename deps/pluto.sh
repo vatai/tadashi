@@ -36,8 +36,7 @@ PLUTO_CONFIGURE_ARGS=(
     --prefix="$OPT"
     --with-clang-prefix="$OPT"
     --enable-debug
-    --without-candl
-    --without-clan
+    --disable-docs
 )
 
 build_llvm() {
