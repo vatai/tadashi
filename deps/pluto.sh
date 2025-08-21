@@ -27,6 +27,9 @@ LLVM_CMAKE_ARGS=(
 GMP_VERSION="6.3.0"
 GMP_URL="https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz"
 
+TEXINFO_VERSION="3.1"
+TEXINFO_URL="https://ftp.gnu.org/gnu/texinfo/texinfo-${TEXINFO_URL}.tar.gz"
+
 PLUTO_VERSION="0.13.0"
 PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
 PLUTO_CONFIGURE_ARGS=(
@@ -67,6 +70,19 @@ build_gmp() {
     popd || exit
 }
 
+build_texinfo() {
+    [ -e "${DOWNLOAD}/$(basename $TEXINFO_URL)" ] || wget -nc "$TEXINFO_URL" -O "${DOWNLOAD}/$(basename $TEXINFO_URL)" || true
+    pushd "$BUILD"
+    [ -e "texinfo-$TEXINFO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $TEXINFO_URL)" > /dev/null
+    pushd "texinfo-$TEXINFO_VERSION"
+
+    ./configure --prefix="$OPT"
+    make -j
+    make install
+    popd || exit
+    popd || exit
+}
+
 build_pluto() {
     [ -e "${DOWNLOAD}/$(basename $PLUTO_URL)" ] || wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
     pushd "$BUILD"
@@ -86,4 +102,8 @@ build_pluto() {
 set_env "$OPT"
 # build_llvm
 # build_gmp
+build_texinfo
 build_pluto
+
+
+# bin: makeinfo sw: texinfo
