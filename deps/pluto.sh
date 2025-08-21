@@ -103,8 +103,7 @@ build_pluto() {
 set_env "$OPT"
 # build_llvm
 # build_gmp
-build_texinfo
-# spack load texinfo
+# build_texinfo
 build_pluto
 
 
