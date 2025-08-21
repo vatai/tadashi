@@ -41,7 +41,7 @@ ninja -C build install
 popd
 popd
 
-set_env "${LLVM_PREFIX}"
+set_env "$OPT"
 
 PLUTO_VERSION="0.13.0"
 PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
