@@ -35,7 +35,6 @@ mkdir -p build
 cmake -S llvm -B build "${LLVM_CMAKE_ARGS[@]}"
 cmake --build build
 
-rm -rf "${LLVM_PREFIX}"
 ninja -C build install
 
 popd
@@ -63,7 +62,6 @@ pushd "pluto-$PLUTO_VERSION"
 make -j LDFLAGS="-lclangFrontend -lclangBasic -lclangLex -lclangDriver"
 make -j test
 
-rm -rf "${PLUTO_PREFIX}"
 make install
 
 popd
