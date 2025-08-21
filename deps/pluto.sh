@@ -33,6 +33,8 @@ PLUTO_CONFIGURE_ARGS=(
     --prefix="$OPT"
     --with-clang-prefix="$OPT"
     --enable-debug
+    --without-candl
+    --without-clan
 )
 
 build_llvm() {
@@ -82,6 +84,6 @@ build_pluto() {
 }
 
 set_env "$OPT"
-build_llvm
-build_gmp
+# build_llvm
+# build_gmp
 build_pluto
