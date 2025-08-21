@@ -38,7 +38,7 @@ PLUTO_CONFIGURE_ARGS=(
 build_llvm() {
     [ -e "${DOWNLOAD}/$(basename $LLVM_URL)" ] || wget -nc "$LLVM_URL" -O "${DOWNLOAD}/$(basename $LLVM_URL)" || true
     pushd "${BUILD}"
-    [ -e "llvm-project-${LLVM_VERSION}.src" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)"
+    [ -e "llvm-project-${LLVM_VERSION}.src" ] || tar xvf "${DOWNLOAD}/$(basename $LLVM_URL)" > /dev/null
     pushd "llvm-project-${LLVM_VERSION}.src"
 
     mkdir -p build
@@ -55,7 +55,7 @@ build_llvm() {
 build_gmp() {
     [ -e "${DOWNLOAD}/$(basename $GMP_URL)" ] || wget -nc "$GMP_URL" -O "${DOWNLOAD}/$(basename $GMP_URL)" || true
     pushd "$BUILD"
-    [ -e "gmp-$GMP_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $GMP_URL)"
+    [ -e "gmp-$GMP_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $GMP_URL)" > /dev/null
     pushd "gmp-$GMP_VERSION"
 
     ./configure --prefix="$OPT"
@@ -68,7 +68,7 @@ build_gmp() {
 build_pluto() {
     [ -e "${DOWNLOAD}/$(basename $PLUTO_URL)" ] || wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
     pushd "$BUILD"
-    [ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
+    [ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)" > /dev/null
     pushd "pluto-$PLUTO_VERSION"
 
     ./autogen.sh
