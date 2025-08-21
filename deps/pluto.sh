@@ -77,7 +77,7 @@ build_texinfo() {
     pushd "texinfo-$TEXINFO_VERSION"
 
     ./configure --prefix="$OPT"
-    make -j
+    make -j CFLAGS='-O2 -fomit-frame-pointer'
     make install
     popd || exit
     popd || exit
