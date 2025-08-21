@@ -47,14 +47,14 @@ PLUTO_VERSION="0.13.0"
 PLUTO_URL="https://github.com/bondhugula/pluto/releases/download/${PLUTO_VERSION}/pluto-${PLUTO_VERSION}.tgz"
 
 PLUTO_CONFIGURE_ARGS=(
-    --prefix=${OPT}
-    --with-clang-prefix=${OPT}
+    --prefix="$OPT"
+    --with-clang-prefix="$OPT"
     --enable-debug
 )
 
 wget -nc "$PLUTO_URL" -O "${DOWNLOAD}/$(basename $PLUTO_URL)" || true
 
-pushd ${BUILD}
+pushd "$BUILD"
 [ -e "pluto-$PLUTO_VERSION" ] || tar xvf "${DOWNLOAD}/$(basename $PLUTO_URL)"
 pushd "pluto-$PLUTO_VERSION"
 
