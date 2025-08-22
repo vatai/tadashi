@@ -10,6 +10,7 @@ find "$POLYBENCH_ROOT" -name '*.c' | grep -v polybench/utilities | while read -r
     cd "$(dirname "$file")" || exit
     $PLUTO $file
     gcc -o "${file%.c}.pluto.x" "${file%.c}.pluto.c" "${POLYBENCH_ROOT}/utilities/polybench.c" -I "${POLYBENCH_ROOT}/utilities/polybench.c"
+    rm "${file%.c}.pluto.c"
     cd - > /dev/null || exit
 done
 
