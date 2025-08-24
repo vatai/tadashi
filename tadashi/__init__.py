@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import os
 from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
@@ -12,22 +13,18 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-from ctadashi import ctadashi
+rtd = os.environ.get("READTHEDOCS")
+print(f"{rtd=}")
+if rtd != "True":
+    from ctadashi import ctadashi
 
 
 class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
 
     `UNROLL` should be avoided unless the requirements in the
-    :ref:`ISL Docs` are satisfied.
-
-    .. _ISL Docs:
-    ISL Docs
-    ----
-    `ISL online user manual (AST generation options)`_.
-
-    .. _ISL online user manual (AST generation options):
-       https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree
+    `ISL Docs <https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree>`_.
+    are satisfied.
 
     """
 
