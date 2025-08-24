@@ -110,7 +110,7 @@ def run_model(app, num_steps, name=""):
     print(f"{trs=}")
     print("transformed")
     tapp = app.generate_code()
-    print("code ggenerated")
+    print("code generated")
     timer.time("Code generation")
     tapp.compile()
     print("compiled")
