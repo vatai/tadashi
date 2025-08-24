@@ -5,6 +5,7 @@ from subprocess import TimeoutExpired
 
 import multiprocess as mp
 import tadashi
+
 # or
 from mpi4py import futures
 from mpi4py.futures import MPIPoolExecutor as Executor
@@ -41,24 +42,10 @@ def get_polybench_list():
 
 
 def random_args(node, tr):
-    tr = TRANSFORMATIONS[tr]
-    if tr == TRANSFORMATIONS[TrEnum.TILE1D]:
+    if tr == TrEnum.TILE1D:
         tile_size = choice([2**x for x in range(5, 12)])
         return [tile_size]
-    lubs = tr.available_args(node)
-    args = []
-    for lub in lubs:
-        if isinstance(lub, LowerUpperBound):
-            lb, ub = lub
-            if lb is None:
-                lb = -64
-            if ub is None:
-                ub = 64
-            args.append(randrange(lb, ub))
-        else:
-            chosen_enum = choice(list(lub))
-            args.append(chosen_enum.value)
-    return args
+    return choice(node.get_args(tr, start=-64, end=64))
 
 
 def getFitnessGlobal(
