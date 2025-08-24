@@ -163,7 +163,8 @@ class Node:
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
         if not tr.valid_args(self, *args):
-            msg = f"Not valid transformation args: {args}"
+            tr_name = tr.__class__.__name__
+            msg = f"Not valid {args=}, for {tr_name=}"
             raise ValueError(msg)
 
         func = getattr(ctadashi, tr.func_name)
