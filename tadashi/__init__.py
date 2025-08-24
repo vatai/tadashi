@@ -301,7 +301,7 @@ class Tile1DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -320,8 +320,8 @@ class Tile2DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -340,9 +340,9 @@ class Tile3DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
