@@ -230,7 +230,9 @@ class Node:
 
 
 LowerUpperBound = namedtuple(
-    "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
+    "LowerUpperBound",
+    ["lower", "upper"],
+    defaults=[None, None],
 )
 """Integer interval description.
 
