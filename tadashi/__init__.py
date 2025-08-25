@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 rtd = os.environ.get("READTHEDOCS")
-print(f"{rtd=}")
+
 if rtd != "True":
     from ctadashi import ctadashi
 
