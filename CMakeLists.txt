@@ -60,7 +60,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pet)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json
+    GIT_TAG v3.12.0)
 FetchContent_MakeAvailable(json)
 
 set(ENV{PKG_CONFIG_PATH} "${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig:$ENV{PKG_CONFIG_PATH}")
@@ -75,9 +77,15 @@ set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
+  find_package(LLVM 19.1 REQUIRED CONFIG
+    HINTS
+    /usr/lib/llvm19
+    /usr/lib/llvm-19
+    ${CMAKE_SOURCE_DIR}/deps/opt)
+  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
   execute_process(
     # TODO: remove "bundled"
-    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} ${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} ${CMAKE_SOURCE_DIR}/deps/opt
+    COMMAND ${INSTALL_SCRIPTS}/pet.sh ${CTADASHI_INSTALL_PREFIX} ${CTADASHI_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} ${LLVM_INSTALL_PREFIX}
     WORKING_DIRECTORY ${pet_SOURCE_DIR}
   )
   pkg_check_modules(PET REQUIRED IMPORTED_TARGET pet)
@@ -101,7 +109,7 @@ add_library(transformations SHARED src/transformations.c)
 target_link_libraries(transformations PUBLIC PkgConfig::ISL PkgConfig::PET)
 
 add_library(scops SHARED src/scops.cc)
-target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET)
+target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET PRIVATE nlohmann_json::nlohmann_json)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
 target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
