@@ -34,7 +34,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 set(CMAKE_INSTALL_RPATH_USE_ORIGIN TRUE)
 # To find locally installed packages
-list(APPEND CMAKE_FRAMEWORK_PATH ${CMAKE_SOURCE_DIR}/deps/opt)
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/deps/opt)
 message("CMAKE_FRAMEWORK_PATH: ${CMAKE_FRAMEWORK_PATH}")
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
