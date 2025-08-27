@@ -203,7 +203,7 @@ install(FILES
 cmake_policy(SET CMP0078 NEW)
 cmake_policy(SET CMP0086 NEW)
 
-find_package(SWIG 4.0 REQUIRED HINTS ${CMAKE_SOURCE_DIR}/deps/opt)
+find_package(SWIG 4.0 REQUIRED)
 set(UseSWIG_MODULE_VERSION 2)
 include(${SWIG_USE_FILE})
 
