@@ -14,10 +14,11 @@ Result = namedtuple("Result", ["legal", "walltime"])
 
 
 class App:
-    scops: Scops
+    scops: Scops | None
     source: Path
     user_compiler_options: list[str]
     ephemeral: bool = False
+    populate_scops: bool = True
 
     def __del__(self):
         if self.ephemeral:
@@ -54,7 +55,7 @@ class App:
         self.source = Path(source)
         if not self.source.exists():
             raise ValueError(f"{self.source=} doesn't exist!")
-        self.scops = Scops(str(self.source))
+        self.scops = Scops(str(self.source)) if self.populate_scops else None
 
     def _source_with_infix(self, alt_infix: str):
         mark = "INFIX"
@@ -75,6 +76,7 @@ class App:
 
     def make_new_app(self, ephemeral, **kwargs):
         kwargs["compiler_options"] = self.user_compiler_options
+        kwargs["populate_scops"] = False
         return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
 
     def make_new_filename(self) -> Path:
@@ -184,10 +186,12 @@ class Simple(App):
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
         ephemeral: bool = False,
+        populate_scops: bool = True,
     ):
-        self.ephemeral = ephemeral
         if compiler_options is None:
             compiler_options = []
+        self.ephemeral = ephemeral
+        self.populate_scops = populate_scops
         self.runtime_prefix = runtime_prefix
         self._finalize_object(source, compiler_options=compiler_options)
 
@@ -231,10 +235,12 @@ class Polybench(App):
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
         ephemeral: bool = False,
+        populate_scops: bool = True,
     ):
         if compiler_options is None:
             compiler_options = []
         self.ephemeral = ephemeral
+        self.populate_scops = populate_scops
         self.base = Path(base)
         self.benchmark = self._get_benchmark(benchmark)
         if source is None:
