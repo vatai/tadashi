@@ -222,6 +222,9 @@ class Simple(App):
         return self.make_new_app(ephemeral, **kwargs)
 
 
+POLYBENCH_BASE = str(Path(__file__).parent.parent / "examples/polybench")
+
+
 class Polybench(App):
     """A single benchmark in of the Polybench suite."""
 
@@ -231,7 +234,7 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
-        base: Path = Path(__file__).parent.parent / "examples/polybench",
+        base: Path = Path(POLYBENCH_BASE),
         compiler_options: Optional[list[str]] = None,
         source: Optional[Path] = None,
         ephemeral: bool = False,
@@ -269,7 +272,7 @@ class Polybench(App):
         }
 
     @staticmethod
-    def get_benchmarks(path: str = f"{__file__}/../../examples/polybench"):
+    def get_benchmarks(path: str = POLYBENCH_BASE):
         benchmarks = []
         for file in Path(path).glob("**/*.c"):
             filename = file.with_suffix("").name
