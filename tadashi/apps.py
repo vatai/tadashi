@@ -74,9 +74,9 @@ class App:
         app.ephemeral = True
         return app
 
-    def make_new_app(self, ephemeral, **kwargs):
+    def make_new_app(self, ephemeral, populate_scops, **kwargs):
         kwargs["compiler_options"] = self.user_compiler_options
-        kwargs["populate_scops"] = False
+        kwargs["populate_scops"] = populate_scops
         return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
 
     def make_new_filename(self) -> Path:
@@ -212,14 +212,19 @@ class Simple(App):
                 return float(num)
         return 0.0
 
-    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+    def generate_code(
+        self,
+        alt_infix=None,
+        ephemeral: bool = True,
+        populate_scops: bool = False,
+    ):
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self.make_new_filename()
         self.scops.generate_code(self.source, Path(new_file))
         kwargs = {"source": new_file}
-        return self.make_new_app(ephemeral, **kwargs)
+        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
 
 POLYBENCH_BASE = str(Path(__file__).parent.parent / "examples/polybench")
@@ -295,7 +300,12 @@ class Polybench(App):
             str(self.output_binary),
         ]
 
-    def generate_code(self, alt_infix=None, ephemeral: bool = True):
+    def generate_code(
+        self,
+        alt_infix=None,
+        ephemeral: bool = True,
+        populate_scops: bool = False,
+    ):
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)
         else:
@@ -307,7 +317,7 @@ class Polybench(App):
             "base": self.base,
             # "infix": alt_infix,
         }
-        return self.make_new_app(ephemeral, **kwargs)
+        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
