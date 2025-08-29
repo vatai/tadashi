@@ -716,7 +716,8 @@ class Scops:
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
-        ctadashi.free_scops(self.pool_idx)
+        if ctadashi:
+            ctadashi.free_scops(self.pool_idx)
 
     @staticmethod
     def _check_missing_file(path: Path):
