@@ -442,61 +442,23 @@ else:
     }
 
 
-if __name__ == "__main__":
-
+def main():
     seed(47)
-    simple = False
+    benchmark = "gemm"
+    print(f"Opening {benchmark}")
+    app_factory = Polybench(benchmark)
 
-    if simple:
-        app_factory = Simple("examples/depnodep.c")
-    else:
-        poly = Polybench.get_benchmarks()
-        for i, p in list(enumerate(poly))[8:9]:
-            print("Opening %s" % p.name)
-            # app_factory = Polybench(p, compiler_options=["-DSMALL_DATASET"])
-            app_factory = Polybench(p, compiler_options=["-DLARGE_DATASET"])
-            # app = Polybench(p, compiler_options=["-DMEDIUM_DATASET"])
-            break
-
-    print("USING TIME LIMIT:", measures10_large[p.name] * 5)
+    print("USING TIME LIMIT:", measures10_large[benchmark] * 5)
     m = EvolTadashi(
         app_factory,
         population_size=20,
         max_gen=10,
         n_trials=10,
         n_threads=3,
-        timeout=measures10_large[p.name] * 5,
+        timeout=measures10_large[benchmark] * 5,
     )
     m.fit()
 
 
-# PosixPath('medley/floyd-warshall'),
-# PosixPath('medley/nussinov'),
-# PosixPath('medley/deriche'),
-# PosixPath('linear-algebra/blas/syr2k'),
-# PosixPath('linear-algebra/blas/gesummv'),
-# PosixPath('linear-algebra/blas/gemver'),
-# PosixPath('linear-algebra/blas/trmm'),
-# PosixPath('linear-algebra/blas/symm'),
-# PosixPath('linear-algebra/blas/syrk'),
-# PosixPath('linear-algebra/blas/gemm'),
-# PosixPath('linear-algebra/kernels/atax'),
-# PosixPath('linear-algebra/kernels/bicg'),
-# PosixPath('linear-algebra/kernels/2mm'),
-# PosixPath('linear-algebra/kernels/doitgen'),
-# PosixPath('linear-algebra/kernels/3mm'),
-# PosixPath('linear-algebra/kernels/mvt'),
-# PosixPath('linear-algebra/solvers/lu'),
-# PosixPath('linear-algebra/solvers/durbin'),
-# PosixPath('linear-algebra/solvers/ludcmp'),
-# PosixPath('linear-algebra/solvers/cholesky'),
-# PosixPath('linear-algebra/solvers/trisolv'),
-# PosixPath('linear-algebra/solvers/gramschmidt'),
-# PosixPath('stencils/heat-3d'),
-# PosixPath('stencils/jacobi-1d'),
-# PosixPath('stencils/fdtd-2d'),
-# PosixPath('stencils/adi'),
-# PosixPath('stencils/jacobi-2d'),
-# PosixPath('stencils/seidel-2d'),
-# PosixPath('datamining/covariance'),
-# PosixPath('datamining/correlation')
+if __name__ == "__main__":
+    main()
