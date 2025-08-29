@@ -7,7 +7,6 @@ from subprocess import TimeoutExpired
 
 import multiprocess as mp
 import tadashi
-
 # or
 from mpi4py import futures
 from mpi4py.futures import MPIPoolExecutor as Executor
@@ -32,15 +31,6 @@ def isValidNode(scops, op):
     if not valid:
         return False
     return True
-
-
-def get_polybench_list():
-    base = Path("examples/polybench")
-    result = []
-    for p in base.glob("**"):
-        if Path(p / (p.name + ".c")).exists():
-            result.append(p.relative_to(base))
-    return base, result
 
 
 def random_args(node, tr):
@@ -377,9 +367,9 @@ def multiProcess_fitnessEval(a):
 # Baseline
 if False:
     measures = {}
-    base, poly = get_polybench_list()
+    poly = Polybench.get_benchmarks()
     for i, p in list(enumerate(poly)):
-        app_factory = Polybench(p, base, compiler_options=["-DLARGE_DATASET"])
+        app_factory = Polybench(p, compiler_options=["-DLARGE_DATASET"])
         app_factory.compile()
         measures[p.name] = min([app_factory.measure() for _ in range(10)])
 
@@ -460,14 +450,12 @@ if __name__ == "__main__":
     if simple:
         app_factory = Simple("examples/depnodep.c")
     else:
-        base, poly = get_polybench_list()
-        print(poly)
+        poly = Polybench.get_benchmarks()
         for i, p in list(enumerate(poly))[8:9]:
             print("Opening %s" % p.name)
-            print(p, base)
-            # app_factory = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
-            app_factory = Polybench(p, base, compiler_options=["-DLARGE_DATASET"])
-            # app = Polybench(p, base, compiler_options=["-DMEDIUM_DATASET"])
+            # app_factory = Polybench(p, compiler_options=["-DSMALL_DATASET"])
+            app_factory = Polybench(p, compiler_options=["-DLARGE_DATASET"])
+            # app = Polybench(p, compiler_options=["-DMEDIUM_DATASET"])
             break
 
     print("USING TIME LIMIT:", measures10_large[p.name] * 5)
