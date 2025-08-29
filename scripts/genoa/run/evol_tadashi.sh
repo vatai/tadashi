@@ -3,6 +3,10 @@
 #SBATCH -p genoa
 #SBATCH -N 1
 #SBATCH -t 10:00:00
+#SBATCH -J evol_tadashi
+#SBATCH -o evol-%j.txt
+#SBATCH -e evol-%j.txt
+
 # #SBATCH -n 1
 # #SBATCH -c 1
 
