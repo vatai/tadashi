@@ -46,7 +46,7 @@ def getFitnessGlobal(
     """
     app_factory and n_trials are not requires if the fitness is already calculated
     """
-    app = app_factory.generate_code()
+    app = app_factory.generate_code(populate_scops=True)
 
     app.transform_list(op_list)
 
@@ -86,7 +86,7 @@ class Individual:
         return self.getFitness() > other.getFitness()
 
     def generateCode(self, app_factory):
-        app = app_factory.generate_code(ephemeral=False)
+        app = app_factory.generate_code(ephemeral=False, populate_scops=True)
         app.transform_list(self.operation_list)
         return app
 
@@ -113,7 +113,7 @@ class Individual:
         return self.fitness
 
     def isLegal(self, app_factory=None):
-        app = app_factory.generate_code()
+        app = app_factory.generate_code(populate_scops=True)
         try:
             return app.transform_list(self.operation_list)
         except ValueError:
@@ -151,7 +151,7 @@ class Individual:
             return [self, other]
 
     def mutate(self, app_factory=None):
-        app = app_factory.generate_code()
+        app = app_factory.generate_code(populate_scops=True)
         # 10% not mutate
         # 10% lose last operation or not mutate
         # 80% of appending a new operation at the end
