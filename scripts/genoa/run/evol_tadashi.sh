@@ -9,5 +9,6 @@
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 source "${REPO_ROOT}/deps/set_env.src"
 set_env "${REPO_ROOT}/deps/opt"
+module load mpi/mpich-x86_64
 
 PYTHONPATH="${REPO_ROOT}" python3 "${REPO_ROOT}/examples/evaluation/evol_tadashi.py"
