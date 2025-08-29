@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import time
 from pathlib import Path
 from random import choice, randint, randrange, seed
