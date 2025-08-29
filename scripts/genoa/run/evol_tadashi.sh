@@ -10,4 +10,4 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 source "${REPO_ROOT}/deps/set_env.src"
 set_env "${REPO_ROOT}/deps/opt"
 
-PYTHONPATH="${REPO_ROOT}" python "${REPO_ROOT}/examples/evaluation/evol_tadashi.py"
+PYTHONPATH="${REPO_ROOT}" python3 "${REPO_ROOT}/examples/evaluation/evol_tadashi.py"
