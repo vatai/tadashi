@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import argparse
 import time
+import timeit
 from pathlib import Path
 from random import choice, randint, randrange, seed
 from subprocess import TimeoutExpired
@@ -442,23 +444,30 @@ else:
     }
 
 
-def main():
-    seed(47)
-    benchmark = "gemm"
-    print(f"Opening {benchmark}")
-    app_factory = Polybench(benchmark)
-
-    print("USING TIME LIMIT:", measures10_large[benchmark] * 5)
+def main(args):
+    seed(args.seed)
+    print(f"Opening {args.benchmark}")
+    app_factory = Polybench(args.benchmark)
+    full_runtime = timeit.timeit(app_factory.measure, number=1)
+    print("USING TIME LIMIT:", full_runtime)
     m = EvolTadashi(
         app_factory,
-        population_size=20,
-        max_gen=10,
-        n_trials=10,
-        n_threads=3,
-        timeout=measures10_large[benchmark] * 5,
+        population_size=args.population_size,
+        max_gen=args.max_gen,
+        n_trials=args.n_trails,
+        n_threads=args.n_threads,
+        timeout=2 * full_runtime,
     )
     m.fit()
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark", type=str, default="gemm")
+    parser.add_argument("--seed", type=int, default=47)
+    parser.add_argument("--population-size", type=int, default=20)
+    parser.add_argument("--max-gen", type=int, default=10)
+    parser.add_argument("--n-trails", type=int, default=10)
+    parser.add_argument("--n-threads", type=int, default=3)
+    args = parser.parse_args()
+    main(args)
