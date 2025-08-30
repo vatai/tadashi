@@ -1,18 +1,23 @@
 #!/usr/bin/bash
 
+# Usage sbatch -J benchmark evol_tadashi.sh
+
 #SBATCH -p genoa
 #SBATCH -N 1
 #SBATCH -t 10:00:00
-#SBATCH -J evol_tadashi
-#SBATCH -o evol-%j.txt
-#SBATCH -e evol-%j.txt
+#SBATCH -o %x-%j.txt
+#SBATCH -e %x-%j.txt
 
-# #SBATCH -n 1
-# #SBATCH -c 1
+
+### SET UP ENV ###
+module load mpi/mpich-x86_64
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 source "${REPO_ROOT}/deps/set_env.src"
 set_env "${REPO_ROOT}/deps/opt"
-module load mpi/mpich-x86_64
+EVOL_TADASHI_PY="${REPO_ROOT}/examples/evaluation/evol_tadashi.py"
+export PYTHONPATH="${REPO_ROOT}"
 
-PYTHONPATH="${REPO_ROOT}" python3 "${REPO_ROOT}/examples/evaluation/evol_tadashi.py"
+
+### RUN COMMAND ###
+ python3 "${EVOL_TADASHI_PY}" --benchmark="${SLURM_JOB_NAME}"
