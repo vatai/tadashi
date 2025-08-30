@@ -38,7 +38,6 @@ def isValidNode(scops, op):
 def random_args(node, tr):
     tiles = [TrEnum.TILE1D, TrEnum.TILE2D, TrEnum.TILE3D]
     if tr in tiles:
-        print("FOOBAR")
         tile_size = choice([2**x for x in range(5, 10)])
         return [tile_size] * (1 + tiles.index(tr))
     return choice(node.get_args(tr, start=-64, end=64))
