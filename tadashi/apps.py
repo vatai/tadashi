@@ -258,7 +258,7 @@ class Polybench(App):
         self._finalize_object(
             source=source,
             compiler_options=compiler_options,
-            include_paths=[base / "utilities"],
+            include_paths=[self.base / "utilities"],
         )
 
     def _get_benchmark(self, benchmark: str) -> str:
