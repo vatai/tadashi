@@ -369,7 +369,9 @@ def multiProcess_fitnessEval(a):
 def main(args):
     seed(args.seed)
     print(f"Opening {args.benchmark}")
-    app_factory = Polybench(args.benchmark)
+    dataset = f"-D{args.dataset}_DATASET"
+    print(f"Using {dataset}")
+    app_factory = Polybench(args.benchmark, compiler_options=[dataset])
     app_factory.compile()
     full_runtime = timeit.timeit(app_factory.measure, number=1)
     print("USING TIME LIMIT:", full_runtime)
@@ -387,6 +389,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default="gemm")
+    parser.add_argument("--dataset", type=str, default="EXTRALARGE")
     parser.add_argument("--seed", type=int, default=47)
     parser.add_argument("--population-size", type=int, default=20)
     parser.add_argument("--max-gen", type=int, default=10)
