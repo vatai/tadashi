@@ -448,6 +448,7 @@ def main(args):
     seed(args.seed)
     print(f"Opening {args.benchmark}")
     app_factory = Polybench(args.benchmark)
+    app_factory.compile()
     full_runtime = timeit.timeit(app_factory.measure, number=1)
     print("USING TIME LIMIT:", full_runtime)
     m = EvolTadashi(
