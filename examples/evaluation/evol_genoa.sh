@@ -20,4 +20,4 @@ export PYTHONPATH="${REPO_ROOT}"
 
 
 ### RUN COMMAND ###
- python3 "${EVOL_TADASHI_PY}" --benchmark="${SLURM_JOB_NAME}"
+python3 "${EVOL_TADASHI_PY}" --benchmark="${SLURM_JOB_NAME}" "$@"
