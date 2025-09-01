@@ -282,8 +282,8 @@ def _tilable(node: Node, dim: int) -> bool:
     for _ in range(dim):
         if node.node_type != NodeType.BAND:
             return False
-        if "tile" in node.label and "outer" in node.label:
-            return False
+        # if "tile" in node.label and "outer" in node.label:
+        #     return False
         node = node.children[0]
     return True
 
