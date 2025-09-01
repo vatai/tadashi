@@ -462,11 +462,12 @@ _tadashi_shift(__isl_take isl_schedule_node *node,
   isl_union_pw_aff *upa;
   isl_union_set *upa_domain;
   isl_set_list *pa_domains;
-  isl_id *id;
+  isl_id *id = NULL;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
   assert(isl_multi_union_pw_aff_size(mupa) == 1);
-  id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
+  if (isl_multi_union_pw_aff_has_tuple_id(mupa, isl_dim_out))
+    id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   upa = isl_multi_union_pw_aff_get_at(mupa, 0);
   mupa = isl_multi_union_pw_aff_free(mupa);
   upa_domain = isl_union_pw_aff_domain(upa); // takes upa
