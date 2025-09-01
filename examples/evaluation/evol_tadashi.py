@@ -395,6 +395,6 @@ if __name__ == "__main__":
     parser.add_argument("--population-size", type=int, default=20)
     parser.add_argument("--max-gen", type=int, default=10)
     parser.add_argument("--n-trails", type=int, default=10)
-    parser.add_argument("--n-threads", type=int, default=3)
+    parser.add_argument("--n-threads", type=int, default=1)
     args = parser.parse_args()
     main(args)
