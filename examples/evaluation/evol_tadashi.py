@@ -98,7 +98,7 @@ class Individual:
         app_factory and n_trials are not requires if the fitness is already calculated
         """
         if self.fitness is None:
-            app = app_factory.generate_code()
+            app = app_factory.generate_code(populate_scops=True)
 
             app.transform_list(self.operation_list)
 
