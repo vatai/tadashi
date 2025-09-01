@@ -13,7 +13,6 @@ from tadashi import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 from tadashi.apps import Polybench, Simple
 
 
-
 def random_args(node, tr):
     tiles = [TrEnum.TILE1D, TrEnum.TILE2D, TrEnum.TILE3D]
     if tr in tiles:
@@ -38,11 +37,6 @@ def multiProcess_fitnessEval(a):
 
     # multiplied by -1 so fitness is meant to be maximized
     return -1 * min(evals)
-
-
-
-
-
 
 
 class Individual:
@@ -71,11 +65,15 @@ class Individual:
         return self.getFitness() > other.getFitness()
 
     def generateCode(self, app_factory):
-        app = app_factory.generate_code(ephemeral=False, populate_scops=True)
+        app = app_factory.generate_code(populate_scops=True)
         app.transform_list(self.operation_list)
-        return app
+        tapp = app.generate_code(ephemeral=False)
+        tapp.compile()
+        return tapp
 
-    def getFitness(self, app_factory=None, n_trials: int = None, timeout=9999, evaluations=None):
+    def getFitness(
+        self, app_factory=None, n_trials: int = None, timeout=9999, evaluations=None
+    ):
         """
         app_factory and n_trials are not requires if the fitness is already calculated
         """
@@ -83,21 +81,7 @@ class Individual:
             self.fitness = evaluations[str(self.operation_list)]
 
         if self.fitness is None:
-
-            if len(self.operation_list)>0:
-
-                print(app_factory.scops[0].schedule_tree[0].yaml_str)
-
-                print(self.operation_list)
-
-                app = self.generateCode(app_factory) 
-
-                print(app.scops[0].schedule_tree[0].yaml_str)
-
-                assert False
-
-            app = self.generateCode(app_factory) 
-
+            app = self.generateCode(app_factory)
             evals = []
             for _ in range(n_trials):
                 try:
@@ -209,12 +193,6 @@ class Individual:
             return ret
 
 
-
-
-
-
-
-
 class EvolTadashi:
     population = None
     max_gen = None
@@ -258,10 +236,14 @@ class EvolTadashi:
     def fit(self):
 
         self.best_individual = self.population[0]
-        self.best_individual.getFitness(self.app_factory, self.n_trials, evaluations = self.evaluations)
+        self.best_individual.getFitness(
+            self.app_factory, self.n_trials, evaluations=self.evaluations
+        )
         print(
             "Measure without transformations:",
-            self.best_individual.getFitness(self.app_factory, self.n_trials, evaluations = self.evaluations),
+            self.best_individual.getFitness(
+                self.app_factory, self.n_trials, evaluations=self.evaluations
+            ),
         )
 
         for gen in range(self.max_gen):
@@ -281,17 +263,28 @@ class EvolTadashi:
                                 ind.generateCode(self.app_factory),
                                 self.n_trials,
                                 self.timeout,
-                                self.evaluations[str(ind.operation_list)] if str(ind.operation_list) in self.evaluations else 0
+                                (
+                                    self.evaluations[str(ind.operation_list)]
+                                    if str(ind.operation_list) in self.evaluations
+                                    else 0
+                                ),
                             )
                             for ind in self.population
                         ],
                     )
                     for i in range(len(self.population)):
                         self.population[i].fitness = results[i]
-                        self.evaluations[str(self.population[i].operation_list)] = results[i]
+                        self.evaluations[str(self.population[i].operation_list)] = (
+                            results[i]
+                        )
             else:
                 [
-                    i.getFitness(self.app_factory, self.n_trials, timeout=self.timeout, evaluations = self.evaluations)
+                    i.getFitness(
+                        self.app_factory,
+                        self.n_trials,
+                        timeout=self.timeout,
+                        evaluations=self.evaluations,
+                    )
                     for i in self.population
                 ]
 
@@ -333,14 +326,6 @@ class EvolTadashi:
         print("Final model:", self.best_individual)
 
 
-
-
-
-
-
-
-
-
 def main(args):
     seed(args.seed)
     print(f"Opening {args.benchmark}")
@@ -348,7 +333,7 @@ def main(args):
     print(f"Using {dataset}")
     app_factory = Polybench(args.benchmark, compiler_options=[dataset])
     app_factory.compile()
-    timeout = timeit.timeit(app_factory.measure, number=1) * 2 
+    timeout = timeit.timeit(app_factory.measure, number=1) * 2
     print("USING TIME LIMIT:", timeout)
     m = EvolTadashi(
         app_factory,
