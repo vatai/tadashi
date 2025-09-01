@@ -10,9 +10,9 @@ from subprocess import TimeoutExpired
 import multiprocess as mp
 import tadashi
 # or
-from mpi4py import futures
-from mpi4py.futures import MPIPoolExecutor as Executor
-from mpi4py.futures import as_completed
+#from mpi4py import futures
+#from mpi4py.futures import MPIPoolExecutor as Executor
+#from mpi4py.futures import as_completed
 from tadashi import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 from tadashi.apps import Polybench, Simple
 
@@ -93,11 +93,15 @@ class Individual:
         app.transform_list(self.operation_list)
         return app
 
-    def getFitness(self, app_factory=None, n_trials: int = None, timeout=9999):
+    def getFitness(self, app_factory=None, n_trials: int = None, timeout=9999, evaluations=None):
         """
         app_factory and n_trials are not requires if the fitness is already calculated
         """
+        if not evaluations is None and str(self.operation_list) in evaluations:
+            self.fitness = evaluations[str(self.operation_list)]
+
         if self.fitness is None:
+
             app = app_factory.generate_code(populate_scops=True)
 
             app.transform_list(self.operation_list)
@@ -113,6 +117,8 @@ class Individual:
             # multiplied by -1 so fitness is meant to be maximized
             self.fitness = -1 * min(evals)
 
+        if not evaluations is None:
+            evaluations[str(self.operation_list)] = self.fitness
         return self.fitness
 
     def isLegal(self, app_factory=None):
@@ -219,6 +225,7 @@ class EvolTadashi:
     app = None
     t_size = None
     n_threads = None
+    evaluations = None
 
     def __init__(
         self,
@@ -240,6 +247,7 @@ class EvolTadashi:
         self.t_size = t_size
         self.n_threads = n_threads
         self.timeout = timeout
+        self.evaluations = {}
 
     def tournament(self):
         """
@@ -252,10 +260,10 @@ class EvolTadashi:
     def fit(self):
 
         self.best_individual = self.population[0]
-        self.best_individual.getFitness(self.app_factory, self.n_trials)
+        self.best_individual.getFitness(self.app_factory, self.n_trials, evaluations = self.evaluations)
         print(
             "Measure without transformations:",
-            self.best_individual.getFitness(self.app_factory, self.n_trials),
+            self.best_individual.getFitness(self.app_factory, self.n_trials, evaluations = self.evaluations),
         )
 
         for gen in range(self.max_gen):
@@ -267,50 +275,25 @@ class EvolTadashi:
 
             start_time = time.time()
             if self.n_threads > 1:
-                execut = False
-                if execut:
-                    fs = {}
-                    with Executor(max_workers=5) as executor:
-                        for ind in self.population:
-                            future = executor.submit(
-                                getFitnessGlobal,
-                                ind.generateCode(),
+                with mp.Pool(processes=self.n_threads) as pool:
+                    results = pool.map(
+                        multiProcess_fitnessEval,
+                        [
+                            (
+                                ind.generateCode(self.app_factory),
                                 self.n_trials,
                                 self.timeout,
+                                self.evaluations[str(ind.operation_list)] if str(ind.operation_list) in self.evaluations else 0
                             )
-                            fs[future] = ind  # Store the mapping
-
-                        for future in as_completed(fs):  # Process completed futures
-                            if future.exception():
-                                print(f"Future raised an error: {future.exception()}")
-                            print(
-                                dir(future), future._result, future._Future__get_result
-                            )
-                            ind = fs[future]  # Retrieve the corresponding individual
-                            ind.fitness = (
-                                future.result()
-                            )  # Assign the fitness value correctly
-
-                        print([ind.fitness for ind in self.population])
-                        # assert False
-                else:
-                    with mp.Pool(processes=self.n_threads) as pool:
-                        results = pool.map(
-                            multiProcess_fitnessEval,
-                            [
-                                (
-                                    ind.generateCode(self.app_factory),
-                                    self.n_trials,
-                                    self.timeout,
-                                )
-                                for ind in self.population
-                            ],
-                        )
-                        for i in range(len(self.population)):
-                            self.population[i].fitness = results[i]
+                            for ind in self.population
+                        ],
+                    )
+                    for i in range(len(self.population)):
+                        self.population[i].fitness = results[i]
+                        self.evaluations[str(self.population[i].operation_list)] = results[i]
             else:
                 [
-                    i.getFitness(self.app_factory, self.n_trials, timeout=self.timeout)
+                    i.getFitness(self.app_factory, self.n_trials, timeout=self.timeout, evaluations = self.evaluations)
                     for i in self.population
                 ]
 
@@ -353,7 +336,10 @@ class EvolTadashi:
 
 
 def multiProcess_fitnessEval(a):
-    app, trials, timeout = a
+    app, trials, timeout, pre_evaluated = a
+
+    if pre_evaluated != 0:
+        return pre_evaluated
 
     evals = []
     for _ in range(trials):
