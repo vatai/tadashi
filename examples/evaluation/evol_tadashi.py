@@ -9,30 +9,9 @@ from subprocess import TimeoutExpired
 
 import multiprocess as mp
 import tadashi
-# or
-#from mpi4py import futures
-#from mpi4py.futures import MPIPoolExecutor as Executor
-#from mpi4py.futures import as_completed
 from tadashi import TRANSFORMATIONS, LowerUpperBound, Scops, TrEnum
 from tadashi.apps import Polybench, Simple
 
-
-def legalAndTransform(node, tr, args):
-    try:
-        return node.transform(tr, *args)
-    except ValueError:
-        print("Still having issues ")
-        return False
-
-
-def isValidNode(scops, op):
-    coords, transformation, args = op
-    node = scops[coords[0]].schedule_tree[coords[1]]
-    valid = legalAndTransform(node, transformation, args)
-    node.rollback()
-    if not valid:
-        return False
-    return True
 
 
 def random_args(node, tr):
@@ -43,18 +22,14 @@ def random_args(node, tr):
     return choice(node.get_args(tr, start=-64, end=64))
 
 
-def getFitnessGlobal(
-    op_list=None, app_factory=None, n_trials: int = None, timeout=9999
-):
-    """
-    app_factory and n_trials are not requires if the fitness is already calculated
-    """
-    app = app_factory.generate_code(populate_scops=True)
+def multiProcess_fitnessEval(a):
+    app, trials, timeout, pre_evaluated = a
 
-    app.transform_list(op_list)
+    if pre_evaluated != 0:
+        return pre_evaluated
 
     evals = []
-    for _ in range(n_trials):
+    for _ in range(trials):
         try:
             evals.append(app.measure(timeout=timeout))
         except TimeoutExpired:
@@ -63,6 +38,11 @@ def getFitnessGlobal(
 
     # multiplied by -1 so fitness is meant to be maximized
     return -1 * min(evals)
+
+
+
+
+
 
 
 class Individual:
@@ -85,7 +65,9 @@ class Individual:
         return "%s --- %s" % (tmp, f)
 
     def __gt__(self, other):
-        # You must calculate everyones fitness before sorting
+        """
+        You must calculate everyones fitness before sorting
+        """
         return self.getFitness() > other.getFitness()
 
     def generateCode(self, app_factory):
@@ -102,9 +84,19 @@ class Individual:
 
         if self.fitness is None:
 
-            app = app_factory.generate_code(populate_scops=True)
+            if len(self.operation_list)>0:
 
-            app.transform_list(self.operation_list)
+                print(app_factory.scops[0].schedule_tree[0].yaml_str)
+
+                print(self.operation_list)
+
+                app = self.generateCode(app_factory) 
+
+                print(app.scops[0].schedule_tree[0].yaml_str)
+
+                assert False
+
+            app = self.generateCode(app_factory) 
 
             evals = []
             for _ in range(n_trials):
@@ -215,6 +207,12 @@ class Individual:
             # print("Found MUT after %d attempts" % at)
 
             return ret
+
+
+
+
+
+
 
 
 class EvolTadashi:
@@ -335,22 +333,12 @@ class EvolTadashi:
         print("Final model:", self.best_individual)
 
 
-def multiProcess_fitnessEval(a):
-    app, trials, timeout, pre_evaluated = a
 
-    if pre_evaluated != 0:
-        return pre_evaluated
 
-    evals = []
-    for _ in range(trials):
-        try:
-            evals.append(app.measure(timeout=timeout))
-        except TimeoutExpired:
-            # If the evaluations takes too long, it gets a bad fitness
-            evals.append(timeout)
 
-    # multiplied by -1 so fitness is meant to be maximized
-    return -1 * min(evals)
+
+
+
 
 
 def main(args):
