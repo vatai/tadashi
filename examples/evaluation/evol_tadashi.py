@@ -374,15 +374,15 @@ def main(args):
     print(f"Using {dataset}")
     app_factory = Polybench(args.benchmark, compiler_options=[dataset])
     app_factory.compile()
-    full_runtime = timeit.timeit(app_factory.measure, number=1)
-    print("USING TIME LIMIT:", full_runtime)
+    timeout = timeit.timeit(app_factory.measure, number=1) * 2 
+    print("USING TIME LIMIT:", timeout)
     m = EvolTadashi(
         app_factory,
         population_size=args.population_size,
         max_gen=args.max_gen,
         n_trials=args.n_trails,
         n_threads=args.n_threads,
-        timeout=2 * full_runtime,
+        timeout=timeout,
     )
     m.fit()
 
