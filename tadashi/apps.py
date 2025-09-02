@@ -268,7 +268,7 @@ class Polybench(App):
                 if c_file.parent.name == "utilities":
                     break  # go to raise ValueError!
                 return str(c_file.relative_to(self.base).parent)
-        raise ValueError("Not a polybench benchmark")
+        raise ValueError(f"Not a polybench {benchmark=}")
 
     def _codegen_init_args(self):
         return {
