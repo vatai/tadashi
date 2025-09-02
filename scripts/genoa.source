@@ -31,5 +31,5 @@ function set_env
 
 module load system/genoa mpi/mpich-x86_64
 set_env "$(git rev-parse --show-toplevel)/deps/opt"
-# [ -e $(git rev-parse --show-toplevel)/venv ] || python3 -m venv $(git rev-parse --show-toplevel)/venv
-# source $(git rev-parse --show-toplevel)/venv/bin/activate
+PYTHONPATH="$(git rev-parse --show-toplevel)"
+export PYTHONPATH

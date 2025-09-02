@@ -10,13 +10,8 @@
 #SBATCH -e %x-%j.txt
 
 ### SET UP ENV ###
-module load mpi/mpich-x86_64
-
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-source "${REPO_ROOT}/deps/set_env.src"
-set_env "${REPO_ROOT}/deps/opt"
-POC_ALL_PY="${REPO_ROOT}/examples/evaluation/poc/poc_ALL.py"
-export PYTHONPATH="${REPO_ROOT}"
+source "${REPO_ROOT}/scripts/genoa.source"
 
 ### RUN COMMAND ###
-python3 "${POC_ALL_PY}" "$@"
+python3 all.py "$@"
