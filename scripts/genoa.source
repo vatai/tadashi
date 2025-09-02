@@ -1,11 +1,17 @@
+#!/bin/bash
+# USAGE:
+#
+# REPO_ROOT="$(git rev-parse --show-toplevel)"
+# source "${REPO_ROOT}/scripts/genoa.source"
+
 function safe_prepend()
 {
     if [ -z "$1" ]
     then
-          echo $2
+          echo "$2"
 
     else
-          echo $1":"$2
+          echo "$1:$2"
     fi
 }
 
@@ -22,7 +28,7 @@ function set_env
         export LIBRARY_PATH=$(safe_prepend "$1/lib" "$LIBRARY_PATH")
     fi
     if [ -d "$1/lib64" ]; then
-    export LD_LIBRARY_PATH=$(safe_prepend "$1/lib64" "$LD_LIBRARY_PATH")
+        export LD_LIBRARY_PATH=$(safe_prepend "$1/lib64" "$LD_LIBRARY_PATH")
         export LIBRARY_PATH=$(safe_prepend "$1/lib64" "$LIBRARY_PATH")
     fi
     if [ -d "$1/include" ]; then
