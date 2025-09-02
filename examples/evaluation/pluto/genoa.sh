@@ -8,6 +8,6 @@
 #SBATCH -o pluto-%x-%j.txt
 #SBATCH -e pluto-%x-%j.txt
 
-compile.sh
-measure.sh
+./compile.sh
+./measure.sh
 
