@@ -8,7 +8,6 @@
 #SBATCH -o pluto-%x-%j.txt
 #SBATCH -e pluto-%x-%j.txt
 
-BASE="$(dirname "$BASH_SOURCE[0]")"
-"$BASE/compile.sh"
-"$BASE/measure.sh"
+compile.sh
+measure.sh
 
