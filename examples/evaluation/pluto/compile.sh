@@ -5,6 +5,7 @@
 REPO_ROOT="$(realpath "$(git rev-parse --show-toplevel)")"
 PLUTO=${PLUTO:-$REPO_ROOT/deps/build/pluto-0.13.0/polycc}
 POLYBENCH_ROOT="$REPO_ROOT/examples/polybench"
+SIZE=EXTRALARGE
 
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
                                    grep -v polybench/utilities |
@@ -15,6 +16,7 @@ GCC_ARGS=(
     "-I${POLYBENCH_ROOT}/utilities"
     "-DPOLYBENCH_TIME"
     "-DPOLYBENCH_USE_RESTRICT"
+    "-D${SIZE}_DATASET"
     "-lm"
     "-fopenmp"
 )
@@ -22,7 +24,7 @@ GCC_ARGS=(
 for file in "${BENCHMARKS[@]}"; do
     cd "$(dirname "$file")" || exit
     test -f "${file%.c}.pluto.c" || $PLUTO "$file"
-    test -f "${file%.c}.pluto.x" || gcc -o "${file%.c}.pluto.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
+    gcc -o "${file%.c}.pluto.${SIZE}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
     cd - > /dev/null || exit
 done
 
