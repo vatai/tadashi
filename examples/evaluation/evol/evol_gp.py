@@ -330,8 +330,9 @@ def main(args):
     seed(args.seed)
     print(f"Opening {args.benchmark}")
     dataset = f"-D{args.dataset}_DATASET"
+    oflag = f"-O{args.oflag}"
     print(f"Using {dataset}")
-    app_factory = Polybench(args.benchmark, compiler_options=[dataset])
+    app_factory = Polybench(args.benchmark, compiler_options=[dataset, oflag])
     app_factory.compile()
     timeout = timeit.timeit(app_factory.measure, number=1) * 2
     print("USING TIME LIMIT:", timeout)
@@ -350,6 +351,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default="gemm")
     parser.add_argument("--dataset", type=str, default="EXTRALARGE")
+    parser.add_argument("--oflag", type=int, default=3)
     parser.add_argument("--seed", type=int, default=47)
     parser.add_argument("--population-size", type=int, default=20)
     parser.add_argument("--max-gen", type=int, default=10)
