@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 
-# Usage sbatch -J benchmark evol_tadashi.sh
+# USAGE: sbatch genova.sh
 
 #SBATCH -p genoa
 #SBATCH -N 1
-#SBATCH -J poc_ALL
+#SBATCH -J poc_all
 #SBATCH -t 20:00:00
 #SBATCH -o %x-%j.txt
 #SBATCH -e %x-%j.txt
