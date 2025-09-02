@@ -8,7 +8,7 @@ NUM_REPS=10
 SIZE=EXTRALARGE
 OUTFILE="pluto_times_${SIZE}_${NUM_REPS}.csv"
 
-readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.pluto.x' |
+readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name *."pluto.${SIZE}.x" |
                                    tr "\n" "\0")
 rm "$OUTFILE"
 for file in "${BENCHMARKS[@]}"; do

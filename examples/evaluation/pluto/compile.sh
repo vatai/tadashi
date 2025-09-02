@@ -9,6 +9,7 @@ SIZE=EXTRALARGE
 
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
                                    grep -v polybench/utilities |
+                                   grep -v TMPFILE |
                                    grep -v pluto.c |
                                    tr "\n" "\0")
 GCC_ARGS=(
