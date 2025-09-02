@@ -1,7 +1,12 @@
+#!/bin/env python
 from pathlib import Path
+from random import choice, seed
 
 import tadashi
 from tadashi.apps import Simple
+
+seed(1234)
+
 dir_path = Path(__file__).parent
 examples_path = dir_path if dir_path.name == "examples" else "examples"
 app = Simple(f"{examples_path}/inputs/depnodep.c")
@@ -9,19 +14,14 @@ print(app)
 
 node = app.scops[0].schedule_tree[1]
 print(f"{node=}")
-tr = tadashi.TrEnum.FULL_SHIFT_VAR
-print(f"{tr in node.available_transformations=}")
-# output:
-
+tr = choice(node.available_transformations)
 print(f"{tr=}")
-lu = node.available_args(tr)
-print(f"{len(lu)=}")
-print(f"{lu[0]=}")
-print(f"{lu[1]=}")
 # output:
 
-args = [1, 13]
-print(f"{node.valid_args(tr, *args)=}")
+args = choice(node.get_args(tr, -10, 10))
+print(f"{args=}")
+# output:
+
 legal = node.transform(tr, *args)
 print(f"{legal=}")
 # output:
