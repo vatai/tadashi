@@ -2,9 +2,6 @@ import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench
 
-base = "examples/polybench/"
-
-
 app_names = [
     "medley/floyd-warshall",
     "medley/nussinov",
@@ -64,8 +61,7 @@ for app_name in app_names:
 
     app = Polybench(
         app_name,
-        base,
-        compiler_options=["-DEXTRALARGE_DATASET", "-DMINI_DATASET", "-O3"][::2],
+        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
     )
 
     print(f"{app.user_compiler_options=}")
