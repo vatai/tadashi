@@ -1,8 +1,0 @@
-{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-12T13:35:12.777343", "speedup": 1, "transform": [], "source": "gemm.c"}
-{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-04-12T13:35:15.514044", "speedup": 1.4477034947184577, "transform": [[8, "tile1d", 2]], "source": "gemm-TMPFILE-2025-04-12T13:35:12.794988-3ckx2g9w.c"}
-{"cnt_rollouts": 2, "cnt_evals": 4, "timestamp": "2025-04-12T13:35:24.675306", "speedup": 2.2003496815855637, "transform": [[4, "tile1d", 4]], "source": "gemm-TMPFILE-2025-04-12T13:35:22.761145-4dg2kxsr.c"}
-{"cnt_rollouts": 2, "cnt_evals": 6, "timestamp": "2025-04-12T13:35:28.522761", "speedup": 2.200832782314992, "transform": [[4, "tile1d", 4], [2, "full_split"], [1, "full_fuse"]], "source": "gemm-TMPFILE-2025-04-12T13:35:26.631924-tbckbxmd.c"}
-{"cnt_rollouts": 7, "cnt_evals": 20, "timestamp": "2025-04-12T13:36:22.027358", "speedup": 2.2071663572937337, "transform": [[4, "tile1d", 3], [4, "tile2d", 4, 2]], "source": "gemm-TMPFILE-2025-04-12T13:36:19.899981-qvk6x6fp.c"}
-{"cnt_rollouts": 7, "cnt_evals": 21, "timestamp": "2025-04-12T13:36:24.262057", "speedup": 2.21016832694731, "transform": [[4, "tile1d", 3], [4, "tile2d", 4, 2], [4, "tile1d", 4]], "source": "gemm-TMPFILE-2025-04-12T13:36:22.063311-nygutfpd.c"}
-{"cnt_rollouts": 163, "cnt_evals": 427, "timestamp": "2025-04-12T13:56:02.117732", "speedup": 2.215635778576239, "transform": [[4, "tile1d", 4]], "source": "gemm-TMPFILE-2025-04-12T13:56:00.240163-kaqe2tw3.c"}
-{"cnt_rollouts": 1380, "cnt_evals": 3750, "timestamp": "2025-04-12T16:38:16.908322", "speedup": 2.2178046650193015, "transform": [[4, "tile1d", 2], [2, "full_split"], [3, "tile2d", 4, 1]], "source": "gemm-TMPFILE-2025-04-12T16:38:14.907153-5ukf3tcb.c"}

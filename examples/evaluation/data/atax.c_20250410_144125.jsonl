@@ -1,5 +1,0 @@
-{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-10T14:41:25.976019", "speedup": 1, "transform": [], "source": "atax.c"}
-{"cnt_rollouts": 17, "cnt_evals": 48, "timestamp": "2025-04-10T14:41:40.914816", "speedup": 1.4339887640449438, "transform": [[7, "full_split"], [15, "tile2d", 2, 2], [11, "interchange"]], "source": "atax-TMPFILE-2025-04-10T14:41:40.610972-6yt_aq3s.c"}
-{"cnt_rollouts": 76, "cnt_evals": 194, "timestamp": "2025-04-10T14:42:26.227939", "speedup": 1.4943285766556895, "transform": [[7, "full_split"], [11, "tile2d", 4, 2]], "source": "atax-TMPFILE-2025-04-10T14:42:25.927088-hsvu55bc.c"}
-{"cnt_rollouts": 163, "cnt_evals": 408, "timestamp": "2025-04-10T14:43:34.255908", "speedup": 1.552851711026616, "transform": [[7, "full_split"], [3, "tile1d", 1], [12, "interchange"]], "source": "atax-TMPFILE-2025-04-10T14:43:33.986998-43z8xgi9.c"}
-{"cnt_rollouts": 266, "cnt_evals": 675, "timestamp": "2025-04-10T14:44:59.359718", "speedup": 2.4309523809523808, "transform": [[7, "full_split"], [16, "tile1d", 1], [11, "tile2d", 4, 1]], "source": "atax-TMPFILE-2025-04-10T14:44:59.069958-1wu76m_h.c"}
