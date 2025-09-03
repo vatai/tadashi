@@ -131,7 +131,7 @@ def run_model(app, num_steps, name=""):
 def measure_polybench(num_steps):
     for i, p in enumerate(Polybench.get_benchmarks()):
         print(f"Start {i+1}. {p.name}")
-        app = Polybench(p, compiler_options=["-DSMALL_DATASET"])
+        app = Polybench(p, compiler_options=["-DEXTRALARGE_DATASET", "-O3"])
         print("app done")
         run_model(app, num_steps=num_steps, name=p.name)
 
