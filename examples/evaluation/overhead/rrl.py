@@ -137,7 +137,7 @@ def measure_polybench(num_steps):
 def verify_polybench():
     compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
     for p in Polybench.get_benchmarks():
-        app = Polybench(p, compiler_options)
+        app = Polybench(p, compiler_options=compiler_options)
         app.compile()
         gold = get_array(app)
         # print(f"{gold[:3]=}")
