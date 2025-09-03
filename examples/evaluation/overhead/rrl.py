@@ -127,19 +127,17 @@ def run_model(app, num_steps, name=""):
 
 
 def measure_polybench(num_steps):
-    base = Path("examples/polybench")
-    for i, p in enumerate(Polybench.get_benchmarks(base)):
+    for i, p in enumerate(Polybench.get_benchmarks()):
         print(f"Start {i+1}. {p.name}")
-        app = Polybench(p, base, compiler_options=["-DSMALL_DATASET"])
+        app = Polybench(p, compiler_options=["-DSMALL_DATASET"])
         print("app done")
         run_model(app, num_steps=num_steps, name=p.name)
 
 
 def verify_polybench():
     compiler_options = ["-DSMALL_DATASET", "-DPOLYBENCH_DUMP_ARRAYS"]
-    base = Path("examples/polybench")
-    for p in Polybench.get_benchmarks(base):
-        app = Polybench(p, base, compiler_options)
+    for p in Polybench.get_benchmarks():
+        app = Polybench(p, compiler_options)
         app.compile()
         gold = get_array(app)
         # print(f"{gold[:3]=}")
