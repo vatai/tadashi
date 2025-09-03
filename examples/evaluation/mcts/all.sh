@@ -34,5 +34,5 @@ all=(
 )
 
 for benchmark in "${all[@]}"; do
-    sbatch -J ${benchmark} genoa.sh
+    sbatch -J ${benchmark} genoa.sh --rollouts=3000
 done
