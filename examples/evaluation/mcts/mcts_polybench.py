@@ -31,10 +31,8 @@ def main():
     # logger.info('message')
     args = get_args()
     random.seed(args.seed)
-    base = "examples/polybench"
     app = Polybench(
         args.benchmark,
-        Path(base),
         compiler_options=args.compiler_options.split(" "),
     )
     print(app.scops[0].schedule_tree[0].yaml_str)
