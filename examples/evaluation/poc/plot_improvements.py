@@ -7,6 +7,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 plt.rcParams["text.latex.preamble"] = (
     r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
@@ -26,7 +27,7 @@ plt.rcParams.update(params)
 fontsize = 12
 
 
-def main(path):
+def read_poc_output(path):
     f = open(path).readlines()
     names = []
     bl = []
@@ -46,29 +47,55 @@ def main(path):
             names.append(app_name.strip().split("/")[-1])
             bl.append(float(app_baseline.strip().split(": ")[1]))
             post.append(float(app_post.strip().split(": ")[1]))
-    # Example data
-    array1 = np.array(bl)
-    array2 = np.array(post)
-    labels = np.array(names)
+    baseline = np.array(bl)
+    post = np.array(post)
+    names = np.array(names)
+    idcs = np.argsort(names)
+    return baseline[idcs], post[idcs], names[idcs]
 
+
+def get_ratios(baseline, post, labels):
     # Filter: keep only values where at least one is >= 0.01
-    mask = ~((array1 < 0.01) & (array2 < 0.01))
+    mask = ~((baseline < 0.01) & (post < 0.01))
+    # mask = array1 >= 0.001
 
     for l in sorted(labels):
         if not l in np.array(labels)[mask]:
             print(l)
 
-    array1 = array1[mask]
-    array2 = array2[mask]
+    baseline = baseline[mask]
+    post = post[mask]
     labels = np.array(labels)[mask]
 
-    ratios = array1 / array2
+    ratios = baseline / post
 
     sorted_indices = np.argsort(labels)
-    labels = labels[sorted_indices]
-    ratios = ratios[sorted_indices]
+    # labels = labels[sorted_indices]
+    # ratios = ratios[sorted_indices]
     ratios = np.array([r if r > 1 else 1 for r in ratios])
     print(ratios)
+    return ratios, labels
+
+
+def get_pluto(labels):
+    pluto_txt = "../pluto/pluto_times_EXTRALARGE_O3_10.csv"
+    df = pd.read_csv(
+        pluto_txt,
+        sep="\t",
+        header=None,
+    )
+    df = df.drop(columns=11)
+    df = df.set_index(0)
+    df = df.transpose()
+    df = df.min()
+    print(df)
+    return df
+
+
+def main(path):
+    data = read_poc_output(path)
+    ratios, labels = get_ratios(*data)
+    pluto = get_pluto(labels)
 
     # Normalize with midpoint at 1
     norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(ratios) / 5)
@@ -86,7 +113,8 @@ def main(path):
     ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=1)
 
     # Plot colored ratio bars
-    bars = ax.bar(x, ratios, width, color=bar_colors, edgecolor="black", zorder=2)
+    bars = ax.bar(x, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
+    # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
 
     # Labels and formatting
     ax.set_ylabel("Speedup (log scale)", fontsize=fontsize)
