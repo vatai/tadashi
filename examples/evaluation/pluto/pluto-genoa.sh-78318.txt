@@ -1,0 +1,2016 @@
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 4
+[pluto] Number of deps: 6
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (i, j)
+loop types (loop, loop)
+
+T(S2): (i, j)
+loop types (loop, loop)
+
+[Pluto] After tiling:
+T(S1): (i/32, j/32, i, j)
+loop types (loop, loop, loop, loop)
+
+T(S2): (i/32, j/32, i, j)
+loop types (loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,4), S2(3,4), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to mvt.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000684s
+[pluto] Auto-transformation time: 0.002782s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000339s
+[pluto] Code generation time: 0.003325s
+[pluto] Other/Misc time: 0.020208s
+[pluto] Total time: 0.026999s
+[pluto] All times: 0.000684 0.002782 0.003325 0.020208
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 6
+[pluto] Number of deps: 12
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S2): (0, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S3): (1, i, j)
+loop types (scalar, loop, loop)
+
+T(S4): (3, j, i)
+loop types (scalar, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (2, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S4): (3, j/32, i/32, j, i)
+loop types (scalar, loop, loop, loop, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (2, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S4): (3, j/32, i/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,5), S2(3,5), S3(4,5), S4(4,5), 
+[Pluto] Output written to atax.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000761s
+[pluto] Auto-transformation time: 0.004911s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000525s
+[pluto] Code generation time: 0.007857s
+[pluto] Other/Misc time: 0.043537s
+[pluto] Total time: 0.057066s
+[pluto] All times: 0.000761 0.004911 0.007857 0.043537
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 6
+[pluto] Total number of loops: 15
+[pluto] Number of deps: 19
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 5
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2, i, j, 1, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (3, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop)
+
+T(S3): (0, i, j, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S4): (1, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop)
+
+T(S5): (0, i, j, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S6): (3, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop)
+
+[Pluto] After tiling:
+T(S1): (2, i/32, j/32, i, j, 1, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S2): (3, i/32, j/32, 0, k/32, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S3): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S4): (1, i/32, j/32, 0, k/32, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S5): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S6): (3, i/32, k/32, 1, j/32, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (2, i/32, j/32, i, j, 1, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S2): (3, i/32, j/32, 0, k/32, i, 0, k, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S3): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S4): (1, i/32, j/32, 0, k/32, i, 0, k, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S5): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S6): (3, i/32, k/32, 1, j/32, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,9), S2(6,9), S3(4,9), S4(6,9), S5(4,9), S6(6,9), 
+[Pluto] Output written to 3mm.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001464s
+[pluto] Auto-transformation time: 0.032926s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.003126s
+[pluto] Code generation time: 0.078322s
+[pluto] Other/Misc time: 0.185889s
+[pluto] Total time: 0.298601s
+[pluto] All times: 0.001464 0.032926 0.078322 0.185889
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 3
+[pluto] Total number of loops: 10
+[pluto] Number of deps: 30
+[pluto] Maximum domain dimensionality: 4
+[pluto] Number of parameters: 3
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (r, q, 0, p, 0)
+loop types (loop, loop, scalar, loop, scalar)
+
+T(S2): (r, q, 1, p, s)
+loop types (loop, loop, scalar, loop, loop)
+
+T(S3): (r, q, 2, p, 0)
+loop types (loop, loop, scalar, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (r, q, 0, p/32, p, 0, 0)
+loop types (loop, loop, scalar, loop, loop, scalar, scalar)
+
+T(S2): (r, q, 1, p/32, s/32, p, s)
+loop types (loop, loop, scalar, loop, loop, loop, loop)
+
+T(S3): (r, q, 2, p/32, p, 0, 0)
+loop types (loop, loop, scalar, loop, loop, scalar, scalar)
+
+[Pluto] After intra-tile optimize
+T(S1): (r, q, 0, p/32, p, 0, 0)
+loop types (loop, loop, scalar, loop, loop, scalar, scalar)
+
+T(S2): (r, q, 1, p/32, s/32, s, p)
+loop types (loop, loop, scalar, loop, loop, loop, loop)
+
+T(S3): (r, q, 2, p/32, p, 0, 0)
+loop types (loop, loop, scalar, loop, loop, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(5,7), S2(6,7), S3(5,7), 
+[Pluto] Output written to doitgen.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000961s
+[pluto] Auto-transformation time: 0.036473s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.003066s
+[pluto] Code generation time: 0.012831s
+[pluto] Other/Misc time: 0.185033s
+[pluto] Total time: 0.235298s
+[pluto] All times: 0.000961 0.036473 0.012831 0.185033
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 10
+[pluto] Number of deps: 13
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 4
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, j, 1, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (1, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop)
+
+T(S3): (0, i, j, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S4): (1, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop)
+
+[Pluto] After tiling:
+T(S1): (0, i/32, j/32, i, j, 1, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S2): (1, i/32, j/32, 0, k/32, i, j, 0, k)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S3): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S4): (1, i/32, k/32, 1, j/32, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (0, i/32, j/32, i, j, 1, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S2): (1, i/32, j/32, 0, k/32, i, 0, k, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+T(S3): (0, i/32, j/32, i, j, 0, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S4): (1, i/32, k/32, 1, j/32, i, k, 1, j)
+loop types (scalar, loop, loop, scalar, loop, loop, loop, scalar, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,9), S2(6,9), S3(4,9), S4(6,9), 
+[Pluto] Output written to 2mm.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001081s
+[pluto] Auto-transformation time: 0.015022s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.001719s
+[pluto] Code generation time: 0.094846s
+[pluto] Other/Misc time: 0.120436s
+[pluto] Total time: 0.231385s
+[pluto] All times: 0.001081 0.015022 0.094846 0.120436
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 6
+[pluto] Number of deps: 10
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S2): (0, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S3): (3, j, i)
+loop types (scalar, loop, loop)
+
+T(S4): (1, i, j)
+loop types (scalar, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (2, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (3, j/32, i/32, j, i)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S4): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (2, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (3, j/32, i/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S4): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,5), S2(3,5), S3(4,5), S4(4,5), 
+[Pluto] Output written to bicg.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000691s
+[pluto] Auto-transformation time: 0.004562s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000553s
+[pluto] Code generation time: 0.007841s
+[pluto] Other/Misc time: 0.036027s
+[pluto] Total time: 0.049121s
+[pluto] All times: 0.000691 0.004562 0.007841 0.036027
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 12
+[pluto] Total number of loops: 22
+[pluto] Number of deps: 181
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 1
+[pluto] WARNING: working with original (identity) transformation (if they exist)
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, 0, j, 0, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (0, i, 0, j, 1, k, 0)
+loop types (loop, loop, loop, loop, loop, loop, loop)
+
+T(S3): (0, i, 0, j, 2, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S4): (0, i, 1, j, 0, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S5): (0, i, 1, j, 1, k, 0)
+loop types (loop, loop, loop, loop, loop, loop, loop)
+
+T(S6): (0, i, 1, j, 2, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S7): (1, i, 0, 0, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S8): (1, i, 1, j, 0, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S9): (1, i, 2, 0, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S10): (2, -i, 0, 0, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S11): (2, -i, 1, j, 0, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S12): (2, -i, 2, 0, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar, scalar, scalar)
+
+[Pluto] After tiling:
+T(S1): (0, i, 0, j, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S2): (0, i, 0, j, 1, k, 0)
+loop types (scalar, loop, scalar, loop, scalar, loop, scalar)
+
+T(S3): (0, i, 0, j, 2, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S4): (0, i, 1, j, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S5): (0, i, 1, j, 1, k, 0)
+loop types (scalar, loop, scalar, loop, scalar, loop, scalar)
+
+T(S6): (0, i, 1, j, 2, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S7): (1, i, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S8): (1, i, 1, j, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S9): (1, i, 2, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S10): (2, -i, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S11): (2, -i, 1, j, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S12): (2, -i, 2, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(2,7), S2(2,7), S3(2,7), S4(2,7), S5(2,7), S6(2,7), S7(2,7), S8(2,7), S9(2,7), S10(2,7), S11(2,7), S12(2,7), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to ludcmp.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001703s
+[pluto] Auto-transformation time: 1.269890s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.065692s
+[pluto] Code generation time: 0.015548s
+[pluto] Other/Misc time: 0.144939s
+[pluto] Total time: 1.432080s
+[pluto] All times: 0.001703 1.269890 0.015548 0.144939
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 3
+[pluto] Total number of loops: 4
+[pluto] Number of deps: 13
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S2): (1, i, j)
+loop types (scalar, loop, loop)
+
+T(S3): (1, i, i)
+loop types (scalar, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S3): (1, i/32, i/32, i, i)
+loop types (scalar, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32+j/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S3): (1, i/32+i/32, i/32, i, i)
+loop types (scalar, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,5), S2(4,5), S3(4,5), 
+[Pluto] Output written to trisolv.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000570s
+[pluto] Auto-transformation time: 0.004488s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000572s
+[pluto] Code generation time: 0.009528s
+[pluto] Other/Misc time: 0.029344s
+[pluto] Total time: 0.043930s
+[pluto] All times: 0.000570 0.004488 0.009528 0.029344
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 3
+[pluto] Total number of loops: 8
+[pluto] Number of deps: 16
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (i, j, k)
+loop types (loop, loop, loop)
+
+T(S2): (i, j, j)
+loop types (loop, loop, loop)
+
+T(S3): (i, j, k)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (i/32, j/32, k/32, i, j, k)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (i/32, j/32, j/32, i, j, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): (i/32, j/32, k/32, i, j, k)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (i/32, j/32, k/32, i, k, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (i/32, j/32, j/32, i, j, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): (i/32, j/32, k/32, i, k, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): (i/32+j/32, j/32, k/32, i, k, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (i/32+j/32, j/32, j/32, i, j, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): (i/32+j/32, j/32, k/32, i, k, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), S2(4,6), S3(4,6), 
+[Pluto] Output written to lu.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000963s
+[pluto] Auto-transformation time: 0.028168s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.007044s
+[pluto] Code generation time: 0.065237s
+[pluto] Other/Misc time: 0.113215s
+[pluto] Total time: 0.207583s
+[pluto] All times: 0.000963 0.028168 0.065237 0.113215
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 10
+[pluto] Total number of loops: 10
+[pluto] Number of deps: 55
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, 0, 0, 9)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S2): (0, 0, 0, 8)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S3): (0, 0, 0, 7)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S4): (1, k, 0, 6)
+loop types (scalar, loop, scalar, scalar)
+
+T(S5): (1, k, 0, 4)
+loop types (scalar, loop, scalar, scalar)
+
+T(S6): (1, k, i, 5)
+loop types (scalar, loop, loop, scalar)
+
+T(S7): (1, k, k, 1)
+loop types (scalar, loop, loop, scalar)
+
+T(S8): (1, k, k+i, 3)
+loop types (scalar, loop, loop, scalar)
+
+T(S9): (1, k, 2k+i, 0)
+loop types (scalar, loop, loop, scalar)
+
+T(S10): (1, k, k, 2)
+loop types (scalar, loop, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (0, 0, 0, 9)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S2): (0, 0, 0, 8)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S3): (0, 0, 0, 7)
+loop types (scalar, scalar, scalar, scalar)
+
+T(S4): (1, k, 0, 6)
+loop types (scalar, loop, scalar, scalar)
+
+T(S5): (1, k, 0, 4)
+loop types (scalar, loop, scalar, scalar)
+
+T(S6): (1, k, i, 5)
+loop types (scalar, loop, loop, scalar)
+
+T(S7): (1, k, k, 1)
+loop types (scalar, loop, loop, scalar)
+
+T(S8): (1, k, k+i, 3)
+loop types (scalar, loop, loop, scalar)
+
+T(S9): (1, k, 2k+i, 0)
+loop types (scalar, loop, loop, scalar)
+
+T(S10): (1, k, k, 2)
+loop types (scalar, loop, loop, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(1,4), S2(1,4), S3(1,4), S4(2,4), S5(2,4), S6(2,4), S7(2,4), S8(2,4), S9(2,4), S10(2,4), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to durbin.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000938s
+[pluto] Auto-transformation time: 0.033902s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.003670s
+[pluto] Code generation time: 0.004915s
+[pluto] Other/Misc time: 0.029850s
+[pluto] Total time: 0.069605s
+[pluto] All times: 0.000938 0.033902 0.004915 0.029850
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 8
+[pluto] Number of deps: 22
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (i, j, k)
+loop types (loop, loop, loop)
+
+T(S2): (i, j, j)
+loop types (loop, loop, loop)
+
+T(S3): (i, k, i)
+loop types (loop, loop, loop)
+
+T(S4): (i, i, i)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (i/32, j/32, k/32, i, j, k)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (i/32, j/32, j/32, i, j, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): (i/32, k/32, i/32, i, k, i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): (i/32, i/32, i/32, i, i, i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): (i/32+j/32, j/32, k/32, i, j, k)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (i/32+j/32, j/32, j/32, i, j, j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): (i/32+k/32, k/32, i/32, i, k, i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): (i/32+i/32, i/32, i/32, i, i, i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), S2(4,6), S3(4,6), S4(4,6), 
+[Pluto] Output written to cholesky.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000937s
+[pluto] Auto-transformation time: 0.027307s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.004753s
+[pluto] Code generation time: 0.055476s
+[pluto] Other/Misc time: 0.083011s
+[pluto] Total time: 0.166731s
+[pluto] All times: 0.000937 0.027307 0.055476 0.083011
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 7
+[pluto] Total number of loops: 14
+[pluto] Number of deps: 34
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (1, k, 1, 0, 1, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S2): (1, k, 2, i, 1, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar)
+
+T(S3): (1, k, 3, 0, 1, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S4): (1, k, 4, i, 1, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar)
+
+T(S5): (0, k, 0, j, 1, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar)
+
+T(S6): (1, k, 5, j, 0, i)
+loop types (scalar, loop, scalar, loop, scalar, loop)
+
+T(S7): (1, k, 5, j, 1, i)
+loop types (scalar, loop, scalar, loop, scalar, loop)
+
+[Pluto] After tiling:
+T(S1): (1, k, 1, 0, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (1, k, 2, i, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S3): (1, k, 3, 0, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (1, k, 4, i/32, i, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S5): (0, k/32, 0, j/32, k, 0, j, 1, 0)
+loop types (scalar, loop, scalar, loop, loop, scalar, loop, scalar, scalar)
+
+T(S6): (1, k, 5, j/32, 0, i/32, j, 0, i)
+loop types (scalar, loop, scalar, loop, scalar, loop, loop, scalar, loop)
+
+T(S7): (1, k, 5, j/32, 1, i/32, j, 1, i)
+loop types (scalar, loop, scalar, loop, scalar, loop, loop, scalar, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (1, k, 1, 0, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (1, k, 2, i, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S3): (1, k, 3, 0, 1, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (1, k, 4, i/32, i, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, loop, scalar, scalar, scalar, scalar)
+
+T(S5): (0, k/32, 0, j/32, k, 0, j, 1, 0)
+loop types (scalar, loop, scalar, loop, loop, scalar, loop, scalar, scalar)
+
+T(S6): (1, k, 5, j/32, 0, i/32, 0, i, j)
+loop types (scalar, loop, scalar, loop, scalar, loop, loop, scalar, loop)
+
+T(S7): (1, k, 5, j/32, 1, i/32, 1, i, j)
+loop types (scalar, loop, scalar, loop, scalar, loop, loop, scalar, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(2,9), S2(2,9), S3(2,9), S4(5,9), S5(5,9), S6(7,9), S7(7,9), 
+[Pluto] Output written to gramschmidt.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001329s
+[pluto] Auto-transformation time: 0.052259s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.004364s
+[pluto] Code generation time: 0.024333s
+[pluto] Other/Misc time: 0.101165s
+[pluto] Total time: 0.179086s
+[pluto] All times: 0.001329 0.052259 0.024333 0.101165
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 5
+[pluto] Number of deps: 6
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 3
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, j, 0)
+loop types (scalar, loop, loop, scalar)
+
+T(S2): (1, i, j, k)
+loop types (scalar, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32, j/32, k/32, i, j, k)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): (0, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32, j/32, k/32, i, k, j)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,7), S2(5,7), 
+[Pluto] Output written to gemm.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000754s
+[pluto] Auto-transformation time: 0.004755s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000570s
+[pluto] Code generation time: 0.010997s
+[pluto] Other/Misc time: 0.050009s
+[pluto] Total time: 0.066515s
+[pluto] All times: 0.000754 0.004755 0.010997 0.050009
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 5
+[pluto] Number of deps: 8
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, j, i, k)
+loop types (scalar, loop, loop, loop)
+
+T(S2): (1, i, j, 0)
+loop types (scalar, loop, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (0, j/32, i/32, k/32, j, i, k)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+T(S2): (1, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+[Pluto] After intra-tile optimize
+T(S1): (0, j/32, i/32, k/32, i, k, j)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+T(S2): (1, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(5,7), S2(4,7), 
+[Pluto] Output written to trmm.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000670s
+[pluto] Auto-transformation time: 0.005812s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000640s
+[pluto] Code generation time: 0.010905s
+[pluto] Other/Misc time: 0.073456s
+[pluto] Total time: 0.090843s
+[pluto] All times: 0.000670 0.005812 0.010905 0.073456
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 5
+[pluto] Total number of loops: 7
+[pluto] Number of deps: 17
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S2): (0, i, 0)
+loop types (scalar, loop, scalar)
+
+T(S3): (3, i, j)
+loop types (scalar, loop, loop)
+
+T(S4): (1, i, j)
+loop types (scalar, loop, loop)
+
+T(S5): (4, i, 0)
+loop types (scalar, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (2, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S2): (0, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (3, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S4): (1, i/32, j/32, i, j)
+loop types (scalar, loop, loop, loop, loop)
+
+T(S5): (4, i/32, i, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,5), S2(3,5), S3(4,5), S4(4,5), S5(3,5), 
+[Pluto] Output written to gesummv.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000746s
+[pluto] Auto-transformation time: 0.005653s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000598s
+[pluto] Code generation time: 0.009421s
+[pluto] Other/Misc time: 0.032429s
+[pluto] Total time: 0.048249s
+[pluto] All times: 0.000746 0.005653 0.009421 0.032429
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 5
+[pluto] Number of deps: 6
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, j, 0)
+loop types (scalar, loop, loop, scalar)
+
+T(S2): (1, i, j, k)
+loop types (scalar, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32, j/32, k/32, i, j, k)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,7), S2(5,7), 
+[Pluto] Output written to syrk.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000730s
+[pluto] Auto-transformation time: 0.004223s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000507s
+[pluto] Code generation time: 0.010416s
+[pluto] Other/Misc time: 0.031060s
+[pluto] Total time: 0.046429s
+[pluto] All times: 0.000730 0.004223 0.010416 0.031060
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 10
+[pluto] Number of deps: 33
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (i, j, 0, 1)
+loop types (loop, loop, scalar, scalar)
+
+T(S2): (i, j, k, 0)
+loop types (loop, loop, loop, scalar)
+
+T(S3): (i, j, k, 3)
+loop types (loop, loop, loop, scalar)
+
+T(S4): (i, j, i, 2)
+loop types (loop, loop, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (i, j, 0, 1)
+loop types (loop, loop, scalar, scalar)
+
+T(S2): (i, j, k, 0)
+loop types (loop, loop, loop, scalar)
+
+T(S3): (i, j, k, 3)
+loop types (loop, loop, loop, scalar)
+
+T(S4): (i, j, i, 2)
+loop types (loop, loop, loop, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(1,4), S2(1,4), S3(1,4), S4(1,4), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to symm.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000904s
+[pluto] Auto-transformation time: 0.021153s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.002755s
+[pluto] Code generation time: 0.008896s
+[pluto] Other/Misc time: 0.042135s
+[pluto] Total time: 0.073088s
+[pluto] All times: 0.000904 0.021153 0.008896 0.042135
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 5
+[pluto] Number of deps: 6
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, i, j, 0)
+loop types (scalar, loop, loop, scalar)
+
+T(S2): (1, i, j, k)
+loop types (scalar, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, i/32, j/32, i, j, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (1, i/32, j/32, k/32, i, j, k)
+loop types (scalar, loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,7), S2(5,7), 
+[Pluto] Output written to syr2k.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000819s
+[pluto] Auto-transformation time: 0.004226s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000519s
+[pluto] Code generation time: 0.010401s
+[pluto] Other/Misc time: 0.032615s
+[pluto] Total time: 0.048061s
+[pluto] All times: 0.000819 0.004226 0.010401 0.032615
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 7
+[pluto] Number of deps: 13
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, j, i, 2)
+loop types (scalar, loop, loop, scalar)
+
+T(S2): (0, i, j, 3)
+loop types (scalar, loop, loop, scalar)
+
+T(S3): (1, i, 0, 1)
+loop types (scalar, loop, scalar, scalar)
+
+T(S4): (2, i, j, 0)
+loop types (scalar, loop, loop, scalar)
+
+[Pluto] After tiling:
+T(S1): (0, j/32, i/32, j, i, 2)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+T(S2): (0, i/32, j/32, i, j, 3)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+T(S3): (1, i/32, i, 0, 1, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar)
+
+T(S4): (2, i/32, j/32, i, j, 0)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+[Pluto] After intra-tile optimize
+T(S1): (0, j/32, i/32, i, j, 2)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+T(S2): (0, i/32, j/32, j, i, 3)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+T(S3): (1, i/32, i, 0, 1, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar)
+
+T(S4): (2, i/32, j/32, i, j, 0)
+loop types (scalar, loop, loop, loop, loop, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), S2(4,6), S3(3,6), S4(4,6), 
+[Pluto] Output written to gemver.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001083s
+[pluto] Auto-transformation time: 0.006348s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000709s
+[pluto] Code generation time: 0.010560s
+[pluto] Other/Misc time: 0.054271s
+[pluto] Total time: 0.072262s
+[pluto] All times: 0.001083 0.006348 0.010560 0.054271
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 4
+[pluto] Total number of loops: 11
+[pluto] Number of deps: 28
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 3
+[pluto] Concurrent start hyperplanes found
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (t-j, t+j, t)
+loop types (loop, loop, loop)
+
+T(S2): (t-j, t+j, t+i)
+loop types (loop, loop, loop)
+
+T(S3): (t-j, t+j, t+i)
+loop types (loop, loop, loop)
+
+T(S4): (t-j, t+j+1, t+i+1)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): ((t-j)/32, (t+j)/32, t/32, t-j, t+j, t)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): ((t-j)/32, (t+j)/32, (t+i)/32, t-j, t+j, t+i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): ((t-j)/32, (t+j)/32, (t+i)/32, t-j, t+j, t+i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): ((t-j)/32, zT4, zT5, t-j, t+j+1, t+i+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra_tile reschedule
+T(S1): ((t-j)/32, (t+j)/32, t/32, t, t+j, t)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): ((t-j)/32, (t+j)/32, (t+i)/32, t, t+j, t+i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): ((t-j)/32, (t+j)/32, (t+i)/32, t, t+j, t+i)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): ((t-j)/32, zT4, zT5, t, t+j+1, t+i+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra-tile optimize
+T(S1): ((t-j)/32, (t+j)/32, t/32, t, t, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): ((t-j)/32, (t+j)/32, (t+i)/32, t, t+i, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): ((t-j)/32, (t+j)/32, (t+i)/32, t, t+i, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): ((t-j)/32, zT4, zT5, t, t+i+1, t+j+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): ((t-j)/32+(t+j)/32, (t+j)/32, t/32, t, t, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): ((t-j)/32+(t+j)/32, (t+j)/32, (t+i)/32, t, t+i, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S3): ((t-j)/32+(t+j)/32, (t+j)/32, (t+i)/32, t, t+i, t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S4): ((t-j)/32+zT4, zT4, zT5, t, t+i+1, t+j+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), S2(4,6), S3(4,6), S4(4,6), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to fdtd-2d.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001463s
+[pluto] Auto-transformation time: 0.032621s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.003310s
+[pluto] Code generation time: 0.822376s
+[pluto] Other/Misc time: 0.390143s
+[pluto] Total time: 1.246603s
+[pluto] All times: 0.001463 0.032621 0.822376 0.390143
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 1
+[pluto] Total number of loops: 3
+[pluto] Number of deps: 27
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (t, t+i, 2t+i+j)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (t/32, (t+i)/32, (2t+i+j)/32, t, t+i, 2t+i+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): (t/32+(t+i)/32, (t+i)/32, (2t+i+j)/32, t, t+i, 2t+i+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to seidel-2d.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000848s
+[pluto] Auto-transformation time: 0.009974s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000709s
+[pluto] Code generation time: 0.018465s
+[pluto] Other/Misc time: 0.137659s
+[pluto] Total time: 0.166946s
+[pluto] All times: 0.000848 0.009974 0.018465 0.137659
+[Clan] Error: syntax error at line 81, column 39.
+Error extracting polyhedra from source file: '/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/adi/adi.c'
+cc1: fatal error: /hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/adi/adi.pluto.c: No such file or directory
+compilation terminated.
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 8
+[pluto] Number of deps: 42
+[pluto] Maximum domain dimensionality: 4
+[pluto] Number of parameters: 2
+[pluto] Concurrent start hyperplanes found
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2t-i, 2t+i, 2t+j, 2t+k)
+loop types (loop, loop, loop, loop)
+
+T(S2): (2t-i+1, 2t+i+1, 2t+j+1, 2t+k+1)
+loop types (loop, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): ((2t-i)/32, (2t+i)/32, (2t+j)/32, (2t+k)/32, 2t-i, 2t+i, 2t+j, 2t+k)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT4, zT5, zT6, zT7, 2t-i+1, 2t+i+1, 2t+j+1, 2t+k+1)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra_tile reschedule
+T(S1): ((2t-i)/32, (2t+i)/32, (2t+j)/32, (2t+k)/32, t, 2t+i, 2t+j, 2t+k)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT4, zT5, zT6, zT7, t, 2t+i+1, 2t+j+1, 2t+k+1)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): ((2t-i)/32+(2t+i)/32, (2t+i)/32, (2t+j)/32, (2t+k)/32, t, 2t+i, 2t+j, 2t+k)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT4+zT5, zT5, zT6, zT7, t, 2t+i+1, 2t+j+1, 2t+k+1)
+loop types (loop, loop, loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(5,8), S2(5,8), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to heat-3d.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.002132s
+[pluto] Auto-transformation time: 0.046295s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.005407s
+[pluto] Code generation time: 3.723371s
+[pluto] Other/Misc time: 0.827560s
+[pluto] Total time: 4.599358s
+[pluto] All times: 0.002132 0.046295 3.723371 0.827560
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 4
+[pluto] Number of deps: 14
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 2
+[pluto] Concurrent start hyperplanes found
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2t-i, 2t+i)
+loop types (loop, loop)
+
+T(S2): (2t-i+1, 2t+i+1)
+loop types (loop, loop)
+
+[Pluto] After tiling:
+T(S1): ((2t-i)/32, (2t+i)/32, 2t-i, 2t+i)
+loop types (loop, loop, loop, loop)
+
+T(S2): (zT2, zT3, 2t-i+1, 2t+i+1)
+loop types (loop, loop, loop, loop)
+
+[Pluto] After intra_tile reschedule
+T(S1): ((2t-i)/32, (2t+i)/32, t, 2t+i)
+loop types (loop, loop, loop, loop)
+
+T(S2): (zT2, zT3, t, 2t+i+1)
+loop types (loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): ((2t-i)/32+(2t+i)/32, (2t+i)/32, t, 2t+i)
+loop types (loop, loop, loop, loop)
+
+T(S2): (zT2+zT3, zT3, t, 2t+i+1)
+loop types (loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,4), S2(3,4), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to jacobi-1d.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000620s
+[pluto] Auto-transformation time: 0.005925s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000755s
+[pluto] Code generation time: 0.091877s
+[pluto] Other/Misc time: 0.058801s
+[pluto] Total time: 0.157223s
+[pluto] All times: 0.000620 0.005925 0.091877 0.058801
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 2
+[pluto] Total number of loops: 6
+[pluto] Number of deps: 22
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Concurrent start hyperplanes found
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2t-i, 2t+i, 2t+j)
+loop types (loop, loop, loop)
+
+T(S2): (2t-i+1, 2t+i+1, 2t+j+1)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): ((2t-i)/32, (2t+i)/32, (2t+j)/32, 2t-i, 2t+i, 2t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT3, zT4, zT5, 2t-i+1, 2t+i+1, 2t+j+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After intra_tile reschedule
+T(S1): ((2t-i)/32, (2t+i)/32, (2t+j)/32, t, 2t+i, 2t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT3, zT4, zT5, t, 2t+i+1, 2t+j+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): ((2t-i)/32+(2t+i)/32, (2t+i)/32, (2t+j)/32, t, 2t+i, 2t+j)
+loop types (loop, loop, loop, loop, loop, loop)
+
+T(S2): (zT3+zT4, zT4, zT5, t, 2t+i+1, 2t+j+1)
+loop types (loop, loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,6), S2(4,6), 
+[pluto-unroll-jam] No unroll jam loop candidates found
+[Pluto] Output written to jacobi-2d.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001104s
+[pluto] Auto-transformation time: 0.015989s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.001979s
+[pluto] Code generation time: 0.663911s
+[pluto] Other/Misc time: 0.237198s
+[pluto] Total time: 0.918202s
+[pluto] All times: 0.001104 0.015989 0.663911 0.237198
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 42
+[pluto] Total number of loops: 54
+[pluto] Number of deps: 277
+[pluto] Maximum domain dimensionality: 2
+[pluto] Number of parameters: 2
+[pluto] WARNING: working with original (identity) transformation (if they exist)
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S2): (1, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S3): (2, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S4): (3, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S5): (4, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S6): (5, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S7): (6, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S8): (7, 0, 0, 0, 0)
+loop types (loop, scalar, scalar, scalar, scalar)
+
+T(S9): (8, i, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S10): (8, i, 1, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S11): (8, i, 2, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S12): (8, i, 3, j, 0)
+loop types (loop, loop, loop, loop, loop)
+
+T(S13): (8, i, 3, j, 1)
+loop types (loop, loop, loop, loop, loop)
+
+T(S14): (8, i, 3, j, 2)
+loop types (loop, loop, loop, loop, loop)
+
+T(S15): (8, i, 3, j, 3)
+loop types (loop, loop, loop, loop, loop)
+
+T(S16): (9, i, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S17): (9, i, 1, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S18): (9, i, 2, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S19): (9, i, 3, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S20): (9, i, 4, -j, 0)
+loop types (loop, loop, loop, loop, loop)
+
+T(S21): (9, i, 4, -j, 1)
+loop types (loop, loop, loop, loop, loop)
+
+T(S22): (9, i, 4, -j, 2)
+loop types (loop, loop, loop, loop, loop)
+
+T(S23): (9, i, 4, -j, 3)
+loop types (loop, loop, loop, loop, loop)
+
+T(S24): (9, i, 4, -j, 4)
+loop types (loop, loop, loop, loop, loop)
+
+T(S25): (10, i, 0, j, 0)
+loop types (loop, loop, loop, loop, loop)
+
+T(S26): (11, j, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S27): (11, j, 1, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S28): (11, j, 2, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S29): (11, j, 3, i, 0)
+loop types (loop, loop, loop, loop, loop)
+
+T(S30): (11, j, 3, i, 1)
+loop types (loop, loop, loop, loop, loop)
+
+T(S31): (11, j, 3, i, 2)
+loop types (loop, loop, loop, loop, loop)
+
+T(S32): (11, j, 3, i, 3)
+loop types (loop, loop, loop, loop, loop)
+
+T(S33): (12, j, 0, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S34): (12, j, 1, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S35): (12, j, 2, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S36): (12, j, 3, 0, 0)
+loop types (loop, loop, loop, scalar, scalar)
+
+T(S37): (12, j, 4, -i, 0)
+loop types (loop, loop, loop, loop, loop)
+
+T(S38): (12, j, 4, -i, 1)
+loop types (loop, loop, loop, loop, loop)
+
+T(S39): (12, j, 4, -i, 2)
+loop types (loop, loop, loop, loop, loop)
+
+T(S40): (12, j, 4, -i, 3)
+loop types (loop, loop, loop, loop, loop)
+
+T(S41): (12, j, 4, -i, 4)
+loop types (loop, loop, loop, loop, loop)
+
+T(S42): (13, i, 0, j, 0)
+loop types (loop, loop, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (1, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S3): (2, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (3, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S5): (4, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S6): (5, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S7): (6, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S8): (7, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S9): (8, i, 0, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S10): (8, i, 1, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S11): (8, i, 2, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S12): (8, i, 3, j, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S13): (8, i, 3, j, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S14): (8, i, 3, j, 2, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S15): (8, i, 3, j, 3, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S16): (9, i, 0, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S17): (9, i, 1, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S18): (9, i, 2, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S19): (9, i, 3, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S20): (9, i, 4, -j, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S21): (9, i, 4, -j, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S22): (9, i, 4, -j, 2, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S23): (9, i, 4, -j, 3, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S24): (9, i, 4, -j, 4, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S25): (10, i/32, 0/32, j/32, i, 0, j, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar)
+
+T(S26): (11, j, 0, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S27): (11, j, 1, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S28): (11, j, 2, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S29): (11, j, 3, i, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S30): (11, j, 3, i, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S31): (11, j, 3, i, 2, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S32): (11, j, 3, i, 3, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S33): (12, j, 0, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S34): (12, j, 1, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S35): (12, j, 2, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S36): (12, j, 3, 0, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, scalar, scalar, scalar, scalar, scalar)
+
+T(S37): (12, j, 4, -i, 0, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S38): (12, j, 4, -i, 1, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S39): (12, j, 4, -i, 2, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S40): (12, j, 4, -i, 3, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S41): (12, j, 4, -i, 4, 0, 0, 0)
+loop types (scalar, loop, scalar, loop, scalar, scalar, scalar, scalar)
+
+T(S42): (13, i/32, 0/32, j/32, i, 0, j, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(1,8), S2(1,8), S3(1,8), S4(1,8), S5(1,8), S6(1,8), S7(1,8), S8(1,8), S9(2,8), S10(2,8), S11(2,8), S12(2,8), S13(2,8), S14(2,8), S15(2,8), S16(2,8), S17(2,8), S18(2,8), S19(2,8), S20(2,8), S21(2,8), S22(2,8), S23(2,8), S24(2,8), S25(5,8), S26(2,8), S27(2,8), S28(2,8), S29(2,8), S30(2,8), S31(2,8), S32(2,8), S33(2,8), S34(2,8), S35(2,8), S36(2,8), S37(2,8), S38(2,8), S39(2,8), S40(2,8), S41(2,8), S42(5,8), 
+[Pluto] Output written to deriche.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.003101s
+[pluto] Auto-transformation time: 5.154888s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.161464s
+[pluto] Code generation time: 0.051784s
+[pluto] Other/Misc time: 0.200755s
+[pluto] Total time: 5.410528s
+[pluto] All times: 0.003101 5.154888 0.051784 0.200755
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 1
+[pluto] Total number of loops: 3
+[pluto] Number of deps: 21
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 1
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (k, i, j)
+loop types (loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (k, i/32, j/32, i, j)
+loop types (loop, loop, loop, loop, loop)
+
+[Pluto] After tile scheduling:
+T(S1): (k, i/32+j/32, j/32, i, j)
+loop types (loop, loop, loop, loop, loop)
+
+[pluto] using statement-wise -fs/-ls options: S1(4,5), 
+[Pluto] Output written to floyd-warshall.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.000701s
+[pluto] Auto-transformation time: 0.007893s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.000450s
+[pluto] Code generation time: 0.005218s
+[pluto] Other/Misc time: 0.062670s
+[pluto] Total time: 0.076482s
+[pluto] All times: 0.000701 0.007893 0.005218 0.062670
+[Clan] Error: syntax error at line 241, column 11.
+Error extracting polyhedra from source file: '/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/medley/nussinov/Nussinov.orig.c'
+cc1: fatal error: /hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/medley/nussinov/Nussinov.orig.pluto.c: No such file or directory
+compilation terminated.
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 5
+[pluto] Total number of loops: 11
+[pluto] Number of deps: 52
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 1
+[pluto] WARNING: working with original (identity) transformation (if they exist)
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (0, -i, 0, j, 0, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S2): (0, -i, 0, j, 1, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S3): (0, -i, 0, j, 2, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S4): (0, -i, 0, j, 3, 0, 0)
+loop types (loop, loop, loop, loop, loop, scalar, scalar)
+
+T(S5): (0, -i, 0, j, 4, k, 0)
+loop types (loop, loop, loop, loop, loop, loop, loop)
+
+[Pluto] After tiling:
+T(S1): (0, -i/32, 0/32, j/32, -i, 0, j, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S2): (0, -i/32, 0/32, j/32, -i, 0, j, 1, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S3): (0, -i/32, 0/32, j/32, -i, 0, j, 2, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S4): (0, -i/32, 0/32, j/32, -i, 0, j, 3, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S5): (0, -i/32, 0/32, j/32, -i, 0, j, 4, k, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, loop, scalar)
+
+t9 {loop with stmts: S5, }
+t7 {loop with stmts: S1, S2, S3, S4, S5, }
+t5 {loop with stmts: S1, S2, S3, S4, S5, }
+[Pluto] After tile scheduling:
+T(S1): (0, -i/32+0/32, 0/32, j/32, -i, 0, j, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S2): (0, -i/32+0/32, 0/32, j/32, -i, 0, j, 1, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S3): (0, -i/32+0/32, 0/32, j/32, -i, 0, j, 2, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S4): (0, -i/32+0/32, 0/32, j/32, -i, 0, j, 3, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, scalar, scalar)
+
+T(S5): (0, -i/32+0/32, 0/32, j/32, -i, 0, j, 4, k, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, loop, scalar, loop, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(5,10), S2(5,10), S3(5,10), S4(5,10), S5(5,10), 
+[Pluto] Output written to nussinov.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001543s
+[pluto] Auto-transformation time: 0.057520s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.004336s
+[pluto] Code generation time: 0.052312s
+[pluto] Other/Misc time: 0.164420s
+[pluto] Total time: 0.275795s
+[pluto] All times: 0.001543 0.057520 0.052312 0.164420
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 15
+[pluto] Total number of loops: 22
+[pluto] Number of deps: 77
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (2, j, 0, 0, 14)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S2): (3, j, i, 0, 13)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (4, j, 0, 0, 12)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S4): (2, j, 0, 0, 11)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S5): (5, j, i, 0, 9)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S6): (6, j, 0, 0, 6)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S7): (6, j, 0, 0, 7)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S8): (6, j, 0, 0, 8)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S9): (5, j, i, 0, 10)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S10): (7, i, j, 0, 5)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S11): (2, i, 0, 0, 4)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S12): (1, i, j, 0, 3)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S13): (8, i, j, k, 2)
+loop types (scalar, loop, loop, loop, scalar)
+
+T(S14): (9, i, j, 0, 1)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S15): (0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar)
+
+[Pluto] After tiling:
+T(S1): (2, j/32, j, 0, 0, 14, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (3, j/32, i/32, j, i, 0, 13, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S3): (4, j/32, j, 0, 0, 12, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (2, j/32, j, 0, 0, 11, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S5): (5, j/32, i/32, j, i, 0, 9, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S6): (6, j/32, j, 0, 0, 6, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S7): (6, j/32, j, 0, 0, 7, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S8): (6, j/32, j, 0, 0, 8, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S9): (5, j/32, i/32, j, i, 0, 10, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S10): (7, i/32, j/32, i, j, 0, 5, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S11): (2, i/32, i, 0, 0, 4, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S12): (1, i/32, j/32, i, j, 0, 3, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S13): (8, i/32, j/32, k/32, i, j, k, 2)
+loop types (scalar, loop, loop, loop, loop, loop, loop, scalar)
+
+T(S14): (9, i/32, j/32, i, j, 0, 1, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S15): (0, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+[Pluto] After intra-tile optimize
+T(S1): (2, j/32, j, 0, 0, 14, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (3, j/32, i/32, i, j, 0, 13, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S3): (4, j/32, j, 0, 0, 12, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (2, j/32, j, 0, 0, 11, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S5): (5, j/32, i/32, i, j, 0, 9, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S6): (6, j/32, j, 0, 0, 6, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S7): (6, j/32, j, 0, 0, 7, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S8): (6, j/32, j, 0, 0, 8, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S9): (5, j/32, i/32, i, j, 0, 10, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S10): (7, i/32, j/32, i, j, 0, 5, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S11): (2, i/32, i, 0, 0, 4, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S12): (1, i/32, j/32, i, j, 0, 3, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S13): (8, i/32, j/32, k/32, i, k, j, 2)
+loop types (scalar, loop, loop, loop, loop, loop, loop, scalar)
+
+T(S14): (9, i/32, j/32, i, j, 0, 1, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S15): (0, 0, 0, 0, 0, 0, 0, 0)
+loop types (scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,8), S2(4,8), S3(3,8), S4(3,8), S5(4,8), S6(3,8), S7(3,8), S8(3,8), S9(4,8), S10(4,8), S11(3,8), S12(4,8), S13(5,8), S14(4,8), S15(1,8), 
+[Pluto] Output written to correlation.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001831s
+[pluto] Auto-transformation time: 0.112554s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.006794s
+[pluto] Code generation time: 0.046482s
+[pluto] Other/Misc time: 0.252326s
+[pluto] Total time: 0.413193s
+[pluto] All times: 0.001831 0.112554 0.046482 0.252326
+[pluto] compute_deps (isl)
+[pluto] Number of statements: 8
+[pluto] Total number of loops: 15
+[pluto] Number of deps: 34
+[pluto] Maximum domain dimensionality: 3
+[pluto] Number of parameters: 2
+[pluto] Diamond tiling not possible/useful
+[pluto] Affine transformations [<iter coeff's> <param> <const>]
+
+T(S1): (1, j, 0, 0, 7)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S2): (2, j, i, 0, 6)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S3): (3, j, 0, 0, 5)
+loop types (scalar, loop, scalar, scalar, scalar)
+
+T(S4): (4, i, j, 0, 4)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S5): (0, i, j, 0, 3)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S6): (5, i, j, k, 2)
+loop types (scalar, loop, loop, loop, scalar)
+
+T(S7): (6, i, j, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar)
+
+T(S8): (6, i, j, 0, 1)
+loop types (scalar, loop, loop, scalar, scalar)
+
+[Pluto] After tiling:
+T(S1): (1, j/32, j, 0, 0, 7, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (2, j/32, i/32, j, i, 0, 6, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S3): (3, j/32, j, 0, 0, 5, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (4, i/32, j/32, i, j, 0, 4, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S5): (0, i/32, j/32, i, j, 0, 3, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S6): (5, i/32, j/32, k/32, i, j, k, 2)
+loop types (scalar, loop, loop, loop, loop, loop, loop, scalar)
+
+T(S7): (6, i/32, j/32, i, j, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S8): (6, i/32, j/32, i, j, 0, 1, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+[Pluto] After intra-tile optimize
+T(S1): (1, j/32, j, 0, 0, 7, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S2): (2, j/32, i/32, i, j, 0, 6, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S3): (3, j/32, j, 0, 0, 5, 0, 0)
+loop types (scalar, loop, loop, scalar, scalar, scalar, scalar, scalar)
+
+T(S4): (4, i/32, j/32, i, j, 0, 4, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S5): (0, i/32, j/32, i, j, 0, 3, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S6): (5, i/32, j/32, k/32, i, k, j, 2)
+loop types (scalar, loop, loop, loop, loop, loop, loop, scalar)
+
+T(S7): (6, i/32, j/32, i, j, 0, 0, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+T(S8): (6, i/32, j/32, i, j, 0, 1, 0)
+loop types (scalar, loop, loop, loop, loop, scalar, scalar, scalar)
+
+[pluto] using statement-wise -fs/-ls options: S1(3,8), S2(4,8), S3(3,8), S4(4,8), S5(4,8), S6(5,8), S7(4,8), S8(4,8), 
+[Pluto] Output written to covariance.pluto.c
+
+[pluto] Timing statistics
+[pluto] SCoP extraction + dependence analysis time: 0.001257s
+[pluto] Auto-transformation time: 0.027499s
+[pluto] Tile size selection time: 0.000000s
+[pluto] 		Total constraint solving time (LP/MIP/ILP) time: 0.002583s
+[pluto] Code generation time: 0.031611s
+[pluto] Other/Misc time: 0.168668s
+[pluto] Total time: 0.229035s
+[pluto] All times: 0.001257 0.027499 0.031611 0.168668
+done
+rm: cannot remove 'pluto_times_EXTRALARGE_O3_10.csv': No such file or directory
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/mvt/mvt.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/atax/atax.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/3mm/3mm.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/doitgen/doitgen.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/2mm/2mm.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/kernels/bicg/bicg.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/ludcmp/ludcmp.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/trisolv/trisolv.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/lu/lu.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/durbin/durbin.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/cholesky/cholesky.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/gemm/gemm.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/trmm/trmm.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/gesummv/gesummv.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/syrk/syrk.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/symm/symm.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/syr2k/syr2k.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/blas/gemver/gemver.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/fdtd-2d/fdtd-2d.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/seidel-2d/seidel-2d.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/heat-3d/heat-3d.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/jacobi-1d/jacobi-1d.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/stencils/jacobi-2d/jacobi-2d.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/medley/deriche/deriche.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/medley/floyd-warshall/floyd-warshall.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/medley/nussinov/nussinov.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/datamining/correlation/correlation.pluto.EXTRALARGE_O3.x
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/datamining/covariance/covariance.pluto.EXTRALARGE_O3.x
+done

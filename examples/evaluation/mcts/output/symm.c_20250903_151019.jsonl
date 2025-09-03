@@ -1,0 +1,4 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:10:19.365275", "speedup": 1, "transform": [], "source": "symm.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T15:10:23.080671", "speedup": 2.423026241712889, "transform": [[7, "tile1d", 3]], "source": "symm-TMPFILE-2025-09-03T15-10-19.434589-56mawfv_.c"}
+{"cnt_rollouts": 23, "cnt_evals": 36, "timestamp": "2025-09-03T15:12:49.261293", "speedup": 2.5072993349579473, "transform": [[7, "tile1d", 4], [1, "tile2d", 3, 4]], "source": "symm-TMPFILE-2025-09-03T15-12-45.763219-j6hmxi_j.c"}
+{"cnt_rollouts": 85, "cnt_evals": 91, "timestamp": "2025-09-03T15:17:13.127966", "speedup": 2.5790294712842012, "transform": [[2, "tile1d", 2], [1, "tile2d", 4, 3]], "source": "symm-TMPFILE-2025-09-03T15-17-09.649803-x3uwbig1.c"}

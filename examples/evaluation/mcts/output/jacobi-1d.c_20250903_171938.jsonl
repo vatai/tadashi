@@ -1,0 +1,2 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T17:19:38.171064", "speedup": 1, "transform": [], "source": "jacobi-1d.c"}
+{"cnt_rollouts": 3, "cnt_evals": 4, "timestamp": "2025-09-03T17:19:39.178129", "speedup": 1.6264097744360901, "transform": [[4, "tile1d", 4], [2, "full_split"]], "source": "jacobi-1d-TMPFILE-2025-09-03T17-19-38.950949-fe8ze6hc.c"}

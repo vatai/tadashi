@@ -1,0 +1,9 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:44:36.371308", "speedup": 1, "transform": [], "source": "gramschmidt.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T15:44:40.836933", "speedup": 3.9729246840908137, "transform": [[11, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-44-36.425589-8kkjeref.c"}
+{"cnt_rollouts": 2, "cnt_evals": 3, "timestamp": "2025-09-03T15:44:49.984045", "speedup": 4.004644129668644, "transform": [[19, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-44-45.600143-8nz6cala.c"}
+{"cnt_rollouts": 2, "cnt_evals": 4, "timestamp": "2025-09-03T15:44:54.450634", "speedup": 4.012878242118735, "transform": [[19, "tile1d", 3], [20, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-44-50.072812-0fe2pg5f.c"}
+{"cnt_rollouts": 3, "cnt_evals": 5, "timestamp": "2025-09-03T15:44:58.847866", "speedup": 4.014138644549844, "transform": [[19, "tile1d", 2]], "source": "gramschmidt-TMPFILE-2025-09-03T15-44-54.466731-nth1t1d0.c"}
+{"cnt_rollouts": 3, "cnt_evals": 6, "timestamp": "2025-09-03T15:45:03.385682", "speedup": 4.015705732068923, "transform": [[19, "tile1d", 2], [1, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-44-58.986919-85gphamx.c"}
+{"cnt_rollouts": 17, "cnt_evals": 29, "timestamp": "2025-09-03T15:47:28.008721", "speedup": 4.018687942105035, "transform": [[19, "tile1d", 3], [6, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-47-23.636592-46gjkxz6.c"}
+{"cnt_rollouts": 23, "cnt_evals": 39, "timestamp": "2025-09-03T15:48:32.266077", "speedup": 8.20569728533972, "transform": [[15, "full_split"]], "source": "gramschmidt-TMPFILE-2025-09-03T15-48-29.995700-ufnsi_sm.c"}
+{"cnt_rollouts": 96, "cnt_evals": 126, "timestamp": "2025-09-03T15:57:09.786572", "speedup": 8.20580339247401, "transform": [[15, "full_split"], [1, "tile1d", 3]], "source": "gramschmidt-TMPFILE-2025-09-03T15-57-07.489089-foht_ol9.c"}

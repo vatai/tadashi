@@ -1,0 +1,5 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T17:25:25.733476", "speedup": 1, "transform": [], "source": "seidel-2d.c"}
+{"cnt_rollouts": 4, "cnt_evals": 1, "timestamp": "2025-09-03T17:26:47.366012", "speedup": 1.6617790398280297, "transform": [[3, "tile1d", 3]], "source": "seidel-2d-TMPFILE-2025-09-03T17-25-26.302245-3ir0h7jz.c"}
+{"cnt_rollouts": 5, "cnt_evals": 4, "timestamp": "2025-09-03T17:30:22.034586", "speedup": 2.672583620068076, "transform": [[3, "tile1d", 4], [2, "tile3d", 4, 3, 2]], "source": "seidel-2d-TMPFILE-2025-09-03T17-29-31.412306-w1rc2rf6.c"}
+{"cnt_rollouts": 10, "cnt_evals": 10, "timestamp": "2025-09-03T17:36:56.897279", "speedup": 3.2177755828625236, "transform": [[2, "tile1d", 3], [2, "tile3d", 3, 3, 4]], "source": "seidel-2d-TMPFILE-2025-09-03T17-36-14.892604-7d6a_9lh.c"}
+{"cnt_rollouts": 53, "cnt_evals": 42, "timestamp": "2025-09-03T18:16:54.722127", "speedup": 3.812206941492647, "transform": [[3, "tile1d", 3], [2, "tile3d", 4, 2, 4]], "source": "seidel-2d-TMPFILE-2025-09-03T18-16-19.161022-5k5g4_pn.c"}
