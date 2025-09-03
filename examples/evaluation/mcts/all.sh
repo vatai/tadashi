@@ -34,5 +34,5 @@ all=(
 )
 
 for benchmark in "${all[@]}"; do
-    echo sbatch -J ${benchmark} genoa.sh
+    sbatch -J ${benchmark} genoa.sh
 done
