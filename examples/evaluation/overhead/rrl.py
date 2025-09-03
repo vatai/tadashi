@@ -121,7 +121,9 @@ def run_model(app, num_steps, name=""):
         timer.custom("Kernel walltime", t)
     except TimeoutExpired as e:
         print(f"Timeout expired: {e=}")
-    filename = f"{name}-{num_steps}.json"
+    times_dir = Path("./times")
+    times_dir.mkdir(exist_ok=True)
+    filename = times_dir / f"{name}-{num_steps}.json"
     json.dump(timer.times, open(filename, "w"))
     print(f"Written: {filename}")
 
