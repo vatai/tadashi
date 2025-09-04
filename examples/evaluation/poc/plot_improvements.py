@@ -124,9 +124,10 @@ def main(path):
 
     # Plot colored ratio bars
     kwargs = {"edgecolor": "black", "linewidth": 0.3, "zorder": 2}
-    bars = ax.bar(x, poc, width / 2, color="red", **kwargs)
-    bars = ax.bar(x + width / 2, pluto, width / 2, color="blue", **kwargs)
+    bars = ax.bar(x, poc, width / 2, label="POC", **kwargs)
+    bars = ax.bar(x + width / 2, pluto, width / 2, label="Pluto", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
+    ax.legend()
 
     # Labels and formatting
     ax.set_ylabel("Speedup (log scale)", fontsize=fontsize)
