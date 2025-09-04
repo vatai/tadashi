@@ -51,7 +51,11 @@ def read_poc_output(path):
     post = np.array(post)
     names = np.array(names)
     idcs = np.argsort(names)
-    return baseline[idcs], post[idcs], names[idcs]
+    df = pd.DataFrame([names[idcs], baseline[idcs], post[idcs]])
+    df = df.transpose()
+    df.rename(columns={1: "baseline", 2: "poc"}, inplace=True)
+    df.set_index(0, inplace=True)
+    return df
 
 
 def get_ratios(baseline, post, labels):
@@ -94,14 +98,16 @@ def get_pluto(labels):
 
 def main(path):
     data = read_poc_output(path)
-    ratios, labels = get_ratios(*data)
-    pluto = get_pluto(labels)
+    # print(f"{data.shape=}")
+    # print(f"{data.index}")
+    # ratios, labels = get_ratios(*data)
+    # pluto = get_pluto(data.index)
 
+    poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
     # Normalize with midpoint at 1
-    norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(ratios) / 5)
-    cmap = cm.RdYlGn
-    bar_colors = cmap(norm(ratios))
-    x = np.arange(len(labels))
+    norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
+    bar_colors = cm.coolwarm(norm(poc))
+    x = np.arange(len(data.index))
     width = 0.6
 
     fig, ax = plt.subplots()
@@ -113,14 +119,22 @@ def main(path):
     ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=1)
 
     # Plot colored ratio bars
-    bars = ax.bar(x, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
+    bars = ax.bar(
+        x,
+        poc,
+        width / 1,
+        color=bar_colors,
+        edgecolor="black",
+        linewidth=0.3,
+        zorder=2,
+    )
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
 
     # Labels and formatting
     ax.set_ylabel("Speedup (log scale)", fontsize=fontsize)
     ax.set_title("")
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=90, fontsize=fontsize - 2)
+    ax.set_xticklabels(data.index, rotation=90, fontsize=fontsize - 2)
     ax.set_yticks([0.5, 1, 2, 5, 10, 20])
     # ax.legend()
 
