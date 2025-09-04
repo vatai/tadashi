@@ -45,6 +45,7 @@ def main():
         TrEnum.FULL_FUSE,
         TrEnum.SPLIT,
         TrEnum.FULL_SPLIT,
+        TrEnum.SET_PARALLEL,
     }
 
     optimize_app(
