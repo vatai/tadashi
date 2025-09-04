@@ -13,10 +13,8 @@ scop_idx = config["scop_idx"]
 class MCTSNode_Params(MCTSNode):
 
     def get_args(self):
-        tr = self.action
-        tr_obj = TRANSFORMATIONS[tr]
         node = self.app.scops[scop_idx].schedule_tree[self.parent.action]
-        return tr_obj.get_args(node, -5, 5)
+        return node.get_args(self.action, -5, 5)
 
     # TODO: perhaps implementing tail recursion here for var len params
     # also maybe better to make children a dictionary, so that we can add dynamically
