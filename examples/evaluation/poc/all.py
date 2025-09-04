@@ -1,7 +1,10 @@
+import multiprocessing
+
 import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench
 
+nproc = multiprocessing.cpu_count()
 app_names = [
     "medley/floyd-warshall",
     "medley/nussinov",
@@ -122,6 +125,21 @@ for app_name in app_names:
     valid = scops[0].transform_list(full_tr_list)
     print("TILE 2D and 3D list validity:", valid)
     # full_tr_list.extend(trs3D[::-1])
+
+    trs = searchFor(app, "set_parallel")
+    trs = [[index, TrEnum.SET_PARALLEL, nproc] for index in trs]
+    trs = trs[::-1]
+    for t in trs:
+        scops[0].reset()
+        scops[0].transform_list(full_tr_list)
+        valid = scops[0].transform_list([t])
+        if valid[-1]:
+            full_tr_list.append(t)
+        else:
+            print("skipped tr:", str(t))
+    scops[0].reset()
+    valid = scops[0].transform_list(full_tr_list)
+    print("SET_PARALLEL list validity:", valid)
 
     # trs = searchFor(app, "full_fuse")
     # trs = [ [0, index, TrEnum.FULL_FUSE] for index in trs ]
