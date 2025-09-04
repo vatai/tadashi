@@ -1,13 +1,12 @@
-# import pandas as pd
+#!/bin/env python
 import json
-# import os
-# import glob
 from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.gridspec as grid_spec
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from matplotlib.lines import Line2D
 
@@ -119,6 +118,7 @@ colors = [cmap(i) for i in np.linspace(0, 1, len(json_files) + 3)]  # Evenly spa
 # colors = sns.cubehelix_palette(len(json_files), rot=-.25, light=.7)
 
 gs = grid_spec.GridSpec(len(json_files), 1)
+final_speedups = {}
 for f in json_files:
     cnt_evals, speedups = parse_jsonl(f)
     ax_objs.append(fig.add_subplot(gs[i : i + 1, 0:]))
@@ -155,6 +155,7 @@ for f in json_files:
     ax.spines["bottom"].set_linestyle((0, (4, 4)))
     ax.spines["bottom"].set_linewidth(0.5)
     kernel = f.name.split(".")[0]
+    final_speedups[kernel] = speedups[-1]
     # print(f)
     ax_objs[-1].text(
         -20,
@@ -166,6 +167,10 @@ for f in json_files:
     )
     i += 1
 
+df = pd.Series(final_speedups)
+df.rename("mcts", inplace=True)
+df.index.name = "benchmark"
+df.to_csv("mcts_speedups.csv")
 gs.update(hspace=-0.57)
 ob = AnchoredScaleBar(
     size=50,
