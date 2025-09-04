@@ -55,6 +55,7 @@ def read_poc_output(path):
     df = df.transpose()
     df.rename(columns={1: "baseline", 2: "poc"}, inplace=True)
     df.set_index(0, inplace=True)
+    df.index.name = "benchmark"
     return df
 
 
@@ -88,26 +89,29 @@ def get_pluto(labels):
         sep="\t",
         header=None,
     )
-    df = df.drop(columns=11)
-    df = df.set_index(0)
+    df.drop(columns=11, inplace=True)
+    df.set_index(0, inplace=True)
     df = df.transpose()
     df = df.min()
-    print(df)
+    df.name = "pluto"
+    df.index.name = "benchmark"
     return df
 
 
 def main(path):
     data = read_poc_output(path)
-    # print(f"{data.shape=}")
-    # print(f"{data.index}")
-    # ratios, labels = get_ratios(*data)
-    # pluto = get_pluto(data.index)
+    data = data.merge(get_pluto(data.index), on="benchmark")
 
     poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
+    pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
     # Normalize with midpoint at 1
-    norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
-    bar_colors = cm.coolwarm(norm(poc))
-    x = np.arange(len(data.index))
+    poc_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
+    poc_colors = cm.coolwarm(poc_norm(poc))
+
+    pluto_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(pluto) / 5)
+    pluto_colors = cm.vanimo(pluto_norm(pluto))
+
+    x = np.arange(len(data))
     width = 0.6
 
     fig, ax = plt.subplots()
@@ -119,15 +123,9 @@ def main(path):
     ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=1)
 
     # Plot colored ratio bars
-    bars = ax.bar(
-        x,
-        poc,
-        width / 1,
-        color=bar_colors,
-        edgecolor="black",
-        linewidth=0.3,
-        zorder=2,
-    )
+    kwargs = {"edgecolor": "black", "linewidth": 0.3, "zorder": 2}
+    bars = ax.bar(x, poc, width / 2, color="red", **kwargs)
+    bars = ax.bar(x + width / 2, pluto, width / 2, color="blue", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
 
     # Labels and formatting
