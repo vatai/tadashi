@@ -49,6 +49,7 @@ def main():
         TrEnum.SPLIT,
         TrEnum.FULL_SPLIT,
     }
+    print(f"{args.allow_omp=}")
     if args.allow_omp:
         allowed_transformations.add(TrEnum.SET_PARALLEL)
 
