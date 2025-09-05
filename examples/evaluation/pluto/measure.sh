@@ -8,7 +8,7 @@ NUM_REPS=10
 SIZE=EXTRALARGE
 OFLAG=3
 export OMP_NUM_THREADS=1
-OUTFILE="pluto_times_${SIZE}_O${OFLAG}_${NUM_REPS}_NT${OMP_NUM_THREADS}.csv"
+OUTFILE="pluto_times_${SIZE}_O${OFLAG}_${NUM_REPS}_NT${OMP_NUM_THREADS}-${SLURM_JOB_ID}.csv"
 
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name *."pluto.${SIZE}_O${OFLAG}.x" |
                                    tr "\n" "\0")
