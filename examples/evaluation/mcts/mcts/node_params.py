@@ -14,8 +14,8 @@ class MCTSNode_Params(MCTSNode):
 
     def get_args(self):
         node = self.app.scops[scop_idx].schedule_tree[self.parent.action]
-        # if self.parent.action == TrEnum.SET_PARALLEL:
-        #     return [[0]]
+        if self.parent.action == TrEnum.SET_PARALLEL:
+            return [[0]]
         return node.get_args(self.action, -5, 5)
 
     # TODO: perhaps implementing tail recursion here for var len params
