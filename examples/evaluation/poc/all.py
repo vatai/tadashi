@@ -169,7 +169,7 @@ def main(app_name, allow_omp):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=str, default="jacobi-2d")
+    parser.add_argument("benchmark", type=str, default="jacobi-2d")
     parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     if args.benchmark == "all":
