@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import argparse
 import logging
 import random
@@ -21,6 +23,7 @@ def get_args():
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
+    parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     return args
 
@@ -45,8 +48,9 @@ def main():
         TrEnum.FULL_FUSE,
         TrEnum.SPLIT,
         TrEnum.FULL_SPLIT,
-        TrEnum.SET_PARALLEL,
     }
+    if args.allow_omp:
+        allowed_transformations.add(TrEnum.SET_PARALLEL)
 
     optimize_app(
         app,
