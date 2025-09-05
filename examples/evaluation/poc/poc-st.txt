@@ -1,0 +1,599 @@
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/floyd-warshall
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 95.687533
+FULL_SPLIT list validity: []
+skipped tr: [1, TrEnum.TILE3D, 32, 32, 32]
+skipped tr: [1, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True]
+transformation_list=[
+   [2, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 16.419803
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/nussinov
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 20.493321
+skipped tr: [3, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True]
+transformation_list=[
+   [1, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 1.494418
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/deriche
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.418298
+skipped tr: [99, TrEnum.FULL_SPLIT]
+skipped tr: [77, TrEnum.FULL_SPLIT]
+skipped tr: [51, TrEnum.FULL_SPLIT]
+skipped tr: [29, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True, True, True, True]
+skipped tr: [111, TrEnum.TILE2D, 32, 32]
+skipped tr: [85, TrEnum.TILE2D, 32, 32]
+skipped tr: [56, TrEnum.TILE2D, 32, 32]
+skipped tr: [30, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+transformation_list=[
+   [88, TrEnum.FULL_SPLIT],
+   [68, TrEnum.FULL_SPLIT],
+   [40, TrEnum.FULL_SPLIT],
+   [20, TrEnum.FULL_SPLIT],
+   [125, TrEnum.TILE2D, 32, 32],
+   [70, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 0.417358
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syr2k
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.603226
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True]
+Tiling with size 32: 2.872105
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gesummv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.006510
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [9, TrEnum.FULL_SPLIT],
+   [2, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 0.012839
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemver
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.034105
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True]
+transformation_list=[
+   [14, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.023655
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/trmm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 6.200540
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [3, TrEnum.FULL_SPLIT],
+   [4, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 1.601048
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/symm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.458448
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [8, TrEnum.FULL_SPLIT],
+   [3, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 6.369389
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syrk
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 2.398352
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True]
+Tiling with size 32: 1.502022
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 1.750930
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True]
+Tiling with size 32: 0.974080
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/atax
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.004105
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True]
+transformation_list=[
+   [7, TrEnum.FULL_SPLIT],
+   [15, TrEnum.TILE2D, 32, 32],
+   [11, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.003170
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/bicg
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.003264
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [12, TrEnum.FULL_SPLIT],
+   [7, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 0.004940
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/2mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 5.907661
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True]
+transformation_list=[
+   [14, TrEnum.FULL_SPLIT],
+   [5, TrEnum.FULL_SPLIT],
+   [19, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True]
+Tiling with size 32: 2.266335
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/doitgen
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 1.496741
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True]
+transformation_list=[
+   [6, TrEnum.FULL_SPLIT],
+   [3, TrEnum.FULL_SPLIT],
+   [14, TrEnum.TILE2D, 32, 32],
+   [10, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True]
+Tiling with size 32: 1.007285
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/3mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 9.467407
+FULL_SPLIT list validity: [True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+transformation_list=[
+   [23, TrEnum.FULL_SPLIT],
+   [14, TrEnum.FULL_SPLIT],
+   [5, TrEnum.FULL_SPLIT],
+   [29, TrEnum.TILE2D, 32, 32],
+   [19, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 3.567594
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/mvt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.026270
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 0.019288
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/lu
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 19.190613
+skipped tr: [5, TrEnum.FULL_SPLIT]
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True]
+transformation_list=[
+   [12, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 5.160199
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/durbin
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.010463
+skipped tr: [10, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.010493
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/ludcmp
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 18.937942
+skipped tr: [37, TrEnum.FULL_SPLIT]
+skipped tr: [27, TrEnum.FULL_SPLIT]
+skipped tr: [7, TrEnum.FULL_SPLIT]
+skipped tr: [4, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True]
+skipped tr: [21, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True]
+transformation_list=[
+   [17, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 18.949273
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/cholesky
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 8.619479
+skipped tr: [5, TrEnum.FULL_SPLIT]
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 8.645455
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/trisolv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.007075
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.007039
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/gramschmidt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 16.263738
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True]
+transformation_list=[
+   [15, TrEnum.FULL_SPLIT],
+   [23, TrEnum.TILE2D, 32, 32],
+   [19, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 2.075432
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/heat-3d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 13.029854
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+transformation_list=[
+   [10, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE3D, 32, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+   [5, TrEnum.TILE2D, 32, 32],
+   [4, TrEnum.TILE3D, 32, 32, 32],
+   [4, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 3.574056
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-1d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 0.003507
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.003451
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/fdtd-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.605784
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True]
+transformation_list=[
+   [15, TrEnum.TILE2D, 32, 32],
+   [11, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 4.199107
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/adi
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 56.223305
+skipped tr: [30, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True, True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+transformation_list=[
+   [63, TrEnum.FULL_SPLIT],
+   [54, TrEnum.FULL_SPLIT],
+   [42, TrEnum.FULL_SPLIT],
+   [33, TrEnum.FULL_SPLIT],
+   [82, TrEnum.TILE2D, 32, 32],
+   [55, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 47.329173
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 7.791098
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True]
+transformation_list=[
+   [8, TrEnum.TILE2D, 32, 32],
+   [4, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 3.722993
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/seidel-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 134.354842
+FULL_SPLIT list validity: []
+skipped tr: [2, TrEnum.TILE2D, 32, 32]
+skipped tr: [1, TrEnum.TILE3D, 32, 32, 32]
+skipped tr: [1, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 134.258021
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/covariance
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 12.409878
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+transformation_list=[
+   [19, TrEnum.FULL_SPLIT],
+   [4, TrEnum.FULL_SPLIT],
+   [25, TrEnum.TILE2D, 32, 32],
+   [15, TrEnum.TILE2D, 32, 32],
+   [8, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True]
+Tiling with size 32: 0.734938
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/correlation
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+Baseline measure: 12.206320
+FULL_SPLIT list validity: [True, True, True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True, True, True]
+transformation_list=[
+   [41, TrEnum.FULL_SPLIT],
+   [36, TrEnum.FULL_SPLIT],
+   [29, TrEnum.FULL_SPLIT],
+   [14, TrEnum.FULL_SPLIT],
+   [4, TrEnum.FULL_SPLIT],
+   [53, TrEnum.TILE2D, 32, 32],
+   [20, TrEnum.TILE2D, 32, 32],
+   [8, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True, True, True]
+Tiling with size 32: 0.745521
+[FINISHED APP]
+
+
