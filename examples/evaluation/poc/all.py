@@ -4,7 +4,6 @@ import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench
 
-nproc = multiprocessing.cpu_count()
 app_names = [
     "medley/floyd-warshall",
     "medley/nussinov",
@@ -128,7 +127,7 @@ def main(app_name, allow_omp):
 
     if allow_omp:
         trs = searchFor(app, "set_parallel")
-        trs = [[index, TrEnum.SET_PARALLEL, nproc] for index in trs]
+        trs = [[index, TrEnum.SET_PARALLEL, 0] for index in trs]
         trs = trs[::-1]
         for t in trs:
             scops[0].reset()
