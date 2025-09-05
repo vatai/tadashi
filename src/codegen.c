@@ -382,13 +382,14 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
 static int
 get_num_threads_from_pragma_parallel(__isl_take isl_id *id) {
+  const int failure = -1;
   if (!id)
-    return 0;
+    return failure;
   const char *id_name = isl_id_get_name(id);
   int num_threads;
   int rv = sscanf(id_name, "pragma_parallel_%d", &num_threads);
   isl_id_free(id);
-  return rv == 1 ? num_threads : -1;
+  return rv == 1 ? num_threads : failure;
 }
 
 static __isl_give isl_printer *
