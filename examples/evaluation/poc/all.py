@@ -173,4 +173,8 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark", type=str, default="jacobi-2d")
     parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
-    main(args.benchmark, args.allow_omp)
+    if args.benchmark == "all":
+        for benchmark in app_names:
+            main(benchmark, args.allow_omp)
+    else:
+        main(args.benchmark, args.allow_omp)
