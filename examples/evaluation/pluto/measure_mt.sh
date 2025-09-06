@@ -21,6 +21,7 @@ OFLAG=3
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name *."pluto.${SIZE}_O${OFLAG}.x" |
                                    tr "\n" "\0")
 hostname
+test $(hostname) == genoa12.cloud.r-ccs.riken.jp && exit
 echo "$OMP_NUM_THREADS"
 for file in "${BENCHMARKS[@]}"; do
     # echo "$file"
