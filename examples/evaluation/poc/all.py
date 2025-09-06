@@ -70,7 +70,7 @@ def main(app_name, allow_omp):
 
     app.compile()
 
-    print("Baseline measure: %f" % app.measure())
+    print("Baseline measure: %f" % app.measure(10))
 
     full_tr_list = []
 
@@ -162,7 +162,7 @@ def main(app_name, allow_omp):
         tiled = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
         tiled.compile()
 
-        print("Tiling with size %d: %f" % (tile_size, tiled.measure()))
+        print("Tiling with size %d: %f" % (tile_size, tiled.measure(10)))
 
     print("[FINISHED APP]\n\n")
 
