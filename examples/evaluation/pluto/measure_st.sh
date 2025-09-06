@@ -15,16 +15,15 @@ NUM_REPS=10
 SIZE=EXTRALARGE
 OFLAG=3
 export OMP_NUM_THREADS=1
-OUTFILE="pluto_times_${SIZE}_O${OFLAG}_${NUM_REPS}_NT${OMP_NUM_THREADS}-${SLURM_JOB_ID}.csv"
 
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name *."pluto.${SIZE}_O${OFLAG}.x" |
                                    tr "\n" "\0")
-rm "$OUTFILE"
 for file in "${BENCHMARKS[@]}"; do
-    echo "$file"
+    # echo "$file"
     for rep in $(seq "$NUM_REPS"); do
-        echo "$(basename "${file%.pluto."${SIZE}_O${OFLAG}".x}") $rep $(srun -n 1 "$file")"
+        echo "$(basename "${file%.pluto."${SIZE}_O${OFLAG}".x}"):::$rep:::$(srun -Q -n 1 "$file")" &
     done
 done
+wait
 
 echo "done"
