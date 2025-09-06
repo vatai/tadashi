@@ -1,4 +1,12 @@
-#!/bin/bash
+#!/usr/bin/bash
+
+# USAGE: sbatch compile.sh
+
+#SBATCH -p genoa
+#SBATCH -N 1
+#SBATCH -t 5:00:00
+#SBATCH -o %x-%j.txt
+#SBATCH -e %x-%j.txt
 
 # set -x
 
