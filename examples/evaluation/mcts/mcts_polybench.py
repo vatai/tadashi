@@ -14,25 +14,10 @@ from mcts import config
 from mcts.optimize import optimize_app
 
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=str, default="stencils/jacobi-2d")
-    parser.add_argument(
-        "--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3"
-    )
-    parser.add_argument("--repeats", type=int, default=1)
-    parser.add_argument("--rollouts", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=time.time())
-    parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
-    args = parser.parse_args()
-    return args
-
-
-def main():
+def main(args):
     logging.basicConfig(level=logging.INFO)
     # logger = logging.getLogger(__name__)
     # logger.info('message')
-    args = get_args()
     random.seed(args.seed)
     app = Polybench(
         args.benchmark,
@@ -58,10 +43,25 @@ def main():
         rollouts=args.rollouts,
         repeats=args.repeats,
         whitelist_transformations=allowed_transformations,
+        prefix=args.prefix,
     )
     del app
     print("all done")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("benchmark", type=str, default="stencils/jacobi-2d")
+    parser.add_argument(
+        "--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3"
+    )
+    parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument("--rollouts", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=time.time())
+    parser.add_argument(
+        "--allow-omp", type=bool, default=False, action=argparse.BooleanOptionalAction
+    )
+    parser.add_argument("--prefix", type=str, default="data")
+    args = parser.parse_args()
+
+    main(args)

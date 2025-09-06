@@ -6,7 +6,13 @@ from mcts import config
 
 
 def optimize_app(
-    app, rollouts=1, repeats=1, scop_idx=0, max_depth=2, whitelist_transformations=None
+    app,
+    rollouts=1,
+    repeats=1,
+    scop_idx=0,
+    max_depth=2,
+    whitelist_transformations=None,
+    prefix="",
 ):
     config["rollouts"] = rollouts
     config["repeats"] = repeats
@@ -23,7 +29,10 @@ def optimize_app(
     config["timeout"] = total_runtime * 1.5 + 1
     print("initial time:", initial_time)
     root = mcts.node_root.MCTSNode_Root(
-        app=app, action="START", initial_time=initial_time
+        app=app,
+        action="START",
+        initial_time=initial_time,
+        prefix=prefix,
     )
     for rollout in range(config["rollouts"]):
         config["cnt_rollouts"] = rollout + 1
