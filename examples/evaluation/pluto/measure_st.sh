@@ -5,8 +5,8 @@
 #SBATCH -p genoa
 #SBATCH -N 1
 #SBATCH -t 5:00:00
-#SBATCH -o pluto-st-%x-%j.txt
-#SBATCH -e pluto-st-%x-%j.txt
+#SBATCH -o %x-%j.txt
+#SBATCH -e %x-%j.txt
 #SBATCH -n 192
 
 # set -x
