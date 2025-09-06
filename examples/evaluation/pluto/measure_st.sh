@@ -1,13 +1,15 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-# USAGE: sbatch genoa.sh
+# USAGE: sbatch measure_st.sh
 
 #SBATCH -p genoa
 #SBATCH -N 1
-#SBATCH -n 192
 #SBATCH -t 5:00:00
 #SBATCH -o pluto-st-%x-%j.txt
 #SBATCH -e pluto-st-%x-%j.txt
+#SBATCH -n 192
+
+# set -x
 
 REPO_ROOT="$(realpath "$(git rev-parse --show-toplevel)")"
 POLYBENCH_ROOT="$REPO_ROOT/examples/polybench"
@@ -18,6 +20,8 @@ export OMP_NUM_THREADS=1
 
 readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name *."pluto.${SIZE}_O${OFLAG}.x" |
                                    tr "\n" "\0")
+hostname
+echo "$OMP_NUM_THREADS"
 for file in "${BENCHMARKS[@]}"; do
     # echo "$file"
     for rep in $(seq "$NUM_REPS"); do
@@ -25,5 +29,4 @@ for file in "${BENCHMARKS[@]}"; do
     done
 done
 wait
-
 echo "done"
