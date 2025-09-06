@@ -11,6 +11,7 @@
 # set -x
 
 REPO_ROOT="$(realpath "$(git rev-parse --show-toplevel)")"
+source "${REPO_ROOT}/scripts/genoa.source"
 POLYBENCH_ROOT="$REPO_ROOT/examples/polybench"
 NUM_REPS=10
 SIZE=EXTRALARGE
