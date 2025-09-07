@@ -29,7 +29,7 @@ test "x$(hostname)" == xgenoa12.cloud.r-ccs.riken.jp && exit
 echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
 for file in "${BENCHMARKS[@]}"; do
     benchmark="$(basename "${file%.c}")"
-    python3 ./mcts_polybench.py "${benchmark}"  --rollouts=3000 --prefix=data-mt --allow-omp
+    python3 ./mcts_polybench.py "${benchmark}"  --rollouts=3000 --prefix=data-mt --allow-omp "$@"
 done
 
 echo "done"
