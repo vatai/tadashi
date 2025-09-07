@@ -4,40 +4,6 @@ import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench
 
-app_names = [
-    "medley/floyd-warshall",
-    "medley/nussinov",
-    "medley/deriche",
-    "linear-algebra/blas/syr2k",
-    "linear-algebra/blas/gesummv",
-    "linear-algebra/blas/gemver",
-    "linear-algebra/blas/trmm",
-    "linear-algebra/blas/symm",
-    "linear-algebra/blas/syrk",
-    "linear-algebra/blas/gemm",
-    "linear-algebra/kernels/atax",
-    "linear-algebra/kernels/bicg",
-    "linear-algebra/kernels/2mm",
-    "linear-algebra/kernels/doitgen",
-    "linear-algebra/kernels/3mm",
-    "linear-algebra/kernels/mvt",
-    "linear-algebra/solvers/lu",
-    "linear-algebra/solvers/durbin",
-    "linear-algebra/solvers/ludcmp",
-    "linear-algebra/solvers/cholesky",
-    "linear-algebra/solvers/trisolv",
-    "linear-algebra/solvers/gramschmidt",
-    "stencils/heat-3d",
-    "stencils/jacobi-1d",
-    "stencils/fdtd-2d",
-    "stencils/adi",
-    "stencils/jacobi-2d",
-    "stencils/seidel-2d",
-    "datamining/covariance",
-    "datamining/correlation",
-]
-
-
 apps_miniAMR = [
     "examples/evaluation/miniAMR/",
 ]
@@ -55,7 +21,7 @@ def searchFor(app, tr_name):
     return ret
 
 
-def main(app_name, allow_omp):
+def main(app_name, repeat, allow_omp):
 
     print("-----------------------------------------\n\n[STARTING NEW APP]")
 
@@ -67,10 +33,11 @@ def main(app_name, allow_omp):
     )
 
     print(f"{app.user_compiler_options=}")
+    print(f"{repeat=}")
 
     app.compile()
 
-    print("Baseline measure: %f" % app.measure(10))
+    print("Baseline measure: %f" % app.measure(repeat=repeat))
 
     full_tr_list = []
 
@@ -162,7 +129,7 @@ def main(app_name, allow_omp):
         tiled = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
         tiled.compile()
 
-        print("Tiling with size %d: %f" % (tile_size, tiled.measure(10)))
+        print("Tiling with size %d: %f" % (tile_size, tiled.measure(repeat=repeat)))
 
     print("[FINISHED APP]\n\n")
 
@@ -173,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     if args.benchmark == "all":
-        for benchmark in app_names:
-            main(benchmark, args.allow_omp)
+        for benchmark in Polybench.get_benchmarks():
+            main(benchmark, args.repeat, args.allow_omp)
     else:
-        main(args.benchmark, args.allow_omp)
+        main(args.benchmark, args.repeat, args.allow_omp)
