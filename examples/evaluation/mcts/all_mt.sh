@@ -15,5 +15,5 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 
 for benchmark in "${BENCHMARKS[@]}"; do
     name="$(basename "${benchmark%*.c}")"
-    sbatch -J "${name}" measure_mt.sh
+    sbatch --exclude=genoa12 -J "${name}" measure_mt.sh
 done
