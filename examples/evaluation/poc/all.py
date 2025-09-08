@@ -139,6 +139,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("benchmark", type=str, default="jacobi-2d")
     parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args()
     if args.benchmark == "all":
         for benchmark in Polybench.get_benchmarks():
