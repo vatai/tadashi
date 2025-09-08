@@ -38,7 +38,7 @@ def read_poc_output(path):
             if ".orig" in f[line_i + 1]:
                 continue
             app_name = f[line_i + 1]
-            if ": " in f[line_i + 3]
+            if ": " in f[line_i + 3]:
                 app_baseline = f[line_i + 3]
             else:
                 app_baseline = f[line_i + 4]
