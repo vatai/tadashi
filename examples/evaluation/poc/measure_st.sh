@@ -25,8 +25,7 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 	grep -v orig.c |
 	grep -v pluto.c |
 	tr "\n" "\0")
-hostname
-test "x$(hostname)" == xgenoa12.cloud.r-ccs.riken.jp && exit
+
 echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
 for file in "${BENCHMARKS[@]}"; do
 	benchmark="$(basename "${file%.c}")"

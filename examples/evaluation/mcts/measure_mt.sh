@@ -12,8 +12,6 @@
 REPO_ROOT="$(realpath "$(git rev-parse --show-toplevel)")"
 source "${REPO_ROOT}/scripts/genoa.source"
 
-hostname
-test "x$(hostname)" == xgenoa12.cloud.r-ccs.riken.jp && exit
 echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
 python3 ./mcts_polybench.py "${SLURM_JOB_NAME}" --rollouts=5000 --prefix=data-mt --allow-omp "$@"
 
