@@ -94,7 +94,8 @@ def main(app_name, repeat, allow_omp):
 
     if allow_omp:
         trs = searchFor(app, "set_parallel")
-        trs = [[index, TrEnum.SET_PARALLEL, 0] for index in trs]
+        # trs = [[index, TrEnum.SET_PARALLEL, 0] for index in trs]
+        trs = [[trs[0], TrEnum.SET_PARALLEL, 0]]
         trs = trs[::-1]
         for t in trs:
             scops[0].reset()
