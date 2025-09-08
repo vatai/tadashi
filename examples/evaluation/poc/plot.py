@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 
 plt.rcParams["text.latex.preamble"] = (
-    r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
 )
 params = {
     "axes.titlesize": 16,
@@ -34,12 +35,14 @@ def read_poc_output(path):
     post = []
     for line_i in range(len(f)):
         if "[STARTING NEW APP]" in f[line_i]:
+            if ".orig" in f[line_i + 1]:
+                continue
             app_name = f[line_i + 1]
             app_baseline = f[line_i + 3]
             i = line_i
-            while not "32:" in f[i]:
+            while not "[FINISHED APP]" in f[i]:
                 i += 1
-            app_post = f[i]
+            app_post = f[i - 1]
             # print("---------")
             # print(app_name)
             # print(app_baseline)
@@ -82,19 +85,23 @@ def get_ratios(baseline, post, labels):
     return ratios, labels
 
 
-def get_pluto():
-    pluto_txt = "../pluto/pluto_times_EXTRALARGE_O3_10.csv"
-    df = pd.read_csv(
-        pluto_txt,
-        sep="\t",
-        header=None,
-    )
-    df.drop(columns=11, inplace=True)
-    df.set_index(0, inplace=True)
+def get_pluto(path):
+    data = {}
+    for line in open(path):
+        if ":::" in line:
+            benchmark, rep, time = line.split(":::")
+            if benchmark in data:
+                old = data[benchmark]
+                new = float(time)
+                data[benchmark] = new if new < old else old
+            else:
+                data[benchmark] = float(time)
+
+    df = pd.DataFrame(data, index=[0])
     df = df.transpose()
-    df = df.min()
-    df.name = "pluto"
+    df.rename(columns={0: "pluto"}, inplace=True)
     df.index.name = "benchmark"
+    print(f"{df=}")
     return df
 
 
@@ -115,19 +122,21 @@ def get_evol():
     return df
 
 
-def main(path):
-    data = read_poc_output(path)
-    data = data.merge(get_pluto(), on="benchmark")
-    data = data.merge(
-        pd.read_csv("../mcts/mcts_speedups.csv"), on="benchmark", how="outer"
-    )
-    data = data.merge(get_evol(), on="benchmark", how="outer")
+def main(poc_path, pluto_path=None):
+    data = read_poc_output(poc_path)
+    if pluto_path:
+        data = data.merge(get_pluto(pluto_path), on="benchmark")
+    # data = data.merge(
+    #     pd.read_csv("../mcts/mcts_speedups.csv"), on="benchmark", how="outer"
+    # )
+    # data = data.merge(get_evol(), on="benchmark", how="outer")
     print(data)
 
     poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
-    pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
-    mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
-    evol = (data["baseline"] / data["evol"]).to_numpy().astype(np.float64)
+    if pluto_path:
+        pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
+    # mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
+    # evol = (data["baseline"] / data["evol"]).to_numpy().astype(np.float64)
     # Normalize with midpoint at 1
     # poc_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
     # poc_colors = cm.coolwarm(poc_norm(poc))
@@ -150,9 +159,10 @@ def main(path):
     fix = width
     kwargs = {"edgecolor": "black", "linewidth": 0.0, "zorder": 2}
     bars = ax.bar(x + 0 * width - fix, poc, width, label="POC", **kwargs)
-    bars = ax.bar(x + 1 * width - fix, pluto, width, label="Pluto", **kwargs)
-    bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCST", **kwargs)
-    bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
+    if pluto_path:
+        bars = ax.bar(x + 1 * width - fix, pluto, width, label="Pluto", **kwargs)
+    # bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCST", **kwargs)
+    # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
     ax.legend()
 
@@ -160,7 +170,7 @@ def main(path):
     ax.set_ylabel("Speedup (log scale)", fontsize=fontsize)
     ax.set_title("")
     ax.set_xticks(x)
-    ax.set_xticklabels(data["benchmark"], rotation=90, fontsize=fontsize - 2)
+    ax.set_xticklabels(data.index, rotation=90, fontsize=fontsize - 2)
     ax.set_yticks([0.5, 1, 2, 5, 10, 20])
     # ax.legend()
 
@@ -171,11 +181,19 @@ def main(path):
 
     # Display the plot
     plt.tight_layout()
-    plt.savefig("poc_improvements.pdf")
+    sm = ""
+    if "_st.sh" in poc:
+        sm = "s"
+    if "_mt.sh" in poc:
+        sm = "m"
+    output_file = f"{sm}t_improvements.pdf"
+    print(f"{output_file=}")
+    plt.savefig(output_file)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", type=str)
+    parser.add_argument("poc", type=str)
+    parser.add_argument("--pluto")
     args = parser.parse_args()
-    main(args.input)
+    main(args.poc, args.pluto)
