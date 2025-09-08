@@ -158,7 +158,7 @@ def main(poc_path, pluto_path=None):
     width = 0.6 / 4
     fix = width
     kwargs = {"edgecolor": "black", "linewidth": 0.0, "zorder": 2}
-    bars = ax.bar(x + 0 * width - fix, poc, width, label="POC", **kwargs)
+    bars = ax.bar(x + 0 * width - fix, poc, width, label="Heuristic", **kwargs)
     if pluto_path:
         bars = ax.bar(x + 1 * width - fix, pluto, width, label="Pluto", **kwargs)
     # bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCST", **kwargs)
@@ -182,9 +182,9 @@ def main(poc_path, pluto_path=None):
     # Display the plot
     plt.tight_layout()
     sm = ""
-    if "_st.sh" in poc:
+    if "_st.sh" in poc_path:
         sm = "s"
-    if "_mt.sh" in poc:
+    if "_mt.sh" in poc_path:
         sm = "m"
     output_file = f"{sm}t_improvements.pdf"
     print(f"{output_file=}")
