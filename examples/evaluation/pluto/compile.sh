@@ -20,7 +20,7 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 	grep -v polybench/utilities |
 	grep -v TMPFILE |
 	grep -v INFIX |
-	grep -v origi.c |
+	grep -v orig.c |
 	grep -v pluto.c |
 	tr "\n" "\0")
 GCC_ARGS=(
