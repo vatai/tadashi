@@ -23,6 +23,8 @@ params = {
 }
 plt.rcParams.update(params)
 
+COLOR_MAP = "berlin"
+
 
 def get_raw_df(files):
     data = {}
@@ -61,7 +63,7 @@ def breakdown(files, agg_args, norm, size):
         stacked=True,
         ax=ax,
         # color=["#eee", "#bbb", "#999", "#666", "#000"],
-        cmap="cool",
+        cmap=COLOR_MAP,
     )
     plt.xlabel("")
     if norm:
@@ -141,7 +143,7 @@ def throughput():
     files = Path("./times/").glob("*-10.json")
     df = get_throughput_df(files)
     fig, ax = plt.subplots()
-    df.plot.bar(ax=ax)
+    df.plot.bar(ax=ax, cmap=COLOR_MAP)
     plt.xlabel("")
     plt.ylabel("Iterations per second")
     plt.title("Throughput")
