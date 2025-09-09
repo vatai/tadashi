@@ -9,7 +9,8 @@ import pandas as pd
 # Direct input
 
 plt.rcParams["text.latex.preamble"] = (
-    r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
 )
 params = {
     "axes.titlesize": 16,
