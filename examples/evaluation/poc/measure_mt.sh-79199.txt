@@ -268,29 +268,6 @@ Tiling with size 32: 5451.335218
 
 -----------------------------------------
 
-[STARTING NEW APP]
-tmp
-app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
-repeat=1
-Baseline measure: 1.717039
-FULL_SPLIT list validity: [True]
-TILE 2D and 3D list validity: [True, True, True, True, True]
-SET_PARALLEL list validity: [True, True, True, True, True, True]
-transformation_list=[
-   [2, TrEnum.FULL_SPLIT],
-   [8, TrEnum.TILE2D, 32, 32],
-   [7, TrEnum.TILE3D, 32, 32, 32],
-   [7, TrEnum.TILE2D, 32, 32],
-   [3, TrEnum.TILE2D, 32, 32],
-   [18, TrEnum.SET_PARALLEL, 0],
-]
-Tiling with size 32 ...
-Is this transformation list valid: [True, True, True, True, True, True]
-Tiling with size 32: 6652.036637
-[FINISHED APP]
-
-
------------------------------------------
 
 [STARTING NEW APP]
 gemm
