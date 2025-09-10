@@ -129,13 +129,12 @@ def get_evol():
 def main(poc_path, pluto_path=None, mcts_path=None):
     data = read_poc_output(poc_path)
     if pluto_path:
-        data = data.merge(get_pluto(pluto_path), on="benchmark")
+        data = data.merge(get_pluto(pluto_path), on="benchmark", how="outer")
     if mcts_path:
         mcts_data = pd.read_csv(mcts_path, index_col=0)
-        print(mcts_data)
         data = data.merge(mcts_data, on="benchmark", how="outer")
     # data = data.merge(get_evol(), on="benchmark", how="outer")
-    print(data)
+    # print(data)
 
     x = np.arange(len(data))
     fig, ax = plt.subplots()
@@ -163,6 +162,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
         pluto[np.isnan(pluto)] = 1
         print(f"{gmean(pluto)=}")
     poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
+    poc[data["baseline"] < data["poc"]] = 1  # poc doesn't do this so we do it here
     bars = ax.bar(
         x + 1 * width - fix,
         poc,
