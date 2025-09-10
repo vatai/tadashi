@@ -3,11 +3,11 @@ import argparse
 import json
 from pathlib import Path
 
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.cm import winter as cm
 
 plt.rcParams["text.latex.preamble"] = (
     # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
@@ -104,7 +104,7 @@ def get_pluto(path):
     df = df.transpose()
     df.rename(columns={0: "pluto"}, inplace=True)
     df.index.name = "benchmark"
-    print(f"{df=}")
+    # print(f"{df=}")
     return df
 
 
@@ -158,12 +158,28 @@ def main(poc_path, pluto_path=None):
     ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=1)
 
     # Plot colored ratio bars
-    width = 0.6 / 4
+    width = 0.6 / 2
     fix = width
-    kwargs = {"edgecolor": "black", "linewidth": 0.0, "zorder": 2}
-    bars = ax.bar(x + 0 * width - fix, poc, width, label="Heuristic", **kwargs)
+    kwargs = {"edgecolor": "black", "linewidth": 0.3, "zorder": 2}
     if pluto_path:
-        bars = ax.bar(x + 1 * width - fix, pluto, width, label="Pluto", **kwargs)
+        bars = ax.bar(
+            x + 0 * width - fix,
+            pluto,
+            width,
+            label="Pluto",
+            color=cm(10),
+            **kwargs,
+        )
+    norm = colors.Normalize(vmin=-poc.max() * 0.5, vmax=poc.max() * 0.5)
+    bars = ax.bar(
+        x + 1 * width - fix,
+        poc,
+        width,
+        label="Heuristic",
+        # color=cm.inferno(norm(poc)),
+        color=cm(150),
+        **kwargs,
+    )
     # bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCST", **kwargs)
     # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
@@ -181,6 +197,7 @@ def main(poc_path, pluto_path=None):
     # Log scale (optional)
     ax.set_yticks([1, 2, 5, 10, 20])  # You can adjust the range as needed
     ax.get_yaxis().set_major_formatter(plt.ScalarFormatter())
+    ax.set_ylim(ymin=0.01, ymax=350)
 
     # Display the plot
     plt.tight_layout()
