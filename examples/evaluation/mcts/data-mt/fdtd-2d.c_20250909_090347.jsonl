@@ -1,0 +1,5 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-09T09:03:47.054119", "speedup": 1, "transform": [], "source": "fdtd-2d.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-09T09:04:16.978938", "speedup": 2.8918457887625095, "transform": [[7, "interchange"]], "source": "fdtd-2d-TMPFILE-2025-09-09T09-03-47.097892-vbo5w609.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-09T09:04:45.834741", "speedup": 2.925179644136459, "transform": [[7, "interchange"], [12, "tile1d", 512]], "source": "fdtd-2d-TMPFILE-2025-09-09T09-04-17.032173-_3pywv9x.c"}
+{"cnt_rollouts": 3, "cnt_evals": 6, "timestamp": "2025-09-09T09:06:47.092849", "speedup": 28.51716358987856, "transform": [[7, "tile2d", 32, 32], [1, "set_parallel", 0]], "source": "fdtd-2d-TMPFILE-2025-09-09T09-06-43.024872-azhdodia.c"}
+{"cnt_rollouts": 15, "cnt_evals": 28, "timestamp": "2025-09-09T10:40:07.487101", "speedup": 29.57324776193893, "transform": [[8, "set_parallel", 0], [1, "set_parallel", 0]], "source": "fdtd-2d-TMPFILE-2025-09-09T10-40-03.361541-paopjx18.c"}

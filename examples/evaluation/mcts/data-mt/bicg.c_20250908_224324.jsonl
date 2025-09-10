@@ -1,0 +1,3 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-08T22:43:24.080203", "speedup": 1, "transform": [], "source": "bicg.c"}
+{"cnt_rollouts": 31, "cnt_evals": 29, "timestamp": "2025-09-08T22:43:45.834902", "speedup": 2.2909346451159522, "transform": [[12, "full_split"], [6, "set_parallel", 0]], "source": "bicg-TMPFILE-2025-09-08T22-43-45.120532-0cdmtlll.c"}
+{"cnt_rollouts": 2899, "cnt_evals": 861, "timestamp": "2025-09-08T22:56:05.814069", "speedup": 2.3453237410071943, "transform": [[11, "tile1d", 128], [6, "set_parallel", 0]], "source": "bicg-TMPFILE-2025-09-08T22-56-05.111604-691nwt0n.c"}

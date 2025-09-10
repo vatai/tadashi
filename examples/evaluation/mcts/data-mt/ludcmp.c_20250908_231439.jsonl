@@ -1,0 +1,3 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-08T23:14:39.348160", "speedup": 1, "transform": [], "source": "ludcmp.c"}
+{"cnt_rollouts": 21, "cnt_evals": 20, "timestamp": "2025-09-09T04:48:41.967238", "speedup": 1.7707687469273585, "transform": [[3, "tile1d", 128], [17, "set_parallel", 0]], "source": "ludcmp-TMPFILE-2025-09-09T04-36-21.124778-34ca2vxv.c"}
+{"cnt_rollouts": 22, "cnt_evals": 22, "timestamp": "2025-09-09T05:13:00.114689", "speedup": 78.025991852109, "transform": [[3, "tile1d", 512], [4, "set_parallel", 0]], "source": "ludcmp-TMPFILE-2025-09-09T05-02-32.545364-ez8kl7sl.c"}
