@@ -2,8 +2,10 @@
 import json
 from pathlib import Path
 
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.cm import winter as cm
 
 # https://stackoverflow.com/questions/50976297/reduce-a-panda-dataframe-by-groups
 # Direct input
@@ -22,8 +24,6 @@ params = {
     # "text.latex.unicode": True,
 }
 plt.rcParams.update(params)
-
-COLOR_MAP = "berlin"
 
 
 def get_raw_df(files):
@@ -63,7 +63,7 @@ def breakdown(files, agg_args, norm, size):
         stacked=True,
         ax=ax,
         # color=["#eee", "#bbb", "#999", "#666", "#000"],
-        cmap=COLOR_MAP,
+        cmap=cm,
     )
     plt.xlabel("")
     if norm:
@@ -119,7 +119,7 @@ def breakdowns():
     )
 
 
-def get_throughput_df(files):
+def get_throughput_df(files) -> pd.DataFrame:
     df = get_raw_df(files)
     gb = df.groupby(by=["Benchmark"])
     agg_args = {
@@ -143,7 +143,14 @@ def throughput():
     files = Path("./times/").glob("*-10.json")
     df = get_throughput_df(files)
     fig, ax = plt.subplots()
-    df.plot.bar(ax=ax, cmap=COLOR_MAP)
+    norm = colors.Normalize(vmin=0, vmax=df["Throughput"].max() * 1.5)
+    # norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=df["Throughput"].max())
+    df.plot(
+        kind="bar",
+        y="Throughput",
+        ax=ax,
+        color=cm(norm(df["Throughput"].to_numpy())),
+    )
     plt.xlabel("")
     plt.ylabel("Iterations per second")
     plt.title("Throughput")
