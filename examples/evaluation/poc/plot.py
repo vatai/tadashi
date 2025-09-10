@@ -159,7 +159,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
             color=cm(10),
             **kwargs,
         )
-        pluto[np.isnan(pluto)] = 1
+        pluto = pluto[data.index != "adi"]  # pluto failed with adi
         print(f"{gmean(pluto)=}")
     poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
     poc[data["baseline"] < data["poc"]] = 1  # poc doesn't do this so we do it here
