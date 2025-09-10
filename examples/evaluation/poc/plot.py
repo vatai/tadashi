@@ -125,20 +125,22 @@ def get_evol():
     return df
 
 
-def main(poc_path, pluto_path=None):
+def main(poc_path, pluto_path=None, mcts_path=None):
     data = read_poc_output(poc_path)
     if pluto_path:
         data = data.merge(get_pluto(pluto_path), on="benchmark")
-    # data = data.merge(
-    #     pd.read_csv("../mcts/mcts_speedups.csv"), on="benchmark", how="outer"
-    # )
+        pluto = (
+            (data["baseline"] / data["pluto"]).to_numpy(na_value=0).astype(np.float64)
+        )
+    if mcts_path:
+        mcts_data = pd.read_csv(mcts_path, index_col=0)
+        print(mcts_data)
+        data = data.merge(mcts_data, on="benchmark", how="outer")
+        mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
     # data = data.merge(get_evol(), on="benchmark", how="outer")
     print(data)
 
-    poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
-    if pluto_path:
-        pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
-    # mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
+    poc = (data["baseline"] / data["poc"]).to_numpy(na_value=0).astype(np.float64)
     # evol = (data["baseline"] / data["evol"]).to_numpy().astype(np.float64)
     # Normalize with midpoint at 1
     # poc_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
@@ -180,7 +182,8 @@ def main(poc_path, pluto_path=None):
         color=cm(150),
         **kwargs,
     )
-    # bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCST", **kwargs)
+    # if mcts_path:
+    #     bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCTS", **kwargs)
     # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
     ax.legend()
@@ -215,5 +218,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("poc", type=str)
     parser.add_argument("--pluto")
+    parser.add_argument("--mcts")
     args = parser.parse_args()
-    main(args.poc, args.pluto)
+    main(args.poc, args.pluto, args.mcts)
