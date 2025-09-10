@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.cm import winter as cm
+from scipy.stats import gmean
 
 plt.rcParams["text.latex.preamble"] = (
     # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
@@ -129,28 +130,14 @@ def main(poc_path, pluto_path=None, mcts_path=None):
     data = read_poc_output(poc_path)
     if pluto_path:
         data = data.merge(get_pluto(pluto_path), on="benchmark")
-        pluto = (
-            (data["baseline"] / data["pluto"]).to_numpy(na_value=0).astype(np.float64)
-        )
     if mcts_path:
         mcts_data = pd.read_csv(mcts_path, index_col=0)
         print(mcts_data)
         data = data.merge(mcts_data, on="benchmark", how="outer")
-        mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
     # data = data.merge(get_evol(), on="benchmark", how="outer")
     print(data)
 
-    poc = (data["baseline"] / data["poc"]).to_numpy(na_value=0).astype(np.float64)
-    # evol = (data["baseline"] / data["evol"]).to_numpy().astype(np.float64)
-    # Normalize with midpoint at 1
-    # poc_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(poc) / 5)
-    # poc_colors = cm.coolwarm(poc_norm(poc))
-
-    # pluto_norm = colors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=np.max(pluto) / 5)
-    # pluto_colors = cm.vanimo(pluto_norm(pluto))
-
     x = np.arange(len(data))
-
     fig, ax = plt.subplots()
 
     # Reference line at ratio = 1
@@ -164,6 +151,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
     fix = width
     kwargs = {"edgecolor": "black", "linewidth": 0.3, "zorder": 2}
     if pluto_path:
+        pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
         bars = ax.bar(
             x + 0 * width - fix,
             pluto,
@@ -172,18 +160,31 @@ def main(poc_path, pluto_path=None, mcts_path=None):
             color=cm(10),
             **kwargs,
         )
-    norm = colors.Normalize(vmin=-poc.max() * 0.5, vmax=poc.max() * 0.5)
+        pluto[np.isnan(pluto)] = 1
+        print(f"{gmean(pluto)=}")
+    poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
     bars = ax.bar(
         x + 1 * width - fix,
         poc,
         width,
         label="Heuristic",
-        # color=cm.inferno(norm(poc)),
         color=cm(150),
         **kwargs,
     )
-    # if mcts_path:
-    #     bars = ax.bar(x + 2 * width - fix, mcts, width, label="MCTS", **kwargs)
+    poc[np.isnan(poc)] = 1
+    print(f"{gmean(poc)=}")
+    if mcts_path:
+        mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
+        bars = ax.bar(
+            x + 2 * width - fix,
+            mcts,
+            width,
+            label="MCTS",
+            color=cm(300),
+            **kwargs,
+        )
+        mcts[np.isnan(mcts)] = 1
+        print(f"{gmean(mcts)=}")
     # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
     ax.legend()
