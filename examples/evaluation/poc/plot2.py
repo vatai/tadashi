@@ -26,7 +26,12 @@ plt.rcParams.update(params)
 
 fontsize = 12
 
-COLORS = ["#c7522a", "#74a892", "#e5c185"]
+# source https://colorkit.co/palette/c7522a-e5c185-fbf2c4-74a892-008585/
+COLORS = [
+    "#c7522a",
+    "#e5c185",
+    "#74a892",
+]
 
 
 def read_poc_output(path):
