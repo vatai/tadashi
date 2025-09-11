@@ -148,7 +148,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
     # Plot colored ratio bars
     width = 0.6 / 2
     fix = width
-    kwargs = {"edgecolor": "black", "linewidth": 0.3, "zorder": 2}
+    kwargs = {"edgecolor": "black", "linewidth": 0.0, "zorder": 2}
     if pluto_path:
         pluto = (data["baseline"] / data["pluto"]).to_numpy().astype(np.float64)
         bars = ax.bar(
@@ -201,7 +201,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
     # Log scale (optional)
     ax.set_yticks([1, 2, 5, 10, 20])  # You can adjust the range as needed
     ax.get_yaxis().set_major_formatter(plt.ScalarFormatter())
-    ax.set_ylim(ymin=0.01, ymax=350)
+    ax.set_ylim(ymin=0.1, ymax=350)
 
     # Display the plot
     plt.tight_layout()
