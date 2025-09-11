@@ -165,7 +165,13 @@ def main(datadir, scale_factor):
         #         drawstyle="steps-post",
         #         color="#000000")
         scaled = [s * scale_factor for s in speedups]
-        ax.fill_between(cnt_evals, scaled, alpha=0.9, step="post", color=colors[i])
+        ax.fill_between(
+            cnt_evals,
+            scaled,
+            alpha=0.9,
+            step="post",
+            color="#74a892",  # colors was here
+        )
         ax.set_xlim(0, 2000)
         ax.set_ylim(0, 100)
 
