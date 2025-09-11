@@ -15,7 +15,8 @@ plt.style.use("seaborn-v0_8-paper")
 sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
 
 plt.rcParams["text.latex.preamble"] = (
-    r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
 )
 
 # begin SC subbmision code
@@ -103,24 +104,59 @@ class AnchoredScaleBar(mpl.offsetbox.AnchoredOffsetbox):
         )
 
 
-def main(datadir):
-    fig = plt.figure(figsize=(6, 12))
+def to_csv(json_files, out_path):
+    final_speedups = {}
+    for f in json_files:
+        _, speedups = parse_jsonl(f)
+        kernel = f.name.split(".")[0]
+        final_speedups[kernel] = speedups[-1]
+    df = pd.Series(final_speedups)
+    df.rename("mcts", inplace=True)
+    df.index.name = "benchmark"
+    df.to_csv(out_path)
+
+
+def main(datadir, scale_factor):
+    fig = plt.figure(figsize=(5, 5))
     i = 0
     ax_objs = []
     directory = Path(datadir)
     json_files = list(sorted(directory.glob("*.jsonl")))
+    to_csv(json_files, directory.with_suffix(".csv"))
+    filter = [
+        "3mm",
+        "adi",
+        "atax",
+        "bicg",
+        "covariance",
+        "deriche",
+        "durbin",
+        "fdtd-2d",
+        "floyd-warshall",
+        "gemver",
+        "gesummv",
+        "gramschmidt",
+        "jacobi-1d",
+        "jacobi-2d",
+        "lu",
+        "ludcmp",
+        "mvt",
+        "symm",
+        "trisolv",
+        "trmm",
+    ]
+    json_files = [f for f in json_files if f.name.split(".")[0] not in filter]
 
     # cmap = plt.colormaps['brg']
-    # cmap = plt.colormaps['ocean']
+    cmap = plt.colormaps["winter"]
 
-    cmap = sns.color_palette("blend:#21599c,#b59610", as_cmap=True)
+    # cmap = sns.color_palette("blend:#21599c,#b59610", as_cmap=True)
     # cmap = sns.color_palette("blend:#7AB,#EDA", as_cmap=True)
     colors = [cmap(i) for i in np.linspace(0, 1, len(json_files) + 3)]  # Evenly spaced
     # colors = sns.color_palette('tab20', n_colors=len(json_files))
     # colors = sns.cubehelix_palette(len(json_files), rot=-.25, light=.7)
 
     gs = grid_spec.GridSpec(len(json_files), 1)
-    final_speedups = {}
     for f in json_files:
         cnt_evals, speedups = parse_jsonl(f)
         ax_objs.append(fig.add_subplot(gs[i : i + 1, 0:]))
@@ -128,8 +164,9 @@ def main(datadir):
         # ax.plot(cnt_evals, speedups,
         #         drawstyle="steps-post",
         #         color="#000000")
-        ax.fill_between(cnt_evals, speedups, alpha=0.9, step="post", color=colors[i])
-        ax.set_xlim(0, 3000)
+        scaled = [s * scale_factor for s in speedups]
+        ax.fill_between(cnt_evals, scaled, alpha=0.9, step="post", color=colors[i])
+        ax.set_xlim(0, 2000)
         ax.set_ylim(0, 100)
 
         # make background transparent
@@ -157,25 +194,21 @@ def main(datadir):
         ax.spines["bottom"].set_linestyle((0, (4, 4)))
         ax.spines["bottom"].set_linewidth(0.5)
         kernel = f.name.split(".")[0]
-        final_speedups[kernel] = speedups[-1]
         # print(f)
         ax_objs[-1].text(
             -20,
             0,
             kernel + f"\n({speedups[-1]:0.1F}x)",
-            fontsize=12,
+            fontsize=10,
             ha="right",
             # color=colors[i]
         )
         i += 1
 
-    df = pd.Series(final_speedups)
-    df.rename("mcts", inplace=True)
-    df.index.name = "benchmark"
     gs.update(hspace=-0.57)
     ob = AnchoredScaleBar(
-        size=50,
-        label="50x",
+        size=500 * scale_factor,
+        label="500x",
         loc=4,
         frameon=True,
         pad=0.6,
@@ -188,7 +221,6 @@ def main(datadir):
     plt.tight_layout()
     # plt.show()
     plt.savefig(directory.with_suffix(".pdf"), bbox_inches="tight")
-    df.to_csv(directory.with_suffix(".csv"))
 
     # sns.color_palette("blend:#21599c,#b59610", as_cmap=True)
     # sns.color_palette("dark:#5A9_r", as_cmap=True)
@@ -197,5 +229,6 @@ def main(datadir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("datadir")
+    parser.add_argument("--scale-factor", type=float, default=0.08)
     args = parser.parse_args()
-    main(args.datadir)
+    main(args.datadir, args.scale_factor)
