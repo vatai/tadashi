@@ -111,7 +111,7 @@ def to_csv(json_files, out_path):
         kernel = f.name.split(".")[0]
         final_speedups[kernel] = speedups[-1]
     df = pd.Series(final_speedups)
-    df.rename("mcts", inplace=True)
+    df.rename("MCTS", inplace=True)
     df.index.name = "benchmark"
     df.to_csv(out_path)
 

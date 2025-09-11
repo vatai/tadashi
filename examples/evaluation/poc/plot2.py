@@ -65,11 +65,11 @@ def read_poc_output(path):
     idcs = np.argsort(names)
     df = pd.DataFrame([names[idcs], baseline[idcs], post[idcs]])
     df = df.transpose()
-    df.rename(columns={1: "baseline", 2: "poc"}, inplace=True)
+    df.rename(columns={1: "baseline", 2: "Heuristic"}, inplace=True)
     df.set_index(0, inplace=True)
     df.index.name = "benchmark"
-    df["poc"] = df["baseline"] / df["poc"]
-    df["poc"] = np.maximum(df["poc"], 1)
+    df["Heuristic"] = df["baseline"] / df["Heuristic"]
+    df["Heuristic"] = np.maximum(df["Heuristic"], 1)
     return df
 
 
@@ -110,7 +110,7 @@ def get_pluto(path):
 
     df = pd.DataFrame(data, index=[0])
     df = df.transpose()
-    df.rename(columns={0: "pluto"}, inplace=True)
+    df.rename(columns={0: "Pluto"}, inplace=True)
     df.index.name = "benchmark"
     # print(f"{df=}")
     return df
@@ -133,10 +133,21 @@ def get_evol():
     return df
 
 
+def summary(data: pd.DataFrame):
+    data.drop(columns="baseline", inplace=True)
+    argmax = data.to_numpy().astype(np.float64).argmax(axis=1)
+    for i, k in enumerate(data.columns):
+        nonan = data[k].dropna().astype(np.float64)
+        best = int(sum(argmax == i))
+        print(f"{best=:2};  gmean({k})={gmean(nonan)}")
+
+    print("")
+
+
 def plot(ax, data, top):
     # stats
     # results = poc[:]
-    # winners = ["poc"]
+    # winners = ["Heuristic"]
 
     # Reference line at ratio = 1
     ax.axhline(y=1.0, color="#ff6961", linestyle="--", linewidth=0.6)
@@ -148,7 +159,7 @@ def plot(ax, data, top):
     width = 0.6 / 3
     fix = width
     kwargs = {"edgecolor": "black", "linewidth": 0.0, "zorder": 2}
-    for i, k in enumerate(["pluto", "poc", "mcts"]):
+    for i, k in enumerate(["Pluto", "Heuristic", "MCTS"]):
         bars = ax.bar(
             x + i * width - fix,
             data[k],
@@ -158,7 +169,7 @@ def plot(ax, data, top):
             **kwargs,
         )
         # results = np.vstack([pluto, results])
-        # winners = ["pluto", "poc"]
+        # winners = ["pluto", "Heuristic"]
         # pluto = pluto[data.index != "adi"]  # pluto failed with adi
         # print(f"{gmean(pluto)=}")
 
@@ -167,21 +178,19 @@ def plot(ax, data, top):
     # for i, w in enumerate(winners):
     #     print(f"{w}: {np.sum(results == i)}")
 
-    # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
-    # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
-
     # Labels and formatting
-    ax.set_ylabel("Speedup (log scale)", fontsize=fontsize)
     ax.set_title("")
     ax.set_yticks([0.5, 1, 2, 5, 10, 20])
     if top:
+        ax.set_ylabel("Single-thread speedup", fontsize=fontsize)
         ax.legend(loc="upper left")
         ax.set_xticks(x)
         ax.set_xticklabels("")
         ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
     else:
+        ax.set_ylabel("Multi-thread speedup", fontsize=fontsize)
         ax.set_xticks(x)
-        ax.set_xticklabels(data.index, rotation=45, fontsize=fontsize - 2)
+        ax.set_xticklabels(data.index, rotation=90, fontsize=fontsize - 2)
     # ax.legend()
 
     ax.set_yscale("log")
@@ -193,10 +202,10 @@ def plot(ax, data, top):
 
 def combine(poc, pluto, mcts):
     kwargs = {"on": "benchmark", "how": "outer"}
-    data = read_poc_output(poc)
-    data = data.merge(get_pluto(pluto), **kwargs)
+    data = get_pluto(pluto)
+    data = data.merge(read_poc_output(poc), **kwargs)
     data = data.merge(pd.read_csv(mcts, index_col=0), **kwargs)
-    data["pluto"] = data["baseline"] / data["pluto"]
+    data["Pluto"] = data["baseline"] / data["Pluto"]
     return data
 
 
@@ -208,7 +217,9 @@ def main(args):
     ax = axes[1]
 
     plot(axes[0], sdata, top=True)
+    summary(sdata)
     plot(axes[1], mdata, top=False)
+    summary(mdata)
 
     # Display the plot
     plt.tight_layout()
