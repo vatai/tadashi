@@ -30,7 +30,7 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
 for file in "${BENCHMARKS[@]}"; do
 	benchmark="$(basename "${file%.c}")"
-	srun -Q -n 1 python3 ./mcts_polybench.py "${benchmark}" --rollouts=5000 --prefix=data-st "$@" &
+	srun -Q -n 1 python3 ./mcts_polybench.py "${benchmark}" --rollouts=5000 --prefix="data-st-${SLURM_JOB_ID}" "$@" &
 done
 wait
 echo "done"
