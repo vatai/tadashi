@@ -7,6 +7,7 @@
 #SBATCH -t 20:00:00
 #SBATCH -o %x-%j.txt
 #SBATCH -e %x-%j.txt
+#SBATCH -n 96
 
 # set -x
 
