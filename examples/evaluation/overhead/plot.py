@@ -24,6 +24,13 @@ params = {
     # "text.latex.unicode": True,
 }
 plt.rcParams.update(params)
+COLORS = [
+    "#74a892",
+    "#fbf2c4",
+    "#008585",
+    "#e5c185",
+    "#c7522a",
+]
 
 
 def get_raw_df(files):
@@ -62,8 +69,8 @@ def breakdown(files, agg_args, norm, size):
         kind="bar",
         stacked=True,
         ax=ax,
-        # color=["#eee", "#bbb", "#999", "#666", "#000"],
-        cmap=cm,
+        color=COLORS,
+        # cmap=cm,
     )
     plt.xlabel("")
     if norm:
@@ -75,6 +82,7 @@ def breakdown(files, agg_args, norm, size):
         if size > 1
         else "Primitive transformations"
     )
+    # plt.yscale("log")
     plt.tight_layout()
     filename = f"plot-breakdown-{'norm' if norm else 'abs'}-{size}.pdf"
     print(filename)
@@ -149,7 +157,7 @@ def throughput():
         kind="bar",
         y="Throughput",
         ax=ax,
-        color=cm(norm(df["Throughput"].to_numpy())),
+        color=COLORS[0],  # cm(norm(df["Throughput"].to_numpy())),
     )
     plt.xlabel("")
     plt.ylabel("Iterations per second")
