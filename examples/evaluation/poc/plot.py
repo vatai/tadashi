@@ -145,6 +145,11 @@ def main(poc_path, pluto_path=None, mcts_path=None):
     ax.axhline(y=5.0, color="lightgray", linestyle="-", linewidth=1)
     ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=1)
 
+    poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
+    poc[data["baseline"] < data["poc"]] = 1  # poc doesn't do this so we do it here
+    results = poc[:]
+    winners = ["poc"]
+
     # Plot colored ratio bars
     width = 0.6 / 2
     fix = width
@@ -159,10 +164,10 @@ def main(poc_path, pluto_path=None, mcts_path=None):
             color=cm(10),
             **kwargs,
         )
+        results = np.vstack([pluto, results])
+        winners = ["pluto", "poc"]
         pluto = pluto[data.index != "adi"]  # pluto failed with adi
         print(f"{gmean(pluto)=}")
-    poc = (data["baseline"] / data["poc"]).to_numpy().astype(np.float64)
-    poc[data["baseline"] < data["poc"]] = 1  # poc doesn't do this so we do it here
     bars = ax.bar(
         x + 1 * width - fix,
         poc,
@@ -171,7 +176,7 @@ def main(poc_path, pluto_path=None, mcts_path=None):
         color=cm(150),
         **kwargs,
     )
-    poc[np.isnan(poc)] = 1
+
     print(f"{gmean(poc)=}")
     if mcts_path:
         mcts = data["mcts"].to_numpy().astype(np.float64)  # this is already speedup
@@ -183,8 +188,15 @@ def main(poc_path, pluto_path=None, mcts_path=None):
             color=cm(300),
             **kwargs,
         )
-        mcts[np.isnan(mcts)] = 1
+        results = np.vstack([results, mcts])
+        winners.append("MCTS")
         print(f"{gmean(mcts)=}")
+
+    results = np.nan_to_num(results, nan=0)
+    results = np.argmax(results, axis=0)
+    for i, w in enumerate(winners):
+        print(f"{w}: {np.sum(results == i)}")
+
     # bars = ax.bar(x + 3 * width - fix, evol, width, label="EVOL", **kwargs)
     # bars = ax.bar(x+width/2, ratios, width / 2, color=bar_colors, edgecolor="black", zorder=2)
     ax.legend()
