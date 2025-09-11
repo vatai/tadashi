@@ -190,7 +190,7 @@ def plot(ax, data, top):
     else:
         ax.set_ylabel("Multi-thread speedup", fontsize=fontsize)
         ax.set_xticks(x)
-        ax.set_xticklabels(data.index, rotation=90, fontsize=fontsize - 2)
+        ax.set_xticklabels(data.index, rotation=45, ha="right", fontsize=fontsize - 2)
     # ax.legend()
 
     ax.set_yscale("log")
