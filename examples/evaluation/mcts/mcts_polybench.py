@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3"
     )
-    parser.add_argument("--repeats", type=int, default=10)
+    parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
     parser.add_argument(
