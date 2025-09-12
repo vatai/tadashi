@@ -182,13 +182,13 @@ def main(datadir, scale_factor):
         # remove borders, axis ticks, and labels
         ax_objs[-1].set_yticklabels([])
 
-        if i == len(json_files) - 1:
-            ax_objs[-1].set_xlabel(
-                "Number of Evaluations",
-                # fontsize=16,
-                # fontweight="bold"
-            )
-        else:
+        if i != len(json_files) - 1:
+            #     ax_objs[-1].set_xlabel(
+            #         "Number of Evaluations",
+            #         fontsize=10,
+            #         # fontweight="bold"
+            #     )
+            # else:
             ax_objs[-1].set_xticklabels([])
 
         # spines = ["top","right","left","bottom"]
