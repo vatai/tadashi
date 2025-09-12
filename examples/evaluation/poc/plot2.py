@@ -151,10 +151,10 @@ def plot(ax, data, top):
     # winners = ["Heuristic"]
 
     # Reference line at ratio = 1
+    yticks = [1, 5, 20, 80, 320]
     ax.axhline(y=1.0, color="#ff6961", linestyle="--", linewidth=0.6)
-    ax.axhline(y=2.0, color="lightgray", linestyle="-", linewidth=0.3)
-    ax.axhline(y=5.0, color="lightgray", linestyle="-", linewidth=0.3)
-    ax.axhline(y=10.0, color="lightgray", linestyle="-", linewidth=0.3)
+    for y in yticks:
+        ax.axhline(y=y, color="lightgray", linestyle="-", linewidth=0.3)
     # Plot colored ratio bars
     x = np.arange(len(data))
     width = 0.6 / 3
@@ -196,9 +196,9 @@ def plot(ax, data, top):
 
     ax.set_yscale("log")
     # Log scale (optional)
-    ax.set_yticks([1, 2, 5, 10, 20])  # You can adjust the range as needed
+    ax.set_yticks(yticks)  # You can adjust the range as needed
     ax.get_yaxis().set_major_formatter(plt.ScalarFormatter())
-    ax.set_ylim(ymin=0.1, ymax=350)
+    ax.set_ylim(ymin=0.8, ymax=320)
 
 
 def combine(poc, pluto, mcts):
