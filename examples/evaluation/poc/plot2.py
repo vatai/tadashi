@@ -206,6 +206,8 @@ def combine(poc, pluto, mcts):
     data = data.merge(read_poc_output(poc), **kwargs)
     data = data.merge(pd.read_csv(mcts, index_col=0), **kwargs)
     data["Pluto"] = data["baseline"] / data["Pluto"]
+    print(f"{sum(data['Pluto'].dropna() < 1)=}")
+    data["Pluto"] = np.maximum(data["Pluto"].dropna(), 1)
     return data
 
 
