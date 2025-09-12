@@ -5,6 +5,7 @@ from tadashi.apps import Polybench
 
 
 def compare(kernel, trs, rep=3):
+    print(f"{kernel=}")
     compiler_options = ["-DEXTRALARGE_DATASET", "-O3"]
     app = Polybench(kernel, compiler_options=compiler_options)
     legal = app.scops[0].transform_list(trs)
