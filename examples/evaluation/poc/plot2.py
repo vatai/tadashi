@@ -69,6 +69,7 @@ def read_poc_output(path):
     df.set_index(0, inplace=True)
     df.index.name = "benchmark"
     df["Heuristic"] = df["baseline"] / df["Heuristic"]
+    print(f"{sum(df['Heuristic'].dropna() < 1)=}")
     df["Heuristic"] = np.maximum(df["Heuristic"], 1)
     return df
 
