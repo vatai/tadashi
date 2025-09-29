@@ -1,0 +1,6 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-08T22:28:46.165225", "speedup": 1, "transform": [], "source": "2mm.c"}
+{"cnt_rollouts": 2, "cnt_evals": 1, "timestamp": "2025-09-08T22:29:16.286118", "speedup": 2.0789897042108145, "transform": [[12, "tile2d", 128, 128]], "source": "2mm-TMPFILE-2025-09-08T22-28-46.266726-si2xde8v.c"}
+{"cnt_rollouts": 4, "cnt_evals": 5, "timestamp": "2025-09-08T22:43:40.930191", "speedup": 3.8111308265164014, "transform": [[13, "set_parallel", 0]], "source": "2mm-TMPFILE-2025-09-08T22-43-24.101044-3hw9aush.c"}
+{"cnt_rollouts": 4, "cnt_evals": 6, "timestamp": "2025-09-08T22:43:43.303749", "speedup": 44.31996278906233, "transform": [[13, "set_parallel", 0], [3, "set_parallel", 0]], "source": "2mm-TMPFILE-2025-09-08T22-43-40.974024-xfaplqpw.c"}
+{"cnt_rollouts": 18, "cnt_evals": 26, "timestamp": "2025-09-08T23:05:31.878752", "speedup": 80.8989985426054, "transform": [[12, "set_parallel", 0], [3, "set_parallel", 0]], "source": "2mm-TMPFILE-2025-09-08T23-05-30.220862-nvxvyjmj.c"}
+{"cnt_rollouts": 36, "cnt_evals": 51, "timestamp": "2025-09-08T23:27:25.517211", "speedup": 82.27630237017094, "transform": [[1, "full_fuse"], [1, "set_parallel", 0]], "source": "2mm-TMPFILE-2025-09-08T23-27-23.848354-v_gqv_nn.c"}

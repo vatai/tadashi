@@ -1,0 +1,7 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-08T22:02:18.129169", "speedup": 1, "transform": [], "source": "doitgen.c"}
+{"cnt_rollouts": 3, "cnt_evals": 4, "timestamp": "2025-09-08T22:03:07.635853", "speedup": 15.213209201778358, "transform": [[2, "tile1d", 512], [3, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-08T22-03-05.739530-8apc28ju.c"}
+{"cnt_rollouts": 19, "cnt_evals": 27, "timestamp": "2025-09-08T22:11:37.516577", "speedup": 24.39067813235679, "transform": [[3, "full_split"], [1, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-08T22-11-36.013186-xo5euvhx.c"}
+{"cnt_rollouts": 204, "cnt_evals": 191, "timestamp": "2025-09-08T23:09:21.323386", "speedup": 25.245427009831296, "transform": [[3, "full_split"], [1, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-08T23-09-19.863635-pnwgamwc.c"}
+{"cnt_rollouts": 532, "cnt_evals": 423, "timestamp": "2025-09-09T00:33:38.091872", "speedup": 26.11234794784283, "transform": [[10, "tile1d", 256], [1, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-09T00-33-36.619494-66w6jzsi.c"}
+{"cnt_rollouts": 3134, "cnt_evals": 1574, "timestamp": "2025-09-09T07:42:02.171631", "speedup": 26.191654085179596, "transform": [[5, "tile1d", 512], [1, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-09T07-42-00.536337-1ilfl29r.c"}
+{"cnt_rollouts": 3422, "cnt_evals": 1687, "timestamp": "2025-09-09T08:21:38.688927", "speedup": 26.200393375831972, "transform": [[10, "tile1d", 512], [1, "set_parallel", 0]], "source": "doitgen-TMPFILE-2025-09-09T08-21-37.086676-h2q3o60_.c"}

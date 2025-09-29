@@ -1,0 +1,9 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-08T22:03:39.714533", "speedup": 1, "transform": [], "source": "3mm.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-08T22:04:41.950898", "speedup": 1.5729186553839698, "transform": [[27, "tile1d", 64]], "source": "3mm-TMPFILE-2025-09-08T22-03-39.805035-935e3fwz.c"}
+{"cnt_rollouts": 3, "cnt_evals": 5, "timestamp": "2025-09-08T22:20:31.262410", "speedup": 2.0679850743226735, "transform": [[5, "full_split"]], "source": "3mm-TMPFILE-2025-09-08T22-19-43.782192-e_e3o6we.c"}
+{"cnt_rollouts": 3, "cnt_evals": 6, "timestamp": "2025-09-08T22:21:18.837267", "speedup": 2.068912732588575, "transform": [[5, "full_split"], [6, "tile1d", 128]], "source": "3mm-TMPFILE-2025-09-08T22-20-31.363800-zcmpiliq.c"}
+{"cnt_rollouts": 5, "cnt_evals": 9, "timestamp": "2025-09-08T22:36:49.775659", "speedup": 3.690964340743328, "transform": [[13, "set_parallel", 0]], "source": "3mm-TMPFILE-2025-09-08T22-36-22.831515-htwqkgpb.c"}
+{"cnt_rollouts": 22, "cnt_evals": 37, "timestamp": "2025-09-08T23:09:56.300375", "speedup": 4.039135315519996, "transform": [[4, "set_parallel", 0], [23, "set_parallel", 0]], "source": "3mm-TMPFILE-2025-09-08T23-09-31.311396-lkm1h1ap.c"}
+{"cnt_rollouts": 54, "cnt_evals": 81, "timestamp": "2025-09-08T23:55:26.777732", "speedup": 4.131169152320532, "transform": [[3, "set_parallel", 0], [23, "set_parallel", 0]], "source": "3mm-TMPFILE-2025-09-08T23-55-01.676428-y4zbh8us.c"}
+{"cnt_rollouts": 60, "cnt_evals": 88, "timestamp": "2025-09-09T00:13:34.652684", "speedup": 6.270541306389877, "transform": [[13, "set_parallel", 0], [4, "set_parallel", 0]], "source": "3mm-TMPFILE-2025-09-09T00-13-18.422273-cxw5pe97.c"}
+{"cnt_rollouts": 215, "cnt_evals": 270, "timestamp": "2025-09-09T05:27:50.974266", "speedup": 7.183280610172776, "transform": [[22, "set_parallel", 0], [12, "set_parallel", 0]], "source": "3mm-TMPFILE-2025-09-09T05-27-36.717714-2myafw83.c"}

@@ -1,0 +1,8 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-09T08:32:38.706560", "speedup": 1, "transform": [], "source": "syrk.c"}
+{"cnt_rollouts": 5, "cnt_evals": 8, "timestamp": "2025-09-09T08:36:22.353682", "speedup": 43.836568634605555, "transform": [[8, "tile1d", 512], [1, "set_parallel", 0]], "source": "syrk-TMPFILE-2025-09-09T08-36-20.748170-3wn141nx.c"}
+{"cnt_rollouts": 7, "cnt_evals": 11, "timestamp": "2025-09-09T08:37:02.002830", "speedup": 44.837836829140855, "transform": [[1, "set_parallel", 0]], "source": "syrk-TMPFILE-2025-09-09T08-37-00.450137-rp97y6oc.c"}
+{"cnt_rollouts": 24, "cnt_evals": 40, "timestamp": "2025-09-09T08:49:44.500093", "speedup": 44.83951031985966, "transform": [[1, "set_parallel", 0]], "source": "syrk-TMPFILE-2025-09-09T08-49-42.868465-ta_hy_sv.c"}
+{"cnt_rollouts": 29, "cnt_evals": 48, "timestamp": "2025-09-09T08:54:13.957549", "speedup": 59.75107552284087, "transform": [[7, "interchange"], [1, "set_parallel", 0]], "source": "syrk-TMPFILE-2025-09-09T08-54-12.451705-c5gmv33z.c"}
+{"cnt_rollouts": 77, "cnt_evals": 103, "timestamp": "2025-09-09T09:17:02.563476", "speedup": 68.67804264562967, "transform": [[1, "set_parallel", 0], [8, "tile2d", 128, 128]], "source": "syrk-TMPFILE-2025-09-09T09-17-01.087971-pvsr9i54.c"}
+{"cnt_rollouts": 135, "cnt_evals": 165, "timestamp": "2025-09-09T09:43:27.185824", "speedup": 74.04986439842209, "transform": [[1, "set_parallel", 0], [8, "tile2d", 64, 64]], "source": "syrk-TMPFILE-2025-09-09T09-43-25.814536-2fm_749_.c"}
+{"cnt_rollouts": 766, "cnt_evals": 612, "timestamp": "2025-09-09T13:00:59.971301", "speedup": 86.47101162414079, "transform": [[7, "tile2d", 32, 32], [1, "set_parallel", 0]], "source": "syrk-TMPFILE-2025-09-09T13-00-58.527019-mxevwsgf.c"}

@@ -1,0 +1,6 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-09T17:10:30.583346", "speedup": 1, "transform": [], "source": "jacobi-2d.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-09T17:11:03.824142", "speedup": 2.481769620582163, "transform": [[4, "tile1d", 32]], "source": "jacobi-2d-TMPFILE-2025-09-09T17-10-30.606597-gk7jrvhx.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-09T17:11:35.268166", "speedup": 2.569564646973379, "transform": [[4, "tile1d", 32], [2, "full_split"]], "source": "jacobi-2d-TMPFILE-2025-09-09T17-11-03.866528-oizufvg1.c"}
+{"cnt_rollouts": 3, "cnt_evals": 6, "timestamp": "2025-09-09T17:13:18.728165", "speedup": 23.26959060951264, "transform": [[1, "tile1d", 256], [2, "set_parallel", 0]], "source": "jacobi-2d-TMPFILE-2025-09-09T17-13-13.935545-g5fk1_9o.c"}
+{"cnt_rollouts": 32, "cnt_evals": 47, "timestamp": "2025-09-09T20:35:15.171156", "speedup": 26.885265412161214, "transform": [[4, "tile1d", 512], [1, "set_parallel", 0]], "source": "jacobi-2d-TMPFILE-2025-09-09T20-35-10.858741-vmuqfg0w.c"}
+{"cnt_rollouts": 62, "cnt_evals": 78, "timestamp": "2025-09-09T22:03:30.984109", "speedup": 28.56588282689625, "transform": [[8, "set_parallel", 0], [1, "set_parallel", 0]], "source": "jacobi-2d-TMPFILE-2025-09-09T22-03-26.160016-0loalnbh.c"}

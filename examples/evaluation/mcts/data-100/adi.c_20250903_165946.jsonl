@@ -1,0 +1,11 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T16:59:46.151327", "speedup": 1, "transform": [], "source": "adi.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T17:00:19.710770", "speedup": 1.7078560201857247, "transform": [[41, "tile1d", 2]], "source": "adi-TMPFILE-2025-09-03T16-59-46.513805-pb9rd6v_.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-03T17:00:53.379862", "speedup": 1.712975412294978, "transform": [[41, "tile1d", 2], [33, "full_split"]], "source": "adi-TMPFILE-2025-09-03T17-00-20.281507-mieiljxj.c"}
+{"cnt_rollouts": 2, "cnt_evals": 3, "timestamp": "2025-09-03T17:01:21.698052", "speedup": 2.0142288203439866, "transform": [[53, "tile1d", 4]], "source": "adi-TMPFILE-2025-09-03T17-00-53.501800-_hs2h9zz.c"}
+{"cnt_rollouts": 4, "cnt_evals": 8, "timestamp": "2025-09-03T17:03:54.818579", "speedup": 2.4035722942064, "transform": [[41, "tile1d", 4], [41, "interchange"]], "source": "adi-TMPFILE-2025-09-03T17-03-31.144563-scl63ouv.c"}
+{"cnt_rollouts": 18, "cnt_evals": 30, "timestamp": "2025-09-03T17:16:26.355832", "speedup": 2.4661806894440397, "transform": [[33, "full_split"]], "source": "adi-TMPFILE-2025-09-03T17-16-03.245392-0q4h54z5.c"}
+{"cnt_rollouts": 51, "cnt_evals": 80, "timestamp": "2025-09-03T17:41:58.525323", "speedup": 2.4701939217770055, "transform": [[54, "split", 2], [33, "full_split"]], "source": "adi-TMPFILE-2025-09-03T17-41-35.442153-fofwxm0u.c"}
+{"cnt_rollouts": 53, "cnt_evals": 82, "timestamp": "2025-09-03T17:43:00.316127", "speedup": 2.472702828666217, "transform": [[54, "full_split"]], "source": "adi-TMPFILE-2025-09-03T17-42-37.268624-83n4vsxv.c"}
+{"cnt_rollouts": 71, "cnt_evals": 110, "timestamp": "2025-09-03T17:57:52.123497", "speedup": 2.478601903757942, "transform": [[29, "tile1d", 4], [55, "full_split"]], "source": "adi-TMPFILE-2025-09-03T17-57-29.084112-4gij9c5u.c"}
+{"cnt_rollouts": 84, "cnt_evals": 126, "timestamp": "2025-09-03T18:05:46.895654", "speedup": 2.4787462313653092, "transform": [[54, "full_split"]], "source": "adi-TMPFILE-2025-09-03T18-05-23.885362-ey0nh04n.c"}
+{"cnt_rollouts": 93, "cnt_evals": 139, "timestamp": "2025-09-03T18:12:37.126353", "speedup": 2.5216783166532832, "transform": [[54, "full_split"], [30, "full_split"]], "source": "adi-TMPFILE-2025-09-03T18-12-14.512907-e2ojaf48.c"}

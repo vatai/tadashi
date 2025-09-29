@@ -1,0 +1,1318 @@
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+./isl_multi_templ.c:548: invalid number of elements in list
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt-TMPFILE-2025-09-03T15-47-09.272589-k_pmjyr2.c: In function ‘kernel_gramschmidt’:
+/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt-TMPFILE-2025-09-03T15-47-09.272589-k_pmjyr2.c:86:3: error: expected declaration or statement at end of input
+   86 |   DATA_TYPE nrm;
+      |   ^~~~~~~~~
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+./isl_multi_templ.c:548: invalid number of elements in list
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+INFO:root:selecting a node to transform
+# YOU ARE HERE
+domain: "[n, m] -> { S_1[k] : 0 <= k < n and ((m > 0 and k <= -2 + n) or m > 0 or (m <= 0 and k <= -2 + n) or m <= 0); S_3[k, i] : 0 <= k < n and 0 <= i < m; S_10[k, j] : k >= 0 and k < j <= 1199 and j < n; S_5[k] : 0 <= k < n; S_15[k, j, i] : 0 <= k <= 1198 and k < j < n and 0 <= i < m; S_12[k, j, i] : k >= 0 and k < j <= 1199 and j < n and 0 <= i < m; S_7[k, i] : 0 <= k <= 1199 and k < n and 0 <= i < m }"
+child:
+  schedule: "[n, m] -> L_0[{ S_1[k] -> [(k)]; S_3[k, i] -> [(k)]; S_10[k, j] -> [(k)]; S_5[k] -> [(k)]; S_15[k, j, i] -> [(k)]; S_12[k, j, i] -> [(k)]; S_7[k, i] -> [(k)] }]"
+  child:
+    sequence:
+    - filter: "[n, m] -> { S_1[k] }"
+    - filter: "[n, m] -> { S_3[k, i] }"
+      child:
+        schedule: "[n, m] -> L_1[{ S_3[k, i] -> [(i)] }]"
+    - filter: "[n, m] -> { S_5[k] }"
+    - filter: "[n, m] -> { S_7[k, i] }"
+      child:
+        schedule: "[n, m] -> L_2[{ S_7[k, i] -> [(i)] }]"
+    - filter: "[n, m] -> { S_12[k, j, i]; S_15[k, j, i]; S_10[k, j] }"
+      child:
+        schedule: "[n, m] -> L_3[{ S_12[k, j, i] -> [(j)]; S_15[k, j, i] -> [(j)]; S_10[k, j] -> [(j)] }]"
+        child:
+          sequence:
+          - filter: "[n, m] -> { S_10[k, j] }"
+          - filter: "[n, m] -> { S_12[k, j, i] }"
+            child:
+              schedule: "[n, m] -> L_4[{ S_12[k, j, i] -> [(i)] }]"
+          - filter: "[n, m] -> { S_15[k, j, i] }"
+            child:
+              schedule: "[n, m] -> L_5[{ S_15[k, j, i] -> [(i)] }]"
+
+{'cnt_rollouts': 0, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 0, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}}
+initial time: 16.499294
+{'cnt_rollouts': 0, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 0, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+
+---- doing rollout 0
+selected transform: [[11, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.152934
+{'cnt_rollouts': 1, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 1, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 3.9729246840908137
+selected transform: [[11, TrEnum.TILE1D, 3], [20, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.396238
+speedup: 3.7530484018381167
+
+---- doing rollout 1
+selected transform: [[19, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.12004
+{'cnt_rollouts': 2, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 3, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 4.004644129668644
+selected transform: [[19, TrEnum.TILE1D, 3], [20, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.111586
+{'cnt_rollouts': 2, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 4, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 4.012878242118735
+
+---- doing rollout 2
+selected transform: [[19, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.110295
+{'cnt_rollouts': 3, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 5, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 4.014138644549844
+selected transform: [[19, TrEnum.TILE1D, 2], [1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.108691
+{'cnt_rollouts': 3, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 6, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 4.015705732068923
+
+---- doing rollout 3
+selected transform: [[11, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.153651
+speedup: 3.9722388809266835
+selected transform: [[11, TrEnum.TILE1D, 3], [16, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.719148
+speedup: 2.137450143461429
+
+---- doing rollout 4
+selected transform: [[2, TrEnum.FULL_SPLIT]]
+transform legal:  False
+speedup: -1
+selected transform: [[2, TrEnum.FULL_SPLIT], [13, TrEnum.INTERCHANGE]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 5
+selected transform: [[6, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.111279
+speedup: 4.0131778942757235
+selected transform: [[6, TrEnum.TILE1D, 4], [12, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.434004
+speedup: 3.7210823445355485
+
+---- doing rollout 6
+selected transform: [[19, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.108808
+speedup: 4.015591383194347
+selected transform: [[19, TrEnum.TILE1D, 3], [23, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.770482
+speedup: 2.1233295437786226
+
+---- doing rollout 7
+selected transform: [[6, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.121304
+speedup: 4.003415909139437
+selected transform: [[6, TrEnum.TILE1D, 4], [12, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.151143
+speedup: 3.97463879225553
+
+---- doing rollout 8
+selected transform: [[1, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.40197
+speedup: 3.748161391377042
+selected transform: [[1, TrEnum.TILE1D, 2], [7, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.11443
+speedup: 4.010104437309664
+
+---- doing rollout 9
+selected transform: [[14, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.734607
+speedup: 2.1331780658021797
+selected transform: [[14, TrEnum.TILE1D, 4], [2, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 7.68935
+speedup: 2.1457332544363306
+
+---- doing rollout 10
+selected transform: [[2, TrEnum.FULL_SPLIT]]
+transform legal:  False
+speedup: -1
+selected transform: [[2, TrEnum.FULL_SPLIT], [23, TrEnum.TILE1D, 4]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 11
+selected transform: [[22, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.815215
+speedup: 2.1111759561317247
+selected transform: [[22, TrEnum.TILE1D, 4], [14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.780518
+speedup: 2.120590685607308
+
+---- doing rollout 12
+selected transform: [[22, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.822551
+speedup: 2.109196092169933
+selected transform: [[22, TrEnum.TILE1D, 2], [15, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.788118
+speedup: 2.1185213167032138
+
+---- doing rollout 13
+selected transform: [[22, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.865446
+speedup: 2.0976933793709853
+selected transform: [[22, TrEnum.TILE1D, 3], [23, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.852742
+speedup: 2.1010869833747243
+
+---- doing rollout 14
+selected transform: [[15, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.725279
+speedup: 2.1357538025487495
+selected transform: [[15, TrEnum.SPLIT, 1], [24, TrEnum.TILE1D, 3]]
+transform legal:  True
+[31mfailed to transform with the following exception:
+Command '['gcc', '/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt-TMPFILE-2025-09-03T15-47-09.272589-k_pmjyr2.c', '/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/utilities/polybench.c', '-DPOLYBENCH_TIME', '-DPOLYBENCH_USE_RESTRICT', '-lm', '-fopenmp', '-o', '/hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt-TMPFILE-2025-09-03T15-47-09.272589-k_pmjyr2', '-DEXTRALARGE_DATASET', '-O3']' returned non-zero exit status 1.
+[0m
+---- doing rollout 15
+selected transform: [[14, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.692452
+speedup: 2.144867982276652
+selected transform: [[14, TrEnum.TILE1D, 2], [14, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 5.751291
+speedup: 2.8687983271929727
+
+---- doing rollout 16
+selected transform: [[19, TrEnum.TILE1D, 3], [6, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.105642
+{'cnt_rollouts': 17, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 29, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 4.018687942105035
+
+---- doing rollout 17
+selected transform: [[19, TrEnum.TILE1D, 3], [2, TrEnum.SPLIT, 3]]
+transform legal:  True
+optimized time: 7.689988
+speedup: 2.1455552336362556
+
+---- doing rollout 18
+selected transform: [[6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.152308
+speedup: 3.9735236403465253
+selected transform: [[6, TrEnum.TILE1D, 2], [1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.108452
+speedup: 4.015939336762362
+
+---- doing rollout 19
+selected transform: [[15, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.743317
+speedup: 2.1307785797740166
+selected transform: [[15, TrEnum.SPLIT, 1], [14, TrEnum.FULL_FUSE]]
+transform legal:  True
+optimized time: 4.110772
+speedup: 4.01367285755571
+
+---- doing rollout 20
+selected transform: [[14, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.750298
+speedup: 2.12885930321647
+selected transform: [[14, TrEnum.TILE1D, 4], [16, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.712601
+speedup: 2.1392645619811006
+
+---- doing rollout 21
+selected transform: [[22, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.827693
+speedup: 2.1078105643642386
+selected transform: [[22, TrEnum.TILE1D, 3], [1, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.847387
+speedup: 2.1025207499005716
+
+---- doing rollout 22
+selected transform: [[15, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 2.010712
+{'cnt_rollouts': 23, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 39, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 8.20569728533972
+selected transform: [[15, TrEnum.FULL_SPLIT], [6, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 2.012111
+speedup: 8.199991948754318
+
+---- doing rollout 23
+selected transform: [[14, TrEnum.TILE1D, 4], [16, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 4.041044
+speedup: 4.082928569943806
+
+---- doing rollout 24
+selected transform: [[11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.106363
+speedup: 4.017982336193853
+selected transform: [[11, TrEnum.TILE1D, 4], [1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.167006
+speedup: 3.9595080976605264
+
+---- doing rollout 25
+selected transform: [[22, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.853441
+speedup: 2.1008999749281876
+selected transform: [[22, TrEnum.TILE1D, 2], [22, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 9.504312
+speedup: 1.7359798373622413
+
+---- doing rollout 26
+selected transform: [[19, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.114689
+speedup: 4.00985202040786
+selected transform: [[19, TrEnum.TILE1D, 4], [14, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.664386
+speedup: 2.152722214147356
+
+---- doing rollout 27
+selected transform: [[19, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.108373
+speedup: 4.016016559353301
+selected transform: [[19, TrEnum.TILE1D, 4], [14, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.668074
+speedup: 2.1516868512223537
+
+---- doing rollout 28
+selected transform: [[1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.160869
+speedup: 3.965348103965782
+selected transform: [[1, TrEnum.TILE1D, 3], [1, TrEnum.INTERCHANGE]]
+transform legal:  True
+optimized time: 4.169283
+speedup: 3.957345663510968
+
+---- doing rollout 29
+selected transform: [[1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.159819
+speedup: 3.966349016627887
+selected transform: [[1, TrEnum.TILE1D, 3], [15, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.660297
+speedup: 2.153871318566369
+
+---- doing rollout 30
+selected transform: [[6, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.446292
+speedup: 3.710798571034021
+selected transform: [[6, TrEnum.TILE1D, 3], [12, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.400428
+speedup: 3.7494748238125926
+
+---- doing rollout 31
+selected transform: [[14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.673541
+speedup: 2.1501538859308886
+selected transform: [[14, TrEnum.TILE1D, 3], [11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.690817
+speedup: 2.14532396233066
+
+---- doing rollout 32
+selected transform: [[1, TrEnum.TILE1D, 3], [12, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.161056
+speedup: 3.9651698991794384
+
+---- doing rollout 33
+selected transform: [[6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.153009
+speedup: 3.9728529362686187
+selected transform: [[6, TrEnum.TILE1D, 2], [2, TrEnum.SPLIT, 3]]
+transform legal:  True
+optimized time: 7.73234
+speedup: 2.1338034799297496
+
+---- doing rollout 34
+selected transform: [[19, TrEnum.TILE1D, 3], [6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.399287
+speedup: 3.750447288390141
+
+---- doing rollout 35
+selected transform: [[11, TrEnum.TILE1D, 3], [1, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.154737
+speedup: 3.9712005838155338
+
+---- doing rollout 36
+selected transform: [[15, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 2.015152
+speedup: 8.187617608994259
+selected transform: [[15, TrEnum.FULL_SPLIT], [20, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 2.810235
+speedup: 5.87114387230961
+
+---- doing rollout 37
+selected transform: [[22, TrEnum.TILE1D, 2], [11, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.858563
+speedup: 2.0995306648301986
+
+---- doing rollout 38
+selected transform: [[2, TrEnum.FULL_SPLIT], [1, TrEnum.FULL_FUSE]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 39
+selected transform: [[2, TrEnum.FULL_SPLIT], [17, TrEnum.TILE2D, 3, 4]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 40
+selected transform: [[15, TrEnum.FULL_SPLIT], [24, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.050187
+speedup: 2.340263315001432
+
+---- doing rollout 41
+selected transform: [[1, TrEnum.TILE1D, 3], [7, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.444669
+speedup: 3.712153593439691
+
+---- doing rollout 42
+selected transform: [[22, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.832302
+speedup: 2.106570201200107
+selected transform: [[22, TrEnum.TILE1D, 4], [23, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.812031
+speedup: 2.1120364217704717
+
+---- doing rollout 43
+selected transform: [[22, TrEnum.TILE1D, 2], [22, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.838607
+speedup: 2.104875777035384
+
+---- doing rollout 44
+selected transform: [[14, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.693884
+speedup: 2.144468775458533
+selected transform: [[14, TrEnum.TILE1D, 2], [15, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.686038
+speedup: 2.146657874967571
+
+---- doing rollout 45
+selected transform: [[6, TrEnum.TILE1D, 2], [2, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 4.396273
+speedup: 3.753018522735053
+
+---- doing rollout 46
+selected transform: [[15, TrEnum.FULL_SPLIT], [11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 2.313247
+speedup: 7.132525839220801
+
+---- doing rollout 47
+selected transform: [[19, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.113942
+speedup: 4.010580119991968
+selected transform: [[19, TrEnum.TILE1D, 2], [11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.104985
+speedup: 4.019331130320817
+
+---- doing rollout 48
+selected transform: [[1, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.399464
+speedup: 3.7502963997432412
+selected transform: [[1, TrEnum.TILE1D, 2], [16, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 5.813857
+speedup: 2.8379256662143564
+
+---- doing rollout 49
+selected transform: [[22, TrEnum.TILE1D, 3], [14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.855111
+speedup: 2.1004533226837916
+
+---- doing rollout 50
+selected transform: [[1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.445838
+speedup: 3.7111775102916478
+selected transform: [[1, TrEnum.TILE1D, 4], [15, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.666375
+speedup: 2.1521637018799624
+
+---- doing rollout 51
+selected transform: [[6, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.435375
+speedup: 3.719932136516078
+selected transform: [[6, TrEnum.TILE1D, 3], [20, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.118757
+speedup: 4.005891583310207
+
+---- doing rollout 52
+selected transform: [[6, TrEnum.TILE1D, 3], [7, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.443726
+speedup: 3.7129413469687376
+
+---- doing rollout 53
+selected transform: [[14, TrEnum.TILE1D, 2], [11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.667678
+speedup: 2.151797975867009
+
+---- doing rollout 54
+selected transform: [[11, TrEnum.TILE1D, 3], [6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.153368
+speedup: 3.9725095392462206
+
+---- doing rollout 55
+selected transform: [[2, TrEnum.SPLIT, 3]]
+transform legal:  False
+speedup: -1
+selected transform: [[2, TrEnum.SPLIT, 3], [21, TrEnum.TILE1D, 4]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 56
+selected transform: [[11, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.115606
+speedup: 4.008958583499004
+selected transform: [[11, TrEnum.TILE1D, 4], [1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.158338
+speedup: 3.9677616393857353
+
+---- doing rollout 57
+selected transform: [[11, TrEnum.TILE1D, 4], [15, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.742572
+speedup: 2.1309836059645293
+
+---- doing rollout 58
+selected transform: [[2, TrEnum.SPLIT, 2]]
+transform legal:  False
+speedup: -1
+selected transform: [[2, TrEnum.SPLIT, 2], [3, TrEnum.TILE1D, 2]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 59
+selected transform: [[14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.674595
+speedup: 2.1498585918866078
+selected transform: [[14, TrEnum.TILE1D, 3], [1, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.747375
+speedup: 2.1296624985882313
+
+---- doing rollout 60
+selected transform: [[22, TrEnum.TILE1D, 2], [22, TrEnum.INTERCHANGE]]
+transform legal:  True
+optimized time: 7.74922
+speedup: 2.1291554504840486
+
+---- doing rollout 61
+selected transform: [[14, TrEnum.TILE1D, 4], [15, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.743892
+speedup: 2.130620365056744
+
+---- doing rollout 62
+selected transform: [[2, TrEnum.FULL_SPLIT], [26, TrEnum.TILE1D, 3]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 63
+selected transform: [[11, TrEnum.TILE1D, 4], [1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.153336
+speedup: 3.972540146041639
+
+---- doing rollout 64
+selected transform: [[1, TrEnum.TILE1D, 2], [15, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.73604
+speedup: 2.132782922528839
+
+---- doing rollout 65
+selected transform: [[11, TrEnum.TILE1D, 4], [15, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.729914
+speedup: 2.134473164901964
+
+---- doing rollout 66
+selected transform: [[2, TrEnum.SPLIT, 3]]
+transform legal:  False
+speedup: -1
+selected transform: [[2, TrEnum.SPLIT, 3], [16, TrEnum.FULL_SPLIT]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 67
+selected transform: [[11, TrEnum.TILE1D, 3], [23, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.820103
+speedup: 2.1098563535544224
+
+---- doing rollout 68
+selected transform: [[1, TrEnum.TILE1D, 2], [3, TrEnum.FULL_SPLIT]]
+transform legal:  True
+optimized time: 4.402813
+speedup: 3.7474437365384357
+
+---- doing rollout 69
+selected transform: [[22, TrEnum.TILE1D, 4], [15, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.778772
+speedup: 2.1210666670780425
+
+---- doing rollout 70
+selected transform: [[22, TrEnum.TILE1D, 4], [14, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.774347
+speedup: 2.122273935032743
+
+---- doing rollout 71
+selected transform: [[1, TrEnum.TILE1D, 3], [7, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.449128
+speedup: 3.708433203090583
+
+---- doing rollout 72
+selected transform: [[15, TrEnum.SPLIT, 1], [21, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 7.748953
+speedup: 2.1292288132345103
+
+---- doing rollout 73
+selected transform: [[1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.439593
+speedup: 3.7163978770125996
+selected transform: [[1, TrEnum.TILE1D, 4], [2, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.439699
+speedup: 3.716309146183108
+
+---- doing rollout 74
+selected transform: [[22, TrEnum.TILE1D, 2], [14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.860843
+speedup: 2.09892170597988
+
+---- doing rollout 75
+selected transform: [[11, TrEnum.TILE1D, 3], [6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.156693
+speedup: 3.969331870311327
+
+---- doing rollout 76
+selected transform: [[15, TrEnum.FULL_SPLIT], [1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 2.308569
+speedup: 7.146978929371398
+
+---- doing rollout 77
+selected transform: [[11, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.120951
+speedup: 4.003758841102454
+selected transform: [[11, TrEnum.TILE1D, 2], [16, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.745813
+speedup: 2.130091960650225
+
+---- doing rollout 78
+selected transform: [[11, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.113443
+speedup: 4.011066641740264
+selected transform: [[11, TrEnum.TILE1D, 2], [20, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.101402
+speedup: 4.022842432904651
+
+---- doing rollout 79
+selected transform: [[15, TrEnum.FULL_SPLIT], [20, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 3.104732
+speedup: 5.314240971523468
+
+---- doing rollout 80
+selected transform: [[1, TrEnum.TILE1D, 4], [23, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.769492
+speedup: 2.123600101525299
+
+---- doing rollout 81
+selected transform: [[6, TrEnum.TILE1D, 3], [12, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.167746
+speedup: 3.958805071134373
+
+---- doing rollout 82
+selected transform: [[14, TrEnum.TILE1D, 4], [20, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.685917
+speedup: 2.1466916699724963
+
+---- doing rollout 83
+selected transform: [[2, TrEnum.SPLIT, 3], [16, TrEnum.FULL_SPLIT]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 84
+selected transform: [[1, TrEnum.TILE1D, 2], [3, TrEnum.SPLIT, 3]]
+transform legal:  True
+optimized time: 5.778218
+speedup: 2.855429476700256
+
+---- doing rollout 85
+selected transform: [[14, TrEnum.TILE1D, 3], [2, TrEnum.SPLIT, 1]]
+transform legal:  True
+optimized time: 7.685966
+speedup: 2.146677984263787
+
+---- doing rollout 86
+selected transform: [[2, TrEnum.FULL_SPLIT], [19, TrEnum.SPLIT, 1]]
+transform legal:  False
+speedup: -1
+
+---- doing rollout 87
+selected transform: [[19, TrEnum.TILE1D, 4], [1, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.112417
+speedup: 4.01206735600986
+
+---- doing rollout 88
+selected transform: [[6, TrEnum.TILE1D, 3], [20, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.11013
+speedup: 4.014299791004177
+
+---- doing rollout 89
+selected transform: [[6, TrEnum.TILE1D, 4], [6, TrEnum.TILE2D, 4, 2]]
+transform legal:  True
+optimized time: 4.10981
+speedup: 4.014612354342415
+
+---- doing rollout 90
+selected transform: [[19, TrEnum.TILE1D, 2], [6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.103676
+speedup: 4.020613225800477
+
+---- doing rollout 91
+selected transform: [[22, TrEnum.TILE1D, 2], [14, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.828782
+speedup: 2.1075173634928137
+
+---- doing rollout 92
+selected transform: [[14, TrEnum.TILE1D, 3], [1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.66647
+speedup: 2.1521370330804137
+
+---- doing rollout 93
+selected transform: [[11, TrEnum.TILE1D, 3], [6, TrEnum.TILE1D, 4]]
+transform legal:  True
+optimized time: 4.439237
+speedup: 3.7166959096799737
+
+---- doing rollout 94
+selected transform: [[6, TrEnum.TILE1D, 2], [20, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 4.11002
+speedup: 4.014407229161902
+
+---- doing rollout 95
+selected transform: [[15, TrEnum.FULL_SPLIT], [1, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 2.010686
+{'cnt_rollouts': 96, 'repeats': 1, 'rollouts': 100, 'cnt_evals': 126, 'scop_idx': 0, 'max_depth': 2, 'whitelist_transformations': {TrEnum.TILE1D, TrEnum.TILE3D, TrEnum.INTERCHANGE, TrEnum.TILE2D, TrEnum.FULL_FUSE, TrEnum.FULL_SPLIT, TrEnum.SPLIT}, 'timeout': 25.792188277002424}
+speedup: 8.20580339247401
+
+---- doing rollout 96
+selected transform: [[6, TrEnum.TILE1D, 4], [23, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 7.775125
+speedup: 2.122061574572756
+
+---- doing rollout 97
+selected transform: [[6, TrEnum.TILE1D, 3], [20, TrEnum.TILE1D, 3]]
+transform legal:  True
+optimized time: 4.110147
+speedup: 4.014283187438307
+
+---- doing rollout 98
+selected transform: [[14, TrEnum.TILE1D, 2], [6, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.755537
+speedup: 2.1274212217671065
+
+---- doing rollout 99
+selected transform: [[19, TrEnum.TILE1D, 4], [23, TrEnum.TILE1D, 2]]
+transform legal:  True
+optimized time: 7.79024
+speedup: 2.1179442481874755
+
+**************************
+
+sampled tree as follows:
+
+[32mV:100 S:8.2058 | START
+[0m V:13 S:4.0101 | 1
+[0m  V:13 S:4.0101 | tile1d
+[0m   V:10 S:4.0101 | (2,)
+[0m    V:2 S:3.7474 | 3
+[0m     V:1 S:2.8554 | split
+[0m      V:1 S:2.8554 | (3,)
+[0m     V:1 S:3.7474 | full_split
+[0m      V:1 S:3.7474 | []
+[0m    V:1 S:4.0101 | 7
+[0m     V:1 S:4.0101 | tile1d
+[0m      V:1 S:4.0101 | (3,)
+[0m    V:1 S:2.1328 | 15
+[0m     V:1 S:2.1328 | tile1d
+[0m      V:1 S:2.1328 | (2,)
+[0m    V:1 S:2.8379 | 16
+[0m     V:1 S:2.8379 | split
+[0m      V:1 S:2.8379 | (1,)
+[0m   V:10 S:3.9663 | (3,)
+[0m    V:1 S:3.9573 | 1
+[0m     V:1 S:3.9573 | interchange
+[0m      V:1 S:3.9573 | []
+[0m    V:2 S:3.7122 | 7
+[0m     V:2 S:3.7122 | tile1d
+[0m      V:1 S:3.7084 | (2,)
+[0m      V:1 S:3.7122 | (4,)
+[0m    V:1 S:3.9652 | 12
+[0m     V:1 S:3.9652 | tile1d
+[0m      V:1 S:3.9652 | (2,)
+[0m    V:1 S:2.1539 | 15
+[0m     V:1 S:2.1539 | tile1d
+[0m      V:1 S:2.1539 | (3,)
+[0m   V:6 S:3.7164 | (4,)
+[0m    V:1 S:3.7163 | 2
+[0m     V:1 S:3.7163 | tile1d
+[0m      V:1 S:3.7163 | (4,)
+[0m    V:1 S:2.1522 | 15
+[0m     V:1 S:2.1522 | tile1d
+[0m      V:1 S:2.1522 | (3,)
+[0m    V:1 S:2.1236 | 23
+[0m     V:1 S:2.1236 | tile1d
+[0m      V:1 S:2.1236 | (3,)
+[0m V:10 S:-1.0000 | 2
+[0m  V:4 S:-1.0000 | split
+[0m   V:2 S:-1.0000 | (2,)
+[0m    V:1 S:-1.0000 | 3
+[0m     V:1 S:-1.0000 | tile1d
+[0m      V:1 S:-1.0000 | (2,)
+[0m   V:6 S:-1.0000 | (3,)
+[0m    V:2 S:-1.0000 | 16
+[0m     V:2 S:-1.0000 | full_split
+[0m      V:2 S:-1.0000 | []
+[0m    V:1 S:-1.0000 | 21
+[0m     V:1 S:-1.0000 | tile1d
+[0m      V:1 S:-1.0000 | (4,)
+[0m  V:6 S:-1.0000 | full_split
+[0m   V:12 S:-1.0000 | []
+[0m    V:1 S:-1.0000 | 1
+[0m     V:1 S:-1.0000 | full_fuse
+[0m      V:1 S:-1.0000 | []
+[0m    V:1 S:-1.0000 | 13
+[0m     V:1 S:-1.0000 | interchange
+[0m      V:1 S:-1.0000 | []
+[0m    V:1 S:-1.0000 | 17
+[0m     V:1 S:-1.0000 | tile2d
+[0m      V:1 S:-1.0000 | (3, 4)
+[0m    V:1 S:-1.0000 | 19
+[0m     V:1 S:-1.0000 | split
+[0m      V:1 S:-1.0000 | (1,)
+[0m    V:1 S:-1.0000 | 23
+[0m     V:1 S:-1.0000 | tile1d
+[0m      V:1 S:-1.0000 | (4,)
+[0m    V:1 S:-1.0000 | 26
+[0m     V:1 S:-1.0000 | tile1d
+[0m      V:1 S:-1.0000 | (3,)
+[0m V:14 S:4.0159 | 6
+[0m  V:14 S:4.0159 | tile1d
+[0m   V:8 S:4.0159 | (2,)
+[0m    V:1 S:4.0159 | 1
+[0m     V:1 S:4.0159 | tile1d
+[0m      V:1 S:4.0159 | (4,)
+[0m    V:2 S:3.7530 | 2
+[0m     V:1 S:2.1338 | split
+[0m      V:1 S:2.1338 | (3,)
+[0m     V:1 S:3.7530 | full_split
+[0m      V:1 S:3.7530 | []
+[0m    V:1 S:4.0144 | 20
+[0m     V:1 S:4.0144 | tile1d
+[0m      V:1 S:4.0144 | (2,)
+[0m   V:12 S:4.0143 | (3,)
+[0m    V:1 S:3.7129 | 7
+[0m     V:1 S:3.7129 | tile1d
+[0m      V:1 S:3.7129 | (4,)
+[0m    V:2 S:3.9588 | 12
+[0m     V:2 S:3.9588 | tile1d
+[0m      V:1 S:3.9588 | (2,)
+[0m      V:1 S:3.7495 | (3,)
+[0m    V:3 S:4.0143 | 20
+[0m     V:3 S:4.0143 | tile1d
+[0m      V:1 S:4.0143 | (3,)
+[0m      V:2 S:4.0143 | (4,)
+[0m   V:8 S:4.0146 | (4,)
+[0m    V:1 S:4.0146 | 6
+[0m     V:1 S:4.0146 | tile2d
+[0m      V:1 S:4.0146 | (4, 2)
+[0m    V:2 S:3.9746 | 12
+[0m     V:2 S:3.9746 | tile1d
+[0m      V:1 S:3.9746 | (2,)
+[0m      V:1 S:3.7211 | (3,)
+[0m    V:1 S:2.1221 | 23
+[0m     V:1 S:2.1221 | tile1d
+[0m      V:1 S:2.1221 | (3,)
+[0m V:14 S:4.0228 | 11
+[0m  V:14 S:4.0228 | tile1d
+[0m   V:4 S:4.0228 | (2,)
+[0m    V:1 S:2.1301 | 16
+[0m     V:1 S:2.1301 | split
+[0m      V:1 S:2.1301 | (1,)
+[0m    V:1 S:4.0228 | 20
+[0m     V:1 S:4.0228 | tile1d
+[0m      V:1 S:4.0228 | (3,)
+[0m   V:14 S:3.9729 | (3,)
+[0m    V:1 S:3.9712 | 1
+[0m     V:1 S:3.9712 | tile1d
+[0m      V:1 S:3.9712 | (2,)
+[0m    V:3 S:3.9725 | 6
+[0m     V:3 S:3.9725 | tile1d
+[0m      V:2 S:3.9725 | (2,)
+[0m      V:1 S:3.7167 | (4,)
+[0m    V:1 S:2.1375 | 16
+[0m     V:1 S:2.1375 | split
+[0m      V:1 S:2.1375 | (1,)
+[0m    V:1 S:3.7530 | 20
+[0m     V:1 S:3.7530 | tile1d
+[0m      V:1 S:3.7530 | (2,)
+[0m    V:1 S:2.1099 | 23
+[0m     V:1 S:2.1099 | tile1d
+[0m      V:1 S:2.1099 | (2,)
+[0m   V:10 S:4.0180 | (4,)
+[0m    V:3 S:3.9725 | 1
+[0m     V:3 S:3.9725 | tile1d
+[0m      V:1 S:3.9725 | (3,)
+[0m      V:2 S:3.9678 | (4,)
+[0m    V:2 S:2.1345 | 15
+[0m     V:2 S:2.1345 | tile1d
+[0m      V:2 S:2.1345 | (4,)
+[0m V:13 S:4.0829 | 14
+[0m  V:13 S:4.0829 | tile1d
+[0m   V:8 S:2.8688 | (2,)
+[0m    V:1 S:2.1274 | 6
+[0m     V:1 S:2.1274 | tile1d
+[0m      V:1 S:2.1274 | (2,)
+[0m    V:1 S:2.1518 | 11
+[0m     V:1 S:2.1518 | tile1d
+[0m      V:1 S:2.1518 | (4,)
+[0m    V:1 S:2.8688 | 14
+[0m     V:1 S:2.8688 | tile1d
+[0m      V:1 S:2.8688 | (2,)
+[0m    V:1 S:2.1467 | 15
+[0m     V:1 S:2.1467 | tile1d
+[0m      V:1 S:2.1467 | (4,)
+[0m   V:8 S:2.1521 | (3,)
+[0m    V:2 S:2.1521 | 1
+[0m     V:2 S:2.1521 | tile1d
+[0m      V:1 S:2.1297 | (2,)
+[0m      V:1 S:2.1521 | (3,)
+[0m    V:1 S:2.1467 | 2
+[0m     V:1 S:2.1467 | split
+[0m      V:1 S:2.1467 | (1,)
+[0m    V:1 S:2.1453 | 11
+[0m     V:1 S:2.1453 | tile1d
+[0m      V:1 S:2.1453 | (4,)
+[0m   V:10 S:4.0829 | (4,)
+[0m    V:1 S:2.1457 | 2
+[0m     V:1 S:2.1457 | full_split
+[0m      V:1 S:2.1457 | []
+[0m    V:1 S:2.1306 | 15
+[0m     V:1 S:2.1306 | tile1d
+[0m      V:1 S:2.1306 | (4,)
+[0m    V:2 S:4.0829 | 16
+[0m     V:1 S:2.1393 | split
+[0m      V:1 S:2.1393 | (1,)
+[0m     V:1 S:4.0829 | full_split
+[0m      V:1 S:4.0829 | []
+[0m    V:1 S:2.1467 | 20
+[0m     V:1 S:2.1467 | tile1d
+[0m      V:1 S:2.1467 | (2,)
+[0m [32mV:10 S:8.2058 | 15
+[0m  V:3 S:4.0137 | split
+[0m   V:6 S:4.0137 | (1,)
+[0m    V:1 S:4.0137 | 14
+[0m     V:1 S:4.0137 | full_fuse
+[0m      V:1 S:4.0137 | []
+[0m    V:1 S:2.1292 | 21
+[0m     V:1 S:2.1292 | tile1d
+[0m      V:1 S:2.1292 | (4,)
+[0m    V:1 S:-1.0000 | 24
+[0m     V:1 S:-1.0000 | tile1d
+[0m      V:1 S:-1.0000 | (3,)
+[0m  [32mV:7 S:8.2058 | full_split
+[0m   [32mV:14 S:8.2058 | []
+[0m    V:2 S:8.2058 | 1
+[0m     V:2 S:8.2058 | tile1d
+[0m      V:1 S:8.2058 | (3,)
+[0m      V:1 S:7.1470 | (4,)
+[0m    V:1 S:8.2000 | 6
+[0m     V:1 S:8.2000 | tile1d
+[0m      V:1 S:8.2000 | (3,)
+[0m    V:1 S:7.1325 | 11
+[0m     V:1 S:7.1325 | tile1d
+[0m      V:1 S:7.1325 | (4,)
+[0m    V:2 S:5.8711 | 20
+[0m     V:2 S:5.8711 | tile1d
+[0m      V:1 S:5.8711 | (2,)
+[0m      V:1 S:5.3142 | (3,)
+[0m    V:1 S:2.3403 | 24
+[0m     V:1 S:2.3403 | tile1d
+[0m      V:1 S:2.3403 | (3,)
+[0m V:12 S:4.0206 | 19
+[0m  V:12 S:4.0206 | tile1d
+[0m   V:6 S:4.0206 | (2,)
+[0m    V:1 S:4.0157 | 1
+[0m     V:1 S:4.0157 | tile1d
+[0m      V:1 S:4.0157 | (3,)
+[0m    V:1 S:4.0206 | 6
+[0m     V:1 S:4.0206 | tile1d
+[0m      V:1 S:4.0206 | (2,)
+[0m    V:1 S:4.0193 | 11
+[0m     V:1 S:4.0193 | tile1d
+[0m      V:1 S:4.0193 | (4,)
+[0m   V:10 S:4.0187 | (3,)
+[0m    V:1 S:2.1456 | 2
+[0m     V:1 S:2.1456 | split
+[0m      V:1 S:2.1456 | (3,)
+[0m    V:2 S:4.0187 | 6
+[0m     V:2 S:4.0187 | tile1d
+[0m      V:1 S:3.7504 | (2,)
+[0m      V:1 S:4.0187 | (3,)
+[0m    V:1 S:4.0129 | 20
+[0m     V:1 S:4.0129 | tile1d
+[0m      V:1 S:4.0129 | (3,)
+[0m    V:1 S:2.1233 | 23
+[0m     V:1 S:2.1233 | tile1d
+[0m      V:1 S:2.1233 | (4,)
+[0m   V:8 S:4.0160 | (4,)
+[0m    V:1 S:4.0121 | 1
+[0m     V:1 S:4.0121 | tile1d
+[0m      V:1 S:4.0121 | (4,)
+[0m    V:2 S:2.1527 | 14
+[0m     V:2 S:2.1527 | tile1d
+[0m      V:1 S:2.1517 | (2,)
+[0m      V:1 S:2.1527 | (4,)
+[0m    V:1 S:2.1179 | 23
+[0m     V:1 S:2.1179 | tile1d
+[0m      V:1 S:2.1179 | (2,)
+[0m V:14 S:2.1292 | 22
+[0m  V:14 S:2.1292 | tile1d
+[0m   V:14 S:2.1292 | (2,)
+[0m    V:1 S:2.0995 | 11
+[0m     V:1 S:2.0995 | tile1d
+[0m      V:1 S:2.0995 | (3,)
+[0m    V:2 S:2.1075 | 14
+[0m     V:2 S:2.1075 | tile1d
+[0m      V:2 S:2.1075 | (3,)
+[0m    V:1 S:2.1185 | 15
+[0m     V:1 S:2.1185 | split
+[0m      V:1 S:2.1185 | (1,)
+[0m    V:3 S:2.1292 | 22
+[0m     V:2 S:2.1049 | tile1d
+[0m      V:1 S:2.1049 | (2,)
+[0m      V:1 S:1.7360 | (3,)
+[0m     V:1 S:2.1292 | interchange
+[0m      V:1 S:2.1292 | []
+[0m   V:6 S:2.1078 | (3,)
+[0m    V:1 S:2.1025 | 1
+[0m     V:1 S:2.1025 | tile1d
+[0m      V:1 S:2.1025 | (2,)
+[0m    V:1 S:2.1005 | 14
+[0m     V:1 S:2.1005 | tile1d
+[0m      V:1 S:2.1005 | (3,)
+[0m    V:1 S:2.1011 | 23
+[0m     V:1 S:2.1011 | tile1d
+[0m      V:1 S:2.1011 | (4,)
+[0m   V:8 S:2.1223 | (4,)
+[0m    V:2 S:2.1223 | 14
+[0m     V:2 S:2.1223 | tile1d
+[0m      V:1 S:2.1223 | (2,)
+[0m      V:1 S:2.1206 | (3,)
+[0m    V:1 S:2.1211 | 15
+[0m     V:1 S:2.1211 | split
+[0m      V:1 S:2.1211 | (1,)
+[0m    V:1 S:2.1120 | 23
+[0m     V:1 S:2.1120 | tile1d
+[0m      V:1 S:2.1120 | (3,)
+[0m
+BEST:
+V:100 S:8.2058 | START
+ V:10 S:8.2058 | 15
+  V:7 S:8.2058 | full_split
+   V:14 S:8.2058 | []
+
+speedup : 8.20580339247401
+source  : /hs/work0/home/users/emil.vatai/code/tadashi/examples/polybench/linear-algebra/solvers/gramschmidt/gramschmidt.c
+all done

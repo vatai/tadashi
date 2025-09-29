@@ -1,0 +1,228 @@
+Opening gemm
+Using -DEXTRALARGE_DATASET
+USING TIME LIMIT: 3.523692454211414
+Measure without transformations: -1.718477
+Gen 0
+Evaluation time: 5.4836273193359375e-06
+  Fitness values obtained:
+    -1.718477 [] --- -1.71847700
+  Fitness on generation 0: -1.71847700
+Gen 1
+Evaluation time: 175.9701418876648
+  Fitness values obtained:
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.782171 [[[0, 1], tadashi.TrEnum.TILE1D, [32]], ] --- -0.78217100
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.785141 [[[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78514100
+    -0.790212 [[[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [-2]], ] --- -0.79021200
+    -0.79446 [[[0, 7], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.79446000
+    -0.79446 [[[0, 7], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.79446000
+    -0.795158 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.79515800
+    -1.087216 [[[0, 2], tadashi.TrEnum.FULL_FUSE, []], ] --- -1.08721600
+    -1.087216 [[[0, 2], tadashi.TrEnum.FULL_FUSE, []], ] --- -1.08721600
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.719026 [[[0, 4], tadashi.TrEnum.SET_LOOP_OPT, [0, 1]], ] --- -1.71902600
+    -1.727407 [[[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 0]], ] --- -1.72740700
+    -3.523692454211414 [[[0, 8], tadashi.TrEnum.SET_PARALLEL, [25]], ] --- -3.52369245
+  Updating best_individual to [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+  Fitness on generation 1: -0.78155500
+Gen 2
+Evaluation time: 104.3118634223938
+  Fitness values obtained:
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.783874 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78387400
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784531 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_PARAM, [2, -24]], ] --- -0.78453100
+    -0.787247 [[[0, 7], tadashi.TrEnum.FULL_SHIFT_PARAM, [1, 32]], ] --- -0.78724700
+    -0.795158 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.79515800
+    -0.795158 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.79515800
+    -0.806496 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], ] --- -0.80649600
+    -0.837801 [[[0, 4], tadashi.TrEnum.SET_PARALLEL, [11]], ] --- -0.83780100
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.7246 [[[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 1]], ] --- -1.72460000
+    -1.727216 [[[0, 8], tadashi.TrEnum.SET_LOOP_OPT, [0, 1]], ] --- -1.72721600
+  Fitness on generation 2: -0.78155500
+Gen 3
+Evaluation time: 118.79756116867065
+  Fitness values obtained:
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.782103 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], ] --- -0.78210300
+    -0.782385 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [1, 1]], ] --- -0.78238500
+    -0.78337 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78337000
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784548 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78454800
+    -0.784737 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [24]], ] --- -0.78473700
+    -0.786234 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.78623400
+    -0.791088 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 4], tadashi.TrEnum.SET_PARALLEL, [11]], ] --- -0.79108800
+    -0.792035 [[[0, 4], tadashi.TrEnum.SET_PARALLEL, [11]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.79203500
+    -0.794425 [[[0, 8], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, -10]], ] --- -0.79442500
+    -0.795798 [[[0, 7], tadashi.TrEnum.FULL_SHIFT_PARAM, [1, 32]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 34]], ] --- -0.79579800
+    -1.01891 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_PARAM, [2, -24]], [[0, 8], tadashi.TrEnum.TILE1D, [32]], ] --- -1.01891000
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+  Fitness on generation 3: -0.78155500
+Gen 4
+Evaluation time: 103.76791858673096
+  Fitness values obtained:
+    -0.781949 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 17]], ] --- -0.78194900
+    -0.782165 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78216500
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782337 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 2], tadashi.TrEnum.SET_LOOP_OPT, [0, 0]], ] --- -0.78233700
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784262 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78426200
+    -0.784716 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.78471600
+    -0.785089 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 4], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 1, -23]], ] --- -0.78508900
+    -0.786274 [[[0, 7], tadashi.TrEnum.FULL_SHIFT_PARAM, [1, 32]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 34]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [24]], ] --- -0.78627400
+    -0.786599 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [24]], [[0, 7], tadashi.TrEnum.FULL_SHIFT_PARAM, [1, 32]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 34]], ] --- -0.78659900
+    -0.837801 [[[0, 4], tadashi.TrEnum.SET_PARALLEL, [11]], ] --- -0.83780100
+    -1.637523 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 9], tadashi.TrEnum.FULL_SHIFT_VAR, [0, 37]], ] --- -1.63752300
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+  Fitness on generation 4: -0.78155500
+Gen 5
+Evaluation time: 138.57299518585205
+  Fitness values obtained:
+    -0.77778 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], ] --- -0.77778000
+    -0.780597 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78059700
+    -0.78191 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78191000
+    -0.781944 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], ] --- -0.78194400
+    -0.783171 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 6], tadashi.TrEnum.SET_LOOP_OPT, [0, 0]], ] --- -0.78317100
+    -0.783211 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], ] --- -0.78321100
+    -0.783227 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 7], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.78322700
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.783572 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78357200
+    -0.783874 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78387400
+    -0.783874 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78387400
+    -0.784093 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], ] --- -0.78409300
+    -0.784188 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], ] --- -0.78418800
+    -0.785436 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.78543600
+    -0.791012 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 2], tadashi.TrEnum.SET_LOOP_OPT, [0, 0]], [[0, 8], tadashi.TrEnum.TILE1D, [512]], ] --- -0.79101200
+    -1.093345 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 62]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAR, [1, 40]], ] --- -1.09334500
+    -1.647881 [[[0, 7], tadashi.TrEnum.FULL_SHIFT_PARAM, [1, 32]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 34]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [24]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [1, 1, 20]], ] --- -1.64788100
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+  Updating best_individual to [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], ] --- -0.77778000
+  Fitness on generation 5: -0.77778000
+Gen 6
+Evaluation time: 159.88009977340698
+  Fitness values obtained:
+    -0.778283 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], ] --- -0.77828300
+    -0.780958 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 7], tadashi.TrEnum.FULL_SHIFT_VAR, [0, 39]], ] --- -0.78095800
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.781555 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78155500
+    -0.78191 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78191000
+    -0.78191 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78191000
+    -0.782043 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], ] --- -0.78204300
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782569 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 1], tadashi.TrEnum.FULL_FUSE, []], ] --- -0.78256900
+    -0.782614 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_PARALLEL, [33]], ] --- -0.78261400
+    -0.782865 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78286500
+    -0.783738 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78373800
+    -0.784569 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78456900
+    -0.785022 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], [[0, 7], tadashi.TrEnum.FULL_SHIFT_VAR, [0, -46]], ] --- -0.78502200
+    -0.785874 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78587400
+    -0.787579 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 6], tadashi.TrEnum.SET_LOOP_OPT, [0, 0]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 10]], ] --- -0.78757900
+    -0.814911 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.SET_PARALLEL, [63]], ] --- -0.81491100
+    -1.083492 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.TILE1D, [128]], ] --- -1.08349200
+    -1.631832 [[[0, 1], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.FUSE, [0, 1]], ] --- -1.63183200
+  Fitness on generation 6: -0.77778000
+Gen 7
+Evaluation time: 151.92442560195923
+  Fitness values obtained:
+    -0.780597 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78059700
+    -0.780597 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78059700
+    -0.781251 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_PARALLEL, [33]], [[0, 2], tadashi.TrEnum.FULL_SHIFT_VAR, [0, 21]], ] --- -0.78125100
+    -0.782006 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 1], tadashi.TrEnum.FULL_FUSE, []], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [28]], ] --- -0.78200600
+    -0.782165 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78216500
+    -0.782165 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78216500
+    -0.782269 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, -58]], ] --- -0.78226900
+    -0.782283 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78228300
+    -0.782301 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], ] --- -0.78230100
+    -0.782326 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78232600
+    -0.782326 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78232600
+    -0.783191 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78319100
+    -0.783191 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78319100
+    -0.783731 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], ] --- -0.78373100
+    -0.784058 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 7], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [0, 2, 57]], ] --- -0.78405800
+    -0.785515 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 7], tadashi.TrEnum.FULL_SHIFT_VAL, [36]], ] --- -0.78551500
+    -1.633905 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 1, 46]], ] --- -1.63390500
+    -1.718477 [] --- -1.71847700
+    -1.718477 [] --- -1.71847700
+    -3.523692454211414 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 1], tadashi.TrEnum.FULL_FUSE, []], [[0, 7], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 2, -42]], ] --- -3.52369245
+  Fitness on generation 7: -0.77778000
+Gen 8
+Evaluation time: 169.5724368095398
+  Fitness values obtained:
+    -0.778959 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.77895900
+    -0.778959 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.77895900
+    -0.782153 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.FULL_SHIFT_PARAM, [0, 42]], ] --- -0.78215300
+    -0.782439 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, -58]], [[0, 6], tadashi.TrEnum.TILE1D, [64]], ] --- -0.78243900
+    -0.782481 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 1], tadashi.TrEnum.FULL_FUSE, []], [[0, 8], tadashi.TrEnum.FULL_SHIFT_VAL, [28]], [[0, 4], tadashi.TrEnum.TILE1D, [512]], ] --- -0.78248100
+    -0.782499 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [1, 1]], ] --- -0.78249900
+    -0.78266 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_PARALLEL, [33]], [[0, 2], tadashi.TrEnum.FULL_SHIFT_VAR, [0, 21]], [[0, 3], tadashi.TrEnum.FULL_FUSE, []], ] --- -0.78266000
+    -0.782787 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 4], tadashi.TrEnum.FULL_SHIFT_VAR, [1, -20]], ] --- -0.78278700
+    -0.78302 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.SET_PARALLEL, [33]], [[0, 2], tadashi.TrEnum.FULL_SHIFT_VAR, [0, 21]], [[0, 2], tadashi.TrEnum.SET_PARALLEL, [8]], ] --- -0.78302000
+    -0.78314 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], ] --- -0.78314000
+    -0.783422 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, -58]], ] --- -0.78342200
+    -0.783755 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78375500
+    -0.783755 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78375500
+    -0.783874 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78387400
+    -0.78431 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78431000
+    -0.78431 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78431000
+    -0.78431 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78431000
+    -0.78431 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78431000
+    -0.784644 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], ] --- -0.78464400
+    -2.91931 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 7], tadashi.TrEnum.INTERCHANGE, []], ] --- -2.91931000
+  Fitness on generation 8: -0.77778000
+Gen 9
+Evaluation time: 162.4589467048645
+  Fitness values obtained:
+    -0.781373 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 3], tadashi.TrEnum.TILE1D, [256]], [[0, 3], tadashi.TrEnum.TILE1D, [128]], [[0, 3], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, -58]], [[0, 3], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 0]], ] --- -0.78137300
+    -0.781813 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 1, 43]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], ] --- -0.78181300
+    -0.782103 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], ] --- -0.78210300
+    -0.782103 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], ] --- -0.78210300
+    -0.782209 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 4], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, -41]], ] --- -0.78220900
+    -0.782624 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78262400
+    -0.782941 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], ] --- -0.78294100
+    -0.78345 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_FUSE, []], ] --- -0.78345000
+    -0.783803 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78380300
+    -0.783837 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78383700
+    -0.783837 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78383700
+    -0.784137 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78413700
+    -0.784178 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78417800
+    -0.784235 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [1, 1]], [[0, 2], tadashi.TrEnum.FULL_FUSE, []], ] --- -0.78423500
+    -0.784282 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [1, 1]], [[0, 2], tadashi.TrEnum.FUSE, [0, 1]], ] --- -0.78428200
+    -0.785208 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 4], tadashi.TrEnum.SET_LOOP_OPT, [0, 3]], ] --- -0.78520800
+    -0.785397 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_VAL, [0, 1]], [[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], ] --- -0.78539700
+    -0.795158 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.79515800
+    -0.795158 [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], ] --- -0.79515800
+    -1.132148 [[[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 8], tadashi.TrEnum.TILE1D, [128]], ] --- -1.13214800
+  Fitness on generation 9: -0.77778000
+Final model: [[[0, 8], tadashi.TrEnum.PARTIAL_SHIFT_VAR, [0, 0, 58]], [[0, 1], tadashi.TrEnum.PARTIAL_SHIFT_PARAM, [1, 0, -21]], [[0, 2], tadashi.TrEnum.FULL_SPLIT, []], [[0, 3], tadashi.TrEnum.TILE2D, [128, 128]], [[0, 5], tadashi.TrEnum.TILE1D, [128]], ] --- -0.77778000

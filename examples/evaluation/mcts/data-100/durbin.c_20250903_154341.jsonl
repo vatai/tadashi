@@ -1,0 +1,2 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:43:41.158649", "speedup": 1, "transform": [], "source": "durbin.c"}
+{"cnt_rollouts": 4, "cnt_evals": 8, "timestamp": "2025-09-03T15:43:43.608003", "speedup": 1.1332252836304701, "transform": [[16, "tile1d", 2], [17, "tile1d", 3]], "source": "durbin-TMPFILE-2025-09-03T15-43-43.389309-hx2h366q.c"}

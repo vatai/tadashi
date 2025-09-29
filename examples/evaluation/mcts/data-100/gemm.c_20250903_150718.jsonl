@@ -1,0 +1,8 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:07:18.717256", "speedup": 1, "transform": [], "source": "gemm.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T15:07:20.026469", "speedup": 1.6386112777358972, "transform": [[8, "tile1d", 4]], "source": "gemm-TMPFILE-2025-09-03T15-07-18.734950-bo9zm3jp.c"}
+{"cnt_rollouts": 3, "cnt_evals": 5, "timestamp": "2025-09-03T15:07:25.375070", "speedup": 2.144080941665827, "transform": [[1, "tile1d", 2]], "source": "gemm-TMPFILE-2025-09-03T15-07-24.270681-h10284lk.c"}
+{"cnt_rollouts": 4, "cnt_evals": 7, "timestamp": "2025-09-03T15:07:27.651999", "speedup": 2.145634246379247, "transform": [[1, "tile1d", 2]], "source": "gemm-TMPFILE-2025-09-03T15-07-26.604858-jqd37dok.c"}
+{"cnt_rollouts": 9, "cnt_evals": 15, "timestamp": "2025-09-03T15:07:42.139931", "speedup": 2.2013169287668224, "transform": [[2, "full_split"]], "source": "gemm-TMPFILE-2025-09-03T15-07-41.119492-sgildcsv.c"}
+{"cnt_rollouts": 10, "cnt_evals": 18, "timestamp": "2025-09-03T15:07:45.321586", "speedup": 2.201744324176568, "transform": [[1, "tile1d", 3], [5, "tile1d", 4]], "source": "gemm-TMPFILE-2025-09-03T15-07-44.269953-r3nwnp5_.c"}
+{"cnt_rollouts": 38, "cnt_evals": 53, "timestamp": "2025-09-03T15:08:34.902672", "speedup": 2.2042107093807464, "transform": [[4, "tile1d", 4]], "source": "gemm-TMPFILE-2025-09-03T15-08-33.875761-olskiuaw.c"}
+{"cnt_rollouts": 53, "cnt_evals": 68, "timestamp": "2025-09-03T15:09:00.223751", "speedup": 2.207442809923917, "transform": [[4, "tile1d", 4]], "source": "gemm-TMPFILE-2025-09-03T15-08-59.204373-m1rnq39u.c"}

@@ -1,0 +1,8 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-09T08:33:16.299895", "speedup": 1, "transform": [], "source": "trmm.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-09T08:33:17.907826", "speedup": 111.50121812571058, "transform": [[1, "set_parallel", 0]], "source": "trmm-TMPFILE-2025-09-09T08-33-16.312744-h26t4924.c"}
+{"cnt_rollouts": 60, "cnt_evals": 79, "timestamp": "2025-09-09T09:19:40.070339", "speedup": 111.82814790682521, "transform": [[3, "full_split"], [1, "set_parallel", 0]], "source": "trmm-TMPFILE-2025-09-09T09-19-38.480038-wwbn7jdv.c"}
+{"cnt_rollouts": 71, "cnt_evals": 91, "timestamp": "2025-09-09T09:24:38.734742", "speedup": 112.52671741822685, "transform": [[3, "full_split"], [1, "set_parallel", 0]], "source": "trmm-TMPFILE-2025-09-09T09-24-37.168079-jzgiadwg.c"}
+{"cnt_rollouts": 76, "cnt_evals": 97, "timestamp": "2025-09-09T09:28:11.978191", "speedup": 139.41551965341395, "transform": [[1, "set_parallel", 0], [2, "interchange"]], "source": "trmm-TMPFILE-2025-09-09T09-28-10.607599-paj51_b2.c"}
+{"cnt_rollouts": 199, "cnt_evals": 198, "timestamp": "2025-09-09T10:12:04.462858", "speedup": 140.22552312650356, "transform": [[1, "set_parallel", 0], [2, "interchange"]], "source": "trmm-TMPFILE-2025-09-09T10-12-03.082131-rx6_25f0.c"}
+{"cnt_rollouts": 345, "cnt_evals": 292, "timestamp": "2025-09-09T10:55:47.759794", "speedup": 145.48534224964092, "transform": [[1, "set_parallel", 0], [2, "interchange"]], "source": "trmm-TMPFILE-2025-09-09T10-55-46.398635-fznrf3pz.c"}
+{"cnt_rollouts": 752, "cnt_evals": 508, "timestamp": "2025-09-09T13:25:55.474454", "speedup": 145.7805488049454, "transform": [[1, "interchange"], [1, "set_parallel", 0]], "source": "trmm-TMPFILE-2025-09-09T13-25-54.068154-8y27pxx1.c"}

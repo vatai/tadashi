@@ -11,9 +11,9 @@ gemm = Polybench(
 )
 print(f"{gemm.user_compiler_options=}")
 
-# gemm.compile()
-# print(f"{gemm.measure()=}")
-for tile_size in [100]:
+gemm.compile()
+print(f"{gemm.measure()=}")
+for tile_size in [31, 100]:
     gemm.reset_scops()
     trs = [
         [0, 2, TrEnum.FULL_SPLIT],
@@ -30,7 +30,7 @@ for tile_size in [100]:
     print(gemm.scops[0].schedule_tree[7].yaml_str)
     tiled = gemm.generate_code(alt_infix=f"_tiled{tile_size}", ephemeral=False)
 
-    # tiled.compile()
-    # print(f"{tile_size=} : {tiled.measure()=}")
+    tiled.compile()
+    print(f"{tile_size=} : {tiled.measure()=}")
 
 print("DONE")

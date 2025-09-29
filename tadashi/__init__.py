@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 rtd = os.environ.get("READTHEDOCS")
-print(f"{rtd=}")
+
 if rtd != "True":
     from ctadashi import ctadashi
 
@@ -163,7 +163,8 @@ class Node:
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
         if not tr.valid_args(self, *args):
-            msg = f"Not valid transformation args: {args}"
+            tr_name = tr.__class__.__name__
+            msg = f"Not valid {args=}, for {tr_name=}"
             raise ValueError(msg)
 
         func = getattr(ctadashi, tr.func_name)
@@ -229,7 +230,9 @@ class Node:
 
 
 LowerUpperBound = namedtuple(
-    "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
+    "LowerUpperBound",
+    ["lower", "upper"],
+    defaults=[None, None],
 )
 """Integer interval description.
 
@@ -279,8 +282,8 @@ def _tilable(node: Node, dim: int) -> bool:
     for _ in range(dim):
         if node.node_type != NodeType.BAND:
             return False
-        if "tiled" in node.label and "outer" in node.label:
-            return False
+        # if "tile" in node.label and "outer" in node.label:
+        #     return False
         node = node.children[0]
     return True
 
@@ -300,7 +303,7 @@ class Tile1DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -319,8 +322,8 @@ class Tile2DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -339,9 +342,9 @@ class Tile3DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -713,7 +716,8 @@ class Scops:
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
-        ctadashi.free_scops(self.pool_idx)
+        if ctadashi:
+            ctadashi.free_scops(self.pool_idx)
 
     @staticmethod
     def _check_missing_file(path: Path):
