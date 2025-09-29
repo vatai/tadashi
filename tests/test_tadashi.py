@@ -13,6 +13,9 @@ class TestTadashi(unittest.TestCase):
         node = app.scops[0].schedule_tree[3]
         tr = TrEnum.PARTIAL_SHIFT_VAR
         avail_args = node.available_args(tr)
-        args = node.get_args(tr, -3, 2)
+        start, end = -3, 2
+        args = node.get_args(tr, start, end)
         node.transform(tr, *args[0])
-        self.assertEqual(len(avail_args[0]) * 5, len(args))
+        # args have `end - start` selections for the last dim, which
+        # is an infinite interval...
+        self.assertEqual(len(avail_args[0]) * (end - start), len(args))

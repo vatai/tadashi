@@ -1,0 +1,11 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T17:20:10.734340", "speedup": 1, "transform": [], "source": "jacobi-2d.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T17:20:15.909982", "speedup": 1.611422904069016, "transform": [[5, "tile1d", 2]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-10.757785-g0rl86z2.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-03T17:20:20.607853", "speedup": 1.7927407443897998, "transform": [[5, "tile1d", 2], [2, "full_fuse"]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-15.951116-s6xj4nsk.c"}
+{"cnt_rollouts": 3, "cnt_evals": 5, "timestamp": "2025-09-03T17:20:34.943871", "speedup": 2.062289376342777, "transform": [[9, "tile1d", 4]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-30.842123-bq_8zvn2.c"}
+{"cnt_rollouts": 3, "cnt_evals": 6, "timestamp": "2025-09-03T17:20:39.003379", "speedup": 2.1091572376927843, "transform": [[9, "tile1d", 4], [10, "tile1d", 2]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-34.984729-1fxu5g52.c"}
+{"cnt_rollouts": 4, "cnt_evals": 7, "timestamp": "2025-09-03T17:20:42.477441", "speedup": 2.4755249291964025, "transform": [[1, "tile1d", 3]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-39.021268-ha9iw89r.c"}
+{"cnt_rollouts": 4, "cnt_evals": 8, "timestamp": "2025-09-03T17:20:45.986709", "speedup": 2.4840472513453413, "transform": [[1, "tile1d", 3], [3, "full_fuse"]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-42.541707-lfhk16qy.c"}
+{"cnt_rollouts": 6, "cnt_evals": 12, "timestamp": "2025-09-03T17:21:01.025212", "speedup": 2.5049021810379744, "transform": [[8, "tile1d", 2], [1, "tile1d", 4]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-20-57.595621-fa50b5pr.c"}
+{"cnt_rollouts": 19, "cnt_evals": 33, "timestamp": "2025-09-03T17:22:37.234588", "speedup": 2.5396731444796, "transform": [[4, "interchange"]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-22-33.841904-03y_9gxt.c"}
+{"cnt_rollouts": 30, "cnt_evals": 51, "timestamp": "2025-09-03T17:23:54.892545", "speedup": 2.6007990378459396, "transform": [[8, "tile1d", 2], [2, "full_split"]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-23-51.595978-9j93f8k_.c"}
+{"cnt_rollouts": 84, "cnt_evals": 120, "timestamp": "2025-09-03T17:29:25.512762", "speedup": 2.6044751714561287, "transform": [[8, "tile1d", 3], [2, "full_split"]], "source": "jacobi-2d-TMPFILE-2025-09-03T17-29-22.214465-11j175_4.c"}

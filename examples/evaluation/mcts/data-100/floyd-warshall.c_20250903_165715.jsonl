@@ -1,0 +1,4 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T16:57:15.250789", "speedup": 1, "transform": [], "source": "floyd-warshall.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T16:57:37.877869", "speedup": 4.292029279494991, "transform": [[3, "tile1d", 4]], "source": "floyd-warshall-TMPFILE-2025-09-03T16-57-15.265820-wuf6j412.c"}
+{"cnt_rollouts": 10, "cnt_evals": 18, "timestamp": "2025-09-03T17:10:40.957854", "speedup": 4.694742704926057, "transform": [[3, "tile1d", 4], [2, "tile2d", 3, 4]], "source": "floyd-warshall-TMPFILE-2025-09-03T17-10-20.242539-n02kwbh3.c"}
+{"cnt_rollouts": 17, "cnt_evals": 26, "timestamp": "2025-09-03T17:18:08.294592", "speedup": 4.7217998306048745, "transform": [[3, "tile1d", 4], [2, "tile2d", 3, 4]], "source": "floyd-warshall-TMPFILE-2025-09-03T17-17-47.684718-7vq3p140.c"}

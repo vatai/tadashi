@@ -1,0 +1,10 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T16:56:24.293998", "speedup": 1, "transform": [], "source": "nussinov.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T16:56:27.174681", "speedup": 8.402228052046484, "transform": [[15, "tile1d", 4]], "source": "nussinov-TMPFILE-2025-09-03T16-56-24.338349-ovyhejlp.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-03T16:56:30.113898", "speedup": 8.428799019896019, "transform": [[15, "tile1d", 4], [3, "split", 1]], "source": "nussinov-TMPFILE-2025-09-03T16-56-27.280188-0v5nvxbh.c"}
+{"cnt_rollouts": 3, "cnt_evals": 3, "timestamp": "2025-09-03T16:56:32.213424", "speedup": 13.1371535381486, "transform": [[1, "tile1d", 4]], "source": "nussinov-TMPFILE-2025-09-03T16-56-30.278414-5tl1b1ad.c"}
+{"cnt_rollouts": 3, "cnt_evals": 4, "timestamp": "2025-09-03T16:56:34.395702", "speedup": 13.16704931160645, "transform": [[1, "tile1d", 4], [4, "split", 2]], "source": "nussinov-TMPFILE-2025-09-03T16-56-32.469697-srm1royv.c"}
+{"cnt_rollouts": 8, "cnt_evals": 12, "timestamp": "2025-09-03T16:56:59.172135", "speedup": 13.46056863679009, "transform": [[2, "tile1d", 3], [2, "tile1d", 2]], "source": "nussinov-TMPFILE-2025-09-03T16-56-57.053785-fqa6tp3o.c"}
+{"cnt_rollouts": 9, "cnt_evals": 14, "timestamp": "2025-09-03T16:57:03.292927", "speedup": 13.563422225165313, "transform": [[1, "tile1d", 3], [4, "split", 1]], "source": "nussinov-TMPFILE-2025-09-03T16-57-01.400839-z4ysp3if.c"}
+{"cnt_rollouts": 10, "cnt_evals": 15, "timestamp": "2025-09-03T16:57:05.068015", "speedup": 14.442504672219385, "transform": [[1, "interchange"]], "source": "nussinov-TMPFILE-2025-09-03T16-57-03.305219-ydbciaop.c"}
+{"cnt_rollouts": 12, "cnt_evals": 20, "timestamp": "2025-09-03T16:57:19.069320", "speedup": 14.483481131490976, "transform": [[1, "interchange"], [1, "tile2d", 2, 4]], "source": "nussinov-TMPFILE-2025-09-03T16-57-17.241916-ou247hqp.c"}
+{"cnt_rollouts": 95, "cnt_evals": 93, "timestamp": "2025-09-03T17:00:43.475863", "speedup": 14.564083863234668, "transform": [[2, "tile1d", 4], [1, "interchange"]], "source": "nussinov-TMPFILE-2025-09-03T17-00-41.694591-4kvp92iw.c"}

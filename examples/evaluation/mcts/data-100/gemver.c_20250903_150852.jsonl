@@ -1,0 +1,5 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:08:52.448501", "speedup": 1, "transform": [], "source": "gemver.c"}
+{"cnt_rollouts": 5, "cnt_evals": 9, "timestamp": "2025-09-03T15:08:55.302309", "speedup": 1.1066176470588236, "transform": [[15, "tile1d", 3]], "source": "gemver-TMPFILE-2025-09-03T15-08-55.033569-vots8dp6.c"}
+{"cnt_rollouts": 7, "cnt_evals": 12, "timestamp": "2025-09-03T15:08:56.283816", "speedup": 1.1146686766730027, "transform": [[14, "tile1d", 2], [3, "tile2d", 2, 3]], "source": "gemver-TMPFILE-2025-09-03T15-08-55.996282-xr4gjr5a.c"}
+{"cnt_rollouts": 8, "cnt_evals": 13, "timestamp": "2025-09-03T15:08:56.573507", "speedup": 1.4142031516361067, "transform": [[14, "tile2d", 4, 4]], "source": "gemver-TMPFILE-2025-09-03T15-08-56.294361-yh6y0x3d.c"}
+{"cnt_rollouts": 15, "cnt_evals": 27, "timestamp": "2025-09-03T15:09:00.815643", "speedup": 1.6063568527439314, "transform": [[7, "interchange"]], "source": "gemver-TMPFILE-2025-09-03T15-09-00.551862-9hpgsyyq.c"}

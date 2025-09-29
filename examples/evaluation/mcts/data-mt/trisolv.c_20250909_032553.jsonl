@@ -1,0 +1,4 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-09T03:25:53.886687", "speedup": 1, "transform": [], "source": "trisolv.c"}
+{"cnt_rollouts": 23, "cnt_evals": 23, "timestamp": "2025-09-09T03:26:19.000765", "speedup": 4.557642487046632, "transform": [[6, "tile1d", 32], [1, "set_parallel", 0]], "source": "trisolv-TMPFILE-2025-09-09T03-26-18.110073-7wuldwip.c"}
+{"cnt_rollouts": 60, "cnt_evals": 57, "timestamp": "2025-09-09T03:26:53.371007", "speedup": 4.647952443857331, "transform": [[1, "tile1d", 64], [1, "set_parallel", 0]], "source": "trisolv-TMPFILE-2025-09-09T03-26-52.468315-eo9pywso.c"}
+{"cnt_rollouts": 519, "cnt_evals": 272, "timestamp": "2025-09-09T03:31:34.479281", "speedup": 4.934782608695652, "transform": [[1, "tile1d", 64], [1, "set_parallel", 0]], "source": "trisolv-TMPFILE-2025-09-09T03-31-33.583571-ln5dw7al.c"}

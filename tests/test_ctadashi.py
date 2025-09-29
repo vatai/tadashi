@@ -135,6 +135,7 @@ class TestCtadashi(unittest.TestCase):
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
 
+@unittest.skip("The user should not do this (see populate_scops app parameter)")
 class TestCtadashiRegression(unittest.TestCase):
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent

@@ -14,6 +14,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 # Common installation directories
 include(GNUInstallDirs)
 
@@ -32,6 +33,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
 set(CMAKE_INSTALL_RPATH_USE_ORIGIN TRUE)
+# To find locally installed packages
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/deps/opt)
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED )
 

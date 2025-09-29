@@ -1,5 +1,0 @@
-{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-04-11T13:32:13.480428", "speedup": 1, "transform": [], "source": "doitgen.c"}
-{"cnt_rollouts": 78, "cnt_evals": 207, "timestamp": "2025-04-11T13:51:45.205565", "speedup": 2.8400170575368233, "transform": [[6, "full_split"], [2, "tile1d", 3], [11, "interchange"]], "source": "doitgen-TMPFILE-2025-04-11T13:51:43.666713-ma272kxb.c"}
-{"cnt_rollouts": 228, "cnt_evals": 612, "timestamp": "2025-04-11T14:21:13.906285", "speedup": 2.900790626045159, "transform": [[6, "full_split"], [3, "full_split"], [10, "interchange"]], "source": "doitgen-TMPFILE-2025-04-11T14:21:12.499594-bh5phdd9.c"}
-{"cnt_rollouts": 1105, "cnt_evals": 3018, "timestamp": "2025-04-11T17:51:07.938579", "speedup": 2.903653198227219, "transform": [[6, "full_split"], [10, "interchange"], [3, "full_split"]], "source": "doitgen-TMPFILE-2025-04-11T17:51:06.404169-4ybqrizc.c"}
-{"cnt_rollouts": 1224, "cnt_evals": 3347, "timestamp": "2025-04-11T18:17:19.999124", "speedup": 2.9533948637540686, "transform": [[6, "full_split"], [10, "interchange"]], "source": "doitgen-TMPFILE-2025-04-11T18:17:18.437474-pqjkzsqy.c"}

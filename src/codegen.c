@@ -382,13 +382,14 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
 static int
 get_num_threads_from_pragma_parallel(__isl_take isl_id *id) {
+  const int failure = -1;
   if (!id)
-    return 0;
+    return failure;
   const char *id_name = isl_id_get_name(id);
   int num_threads;
   int rv = sscanf(id_name, "pragma_parallel_%d", &num_threads);
   isl_id_free(id);
-  return rv == 1 ? num_threads : 0;
+  return rv == 1 ? num_threads : failure;
 }
 
 static __isl_give isl_printer *
@@ -403,10 +404,13 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   isl_id *annotation = isl_ast_node_get_annotation(for_node);
 
   int num_threads = get_num_threads_from_pragma_parallel(annotation);
-  if (num_threads) {
+  if (num_threads != -1) {
     char pragma_line[LINE_MAX];
-    sprintf(pragma_line, "#pragma omp parallel for num_threads(%d)\n",
-            num_threads);
+    if (num_threads)
+      sprintf(pragma_line, "#pragma omp parallel for num_threads(%d)\n",
+              num_threads);
+    else
+      sprintf(pragma_line, "#pragma omp parallel for\n");
     p = isl_printer_print_str(p, pragma_line);
   }
 

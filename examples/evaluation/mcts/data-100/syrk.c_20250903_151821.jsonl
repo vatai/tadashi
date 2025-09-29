@@ -1,0 +1,7 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:18:21.093018", "speedup": 1, "transform": [], "source": "syrk.c"}
+{"cnt_rollouts": 2, "cnt_evals": 1, "timestamp": "2025-09-03T15:18:22.940305", "speedup": 1.546893848681551, "transform": [[4, "tile1d", 4]], "source": "syrk-TMPFILE-2025-09-03T15-18-21.127298-o861ngc1.c"}
+{"cnt_rollouts": 7, "cnt_evals": 11, "timestamp": "2025-09-03T15:18:50.582055", "speedup": 1.5473055707136858, "transform": [[1, "tile1d", 2]], "source": "syrk-TMPFILE-2025-09-03T15-18-48.772417-3y7enyms.c"}
+{"cnt_rollouts": 18, "cnt_evals": 32, "timestamp": "2025-09-03T15:19:51.120662", "speedup": 1.5484226570524828, "transform": [[1, "tile1d", 2], [2, "tile1d", 4]], "source": "syrk-TMPFILE-2025-09-03T15-19-49.298305-fr4nt4cl.c"}
+{"cnt_rollouts": 19, "cnt_evals": 33, "timestamp": "2025-09-03T15:19:52.937127", "speedup": 1.5489378681893338, "transform": [[1, "tile1d", 3]], "source": "syrk-TMPFILE-2025-09-03T15-19-51.127199-vaghd7fy.c"}
+{"cnt_rollouts": 27, "cnt_evals": 45, "timestamp": "2025-09-03T15:20:25.813174", "speedup": 1.5491136316114258, "transform": [[4, "tile1d", 3], [5, "tile1d", 3]], "source": "syrk-TMPFILE-2025-09-03T15-20-24.006631-0v6nbx90.c"}
+{"cnt_rollouts": 41, "cnt_evals": 63, "timestamp": "2025-09-03T15:21:14.838604", "speedup": 1.7226005305295513, "transform": [[2, "full_split"], [8, "tile2d", 4, 2]], "source": "syrk-TMPFILE-2025-09-03T15-21-13.178442-iea83_kw.c"}

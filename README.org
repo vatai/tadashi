@@ -50,10 +50,15 @@ After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps
 app.
 
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  #!/bin/env python
   from pathlib import Path
+  from random import choice, seed
 
   import tadashi
   from tadashi.apps import Simple
+
+  seed(1234)
+
   dir_path = Path(__file__).parent
   examples_path = dir_path if dir_path.name == "examples" else "examples"
   app = Simple(f"{examples_path}/inputs/depnodep.c")
@@ -61,50 +66,41 @@ app.
 #+end_src
 
 #+RESULTS:
-: <tadashi.apps.Simple object at 0x7260a57196d0>
+: <tadashi.apps.Simple object at 0x7f7dfe220dd0>
 
 Select a node and a transformation, and check that the transformation
 is available on the selected node.
 #+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
   node = app.scops[0].schedule_tree[1]
   print(f"{node=}")
-  tr = tadashi.TrEnum.FULL_SHIFT_VAR
-  print(f"{tr in node.available_transformations=}")
+  tr = choice(node.available_transformations)
+  print(f"{tr=}")
   # output:
 #+end_src
 
 #+RESULTS:
 : node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['j', 'i']}], [N] -> L_0[{ S_0[j, i] -> [(j)] }], [0]
-: tr in node.available_transformations=True
+: tr=TrEnum.FULL_SHIFT_PARAM
 
 Check the available arguments for the given node-transformation pair.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
-  print(f"{tr=}")
-  lu = node.available_args(tr)
-  print(f"{len(lu)=}")
-  print(f"{lu[0]=}")
-  print(f"{lu[1]=}")
+  args = choice(node.get_args(tr, -10, 10))
+  print(f"{args=}")
   # output:
 #+end_src
 
 #+RESULTS:
-: tr=<TrEnum.FULL_SHIFT_VAR: 'full_shift_var'>
-: len(lu)=2
-: lu[0]=LowerUpperBound(lower=None, upper=None)
-: lu[1]=LowerUpperBound(lower=0, upper=2)
+: args=[0, -7]
 
 
 Perform the transformation and check legality.
 #+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
-  args = [1, 13]
-  print(f"{node.valid_args(tr, *args)=}")
   legal = node.transform(tr, *args)
   print(f"{legal=}")
   # output:
 #+end_src
 
 #+RESULTS:
-: node.valid_args(tr, *args)=True
 : legal=True
 
 Generate new code, compile it and measure the performance.

@@ -1,0 +1,11 @@
+{"cnt_rollouts": 0, "cnt_evals": 0, "timestamp": "2025-09-03T15:59:03.143173", "speedup": 1, "transform": [], "source": "lu.c"}
+{"cnt_rollouts": 1, "cnt_evals": 1, "timestamp": "2025-09-03T16:00:13.734612", "speedup": 2.9716657199946876, "transform": [[13, "tile1d", 3]], "source": "lu-TMPFILE-2025-09-03T15-59-03.175355-taovhyaj.c"}
+{"cnt_rollouts": 1, "cnt_evals": 2, "timestamp": "2025-09-03T16:01:23.432398", "speedup": 2.9724985394399255, "transform": [[13, "tile1d", 3], [2, "full_fuse"]], "source": "lu-TMPFILE-2025-09-03T16-00-13.792985-62yh5dwv.c"}
+{"cnt_rollouts": 2, "cnt_evals": 3, "timestamp": "2025-09-03T16:02:32.873608", "speedup": 3.7526908251560602, "transform": [[12, "tile2d", 4, 2]], "source": "lu-TMPFILE-2025-09-03T16-01-23.459395-s68qxre_.c"}
+{"cnt_rollouts": 2, "cnt_evals": 4, "timestamp": "2025-09-03T16:03:42.613807", "speedup": 3.765436087256052, "transform": [[12, "tile2d", 4, 2], [2, "full_fuse"]], "source": "lu-TMPFILE-2025-09-03T16-02-32.981789-ky7q35og.c"}
+{"cnt_rollouts": 11, "cnt_evals": 20, "timestamp": "2025-09-03T16:22:16.021744", "speedup": 3.774894572439343, "transform": [[12, "tile2d", 4, 2], [4, "tile1d", 4]], "source": "lu-TMPFILE-2025-09-03T16-21-07.502461-kdol_3zo.c"}
+{"cnt_rollouts": 14, "cnt_evals": 23, "timestamp": "2025-09-03T16:25:44.183365", "speedup": 4.008546941070803, "transform": [[12, "interchange"]], "source": "lu-TMPFILE-2025-09-03T16-24-35.227990-93flnal2.c"}
+{"cnt_rollouts": 14, "cnt_evals": 24, "timestamp": "2025-09-03T16:26:54.131728", "speedup": 4.008929167926905, "transform": [[12, "interchange"], [1, "tile1d", 4]], "source": "lu-TMPFILE-2025-09-03T16-25-44.234988-y3vy75k7.c"}
+{"cnt_rollouts": 38, "cnt_evals": 60, "timestamp": "2025-09-03T17:09:11.013543", "speedup": 4.0190354570143505, "transform": [[4, "tile1d", 3], [13, "interchange"]], "source": "lu-TMPFILE-2025-09-03T17-08-02.763945-k04trhme.c"}
+{"cnt_rollouts": 47, "cnt_evals": 70, "timestamp": "2025-09-03T17:20:43.784141", "speedup": 4.022211840600582, "transform": [[12, "interchange"], [2, "full_fuse"]], "source": "lu-TMPFILE-2025-09-03T17-19-33.490518-9enclqmc.c"}
+{"cnt_rollouts": 51, "cnt_evals": 74, "timestamp": "2025-09-03T17:25:30.381748", "speedup": 4.02614211381532, "transform": [[4, "tile1d", 4], [13, "interchange"]], "source": "lu-TMPFILE-2025-09-03T17-24-20.878539-un7t5ktc.c"}

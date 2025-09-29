@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import os
 from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
@@ -12,7 +13,10 @@ from enum import Enum, StrEnum, auto
 from pathlib import Path
 from typing import Optional
 
-from ctadashi import ctadashi
+rtd = os.environ.get("READTHEDOCS")
+
+if rtd != "True":
+    from ctadashi import ctadashi
 
 
 def _check_missing_file(path: Path):
@@ -24,15 +28,8 @@ class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
 
     `UNROLL` should be avoided unless the requirements in the
-    :ref:`ISL Docs` are satisfied.
-
-    .. _ISL Docs:
-    ISL Docs
-    ----
-    `ISL online user manual (AST generation options)`_.
-
-    .. _ISL online user manual (AST generation options):
-       https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree
+    `ISL Docs <https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree>`_.
+    are satisfied.
 
     """
 
@@ -171,7 +168,8 @@ class Node:
             msg = f"Not a valid transformation: {tr}"
             raise ValueError(msg)
         if not tr.valid_args(self, *args):
-            msg = f"Not valid transformation args: {args}"
+            tr_name = tr.__class__.__name__
+            msg = f"Not valid {args=}, for {tr_name=}"
             raise ValueError(msg)
 
         func = getattr(ctadashi, tr.func_name)
@@ -237,7 +235,9 @@ class Node:
 
 
 LowerUpperBound = namedtuple(
-    "LowerUpperBound", ["lower", "upper"], defaults=[None, None]
+    "LowerUpperBound",
+    ["lower", "upper"],
+    defaults=[None, None],
 )
 """Integer interval description.
 
@@ -287,8 +287,8 @@ def _tilable(node: Node, dim: int) -> bool:
     for _ in range(dim):
         if node.node_type != NodeType.BAND:
             return False
-        if "tiled" in node.label and "outer" in node.label:
-            return False
+        # if "tile" in node.label and "outer" in node.label:
+        #     return False
         node = node.children[0]
     return True
 
@@ -308,7 +308,7 @@ class Tile1DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -327,8 +327,8 @@ class Tile2DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -347,9 +347,9 @@ class Tile3DInfo(TransformInfo):
     @staticmethod
     def available_args(node: Node):
         return [
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
-            LowerUpperBound(lower=1, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
         ]
 
 
@@ -721,7 +721,8 @@ class Scops:
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
-        ctadashi.free_scops(self.pool_idx)
+        if ctadashi:
+            ctadashi.free_scops(self.pool_idx)
 
     def generate_code(self, input_path, output_path):
         """Generate the source code.

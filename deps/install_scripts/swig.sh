@@ -7,9 +7,7 @@ pushd /tmp || exit
 wget -c http://prdownloads.sourceforge.net/swig/swig-4.3.0.tar.gz
 tar xvf swig-4.3.0.tar.gz
 pushd swig-4.3.0 || exit
-./configure --prefix="$TADASHI_DEPS_PREFIX"
-make -j
-make install
+cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$TADASHI_DEPS_PREFIX"
+ninja -C build install
 popd || exit
-rm -rf swig-4.3.0
 popd || exit
