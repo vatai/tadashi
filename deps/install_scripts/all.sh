@@ -4,6 +4,7 @@
 #SBATCH -t 2:30:00
 # #SBATCH -o %x-%j.txt
 # #SBATCH -e %x-%j.txt
+set -e
 
 if [[ $HOSTNAME == login* ]]; then
     echo "DO NOT RUN THIS ON LOGIN NODE. Use `sbatch .../all.sh`"
@@ -12,7 +13,7 @@ fi
 
 TADASHI_ROOT="$(git rev-parse --show-toplevel)"
 rm -rf "${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/opt}"
-rm -rf "${BUILD_FILES:-$TADASHI_ROOT/deps/build_files}"
+# rm -rf "${BUILD_FILES:-$TADASHI_ROOT/deps/build_files}"
 
 source "$TADASHI_ROOT/scripts/genoa.source"
 

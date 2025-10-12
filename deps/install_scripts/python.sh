@@ -1,8 +1,9 @@
 #!/usr/bin/bash
+set -e
 
 TADASHI_DEPS_PREFIX=${TADASHI_DEPS_PREFIX:-$(git rev-parse --show-toplevel)/deps/opt}
 mkdir -p "$TADASHI_DEPS_PREFIX"
-BUILD_FILES="$(git rev-parse --show-toplevel)/deps/build_files"
+BUILD_FILES="/tmp/$(whoami)"
 mkdir -p "$BUILD_FILES"
 
 source "$(git rev-parse --show-toplevel)/scripts/genoa.source"
