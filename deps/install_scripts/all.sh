@@ -1,4 +1,9 @@
 #!/usr/bin/bash
+#SBATCH -p genoa
+#SBATCH -N 1
+#SBATCH -t 30:00
+# #SBATCH -o %x-%j.txt
+# #SBATCH -e %x-%j.txt
 
 if [[ $HOSTNAME == login* ]]; then
     echo "DO NOT RUN THIS ON LOGIN NODE. Use `sbatch .../all.sh`"
