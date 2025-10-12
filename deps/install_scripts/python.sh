@@ -2,10 +2,12 @@
 
 TADASHI_DEPS_PREFIX=${TADASHI_DEPS_PREFIX:-$(git rev-parse --show-toplevel)/deps/opt}
 mkdir -p "$TADASHI_DEPS_PREFIX"
+BUILD_FILES="$(git rev-parse --show-toplevel)/deps/build_files"
+mkdir -p "$BUILD_FILES"
 
-source $(git rev-parse --show-toplevel)/scripts/genoa.source
+source "$(git rev-parse --show-toplevel)/scripts/genoa.source"
 
-pushd /tmp || exit
+pushd "$BUILD_FILES" || exit
 wget -c https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tar.xz
 tar xvf  Python-3.12.0.tar.xz
 pushd Python-3.12.0 || exit
