@@ -6,7 +6,7 @@ mkdir -p "$TADASHI_DEPS_PREFIX"
 BUILD_FILES="/tmp/$(whoami)"
 mkdir -p "$BUILD_FILES"
 
-VERSION=18.1.0
+VERSION=19.1.1
 CMAKE_ARGS=(
     -S llvm -B build -G Ninja
     -DCMAKE_BUILD_TYPE=Release
