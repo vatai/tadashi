@@ -2,6 +2,7 @@
 
 if [[ $HOSTNAME == login* ]]; then
     echo "DO NOT RUN THIS ON LOGIN NODE. Use `sbatch .../all.sh`"
+    exit 1
 fi
 
 TADASHI_ROOT="$(git rev-parse --show-toplevel)"
