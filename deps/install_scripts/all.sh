@@ -1,5 +1,9 @@
 #!/usr/bin/bash
 
+if [[ $HOSTNAME == login* ]]; then
+    echo "DO NOT RUN THIS ON LOGIN NODE. Use `sbatch .../all.sh`"
+fi
+
 TADASHI_ROOT="$(git rev-parse --show-toplevel)"
 rm -rf "${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/opt}"
 rm -rf "${BUILD_FILES:-$TADASHI_ROOT/deps/build_files}"
