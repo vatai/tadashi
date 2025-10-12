@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #SBATCH -p genoa
 #SBATCH -N 1
-#SBATCH -t 30:00
+#SBATCH -t 2:30:00
 # #SBATCH -o %x-%j.txt
 # #SBATCH -e %x-%j.txt
 
