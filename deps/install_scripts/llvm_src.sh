@@ -5,7 +5,7 @@ mkdir -p "$TADASHI_DEPS_PREFIX"
 BUILD_FILES="$(git rev-parse --show-toplevel)/deps/build_files"
 mkdir -p "$BUILD_FILES"
 
-VERSION=20.1.8
+VERSION=18.1.0
 CMAKE_ARGS=(
     -S llvm -B build -G Ninja
     -DCMAKE_BUILD_TYPE=Release
