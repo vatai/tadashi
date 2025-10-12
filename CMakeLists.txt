@@ -52,7 +52,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   pet
-  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch1" || true
+  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch" || true
   GIT_REPOSITORY https://repo.or.cz/pet.git
   GIT_TAG master
   GIT_SHALLOW ON
