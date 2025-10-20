@@ -1,9 +1,12 @@
+#include <climits>
 #include <cstdio>
-#include <deque>
+#include <fstream>
+#include <iostream>
 #include <sstream>
 #include <vector>
 
 #include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <pet.h>
 
 #include "legality.h"
@@ -11,6 +14,28 @@
 
 Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
   scop = allocate_tadashi_scop(ps);
+  current_node = isl_schedule_get_root(scop->schedule);
+}
+
+Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
+    : tmp_node(nullptr), modified(false) {
+  std::ifstream istream(jscop_path);
+
+  json jscop;
+  istream >> jscop;
+  isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
+  isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
+  std::map<std::string, isl_union_map *> acc_map;
+  for (auto &s : jscop["statements"]) {
+    std::string name = s["name"];
+    isl_union_set *domain = isl_union_set_read_from_str(
+        ctx, s["domain"].template get<std::string>().c_str());
+    union_domain = isl_union_set_union(union_domain, domain);
+    isl_union_map *schedule = isl_union_map_read_from_str(
+        ctx, s["schedule"].template get<std::string>().c_str());
+    union_schedule = isl_union_map_union(union_schedule, schedule);
+  }
+  scop = allocate_tadashi_scop_from_json(union_domain, union_schedule);
   current_node = isl_schedule_get_root(scop->schedule);
 }
 
@@ -56,11 +81,46 @@ Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
   // printf("Scops::Scops(ctx=%p)\n", ctx);
 };
 
+Scops::Scops(char *compiler, char *input)
+    : ctx(isl_ctx_alloc_with_pet_options()) {
+  char cmd[LINE_MAX];
+  char *line = NULL;
+  size_t size = 0;
+  snprintf(
+      cmd, LINE_MAX,
+      "%s -S -emit-llvm %s -O1 -o - "
+      "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
+      "-polly-export-jscop -o %s.ll 2>&1",
+      compiler, input, input);
+  std::vector<std::string> json_paths;
+  FILE *out = popen(cmd, "r");
+  while (getline(&line, &size, out) != -1) {
+    char *ptr = strstr(line, "command not found");
+    if (ptr) {
+      std::cout << line << std::endl;
+// TODO throw an exception here!
+#warning "TODO"
+    }
+
+    ptr = line;
+    ptr = strstr(ptr, "' to '");
+    if (ptr) {
+      ptr += 6;
+      *strchr(ptr, '\'') = '\0';
+      json_paths.emplace_back(ptr);
+    }
+  }
+  free(line);
+  pclose(out);
+  for (std::string json_path : json_paths) {
+    this->scops.emplace_back(new Scop(ctx, json_path));
+  }
+}
+
 Scops::~Scops() {
   for (Scop *p : scops)
     delete p;
   scops.clear();
-  // printf("Scops::~Scops(ctx=%p)\n", ctx);
   isl_ctx_free(ctx);
 };
 
@@ -87,9 +147,8 @@ ScopsPool::~ScopsPool() {
 }
 
 size_t
-ScopsPool::add(char *input) {
+ScopsPool::add(Scops *scops_ptr) {
   size_t index = scops_vector.size();
-  Scops *scops_ptr = new Scops(input);
   if (!free_indexes.empty()) {
     index = free_indexes.front();
     free_indexes.pop_front();

@@ -19,6 +19,11 @@ if rtd != "True":
     from ctadashi import ctadashi
 
 
+def _check_missing_file(path: Path):
+    if not path.exists():
+        raise ValueError(f"{path} does not exist!")
+
+
 class AstLoopType(Enum):
     """Possible values for `SET_LOOP_OPT`.
 
@@ -710,7 +715,7 @@ class Scops:
     scops: list[Scop]
 
     def __init__(self, source_path: str):
-        self._check_missing_file(Path(source_path))
+        _check_missing_file(Path(source_path))
         self.pool_idx = ctadashi.init_scops(str(source_path))
         self.num_scops = ctadashi.num_scops(self.pool_idx)
         self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
@@ -719,10 +724,34 @@ class Scops:
         if ctadashi:
             ctadashi.free_scops(self.pool_idx)
 
-    @staticmethod
-    def _check_missing_file(path: Path):
-        if not path.exists():
-            raise ValueError(f"{path} does not exist!")
+    def generate_code(self, input_path, output_path):
+        """Generate the source code.
+
+        The transformations happen on the SCoPs (polyhedral
+        representations), and to put that into code, this method needs
+        to be called.
+
+        """
+        ctadashi.generate_code(self.pool_idx, str(input_path), str(output_path))
+
+    def __len__(self):
+        return self.num_scops
+
+    def __getitem__(self, idx):
+        return self.scops[idx]
+
+
+class LLVMScops(Scops):
+
+    def __init__(self, source_path: Path, compiler: str):
+        _check_missing_file(Path(source_path))
+        self.pool_idx = ctadashi.init_scops_from_json(compiler, str(source_path))
+        # self.pool_idx = ctadashi.init_scops_from_json(str(source_path))
+        self.num_scops = ctadashi.num_scops(self.pool_idx)
+        # print(f"{str(source_path)=}")
+        # print(f"{self.num_scops=}")
+        # print(f"{self.pool_idx=}")
+        self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
 
     def generate_code(self, input_path, output_path):
         """Generate the source code.
