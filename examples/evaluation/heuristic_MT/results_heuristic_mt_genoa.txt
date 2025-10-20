@@ -1,0 +1,749 @@
+
+/hs/work0/home/users/joao.batista/tadashi/deps/opt
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/correlation
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 12.499870
+FULL_SPLIT list validity: [True, True, True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True, True, True, True]
+transformation_list=[
+   [41, TrEnum.FULL_SPLIT],
+   [36, TrEnum.FULL_SPLIT],
+   [29, TrEnum.FULL_SPLIT],
+   [14, TrEnum.FULL_SPLIT],
+   [4, TrEnum.FULL_SPLIT],
+   [53, TrEnum.TILE2D, 32, 32],
+   [20, TrEnum.TILE2D, 32, 32],
+   [8, TrEnum.TILE2D, 32, 32],
+   [51, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True, True, True, True]
+Tiling with size 32: 0.050345
+Thats a 248.28x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+datamining/covariance
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 12.772636
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [19, TrEnum.FULL_SPLIT],
+   [4, TrEnum.FULL_SPLIT],
+   [25, TrEnum.TILE2D, 32, 32],
+   [15, TrEnum.TILE2D, 32, 32],
+   [8, TrEnum.TILE2D, 32, 32],
+   [23, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 0.034807
+Thats a 366.96x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 1.728502
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 0.035840
+Thats a 48.23x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gemver
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.034512
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True]
+transformation_list=[
+   [14, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+   [18, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True]
+Tiling with size 32: 0.019833
+Thats a 1.74x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/gesummv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.006514
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [9, TrEnum.FULL_SPLIT],
+   [2, TrEnum.FULL_SPLIT],
+   [9, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.002259
+Thats a 2.88x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/symm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 7.920488
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True]
+transformation_list=[
+   [8, TrEnum.FULL_SPLIT],
+   [3, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 6.562236
+Thats a 1.21x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syr2k
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 8.630314
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 0.060052
+Thats a 143.71x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/syrk
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 2.439765
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [2, TrEnum.FULL_SPLIT],
+   [8, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE3D, 32, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 0.035383
+Thats a 68.95x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/blas/trmm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 6.301427
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [3, TrEnum.FULL_SPLIT],
+   [4, TrEnum.TILE2D, 32, 32],
+   [1, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.038853
+Thats a 162.19x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/2mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 6.117517
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True]
+transformation_list=[
+   [14, TrEnum.FULL_SPLIT],
+   [5, TrEnum.FULL_SPLIT],
+   [19, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+   [15, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True]
+Tiling with size 32: 1.254397
+Thats a 4.88x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/3mm
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 9.754003
+FULL_SPLIT list validity: [True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True, True]
+transformation_list=[
+   [23, TrEnum.FULL_SPLIT],
+   [14, TrEnum.FULL_SPLIT],
+   [5, TrEnum.FULL_SPLIT],
+   [29, TrEnum.TILE2D, 32, 32],
+   [19, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+   [27, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True, True]
+Tiling with size 32: 2.693145
+Thats a 3.62x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/atax
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.004107
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True]
+Allowing parallel
+skipped tr: [17, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [7, TrEnum.FULL_SPLIT],
+   [15, TrEnum.TILE2D, 32, 32],
+   [11, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.003210
+Thats a 1.28x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/bicg
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.003297
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+skipped tr: [11, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True]
+transformation_list=[
+   [12, TrEnum.FULL_SPLIT],
+   [7, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 0.004942
+Thats a 0.67x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/doitgen
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 1.508405
+FULL_SPLIT list validity: [True, True]
+TILE 2D and 3D list validity: [True, True, True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True, True]
+transformation_list=[
+   [6, TrEnum.FULL_SPLIT],
+   [3, TrEnum.FULL_SPLIT],
+   [14, TrEnum.TILE2D, 32, 32],
+   [10, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True]
+Tiling with size 32: 0.995226
+Thats a 1.52x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/kernels/mvt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.027174
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [7, TrEnum.TILE2D, 32, 32],
+   [3, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 0.009490
+Thats a 2.86x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/cholesky
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 8.679562
+skipped tr: [5, TrEnum.FULL_SPLIT]
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 8.674296
+Thats a 1.00x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/durbin
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.010512
+skipped tr: [10, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+Allowing parallel
+skipped tr: [9, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.010478
+Thats a 1.00x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/gramschmidt
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 16.475414
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True]
+TILE 2D and 3D list validity: [True, True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [15, TrEnum.FULL_SPLIT],
+   [23, TrEnum.TILE2D, 32, 32],
+   [19, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 2.197631
+Thats a 7.50x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/lu
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 20.072782
+skipped tr: [5, TrEnum.FULL_SPLIT]
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True]
+transformation_list=[
+   [12, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 5.210761
+Thats a 3.85x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/ludcmp
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 20.004991
+skipped tr: [37, TrEnum.FULL_SPLIT]
+skipped tr: [27, TrEnum.FULL_SPLIT]
+skipped tr: [7, TrEnum.FULL_SPLIT]
+skipped tr: [4, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True]
+skipped tr: [21, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True]
+Allowing parallel
+skipped tr: [3, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True]
+transformation_list=[
+   [17, TrEnum.FULL_SPLIT],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 19.933700
+Thats a 1.00x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+linear-algebra/solvers/trisolv
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.007082
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.007130
+Thats a 0.99x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/deriche
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.420220
+skipped tr: [99, TrEnum.FULL_SPLIT]
+skipped tr: [77, TrEnum.FULL_SPLIT]
+skipped tr: [51, TrEnum.FULL_SPLIT]
+skipped tr: [29, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True, True, True, True]
+skipped tr: [111, TrEnum.TILE2D, 32, 32]
+skipped tr: [85, TrEnum.TILE2D, 32, 32]
+skipped tr: [56, TrEnum.TILE2D, 32, 32]
+skipped tr: [30, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+Allowing parallel
+SET_PARALLEL list validity [True, True, True, True, True, True, True]
+transformation_list=[
+   [88, TrEnum.FULL_SPLIT],
+   [68, TrEnum.FULL_SPLIT],
+   [40, TrEnum.FULL_SPLIT],
+   [20, TrEnum.FULL_SPLIT],
+   [125, TrEnum.TILE2D, 32, 32],
+   [70, TrEnum.TILE2D, 32, 32],
+   [127, TrEnum.SET_PARALLEL, 0],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True, True]
+Tiling with size 32: 0.412220
+Thats a 1.02x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/floyd-warshall
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 95.703346
+FULL_SPLIT list validity: []
+skipped tr: [1, TrEnum.TILE3D, 32, 32, 32]
+skipped tr: [1, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: [True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True]
+transformation_list=[
+   [2, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 15.386307
+Thats a 6.22x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+medley/nussinov
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 22.281526
+skipped tr: [3, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True]
+transformation_list=[
+   [1, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True]
+Tiling with size 32: 1.500456
+Thats a 14.85x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/adi
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 56.192333
+skipped tr: [30, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: [True, True, True, True]
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+Allowing parallel
+skipped tr: [29, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [63, TrEnum.FULL_SPLIT],
+   [54, TrEnum.FULL_SPLIT],
+   [42, TrEnum.FULL_SPLIT],
+   [33, TrEnum.FULL_SPLIT],
+   [82, TrEnum.TILE2D, 32, 32],
+   [55, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 47.340693
+Thats a 1.19x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/fdtd-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 7.745367
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True]
+transformation_list=[
+   [15, TrEnum.TILE2D, 32, 32],
+   [11, TrEnum.TILE2D, 32, 32],
+   [7, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True]
+Tiling with size 32: 4.196322
+Thats a 1.85x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/heat-3d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 13.013964
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True, True, True, True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True, True, True, True, True]
+transformation_list=[
+   [10, TrEnum.TILE2D, 32, 32],
+   [9, TrEnum.TILE3D, 32, 32, 32],
+   [9, TrEnum.TILE2D, 32, 32],
+   [5, TrEnum.TILE2D, 32, 32],
+   [4, TrEnum.TILE3D, 32, 32, 32],
+   [4, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True, True, True, True, True]
+Tiling with size 32: 3.541596
+Thats a 3.67x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-1d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 0.003445
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: []
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 0.003446
+Thats a 1.00x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/jacobi-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 7.847753
+skipped tr: [2, TrEnum.FULL_SPLIT]
+FULL_SPLIT list validity: []
+TILE 2D and 3D list validity: [True, True]
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity [True, True]
+transformation_list=[
+   [8, TrEnum.TILE2D, 32, 32],
+   [4, TrEnum.TILE2D, 32, 32],
+]
+Tiling with size 32 ...
+Is this transformation list valid: [True, True]
+Tiling with size 32: 3.799356
+Thats a 2.07x speedup!
+[FINISHED APP]
+
+
+-----------------------------------------
+
+[STARTING NEW APP]
+stencils/seidel-2d
+app.user_compiler_options=['-DEXTRALARGE_DATASET', '-O3']
+repeat=1
+Baseline measure: 134.263585
+FULL_SPLIT list validity: []
+skipped tr: [2, TrEnum.TILE2D, 32, 32]
+skipped tr: [1, TrEnum.TILE3D, 32, 32, 32]
+skipped tr: [1, TrEnum.TILE2D, 32, 32]
+TILE 2D and 3D list validity: []
+Allowing parallel
+skipped tr: [1, TrEnum.SET_PARALLEL, 0]
+SET_PARALLEL list validity []
+transformation_list=[
+]
+Tiling with size 32 ...
+Is this transformation list valid: []
+Tiling with size 32: 134.266318
+Thats a 1.00x speedup!
+[FINISHED APP]

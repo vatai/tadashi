@@ -4,29 +4,18 @@
 # REPO_ROOT="$(git rev-parse --show-toplevel)"
 # source "${REPO_ROOT}/scripts/genoa.source"
 
-function set_env
+function set_env ()
 {
-    if [ -d "$1/bin" ]; then
-        export PATH="$1/bin${PATH:+:${PATH}}"
-    fi
-    if [ -d "$1/bin64" ]; then
-        export PATH="$1/bin64${PATH:+:${PATH}}"
-    fi
-    if [ -d "$1/lib" ]; then
-        export LD_LIBRARY_PATH="$1/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-        export LIBRARY_PATH="$1/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}"
-    fi
-    if [ -d "$1/lib64" ]; then
-        export LD_LIBRARY_PATH="$1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-        export LIBRARY_PATH="$1/lib64${LIBRARY_PATH:+:${LIBRARY_PATH}}"
-    fi
-    if [ -d "$1/include" ]; then
-        export C_INCLUDE_PATH="$1/include${C_INCLUDE_PATH:+:${C_INCLUDE_PATH}}"
-        export CPLUS_INCLUDE_PATH="$1/include${CPLUS_INCLUDE_PATH:+:${CPLUS_INCLUDE_PATH}}"
-    fi
-    if [ -d "$1/man" ]; then
-        export MAN_PATH="$1/man${MAN_PATH:+:${MAN_PATH}}"
-    fi
+  echo $1
+  export PATH="$1/bin${PATH:+:${PATH}}"
+  export PATH="$1/bin64${PATH:+:${PATH}}"
+  export LD_LIBRARY_PATH="$1/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  export LIBRARY_PATH="$1/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}"
+  export LD_LIBRARY_PATH="$1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  export LIBRARY_PATH="$1/lib64${LIBRARY_PATH:+:${LIBRARY_PATH}}"
+  export C_INCLUDE_PATH="$1/include${C_INCLUDE_PATH:+:${C_INCLUDE_PATH}}"
+  export CPLUS_INCLUDE_PATH="$1/include${CPLUS_INCLUDE_PATH:+:${CPLUS_INCLUDE_PATH}}"
+  export MAN_PATH="$1/man${MAN_PATH:+:${MAN_PATH}}"
 }
 
 module load system/genoa mpi/mpich-x86_64
