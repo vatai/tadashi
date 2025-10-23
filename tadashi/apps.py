@@ -25,7 +25,10 @@ class App:
             binary = self.output_binary
             if binary.exists():
                 binary.unlink()
-            self.source.unlink()
+            if self.source.exists():
+                self.source.unlink()
+            else:
+                print("WARNING: source file missing!")
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
