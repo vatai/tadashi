@@ -1,3 +1,9 @@
 #!/bin/bash
 
-INPUT="$(git rev-parse --show-toplevel)/src" PROJECT_NUMBER="$(git describe --tags | sed 's/^v//' | sed 's/-.*//')" doxygen Doxyfile
+ROOT="$(git rev-parse --show-toplevel)"
+GIT_TAG="$(git describe --tags | sed 's/^v//' | sed 's/-.*//')"
+
+export INPUT="$ROOT/src $ROOT/include"
+export PROJECT_NUMBER="$GIT_TAG"
+
+doxygen Doxyfile
