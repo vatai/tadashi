@@ -428,19 +428,18 @@ tadashi_split(__isl_take isl_schedule_node *node, int split) {
   isl_union_set *lefts, *rights;
   assert(tadashi_valid_split(node, split));
   isl_size num_children = isl_schedule_node_n_children(node);
+
   left = alloc_half_list(&node, 0, split);
+  lefts = isl_union_set_list_union(left);
+  filters = isl_union_set_list_from_union_set(lefts);
+
   right = alloc_half_list(&node, split, num_children);
-  lefts = isl_union_set_list_union(isl_union_set_list_copy(left));
-  rights = isl_union_set_list_union(isl_union_set_list_copy(right));
-  filters = isl_union_set_list_from_union_set(isl_union_set_copy(lefts));
-  filters = isl_union_set_list_add(filters, isl_union_set_copy(rights));
+  rights = isl_union_set_list_union(right);
+  filters = isl_union_set_list_add(filters, rights);
+
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_insert_sequence(node, filters);
-  node = isl_schedule_node_first_child(node);
-  node = make_subsequence(node, lefts, left);
-  node = isl_schedule_node_next_sibling(node);
-  node = make_subsequence(node, rights, right);
-  node = isl_schedule_node_parent(node);
+
   return node;
 }
 
