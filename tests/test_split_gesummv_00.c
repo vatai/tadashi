@@ -1,11 +1,34 @@
 /// TRANSFORMATION: 0, 2, "SPLIT", 2
-/// TRANSFORMATION: 0, 18, "TILE1D", 64
 /// #include <stdlib.h>
-///
-///
-/// legality=False
+/// 
+/// // TRANSFORMATION: 0, 18, "TILE1D", 64
+/// #define N 10
+/// void f(int n, double alpha, double beta, double A[N][N], double B[N][N], double tmp[N], double x[N], double y[N]) {
+///   int i,j;
+/// #pragma scop
+///   {
+///     for(int c0 = 0; c0 <= 9; c0 += 1)
+///       {
+///         tmp[c0] = 0.0;
+///         y[c0] = 0.0;
+///       }
+///     for(int c0 = 0; c0 <= 9; c0 += 1)
+///       {
+///         for(int c2 = 0; c2 <= 9; c2 += 1)
+///           {
+///             tmp[c0] = ((A[c0][c2] * x[c2]) + tmp[c0]);
+///             y[c0] = ((B[c0][c2] * x[c2]) + y[c0]);
+///           }
+///         y[c0] = ((alpha * tmp[c0]) + (beta * y[c0]));
+///       }
+///   }
+/// #pragma endscop
+/// }
+/// 
+/// legality=True
 #include <stdlib.h>
 
+// TRANSFORMATION: 0, 18, "TILE1D", 64
 #define N 10
 void f(int n, double alpha, double beta, double A[N][N], double B[N][N], double tmp[N], double x[N], double y[N]) {
   int i,j;
