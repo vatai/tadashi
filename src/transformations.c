@@ -325,6 +325,18 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   return node;
 }
 
+/**
+ * Collect the domains for each child node in the given interval.
+ *
+ * @param[in,out] node Pointer to a node
+ *
+ * @param[in] begin Beginning of the interval (inclusive).
+ *
+ * @param[in] end End of the interval (exclusive).
+ *
+ * @returns A list of domains (of type union sets) for children \c
+ * begin to \c end of \c node.
+ */
 static __isl_give isl_union_set_list *
 alloc_half_list(isl_schedule_node **node, int begin, int end) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(*node);
@@ -364,6 +376,17 @@ make_subsequence(__isl_take isl_schedule_node *node,
   return node;
 }
 
+/**
+ * Check if (partial) split can be performed.
+ *
+ * @param node The \p node where the split would be performed.
+ *
+ * @param split The index of the first child of \p node that will
+ * belong to the second "half" of the split.
+ *
+ * @returns The true only if \p node is a sequence/set, has has a band node
+ * as a parent.
+ */
 int
 tadashi_valid_split(__isl_keep isl_schedule_node *node, int split) {
   enum isl_schedule_node_type type;
@@ -382,6 +405,23 @@ tadashi_valid_split(__isl_keep isl_schedule_node *node, int split) {
   return 1;
 }
 
+/**
+ * (Partial) split transformation.
+ *
+
+ * @param node The node where the split would be performed.
+ *
+ * @param split The index of the first child which will belong to the
+ * second "half" of the split.
+ *
+ * @returns Transformed schedule tree node.
+ *
+ * If the sequence \p node has \c N children: \c c[0], \c c[1], ...,
+ * \c c[N], then the first loop will contain \c c[0], ..., \p
+ * c[split-1], and the second loop will have \c c[split], ..., \c
+ * c[N-1].
+ *
+ */
 __isl_give isl_schedule_node *
 tadashi_split(__isl_take isl_schedule_node *node, int split) {
   isl_union_set_list *filters, *left, *right;
