@@ -170,6 +170,9 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        if legal == -1:
+            return self.scop.legal
+        self.scop.legal = bool(legal)
         return bool(legal)
 
     @property
@@ -632,6 +635,8 @@ class Scop:
     `isl_scop` object by storing its index in the `std::vector`.
 
     """
+
+    legal: bool = True
 
     def __init__(self, pool_idx, scop_idx) -> None:
         self.pool_idx = pool_idx

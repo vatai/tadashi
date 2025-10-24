@@ -228,6 +228,21 @@ generate_code(size_t pool_idx, const char *input_path,
 
 /******** transformations ***********************************/
 
+/**
+ * @section Transformations
+ *
+ * All transformations take a \p pool_idx, and \p scop_idx, and return 0, 1, -1.
+ *
+ * Which SCoP is transformed is determined by \p pool_idx which
+ * selects which Python \p App instance to search, and \p scop_idx
+ * determine the which SCoP within the app.
+ *
+ * Return values are:
+ * - 1 for legal
+ * - 0 for illegal
+ * - -1 for "same as previous"
+ */
+
 extern "C" Scop *
 pre_transform(size_t pool_idx, size_t scop_idx) {
   // Set up `tmp_node` as a copy of `current_node` because we don't
@@ -388,5 +403,5 @@ set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt) {
   node = isl_schedule_node_band_member_set_ast_loop_type(
       node, pos, (enum isl_ast_loop_type)opt);
   SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = node;
-  return 1;
+  return -1;
 }
