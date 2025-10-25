@@ -1,17 +1,16 @@
-/** @file */
-// Date: 2024, January
-// Author: Emil VATAI, Riken
-//
-// This file is the "C side" between the C and Python code of tadashi.
+/**
+ * @file ctadashi.cc
+ *
+ * @brief ctadashi.cc is the entry point on the "C side" between the C and
+ * Python code of tadashi.
+ *
+ * Loading a Python \p App object invokes \ref init_scops.
+ */
 
-#include <cassert>
 #include <cstddef>
-#include <cstdio>
-#include <cstdlib>
-#include <isl/aff_type.h>
-#include <isl/schedule_type.h>
-#include <isl/space_type.h>
 #include <sstream>
+
+using namespace std;
 
 #include <isl/aff.h>
 #include <isl/ast.h>
@@ -34,11 +33,16 @@
 #include "scops.h"
 #include "transformations.h"
 
+/**
+ * The global object storing all the data-structures of CTadashi.
+ */
 ScopsPool SCOPS_POOL;
 
-/// Entry point.
 extern "C" size_t
-init_scops(char *input) { // Entry point
+init_scops(char *input) {
+  /**
+   * Long description.
+   */
   // pet_options_set_autodetect(ctx, 1);
   // pet_options_set_signed_overflow(ctx, 1);
   // pet_options_set_encapsulate_dynamic_control(ctx, 1);

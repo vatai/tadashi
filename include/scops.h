@@ -34,7 +34,7 @@ public:
   int num_scops();
 
 public:
-  isl_ctx *ctx;
+  isl_ctx *ctx; ///< Context for @ref Scop "Scop"s in a (Python) App object.
   std::vector<Scop *> scops;
 };
 
