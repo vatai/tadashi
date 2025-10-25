@@ -20,7 +20,7 @@ class TestTadashi(unittest.TestCase):
         # is an infinite interval...
         self.assertEqual(len(avail_args[0]) * (end - start), len(args))
 
-    def test_set_loop_opt_legality(self):
+    def test_scop_legality(self):
         app = Polybench("jacobi-1d")
         trs = [
             [7, TrEnum.SET_LOOP_OPT, 0, 0],

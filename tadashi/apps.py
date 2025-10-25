@@ -71,18 +71,7 @@ class App:
         suffix = self.source.suffix
         return self.source.with_suffix(f".{alt_infix}{suffix}")
 
-    @classmethod
-    def make_ephemeral(cls, *args, **kwargs):
-        app = cls(*args, **kwargs)
-        app.ephemeral = True
-        return app
-
-    def make_new_app(self, ephemeral, populate_scops, **kwargs):
-        kwargs["compiler_options"] = self.user_compiler_options
-        kwargs["populate_scops"] = populate_scops
-        return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
-
-    def make_new_filename(self) -> Path:
+    def _make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
         now_str = datetime.datetime.isoformat(now).replace(":", "-")
@@ -102,9 +91,27 @@ class App:
         """Command executed for compilation (list of strings)."""
         raise NotImplementedError()
 
-    def generate_code(self):
+    def generate_code(
+        self,
+        alt_infix=None,
+        ephemeral: bool = True,
+        populate_scops: bool = False,
+    ):
         """Create a transformed copy of the app object."""
-        raise NotImplementedError()
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
+        else:
+            new_file = self._make_new_filename()
+        self.scops.generate_code(self.source, new_file)
+        kwargs = {
+            "source": new_file,
+            "compiler_options": self.user_compiler_options,
+            "populate_scops": populate_scops,
+        }
+        kwargs.update(self._codegen_init_args())
+        app = self.__class__(**kwargs)
+        app.ephemeral = ephemeral
+        return app
 
     def reset_scops(self):
         for scop in self.scops:
@@ -179,6 +186,10 @@ class App:
             return Result(legal, walltime)
         return results
 
+    @property
+    def legal(self) -> bool:
+        return all(s.legal for s in self.scops)
+
 
 class Simple(App):
     runtime_prefix: str
@@ -214,20 +225,6 @@ class Simple(App):
                 num = line.split(self.runtime_prefix)[1]
                 return float(num)
         return 0.0
-
-    def generate_code(
-        self,
-        alt_infix=None,
-        ephemeral: bool = True,
-        populate_scops: bool = False,
-    ):
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, Path(new_file))
-        kwargs = {"source": new_file}
-        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
 
 POLYBENCH_BASE = str(Path(__file__).parent.parent / "examples/polybench")
@@ -302,25 +299,6 @@ class Polybench(App):
             "-o",
             str(self.output_binary),
         ]
-
-    def generate_code(
-        self,
-        alt_infix=None,
-        ephemeral: bool = True,
-        populate_scops: bool = False,
-    ):
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, new_file)
-        kwargs = {
-            "source": new_file,
-            "benchmark": self.benchmark,
-            "base": self.base,
-            # "infix": alt_infix,
-        }
-        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
