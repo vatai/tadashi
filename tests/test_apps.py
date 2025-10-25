@@ -15,6 +15,16 @@ class TestApp(unittest.TestCase):
         t = sorted(tapp.__dict__.keys())
         self.assertListEqual(a, t)
 
+    def test_app_legality(self):
+        app = apps.Polybench("jacobi-1d")
+        trs = [
+            [0, 7, TrEnum.SET_LOOP_OPT, 0, 0],
+            [0, 2, TrEnum.FULL_SPLIT],
+            [0, 7, TrEnum.SET_LOOP_OPT, 0, 3],
+        ]
+        result = app.transform_list(trs)
+        self.assertFalse(result.legal)
+
 
 class TestSimple(TestApp):
     def test_args(self):
