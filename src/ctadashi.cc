@@ -76,8 +76,8 @@ get_num_children(size_t pool_idx, size_t scop_idx) {
 }
 
 extern "C" const char *
-get_expr(size_t pool_idx, size_t idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[idx];
+get_expr(size_t pool_idx, size_t scop_idx) {
+  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =

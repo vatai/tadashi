@@ -15,7 +15,7 @@ int get_type(size_t pool_idx, size_t scop_idx);
 
 size_t get_num_children(size_t pool_idx, size_t scop_idx);
 
-const char *get_expr(size_t pool_idx, size_t idx);
+const char *get_expr(size_t pool_idx, size_t scop_idx);
 
 const char *get_label(size_t pool_idx, size_t scop_idx);
 
