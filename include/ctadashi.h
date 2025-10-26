@@ -58,15 +58,15 @@ int partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
 
 int partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val);
 
+int partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx,
+                        long coeff, long param_idx);
+
 int full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx);
 
 int full_shift_val(size_t pool_idx, size_t scop_idx, long val);
 
 int full_shift_param(size_t pool_idx, size_t scop_idx, long coeff,
                      long param_idx);
-
-int partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx,
-                        long coeff, long param_idx);
 
 int set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt);
 

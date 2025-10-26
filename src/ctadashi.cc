@@ -350,6 +350,15 @@ partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val) {
 }
 
 extern "C" int
+partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+                    long param_idx) {
+  Scop *si = pre_transform(pool_idx, scop_idx);
+  si->tmp_node =
+      tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
+  return post_transform(pool_idx, scop_idx);
+}
+
+extern "C" int
 full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
@@ -367,15 +376,6 @@ extern "C" int
 full_shift_param(size_t pool_idx, size_t scop_idx, long coeff, long param_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
   si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
-                    long param_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node =
-      tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
   return post_transform(pool_idx, scop_idx);
 }
 

@@ -73,10 +73,10 @@ class TrEnum(StrEnum):
     FULL_SPLIT = auto()
     PARTIAL_SHIFT_VAR = auto()
     PARTIAL_SHIFT_VAL = auto()
+    PARTIAL_SHIFT_PARAM = auto()
     FULL_SHIFT_VAR = auto()
     FULL_SHIFT_VAL = auto()
     FULL_SHIFT_PARAM = auto()
-    PARTIAL_SHIFT_PARAM = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
 
@@ -443,13 +443,24 @@ class FullSplitInfo(TransformInfo):
         return True
 
 
-class FullShiftValInfo(TransformInfo):
-    func_name = "full_shift_val"
-    arg_help = ["Value"]
+class PartialShiftVarInfo(TransformInfo):
+    func_name = "partial_shift_var"
+    arg_help = ["Statement index", "Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
+        args = PartialShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return [stmt_idx, var_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound()]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
 
 
 class PartialShiftValInfo(TransformInfo):
@@ -464,6 +475,35 @@ class PartialShiftValInfo(TransformInfo):
     def available_args(node: Node):
         ns = len(node.loop_signature)
         return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
+
+
+class PartialShiftParamInfo(TransformInfo):
+    func_name = "partial_shift_param"
+    arg_help = ["Statement index", "Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return [stmt_idx, param_idx] in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
 
 
 class FullShiftVarInfo(TransformInfo):
@@ -499,24 +539,13 @@ class FullShiftVarInfo(TransformInfo):
         return [list(range(diff_idx)), LowerUpperBound()]
 
 
-class PartialShiftVarInfo(TransformInfo):
-    func_name = "partial_shift_var"
-    arg_help = ["Statement index", "Variable index", "Coefficient"]
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
-        args = PartialShiftVarInfo.available_args(node)
-        if not args:
-            return []
-        return [stmt_idx, var_idx] in args[0]
+class FullShiftValInfo(TransformInfo):
+    func_name = "full_shift_val"
+    arg_help = ["Value"]
 
     @staticmethod
     def available_args(node: Node):
-        args = []
-        for stmt_idx, ls in enumerate(node.loop_signature):
-            for var_idx in range(len(ls["vars"])):
-                args.append([stmt_idx, var_idx])
-        return [args, LowerUpperBound()]
+        return [LowerUpperBound()]
 
 
 class FullShiftParamInfo(TransformInfo):
@@ -545,35 +574,6 @@ class FullShiftParamInfo(TransformInfo):
             return []
         min_np = len(node.loop_signature[0]["params"])
         return [list(range(min_np)), LowerUpperBound()]
-
-
-class PartialShiftParamInfo(TransformInfo):
-    func_name = "partial_shift_param"
-    arg_help = ["Statement index", "Parameter index", "Coefficient"]
-
-    @staticmethod
-    def valid(node: Node) -> bool:
-        if node.node_type != NodeType.BAND:
-            return False
-        args = PartialShiftParamInfo.available_args(node)
-        if not args:
-            return False
-        return bool(args[0])
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
-        args = PartialShiftParamInfo.available_args(node)
-        if not args:
-            return False
-        return [stmt_idx, param_idx] in args[0]
-
-    @staticmethod
-    def available_args(node: Node):
-        args = []
-        for stmt_idx, ls in enumerate(node.loop_signature):
-            for param_idx in range(len(ls["params"])):
-                args.append([stmt_idx, param_idx])
-        return [args, LowerUpperBound()]
 
 
 class SetParallelInfo(TransformInfo):
@@ -616,12 +616,12 @@ TRANSFORMATIONS: dict[TrEnum, TransformInfo] = {
     TrEnum.FULL_FUSE: FullFuseInfo(),
     TrEnum.SPLIT: SplitInfo(),
     TrEnum.FULL_SPLIT: FullSplitInfo(),
-    TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
-    TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
-    TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
     TrEnum.PARTIAL_SHIFT_VAR: PartialShiftVarInfo(),
-    TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
+    TrEnum.PARTIAL_SHIFT_VAL: PartialShiftValInfo(),
     TrEnum.PARTIAL_SHIFT_PARAM: PartialShiftParamInfo(),
+    TrEnum.FULL_SHIFT_VAR: FullShiftVarInfo(),
+    TrEnum.FULL_SHIFT_VAL: FullShiftValInfo(),
+    TrEnum.FULL_SHIFT_PARAM: FullShiftParamInfo(),
     TrEnum.SET_PARALLEL: SetParallelInfo(),
     TrEnum.SET_LOOP_OPT: SetLoopOptInfo(),
 }
