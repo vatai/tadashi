@@ -11,7 +11,7 @@ class TestApp(unittest.TestCase):
 
     def compare_members(self, app):
         akeys = sorted(app.__dict__.keys())
-        tapp = app.generate_code()
+        tapp = app.generate_code(ensure_legality=False)
         tkeys = sorted(tapp.__dict__.keys())
         self.assertListEqual(akeys, tkeys)
         not_equal = ["source", "ephemeral", "populate_scops", "scops"]
@@ -42,8 +42,12 @@ class TestApp(unittest.TestCase):
             [3, "set_loop_opt", 0, 3],
         ]
         result = app.scops[0].transform_list(trs)
-
-    #     self.assertFalse(result.legal)
+        app.reset_scops()
+        for legal, (ni, *args) in zip(result, trs):
+            node = app.scops[0].schedule_tree[ni]
+            rv = node.transform(*args)
+            self.assertEqual(rv, legal)
+            self.assertEqual(rv, app.legal)
 
 
 class TestSimple(TestApp):
@@ -67,9 +71,9 @@ class TestPolybench(TestApp):
             [10, TrEnum.TILE3D, 30, 30, 30],
         ]
         app.scops[0].transform_list(trs)
-        mod = app.generate_code()
-        mod.compile()
-        # mod.measure()
+        tapp = app.generate_code(ensure_legality=False)
+        tapp.compile()
+        # tapp.measure()
 
     def test_get_benchmark(self):
         app = apps.Polybench("correlation")

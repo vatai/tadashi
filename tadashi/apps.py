@@ -96,8 +96,16 @@ class App:
         alt_infix=None,
         ephemeral: bool = True,
         populate_scops: bool = False,
+        ensure_legality: bool = True,
     ):
         """Create a transformed copy of the app object."""
+        if ensure_legality:
+            if not self.scops:
+                raise ValueError(
+                    "The App was created without scops, cannot check legality"
+                )
+            if not self.scops.legal:
+                raise ValueError("The App is not in a legal state")
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)
         else:

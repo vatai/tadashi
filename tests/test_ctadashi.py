@@ -46,7 +46,7 @@ class TestCtadashi(unittest.TestCase):
         return transforms, target_code
 
     def _get_generated_code(self, app: Simple):
-        tapp = app.generate_code()
+        tapp = app.generate_code(ensure_legality=False)
         generated_code = tapp.source.read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
@@ -109,7 +109,7 @@ class TestCtadashi(unittest.TestCase):
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         legals = scop.transform_list(transformations)
-        mod_app = app.generate_code()
+        mod_app = app.generate_code(ensure_legality=False)
         mod_app.compile()
         for legal in legals[:-1]:
             self.assertTrue(legal)
