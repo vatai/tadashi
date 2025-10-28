@@ -267,28 +267,25 @@ extern "C" int
 post_transform(size_t pool_idx, size_t scop_idx) {
   Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
   isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
-  isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
+  isl_schedule *sched = isl_schedule_node_get_schedule(si->current_node);
   // Got `dep` and `sched`.
   isl_bool legal = tadashi_check_legality(sched, dep);
   isl_schedule_free(sched);
   si->modified = true;
-  isl_schedule_node *node = si->current_node;
-  si->current_node = si->tmp_node;
-  si->tmp_node = node;
   return legal;
 }
 
 extern "C" int
 tile1d(size_t pool_idx, size_t scop_idx, size_t tile_size) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
+  si->current_node = tadashi_tile_1d(si->current_node, tile_size);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 tile2d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_2d(si->tmp_node, size1, size2);
+  si->current_node = tadashi_tile_2d(si->current_node, size1, size2);
   return post_transform(pool_idx, scop_idx);
 }
 
@@ -296,42 +293,42 @@ extern "C" int
 tile3d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2,
        size_t size3) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_3d(si->tmp_node, size1, size2, size3);
+  si->current_node = tadashi_tile_3d(si->current_node, size1, size2, size3);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 interchange(size_t pool_idx, size_t scop_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_interchange(si->tmp_node);
+  si->current_node = tadashi_interchange(si->current_node);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 fuse(size_t pool_idx, size_t scop_idx, int idx1, int idx2) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
+  si->current_node = tadashi_fuse(si->current_node, idx1, idx2);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 full_fuse(size_t pool_idx, size_t scop_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_fuse(si->tmp_node);
+  si->current_node = tadashi_full_fuse(si->current_node);
   return post_transform(pool_idx, scop_idx);
 }
 
 int
 split(size_t pool_idx, size_t scop_idx, int split) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_split(si->tmp_node, split);
+  si->current_node = tadashi_split(si->current_node, split);
   return post_transform(pool_idx, scop_idx);
 }
 
 int
 full_split(size_t pool_idx, size_t scop_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_split(si->tmp_node);
+  si->current_node = tadashi_full_split(si->current_node);
   return post_transform(pool_idx, scop_idx);
 }
 
@@ -339,15 +336,15 @@ extern "C" int
 partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
                   long var_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node =
-      tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
+  si->current_node =
+      tadashi_partial_shift_var(si->current_node, pa_idx, coeff, var_idx);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
+  si->current_node = tadashi_partial_shift_val(si->current_node, pa_idx, val);
   return post_transform(pool_idx, scop_idx);
 }
 
@@ -355,46 +352,42 @@ extern "C" int
 partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
                     long param_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node =
-      tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
+  si->current_node =
+      tadashi_partial_shift_param(si->current_node, pa_idx, coeff, param_idx);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
+  si->current_node = tadashi_full_shift_var(si->current_node, coeff, var_idx);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 full_shift_val(size_t pool_idx, size_t scop_idx, long val) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
+  si->current_node = tadashi_full_shift_val(si->current_node, val);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 full_shift_param(size_t pool_idx, size_t scop_idx, long coeff, long param_idx) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
+  si->current_node =
+      tadashi_full_shift_param(si->current_node, coeff, param_idx);
   return post_transform(pool_idx, scop_idx);
 }
 
 extern "C" int
 set_parallel(size_t pool_idx, size_t scop_idx, int num_threads) {
   Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_set_parallel(si->tmp_node, num_threads);
+  si->current_node = tadashi_set_parallel(si->current_node, num_threads);
   isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
-  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
-  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
-  node = isl_schedule_node_first_child(node);
-  node = isl_schedule_node_free(node);
+  isl_schedule_node *node = isl_schedule_node_first_child(si->current_node);
   isl_bool legal = tadashi_check_legality_parallel(node, si->scop->dep_flow);
+  si->current_node = isl_schedule_node_parent(node);
   si->modified = true;
-  node = si->current_node;
-  si->current_node = si->tmp_node;
-  si->tmp_node = node;
   return legal;
 }
 
