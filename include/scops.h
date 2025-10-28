@@ -38,17 +38,4 @@ public:
   std::vector<Scop *> scops;
 };
 
-class ScopsPool {
-private:
-  std::deque<size_t> free_indexes;
-  std::vector<Scops *> scops_vector;
-
-public:
-  // ScopsPool();
-  ~ScopsPool();
-  size_t add(char *input);
-  void remove(size_t pool_idx);
-  Scops &operator[](size_t idx);
-};
-
 #endif // _SCOPS_H_

@@ -169,7 +169,7 @@ class Node:
 
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
-        legal = func(self.scop.pool_idx, self.scop.scop_idx, *args)
+        legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
         if legal == -1:
             return self.scop.legal
         self.scop.legal = bool(legal)
@@ -179,13 +179,13 @@ class Node:
     def yaml_str(self):
         self.scop.locate(self.location)
         encoded_result = ctadashi.print_schedule_node(
-            self.scop.pool_idx, self.scop.scop_idx
+            self.scop.app_ptr, self.scop.scop_idx
         )
         return encoded_result
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        ctadashi.rollback(self.scop.pool_idx, self.scop.scop_idx)
+        ctadashi.rollback(self.scop.app_ptr, self.scop.scop_idx)
 
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
@@ -638,8 +638,8 @@ class Scop:
 
     legal: bool = True
 
-    def __init__(self, pool_idx, scop_idx) -> None:
-        self.pool_idx = pool_idx
+    def __init__(self, app_ptr, scop_idx) -> None:
+        self.app_ptr = app_ptr
         self.scop_idx = scop_idx
 
     def get_loop_signature(self):
@@ -651,21 +651,21 @@ class Scop:
         variables of each statement covered by the loop/band node.
 
         """
-        loop_signature = ctadashi.get_loop_signature(self.pool_idx, self.scop_idx)
+        loop_signature = ctadashi.get_loop_signature(self.app_ptr, self.scop_idx)
         return literal_eval(loop_signature)
 
     def _make_node(self, parent, current_idx, location):
-        num_children = ctadashi.get_num_children(self.pool_idx, self.scop_idx)
+        num_children = ctadashi.get_num_children(self.app_ptr, self.scop_idx)
         node = Node(
             scop=self,
-            node_type=NodeType(ctadashi.get_type(self.pool_idx, self.scop_idx)),
+            node_type=NodeType(ctadashi.get_type(self.app_ptr, self.scop_idx)),
             num_children=num_children,
             parent_idx=parent,
             index=current_idx,
-            label=ctadashi.get_label(self.pool_idx, self.scop_idx),
+            label=ctadashi.get_label(self.app_ptr, self.scop_idx),
             location=location,
             loop_signature=self.get_loop_signature(),
-            expr=ctadashi.get_expr(self.pool_idx, self.scop_idx),
+            expr=ctadashi.get_expr(self.app_ptr, self.scop_idx),
             children_idx=[-1] * num_children,
         )
         return node
@@ -676,23 +676,23 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
+                ctadashi.goto_child(self.app_ptr, self.scop_idx, c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                ctadashi.goto_parent(self.pool_idx, self.scop_idx)
+                ctadashi.goto_parent(self.app_ptr, self.scop_idx)
 
     @property
     def schedule_tree(self) -> list[Node]:
-        ctadashi.goto_root(self.pool_idx, self.scop_idx)
+        ctadashi.goto_root(self.app_ptr, self.scop_idx)
         nodes: list[Node] = []
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
-        ctadashi.goto_root(self.pool_idx, self.scop_idx)
+        ctadashi.goto_root(self.app_ptr, self.scop_idx)
         for c in location:
-            ctadashi.goto_child(self.pool_idx, self.scop_idx, c)
+            ctadashi.goto_child(self.app_ptr, self.scop_idx, c)
 
     def transform_list(self, trs: list) -> list[bool]:
         result = []
@@ -702,7 +702,7 @@ class Scop:
         return result
 
     def reset(self):
-        ctadashi.reset_scop(self.pool_idx, self.scop_idx)
+        ctadashi.reset_scop(self.app_ptr, self.scop_idx)
 
 
 class Scops:
@@ -710,19 +710,19 @@ class Scops:
 
     The object of type `Scops` is similar to a list."""
 
-    pool_idx: int
+    app_ptr: int
     num_scops: int
     scops: list[Scop]
 
     def __init__(self, source_path: str):
         self._check_missing_file(Path(source_path))
-        self.pool_idx = ctadashi.init_scops(str(source_path))
-        self.num_scops = ctadashi.num_scops(self.pool_idx)
-        self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
+        self.app_ptr = ctadashi.init_scops(str(source_path))
+        self.num_scops = ctadashi.num_scops(self.app_ptr)
+        self.scops = [Scop(self.app_ptr, scop_idx=i) for i in range(self.num_scops)]
 
     def __del__(self):
         if ctadashi:
-            ctadashi.free_scops(self.pool_idx)
+            ctadashi.free_scops(self.app_ptr)
 
     @staticmethod
     def _check_missing_file(path: Path):
@@ -737,7 +737,7 @@ class Scops:
         to be called.
 
         """
-        ctadashi.generate_code(self.pool_idx, str(input_path), str(output_path))
+        ctadashi.generate_code(self.app_ptr, str(input_path), str(output_path))
 
     def __len__(self):
         return self.num_scops
