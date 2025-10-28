@@ -159,6 +159,15 @@ void goto_parent(Scops *app, size_t scop_idx);
 void goto_child(Scops *app, size_t scop_idx, size_t child_idx);
 
 /**
+ * @brief Get the legality of the current state.
+ *
+ * @param app Pointer to the @ref Scops object.
+ *
+ * @param scop_idx Index of the @ref Scop Object in the @ref Scops.
+ */
+extern "C" int get_legal(Scops *app, size_t scop_idx);
+
+/**
  * @brief Roll back the latest transformation(s).
  *
  * @param app Pointer to the @ref Scops object.

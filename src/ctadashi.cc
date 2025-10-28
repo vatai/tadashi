@@ -165,6 +165,11 @@ goto_child(Scops *app, size_t scop_idx, size_t child_idx) {
       isl_schedule_node_child(app->scops[scop_idx]->current_node, child_idx);
 }
 
+extern "C" int
+get_legal(Scops *app, size_t scop_idx) {
+  return app->scops[scop_idx]->current_legal;
+}
+
 extern "C" void
 rollback(Scops *app, size_t scop_idx) {
   app->scops[scop_idx]->rollback();

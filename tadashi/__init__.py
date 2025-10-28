@@ -170,9 +170,6 @@ class Node:
         func = getattr(ctadashi, tr.func_name)
         self.scop.locate(self.location)
         legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
-        if legal == -1:
-            return self.scop.legal
-        self.scop.legal = bool(legal)
         return bool(legal)
 
     @property
@@ -636,8 +633,6 @@ class Scop:
 
     """
 
-    legal: bool = True
-
     def __init__(self, app_ptr, scop_idx) -> None:
         self.app_ptr = app_ptr
         self.scop_idx = scop_idx
@@ -701,6 +696,10 @@ class Scop:
             result.append(node.transform(tr, *args))
         return result
 
+    @property
+    def legal(self):
+        return bool(ctadashi.get_legal(self.app_ptr, self.scop_idx))
+
     def reset(self):
         ctadashi.reset_scop(self.app_ptr, self.scop_idx)
 
@@ -744,3 +743,7 @@ class Scops:
 
     def __getitem__(self, idx):
         return self.scops[idx]
+
+    @property
+    def legal(self):
+        return all(s.legal for s in self.scops)
