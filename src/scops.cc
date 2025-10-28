@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <deque>
 #include <sstream>
@@ -19,7 +20,6 @@ Scop::~Scop() {
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
   free_tadashi_scop(scop);
-  // printf("<<< ~Scop()\n");
 }
 
 const char *
@@ -33,6 +33,27 @@ const char *
 Scop::add_string(std::stringstream &ss) {
   strings.push_back(ss.str());
   return strings.back().c_str();
+}
+
+void
+Scop::rollback() {
+  if (!modified)
+    return;
+  std::swap(current_legal, tmp_legal);
+  std::swap(current_node, tmp_node);
+}
+
+void
+Scop::reset() {
+  if (!modified)
+    return;
+  current_node = isl_schedule_node_free(current_node);
+  current_node = isl_schedule_get_root(scop->schedule);
+  current_legal = true;
+  tmp_node = isl_schedule_node_free(tmp_node);
+  tmp_node = nullptr;
+  tmp_legal = false;
+  modified = false;
 }
 
 // Scops

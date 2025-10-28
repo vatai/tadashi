@@ -167,21 +167,12 @@ goto_child(Scops *app, size_t scop_idx, size_t child_idx) {
 
 extern "C" void
 rollback(Scops *app, size_t scop_idx) {
-  Scop *si = app->scops[scop_idx];
-  isl_schedule_node *tmp = si->tmp_node;
-  si->tmp_node = si->current_node;
-  si->current_node = tmp;
+  app->scops[scop_idx]->rollback();
 }
 
 void
 reset_scop(Scops *app, size_t scop_idx) {
-  Scop *si = app->scops[scop_idx];
-  si->current_node = isl_schedule_node_free(si->current_node);
-  si->current_node = isl_schedule_get_root(si->scop->schedule);
-  if (si->tmp_node != nullptr)
-    si->tmp_node = isl_schedule_node_free(si->tmp_node);
-  si->tmp_node = nullptr;
-  si->modified = false;
+  app->scops[scop_idx]->reset();
 }
 
 static __isl_give isl_printer *
@@ -239,121 +230,103 @@ generate_code(Scops *app, const char *input_path, const char *output_path) {
  * - -1 for "same as previous"
  */
 
-template <typename Chk, typename Trn, typename... Args>
-int
-run_transform(Scops *app, size_t scop_idx, Chk check_legality, Trn transform,
-              Args &&...args) {
-  Scop *si = app->scops[scop_idx]; // Just save some typing.
-  if (si->tmp_node != nullptr)
-    si->tmp_node = isl_schedule_node_free(si->tmp_node);
-  si->tmp_node = isl_schedule_node_copy(si->current_node);
-
-  si->current_node = transform(si->current_node, std::forward<Args>(args)...);
-
-  isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
-  isl_bool legal = check_legality(si->current_node, dep);
-  si->modified = true;
-  return legal;
-}
-
 extern "C" int
 tile1d(Scops *app, size_t scop_idx, size_t tile_size) {
-  return run_transform(app, scop_idx, tadashi_check_legality, tadashi_tile_1d,
-                       tile_size);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_tile_1d, tile_size);
 }
 
 extern "C" int
 tile2d(Scops *app, size_t scop_idx, size_t size1, size_t size2) {
-  return run_transform(app, scop_idx, tadashi_check_legality, tadashi_tile_2d,
-                       size1, size2);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_tile_2d, size1, size2);
 }
 
 extern "C" int
 tile3d(Scops *app, size_t scop_idx, size_t size1, size_t size2, size_t size3) {
-  return run_transform(app, scop_idx, tadashi_check_legality, tadashi_tile_3d,
-                       size1, size2, size3);
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_tile_3d, size1, size2, size3);
 }
 
 extern "C" int
 interchange(Scops *app, size_t scop_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_interchange);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_interchange);
 }
 
 extern "C" int
 fuse(Scops *app, size_t scop_idx, int idx1, int idx2) {
-  return run_transform(app, scop_idx, tadashi_check_legality, tadashi_fuse,
-                       idx1, idx2);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_fuse, idx1, idx2);
 }
 
 extern "C" int
 full_fuse(Scops *app, size_t scop_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_full_fuse);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_fuse);
 }
 
 int
 split(Scops *app, size_t scop_idx, int split) {
-  return run_transform(app, scop_idx, tadashi_check_legality, tadashi_split,
-                       split);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_split, split);
 }
 
 int
 full_split(Scops *app, size_t scop_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_full_split);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_split);
 }
 
 extern "C" int
 partial_shift_var(Scops *app, size_t scop_idx, int pa_idx, long coeff,
                   long var_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_partial_shift_var, pa_idx, coeff, var_idx);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_partial_shift_var, pa_idx,
+                                             coeff, var_idx);
 }
 
 extern "C" int
 partial_shift_val(Scops *app, size_t scop_idx, int pa_idx, long val) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_partial_shift_val, pa_idx, val);
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_partial_shift_val, pa_idx, val);
 }
 
 extern "C" int
 partial_shift_param(Scops *app, size_t scop_idx, int pa_idx, long coeff,
                     long param_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_partial_shift_param, pa_idx, coeff, param_idx);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_partial_shift_param,
+                                             pa_idx, coeff, param_idx);
 }
 
 extern "C" int
 full_shift_var(Scops *app, size_t scop_idx, long coeff, long var_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_full_shift_var, coeff, var_idx);
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_full_shift_var, coeff, var_idx);
 }
 
 extern "C" int
 full_shift_val(Scops *app, size_t scop_idx, long val) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_full_shift_val, val);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_shift_val, val);
 }
 
 extern "C" int
 full_shift_param(Scops *app, size_t scop_idx, long coeff, long param_idx) {
-  return run_transform(app, scop_idx, tadashi_check_legality,
-                       tadashi_full_shift_param, coeff, param_idx);
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_full_shift_param, coeff, param_idx);
 }
 
 extern "C" int
 set_parallel(Scops *app, size_t scop_idx, int num_threads) {
-  return run_transform(app, scop_idx, tadashi_check_legality_parallel,
-                       tadashi_set_parallel, num_threads);
-  // tadashi_check_legality_parallel
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality_parallel,
+                                             tadashi_set_parallel, num_threads);
 }
 
 extern "C" int
 set_loop_opt(Scops *app, size_t scop_idx, int pos, int opt) {
-  isl_schedule_node *node = app->scops[scop_idx]->current_node;
-  node = isl_schedule_node_band_member_set_ast_loop_type(
-      node, pos, (enum isl_ast_loop_type)opt);
-  app->scops[scop_idx]->current_node = node;
-  return -1;
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, isl_schedule_node_band_member_set_ast_loop_type,
+      pos, (enum isl_ast_loop_type)opt);
 }
