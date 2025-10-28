@@ -353,8 +353,7 @@ tadashi_check_legality(__isl_keep isl_schedule *schedule,
 }
 
 isl_bool
-tadashi_check_legality_parallel(isl_ctx *ctx,
-                                __isl_keep isl_schedule_node *node,
+tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
                                 __isl_take isl_union_map *dep) {
   isl_union_map *map;
   isl_bool retval;

@@ -30,6 +30,7 @@
  */
 
 #ifdef __cplusplus
+#include "scops.h"
 extern "C" {
 #endif
 #include <cstddef>
