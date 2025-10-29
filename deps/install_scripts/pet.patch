@@ -11,3 +11,30 @@ index 56cb1fa..a924412 100644
 +
  gitversion.h: @GIT_HEAD@
  	$(AM_V_GEN)echo '#define GIT_HEAD_ID "'@GIT_HEAD_VERSION@'"' > $@
+diff --git a/include/pet.h b/include/pet.h
+index ec5b754..f8ede98 100644
+--- a/include/pet.h
++++ b/include/pet.h
+@@ -44,6 +44,8 @@ int pet_options_get_encapsulate_dynamic_control(isl_ctx *ctx);
+ int pet_options_set_signed_overflow(isl_ctx *ctx, int val);
+ int pet_options_get_signed_overflow(isl_ctx *ctx);
+ 
++isl_stat pet_options_append_defines(isl_ctx *ctx, const char *val);
++
+ struct pet_loc;
+ typedef struct pet_loc pet_loc;
+ 
+diff --git a/options.c b/options.c
+index 39525ad..64e1636 100644
+--- a/options.c
++++ b/options.c
+@@ -84,6 +84,9 @@ ISL_CTX_SET_CHOICE_DEF(pet_options, struct pet_options, pet_options_args,
+ ISL_CTX_GET_CHOICE_DEF(pet_options, struct pet_options, pet_options_args,
+ 	signed_overflow)
+ 
++ISL_CTX_APPEND_STR_LIST_DEF(pet_options, struct pet_options, pet_options_args,
++       n_define, defines)
++
+ /* Create an isl_ctx that references the pet options.
+  */
+ isl_ctx *isl_ctx_alloc_with_pet_options()

@@ -40,6 +40,20 @@ class App:
     def _codegen_init_args(self) -> dict:
         return {}
 
+    @staticmethod
+    def _get_defines(options: list[str]):
+        defines = []
+        for i, opt in enumerate(options):
+            if not opt.startswith("-D"):
+                continue
+            if opt == "-D":
+                if i + 1 >= len(options):
+                    raise ValueError("Empty -D comiler option")
+                defines.append(options[i + 1])
+            else:
+                defines.append(opt[2:])
+        return defines
+
     def _finalize_object(
         self,
         source: str | Path,
@@ -58,7 +72,8 @@ class App:
         self.source = Path(source)
         if not self.source.exists():
             raise ValueError(f"{self.source=} doesn't exist!")
-        self.scops = Scops(str(self.source)) if self.populate_scops else None
+        defines = self._get_defines(compiler_options)
+        self.scops = Scops(str(self.source), defines) if self.populate_scops else None
 
     def _source_with_infix(self, alt_infix: str):
         mark = "INFIX"

@@ -27,6 +27,7 @@
  * @todo The functions here can be grouped.
  */
 
+#include <vector>
 #ifdef __cplusplus
 #include "scops.h"
 extern "C" {
@@ -40,7 +41,7 @@ extern "C" {
  *
  * @returns Pointer to the new @ref Scops object.
  */
-Scops *init_scops(char *input);
+Scops *init_scops(char *input, const std::vector<std::string> &defines);
 
 /**
  * @brief Return the number of @ref Scop "Scop"s in the @ref Scops

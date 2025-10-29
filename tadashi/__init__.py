@@ -713,9 +713,10 @@ class Scops:
     num_scops: int
     scops: list[Scop]
 
-    def __init__(self, source_path: str):
+    def __init__(self, source_path: str, defines: list[str]):
         self._check_missing_file(Path(source_path))
-        self.app_ptr = ctadashi.init_scops(str(source_path))
+        self.defines = defines
+        self.app_ptr = ctadashi.init_scops(str(source_path), defines)
         self.num_scops = ctadashi.num_scops(self.app_ptr)
         self.scops = [Scop(self.app_ptr, scop_idx=i) for i in range(self.num_scops)]
 

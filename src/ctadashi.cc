@@ -9,6 +9,8 @@
 
 #include <cstddef>
 #include <sstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
@@ -34,14 +36,11 @@ using namespace std;
 #include "transformations.h"
 
 extern "C" Scops *
-init_scops(char *input) {
+init_scops(char *input, const std::vector<std::string> &defines) {
   /**
    * Create a @ref Scop.
    */
-  // pet_options_set_autodetect(ctx, 1);
-  // pet_options_set_signed_overflow(ctx, 1);
-  // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-  return new Scops(input);
+  return new Scops(input, defines);
 }
 
 extern "C" size_t

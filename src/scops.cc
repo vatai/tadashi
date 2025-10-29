@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <deque>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include <isl/union_map.h>
@@ -65,8 +66,10 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   return p;
 }
 
-Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
-
+Scops::Scops(char *input, const std::vector<std::string> &defines)
+    : ctx(isl_ctx_alloc_with_pet_options()) {
+  for (const auto &s : defines)
+    pet_options_append_defines(ctx, s.c_str());
   // printf("Scops::Scops(ctx=%p)\n", ctx);
   FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);

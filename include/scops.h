@@ -52,7 +52,7 @@ public:
 class Scops {
 
 public:
-  Scops(char *input);
+  Scops(char *input, const std::vector<std::string> &defines);
   ~Scops();
   int num_scops();
 
