@@ -84,6 +84,7 @@ if(NOT PET_FOUND)
     HINTS
     /usr/lib/llvm19
     /usr/lib/llvm-19
+    /home/apps/oss/llvm-v19.1.4/compute_node
     ${CMAKE_SOURCE_DIR}/deps/opt)
   message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
   execute_process(

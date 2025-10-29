@@ -7,13 +7,12 @@ BUILD_FILES="/tmp/$(whoami)"
 mkdir -p "$BUILD_FILES"
 
 pushd "$BUILD_FILES" || exit
-wget -c https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tar.xz
-rm -rf Python-3.12.0
-tar xvf  Python-3.12.0.tar.xz
-pushd Python-3.12.0 || exit
-./configure --enable-shared --prefix="${TADASHI_DEPS_PREFIX}"
+wget -c https://mirrors.ustc.edu.cn/gnu/bison/bison-3.8.tar.xz
+tar xvf bison-3.8.tar.xz
+pushd bison-3.8 || exit
+./configure --prefix="$TADASHI_DEPS_PREFIX"
 make -j
 make install
 popd || exit
-rm -rf Python-3.12.0
+rm -rf bison-3.8
 popd || exit
