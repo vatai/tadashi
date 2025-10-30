@@ -3,13 +3,13 @@
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
-///   for(int c0 = 1; c0 < N; c0 += 1)
-///     for(int c1 = 42 * N; c1 < 43 * N; c1 += 1)
+///   for(int _tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
+///     for(int _tadashi_1 = 42 * N; _tadashi_1 < 43 * N; _tadashi_1 += 1)
 ///       {
-///         for(int c2 = 0; c2 < N; c2 += 1)
-///           A[c0][-42 * N + c1] = (A[c0][-42 * N + c1] + (A[c0 - 1][-42 * N + c1] * (c2)));
-///         for(int c2 = 0; c2 < N; c2 += 1)
-///           A[c0][-42 * N + c1] = ((A[c0][-42 * N + c1] + A[c0 - 1][-42 * N + c1]) + (c2));
+///         for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
+///           A[_tadashi_0][-42 * N + _tadashi_1] = (A[_tadashi_0][-42 * N + _tadashi_1] + (A[_tadashi_0 - 1][-42 * N + _tadashi_1] * (_tadashi_2)));
+///         for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
+///           A[_tadashi_0][-42 * N + _tadashi_1] = ((A[_tadashi_0][-42 * N + _tadashi_1] + A[_tadashi_0 - 1][-42 * N + _tadashi_1]) + (_tadashi_2));
 ///       }
 /// #pragma endscop
 /// }

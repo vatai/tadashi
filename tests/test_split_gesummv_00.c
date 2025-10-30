@@ -6,19 +6,19 @@
 ///   int i,j;
 /// #pragma scop
 ///   {
-///     for(int c0 = 0; c0 <= 9; c0 += 1)
+///     for(int _tadashi_0 = 0; _tadashi_0 <= 9; _tadashi_0 += 1)
 ///       {
-///         tmp[c0] = 0.0;
-///         y[c0] = 0.0;
+///         tmp[_tadashi_0] = 0.0;
+///         y[_tadashi_0] = 0.0;
 ///       }
-///     for(int c0 = 0; c0 <= 9; c0 += 1)
+///     for(int _tadashi_0 = 0; _tadashi_0 <= 9; _tadashi_0 += 1)
 ///       {
-///         for(int c1 = 0; c1 <= 9; c1 += 1)
+///         for(int _tadashi_1 = 0; _tadashi_1 <= 9; _tadashi_1 += 1)
 ///           {
-///             tmp[c0] = ((A[c0][c1] * x[c1]) + tmp[c0]);
-///             y[c0] = ((B[c0][c1] * x[c1]) + y[c0]);
+///             tmp[_tadashi_0] = ((A[_tadashi_0][_tadashi_1] * x[_tadashi_1]) + tmp[_tadashi_0]);
+///             y[_tadashi_0] = ((B[_tadashi_0][_tadashi_1] * x[_tadashi_1]) + y[_tadashi_0]);
 ///           }
-///         y[c0] = ((alpha * tmp[c0]) + (beta * y[c0]));
+///         y[_tadashi_0] = ((alpha * tmp[_tadashi_0]) + (beta * y[_tadashi_0]));
 ///       }
 ///   }
 /// #pragma endscop
