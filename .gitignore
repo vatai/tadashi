@@ -19,3 +19,7 @@ __pycache__
 times/*.json
 ctadashi
 build
+
+Tadashi.egg-info
+dist
+.aider*
