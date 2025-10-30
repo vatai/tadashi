@@ -180,10 +180,6 @@ class Node:
         )
         return encoded_result
 
-    def rollback(self) -> None:
-        """Roll back (revert) the last transformation."""
-        ctadashi.rollback(self.scop.app_ptr, self.scop.scop_idx)
-
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
         """Check the validity of the transformation."""
@@ -702,6 +698,10 @@ class Scop:
 
     def reset(self):
         ctadashi.reset_scop(self.app_ptr, self.scop_idx)
+
+    def rollback(self) -> None:
+        """Roll back (revert) the last transformation."""
+        ctadashi.rollback(self.app_ptr, self.scop_idx)
 
 
 class Scops:
