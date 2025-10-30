@@ -159,9 +159,9 @@ class App:
         """The command which gets executed when we measure runtime."""
         return [self.output_binary]
 
-    def compile(self, verbose: bool = False):
+    def compile(self, verbose: bool = False, extra_compiler_options: list[str] = []):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd + self.user_compiler_options
+        cmd = self.compile_cmd + self.user_compiler_options + extra_compiler_options
         if verbose:
             print(f"{' '.join(cmd)}")
         result = subprocess.run(cmd)
@@ -330,3 +330,24 @@ class Polybench(App):
         except IndexError as e:
             print(f"App probaly crashed: {e}")
         return result
+
+    def dump_arrays(self):
+        self.compile(extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"])
+        result = subprocess.run(
+            self.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        return result.stderr.decode()
+
+    def dump_scop(self):
+        src = self.source.read_text()
+        lines = []
+        inside_scop = False
+        for line in src.split("\n"):
+            if "#pragma" in line and "endscop" in line:
+                break
+            if inside_scop:
+                print(f"{line}")
+                lines.append(line)
+            if "#pragma" in line and "scop" in line:
+                inside_scop = True
+        return "\n".join(lines)
