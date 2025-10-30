@@ -476,6 +476,15 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
+  size_t num_iterators = 50;
+  isl_id_list *iterators = isl_id_list_alloc(ctx, num_iterators);
+  for (size_t i = 0; i < num_iterators; i++) {
+    char buffer[20];
+    sprintf(buffer, "_tadashi_%zu", i);
+    isl_id *id = isl_id_alloc(ctx, buffer, NULL);
+    iterators = isl_id_list_add(iterators, id);
+  }
+  build = isl_ast_build_set_iterators(build, iterators);
   node = isl_ast_build_node_from_schedule(build, schedule);
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
