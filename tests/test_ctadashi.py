@@ -129,9 +129,6 @@ class TestCtadashi(unittest.TestCase):
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
-
-# @unittest.skip("The user should not do this (see populate_scops app parameter)")
-class TestCtadashiRegression(unittest.TestCase):
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent
         app = Simple(base / "examples/inputs/simple/two_loops.c")
@@ -139,6 +136,17 @@ class TestCtadashiRegression(unittest.TestCase):
         node.transform(TrEnum.TILE2D, 12, 4)
         for i in range(30):
             app = app.generate_code(populate_scops=True)
+
+    def test_bad_deps(self):
+        app = Simple("tests/bad_deps.c")
+        scop = app.scops[0]
+        node = scop.schedule_tree[1]
+        # print(node.yaml_str)
+        trs = [[2, TrEnum.FULL_SPLIT]]
+        valid = scop.transform_list(trs)
+        tapp = app.generate_code(ensure_legality=False)
+        # print(f"{valid=}")
+        # print(tapp.source.read_text())
 
 
 def setup():
