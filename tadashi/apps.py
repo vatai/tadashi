@@ -331,12 +331,17 @@ class Polybench(App):
             print(f"App probaly crashed: {e}")
         return result
 
-    def dump_arrays(self):
+    def dump_arrays_and_time(self):
         self.compile(extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"])
         result = subprocess.run(
-            self.run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            self.run_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        return result.stderr.decode()
+        return {
+            "arrays": result.stderr.decode(),
+            "time": self.extract_runtime(result.stdout.decode()),
+        }
 
     def dump_scop(self):
         src = self.source.read_text()
