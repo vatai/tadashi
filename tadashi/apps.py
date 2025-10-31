@@ -147,11 +147,6 @@ class App:
     @property
     def output_binary(self) -> Path:
         """The output binary obtained after compilation."""
-        # TODO: delete before merge when we fix exit issues
-        # print("------------")
-        # print(type(self.source), self.source)
-        # print(self.source.with_suffix(""))
-        # print("------------")
         return self.source.with_suffix("")
 
     @property
