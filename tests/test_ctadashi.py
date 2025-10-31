@@ -148,6 +148,10 @@ class TestCtadashi(unittest.TestCase):
         # print(f"{valid=}")
         # print(tapp.source.read_text())
 
+    def test_legality_new(self):
+        app = Polybench("gemm")
+        self.assertTrue(app.legal)
+
 
 def setup():
     if "-v" in sys.argv:
