@@ -156,7 +156,10 @@ class App:
 
     def compile(self, verbose: bool = False, extra_compiler_options: list[str] = []):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd + self.user_compiler_options + extra_compiler_options
+        cmd = self.compile_cmd
+        cmd += ["-o", str(self.output_binary)]
+        cmd += self.user_compiler_options
+        cmd += extra_compiler_options
         if verbose:
             print(f"{' '.join(cmd)}")
         result = subprocess.run(cmd)
@@ -233,8 +236,6 @@ class Simple(App):
             self.compiler(),
             str(self.source),
             "-fopenmp",
-            "-o",
-            str(self.output_binary),
         ]
 
     def extract_runtime(self, stdout) -> float:
@@ -314,8 +315,6 @@ class Polybench(App):
             "-DPOLYBENCH_USE_RESTRICT",
             "-lm",
             "-fopenmp",
-            "-o",
-            str(self.output_binary),
         ]
 
     def extract_runtime(self, stdout) -> float:
