@@ -87,3 +87,17 @@ class TestPolybench(TestApp):
 
         with self.assertRaises(ValueError):
             app = apps.Polybench("does_not_exist")
+
+    def test_dump_arrays(self):
+        # print([a.name for a in apps.Polybench.get_benchmarks()])
+        app = apps.Polybench("deriche", compiler_options=["-DMINI_DATASET"])
+        # for idx, node in enumerate(app.scops[0].schedule_tree):
+        #     if TrEnum.SPLIT in node.available_transformations:
+        #         print(f"node[{idx}] has SPLI")
+        # print(node.yaml_str)
+        node = app.scops[0].schedule_tree[20]
+        node.transform(TrEnum.SPLIT, 1)
+        tapp = app.generate_code()
+        tarrays = tapp.dump_arrays()
+        tapp.measure()
+        # print(tarrays)

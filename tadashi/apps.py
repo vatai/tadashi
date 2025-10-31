@@ -149,15 +149,15 @@ class App:
         """The output binary obtained after compilation."""
         return self.source.with_suffix("")
 
-    @property
-    def run_cmd(self) -> list[Path]:
-        """The command which gets executed when we measure runtime."""
-        return [self.output_binary]
-
-    def compile(self, verbose: bool = False, extra_compiler_options: list[str] = []):
+    def compile(
+        self,
+        verbose: bool = False,
+        extra_compiler_options: list[str] = [],
+        output_binary_suffix="",
+    ):
         """Compile the app so it can be measured/executed."""
         cmd = self.compile_cmd
-        cmd += ["-o", str(self.output_binary)]
+        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
         cmd += self.user_compiler_options
         cmd += extra_compiler_options
         if verbose:
@@ -168,10 +168,12 @@ class App:
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
+        if not self.output_binary.exists():
+            self.compile()
         results = []
         for _ in range(repeat):
             result = subprocess.run(
-                self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs
+                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
             )
             stdout = result.stdout.decode()
             results.append(self.extract_runtime(stdout))
@@ -325,17 +327,18 @@ class Polybench(App):
             print(f"App probaly crashed: {e}")
         return result
 
-    def dump_arrays_and_time(self):
-        self.compile(extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"])
+    def dump_arrays(self):
+        suffix = ".dump"
+        self.compile(
+            extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
+            output_binary_suffix=suffix,
+        )
         result = subprocess.run(
-            self.run_cmd,
+            f"{self.output_binary}{suffix}",
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        return {
-            "arrays": result.stderr.decode(),
-            "time": self.extract_runtime(result.stdout.decode()),
-        }
+        return result.stderr.decode()
 
     def dump_scop(self):
         src = self.source.read_text()
