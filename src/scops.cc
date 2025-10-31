@@ -11,7 +11,8 @@
 #include "legality.h"
 #include "scops.h"
 
-Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
+Scop::Scop(pet_scop *ps)
+    : tmp_node(nullptr), modified(false), current_legal(true) {
   scop = allocate_tadashi_scop(ps);
   current_node = isl_schedule_get_root(scop->schedule);
 }
