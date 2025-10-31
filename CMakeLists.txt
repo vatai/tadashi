@@ -52,9 +52,9 @@ include(FetchContent)
 
 FetchContent_Declare(
   pet
-  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch" || ./get_submodules.sh  && git -C ./isl checkout master && git -C isl apply "${INSTALL_SCRIPTS}/isl.patch" && true
+  PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch" || true
   GIT_REPOSITORY https://repo.or.cz/pet.git
-  GIT_TAG master
+  GIT_TAG b85d6e89cfd95c7228216307faa6e95caecbecf9
   GIT_SHALLOW ON
   # GIT_SUBMODULES ""
   # GIT_SUBMODULES_RECURSE False
