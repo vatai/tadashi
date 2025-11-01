@@ -28,10 +28,7 @@
  */
 
 #include <vector>
-#ifdef __cplusplus
 #include "scops.h"
-extern "C" {
-#endif
 #include <cstddef>
 
 /**
@@ -453,6 +450,3 @@ int set_loop_opt(Scops *app, size_t scop_idx, int pos, int opt);
  */
 int set_parallel(Scops *app, size_t scop_idx, int num_threads);
 
-#ifdef __cplusplus
-}
-#endif
