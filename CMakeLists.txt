@@ -80,12 +80,13 @@ set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
-  find_package(LLVM 19.1 REQUIRED CONFIG
+  find_package(LLVM 15...19 REQUIRED CONFIG
     HINTS
+    ${CMAKE_SOURCE_DIR}/deps/opt
     /usr/lib/llvm19
     /usr/lib/llvm-19
-    /home/apps/oss/llvm-v19.1.4/compute_node
-    ${CMAKE_SOURCE_DIR}/deps/opt)
+    /home/apps/oss/llvm-v15.0.3/compute_node
+    )
   message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
   execute_process(
     # TODO: remove "bundled"
