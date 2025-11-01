@@ -80,7 +80,7 @@ set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
-  find_package(LLVM 15.0...19.1 REQUIRED CONFIG
+  find_package(LLVM 15...<20 REQUIRED CONFIG
     HINTS
     ${CMAKE_SOURCE_DIR}/deps/opt
     /usr/lib/llvm19
