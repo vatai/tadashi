@@ -26,7 +26,7 @@ TADASHI_ROOT="$(git rev-parse --show-toplevel)"
 source "$TADASHI_ROOT/scripts/fugaku.source"
 
 # source /home/apps/oss/llvm-v19.1.4/init.sh
-SCRIPTS_DIR=${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/install_scripts}
+SCRIPTS_DIR=${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/scripts/install}
 "${SCRIPTS_DIR}/gmp.sh"
 "${SCRIPTS_DIR}/python.sh"
 "${SCRIPTS_DIR}/bison.sh"

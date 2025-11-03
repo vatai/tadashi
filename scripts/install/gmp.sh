@@ -3,17 +3,16 @@ set -e
 
 TADASHI_DEPS_PREFIX=${TADASHI_DEPS_PREFIX:-$(git rev-parse --show-toplevel)/deps/opt}
 mkdir -p "$TADASHI_DEPS_PREFIX"
+
 BUILD_FILES="/tmp/$(whoami)"
 mkdir -p "$BUILD_FILES"
-
 pushd "$BUILD_FILES" || exit
-wget -c https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tar.xz
-rm -rf Python-3.12.0
-tar xvf  Python-3.12.0.tar.xz
-pushd Python-3.12.0 || exit
-./configure --enable-shared --prefix="${TADASHI_DEPS_PREFIX}"
+wget -c https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+tar xvf gmp-6.3.0.tar.xz
+
+pushd gmp-6.3.0 || exit
+./configure --prefix="$TADASHI_DEPS_PREFIX"
 make -j
 make install
 popd || exit
-rm -rf Python-3.12.0
 popd || exit
