@@ -31,7 +31,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # Dependencies
 # ============
 
-set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
+set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/scripts/install")
 set(CMAKE_INSTALL_RPATH_USE_ORIGIN TRUE)
 # To find locally installed packages
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/deps/opt)
