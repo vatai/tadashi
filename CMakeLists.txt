@@ -129,6 +129,9 @@ add_library(CTadashi::ctadashi ALIAS ctadashi)
 
 add_executable(goodbadtest src/goodbadtest.c)
 
+add_executable(bad_deps src/bad_deps.c)
+target_link_libraries(bad_deps PUBLIC PkgConfig::ISL PkgConfig::PET)
+
 add_executable(scop_detector src/scop_detector.c)
 target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET legality)
 
