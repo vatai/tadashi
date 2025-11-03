@@ -5,6 +5,7 @@
 # #SBATCH -o %x-%j.txt
 # #SBATCH -e %x-%j.txt
 set -e
+set -x
 
 if [[ $HOSTNAME == login* ]]; then
     echo "DO NOT RUN THIS ON LOGIN NODE. Use `sbatch .../all.sh`"
@@ -12,16 +13,15 @@ if [[ $HOSTNAME == login* ]]; then
 fi
 
 TADASHI_ROOT="$(git rev-parse --show-toplevel)"
-rm -rf "${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/opt}"
-# rm -rf "${BUILD_FILES:-$TADASHI_ROOT/deps/build_files}"
+### rm -rf "${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/opt}"
 
 source "$TADASHI_ROOT/scripts/genoa.source"
 
 SCRIPTS_DIR=${TADASHI_DEPS_PREFIX:-$TADASHI_ROOT/deps/install_scripts}
 "${SCRIPTS_DIR}/gmp.sh"
 "${SCRIPTS_DIR}/llvm_src.sh"
-"${SCRIPTS_DIR}/python.sh"
 "${SCRIPTS_DIR}/swig.sh"
+"${SCRIPTS_DIR}/python.sh"
 
 CMAKE_ARGS=(
     -S "$TADASHI_ROOT"
