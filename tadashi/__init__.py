@@ -754,13 +754,9 @@ class LLVMScops(Scops):
 
     def __init__(self, source_path: Path, compiler: str):
         self._check_missing_file(Path(source_path))
-        self.pool_idx = ctadashi.init_scops_from_json(compiler, str(source_path))
-        # self.pool_idx = ctadashi.init_scops_from_json(str(source_path))
-        self.num_scops = ctadashi.num_scops(self.pool_idx)
-        # print(f"{str(source_path)=}")
-        # print(f"{self.num_scops=}")
-        # print(f"{self.pool_idx=}")
-        self.scops = [Scop(self.pool_idx, scop_idx=i) for i in range(self.num_scops)]
+        self.app_ptr = ctadashi.init_scops_from_json(compiler, str(source_path))
+        self.num_scops = ctadashi.num_scops(self.app_ptr)
+        self.scops = [Scop(self.app_ptr, scop_idx=i) for i in range(self.num_scops)]
 
     def generate_code(self, input_path, output_path):
         """Generate the source code.
