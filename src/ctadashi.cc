@@ -210,13 +210,10 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
 }
 
 int
-generate_code(Scops *app, const char *input_path, const char *output_path) {
+generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
   int r = 0;
   isl_ctx *ctx = app->ctx;
   size_t scop_idx = 0;
-
-  //   isl_options_set_ast_print_macro_once(ctx, 1);
-  //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
   Scop **si = app->scops.data();
@@ -224,6 +221,22 @@ generate_code(Scops *app, const char *input_path, const char *output_path) {
                              generate_code_callback, si);
   fclose(output_file);
   return r;
+}
+
+int
+generate_code_polly(Scops *app, const char *input_path,
+                    const char *output_path) {
+  printf("GENERATE CODE POLLLY!");
+  return 0;
+}
+
+int
+generate_code(Scops *app, const char *input_path, const char *output_path) {
+  if (app->scops.size() == 0)
+    return 0;
+  if (app->scops[0]->scop->pet_scop == NULL)
+    return generate_code_polly(app, input_path, output_path);
+  return generate_code_isl(app, input_path, output_path);
 }
 
 /******** transformations ***********************************/

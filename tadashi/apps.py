@@ -71,7 +71,7 @@ class App:
             os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
         self.source = Path(source)
         if not self.source.exists():
-            raise ValueError(f"{self.source=} doesn't exist!")
+            raise ValueError(f"{self.source=} does not exist!")
         defines = self._get_defines(compiler_options)
         self.scops = Scops(str(self.source), defines) if self.populate_scops else None
 
@@ -364,10 +364,12 @@ class SimpleLLVM(App):
         compiler: str = "clang",
         compiler_options: Optional[list[str]] = None,
         runtime_prefix: str = "WALLTIME: ",
+        populate_scops: bool = True,
     ):
         if compiler_options:
             compiler_options = []
         self.runtime_prefix = runtime_prefix
+        self.populate_scops = populate_scops
         self._finalize_object_llvm(
             source,
             compiler=compiler,
@@ -389,4 +391,6 @@ class SimpleLLVM(App):
         self.user_compiler_options = compiler_options
         os.environ["C_INCLUDE_PATH"] = ":".join(map(str, include_paths))
         self.source = Path(source)
-        self.scops = LLVMScops(self.source, compiler=compiler)
+        self.scops = None
+        if self.populate_scops:
+            self.scops = LLVMScops(self.source, compiler=compiler)
