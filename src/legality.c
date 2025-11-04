@@ -444,23 +444,26 @@ _check_legality(__isl_take isl_union_map *schedule_map,
 }
 
 isl_bool
-tadashi_check_legality(__isl_keep isl_schedule *schedule,
+tadashi_check_legality(__isl_keep isl_schedule_node *node,
                        __isl_take isl_union_map *dep) {
   isl_bool legal;
   isl_union_pw_multi_aff *dep_upma;
+  isl_schedule *schedule = isl_schedule_node_get_schedule(node);
   isl_union_map *map = isl_schedule_get_map(schedule);
+  isl_schedule_free(schedule);
   return _check_legality(map, dep);
 }
 
 isl_bool
-tadashi_check_legality_parallel(isl_ctx *ctx,
-                                __isl_keep isl_schedule_node *node,
+tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
                                 __isl_take isl_union_map *dep) {
   isl_union_map *map;
   isl_bool retval;
-  map = isl_schedule_node_band_get_partial_schedule_union_map(node);
   isl_union_map *domain, *cmp;
   isl_union_set *delta, *zeros;
+  node = isl_schedule_node_first_child(node);
+  map = isl_schedule_node_band_get_partial_schedule_union_map(node);
+  node = isl_schedule_node_parent(node);
 
   if (isl_union_map_is_empty(dep)) {
     dep = isl_union_map_free(dep);

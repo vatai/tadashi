@@ -51,7 +51,7 @@ class TestCtadashi(unittest.TestCase):
         return transforms, target_code
 
     def _get_generated_code(self, app: Simple):
-        tapp = app.generate_code()
+        tapp = app.generate_code(ensure_legality=False)
         generated_code = tapp.source.read_text().split("\n")
         return [x for x in generated_code if not x.startswith(COMMENT)]
 
@@ -114,7 +114,7 @@ class TestCtadashi(unittest.TestCase):
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         legals = scop.transform_list(transformations)
-        mod_app = app.generate_code()
+        mod_app = app.generate_code(ensure_legality=False)
         mod_app.compile()
         for legal in legals[:-1]:
             self.assertTrue(legal)
@@ -134,18 +134,32 @@ class TestCtadashi(unittest.TestCase):
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
-
-@unittest.skip("The user should not do this (see populate_scops app parameter)")
-class TestCtadashiRegression(unittest.TestCase):
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent
-        app = Simple(get_inputs_path() / "simple/two_loops.c")
-        for i in range(10):
-            app = app.generate_code()
+        app = Simple(base / "examples/inputs/simple/two_loops.c")
+        node = app.scops[0].schedule_tree[1]
+        node.transform(TrEnum.TILE2D, 12, 4)
+        for i in range(30):
+            app = app.generate_code(populate_scops=True)
+
+    def test_bad_deps(self):
+        app = Simple("tests/bad_deps.c")
+        scop = app.scops[0]
+        node = scop.schedule_tree[1]
+        # print(node.yaml_str)
+        trs = [[2, TrEnum.FULL_SPLIT]]
+        valid = scop.transform_list(trs)
+        tapp = app.generate_code(ensure_legality=False)
+        # print(f"{valid=}")
+        # print(tapp.source.read_text())
+
+    def test_legality_new(self):
+        app = Polybench("gemm")
+        self.assertTrue(app.legal)
 
 
 class TestCtadashiLLVM(unittest.TestCase):
-    # @unittest.skip("wip")
+    @unittest.skip("wip")
     def test_foobar(self):
         app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
         print(app.source.exists())

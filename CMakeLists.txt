@@ -31,7 +31,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # Dependencies
 # ============
 
-set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/deps/install_scripts")
+set(INSTALL_SCRIPTS "${CMAKE_SOURCE_DIR}/scripts/install")
 set(CMAKE_INSTALL_RPATH_USE_ORIGIN TRUE)
 # To find locally installed packages
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/deps/opt)
@@ -54,7 +54,7 @@ FetchContent_Declare(
   pet
   PATCH_COMMAND git apply "${INSTALL_SCRIPTS}/pet.patch" || true
   GIT_REPOSITORY https://repo.or.cz/pet.git
-  GIT_TAG master
+  GIT_TAG b85d6e89cfd95c7228216307faa6e95caecbecf9
   GIT_SHALLOW ON
   # GIT_SUBMODULES ""
   # GIT_SUBMODULES_RECURSE False
@@ -80,11 +80,19 @@ set(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PET IMPORTED_TARGET pet)
 if(NOT PET_FOUND)
-  find_package(LLVM 19.1 REQUIRED CONFIG
+  find_package(LLVM 19.1 CONFIG
     HINTS
+    ${CMAKE_SOURCE_DIR}/deps/opt
     /usr/lib/llvm19
-    /usr/lib/llvm-19
-    ${CMAKE_SOURCE_DIR}/deps/opt)
+    /usr/lib/llvm-19)
+  if(NOT LLVM_FOUND)
+    find_package(LLVM 15.0 REQUIRED CONFIG
+      HINTS
+      ${CMAKE_SOURCE_DIR}/deps/opt
+      /usr/lib/llvm15
+      /usr/lib/llvm-15
+      /home/apps/oss/llvm-v15.0.3/compute_node)
+  endif()
   message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
   execute_process(
     # TODO: remove "bundled"
@@ -120,9 +128,6 @@ target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality cod
 add_library(CTadashi::ctadashi ALIAS ctadashi)
 
 add_executable(goodbadtest src/goodbadtest.c)
-
-add_executable(tadashi src/tadashi.c)
-target_link_libraries(tadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations)
 
 add_executable(scop_detector src/scop_detector.c)
 target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET legality)

@@ -1,6 +1,3 @@
-[submodule "src/pet"]
-	path = deps/build/pet
-	url = git://repo.or.cz/pet.git
 [submodule "examples/polybench"]
 	path = examples/polybench
 	url = https://github.com/MatthiasJReisinger/PolyBenchC-4.2.1

@@ -55,7 +55,7 @@ class MCTSNode_Node(mcts.base.MCTSNode):
         print("selected transform:", trs)
         self.app.reset_scops()
         try:
-            legal = self.app.scops[scop_idx].transform_list(trs)[0]
+            legal = self.app.scops[scop_idx].transform_list(trs)[-1]
             print("transform legal: ", legal)
             if legal:
                 config["cnt_evals"] += 1

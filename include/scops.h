@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#include <isl/ctx.h>
 #include <isl/schedule_node.h>
 
 #include <pet.h>
@@ -22,39 +23,49 @@ private:
 public:
   struct tadashi_scop *scop;
   isl_schedule_node *current_node;
+  bool current_legal;
   isl_schedule_node *tmp_node;
+  bool tmp_legal;
   int modified;
+
   Scop(pet_scop *scop);
   Scop(isl_ctx *ctx, std::string &jscop_path);
   ~Scop();
+
   const char *add_string(char *str);
   const char *add_string(std::stringstream &ss);
+
+  void rollback();
+  void reset();
+
+  template <typename Chk, typename Trn, typename... Args>
+  int
+  run_transform(Chk check_legality, Trn transform, Args &&...args) {
+    if (tmp_node != nullptr)
+      tmp_node = isl_schedule_node_free(tmp_node);
+    tmp_node = isl_schedule_node_copy(current_node);
+    tmp_legal = current_legal;
+
+    current_node = transform(current_node, std::forward<Args>(args)...);
+
+    isl_union_map *dep = isl_union_map_copy(scop->dep_flow);
+    current_legal = check_legality(current_node, dep);
+    modified = true;
+    return current_legal;
+  }
 };
 
 class Scops {
 
 public:
-  Scops(char *input);
+  Scops(char *input, const std::vector<std::string> &defines);
   Scops(char *compiler, char *input);
   ~Scops();
   int num_scops();
 
 public:
-  isl_ctx *ctx;
+  isl_ctx *ctx; ///< Context for @ref Scop "Scop"s in a (Python) App object.
   std::vector<Scop *> scops;
-};
-
-class ScopsPool {
-private:
-  std::deque<size_t> free_indexes;
-  std::vector<Scops *> scops_vector;
-
-public:
-  // ScopsPool();
-  ~ScopsPool();
-  size_t add(Scops *scops_ptr);
-  void remove(size_t pool_idx);
-  Scops &operator[](size_t idx);
 };
 
 #endif // _SCOPS_H_

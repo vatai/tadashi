@@ -1,0 +1,115 @@
+diff --git a/include/isl/arg.h b/include/isl/arg.h
+index edbd81e12d..5de33ca147 100644
+--- a/include/isl/arg.h
++++ b/include/isl/arg.h
+@@ -288,6 +288,8 @@ struct isl_args {
+ #define ISL_ARG_ALL		(1 << 0)
+ #define ISL_ARG_SKIP_HELP	(1 << 1)
+ 
++int isl_arg_str_list_append(int *n, const char ***list, const char *s);
++
+ void isl_args_set_defaults(struct isl_args *args, void *opt);
+ void isl_args_free(struct isl_args *args, void *opt);
+ int isl_args_parse(struct isl_args *args, int argc, char **argv, void *opt,
+diff --git a/include/isl/ctx.h b/include/isl/ctx.h
+index 1debc62da7..0ab9ebd37d 100644
+--- a/include/isl/ctx.h
++++ b/include/isl/ctx.h
+@@ -86,7 +86,7 @@ typedef enum {
+ 	isl_stat_error = -1,
+ 	isl_stat_ok = 0
+ } isl_stat;
+-isl_stat isl_stat_non_null(void *obj);
++isl_stat isl_stat_non_null(const void *obj);
+ typedef enum {
+ 	isl_bool_error = -1,
+ 	isl_bool_false = 0,
+@@ -241,6 +241,21 @@ isl_stat prefix ## _set_ ## field(isl_ctx *ctx, const char *val)	\
+ 	return isl_stat_ok;						\
+ }
+ 
++#define	ISL_CTX_APPEND_STR_LIST_DEF(prefix,st,args,field_n,field)	\
++isl_stat prefix ## _append_ ## field(isl_ctx *ctx, const char *val)	\
++{									\
++	st *options;							\
++	options = isl_ctx_peek_ ## prefix(ctx);				\
++	if (!options)							\
++		isl_die(ctx, isl_error_invalid,				\
++			"isl_ctx does not reference " #prefix,		\
++			return isl_stat_error);				\
++	if (!val)							\
++		return isl_stat_error;					\
++	return isl_arg_str_list_append(&options->field_n,		\
++		&options->field, val);					\
++}
++
+ #define ISL_CTX_GET_BOOL_DEF(prefix,st,args,field)			\
+ 	ISL_CTX_GET_INT_DEF(prefix,st,args,field)
+ 
+diff --git a/isl_arg.c b/isl_arg.c
+index 8a9e26d1c6..43bd0d100e 100644
+--- a/isl_arg.c
++++ b/isl_arg.c
+@@ -974,19 +974,25 @@ static int parse_str_option(struct isl_arg *decl, char **arg,
+ 	return 0;
+ }
+ 
+-static int isl_arg_str_list_append(struct isl_arg *decl, void *opt,
++int isl_arg_str_list_append(int *n, const char ***list, const char *s)
++{
++	const char **new_list;
++
++	new_list = realloc(*list, (*n + 1) * sizeof(char *));
++	if (!new_list)
++		return -1;
++	*list = new_list;
++	new_list[*n] = strdup(s);
++	return isl_stat_non_null(new_list[(*n)++]);
++}
++
++static int arg_str_list_append(struct isl_arg *decl, void *opt,
+ 	const char *s)
+ {
+ 	int *n = (int *)(((char *) opt) + decl->u.str_list.offset_n);
+-	char **list = *(char ***)(((char *) opt) + decl->offset);
++	const char ***list = (const char ***)(((char *) opt) + decl->offset);
+ 
+-	list = realloc(list, (*n + 1) * sizeof(char *));
+-	if (!list)
+-		return -1;
+-	*(char ***)(((char *) opt) + decl->offset) = list;
+-	list[*n] = strdup(s);
+-	(*n)++;
+-	return 0;
++	return isl_arg_str_list_append(n, list, s);
+ }
+ 
+ static int parse_str_list_option(struct isl_arg *decl, char **arg,
+@@ -1000,12 +1006,12 @@ static int parse_str_list_option(struct isl_arg *decl, char **arg,
+ 		return 0;
+ 
+ 	if (has_argument) {
+-		isl_arg_str_list_append(decl, opt, s);
++		arg_str_list_append(decl, opt, s);
+ 		return 1;
+ 	}
+ 
+ 	if (arg[1]) {
+-		isl_arg_str_list_append(decl, opt, arg[1]);
++		arg_str_list_append(decl, opt, arg[1]);
+ 		return 2;
+ 	}
+ 
+diff --git a/isl_ctx.c b/isl_ctx.c
+index dd189922fd..a9afbe7ebd 100644
+--- a/isl_ctx.c
++++ b/isl_ctx.c
+@@ -31,7 +31,7 @@ isl_stat isl_stat_non_error_bool(isl_bool b)
+  * That is, return isl_stat_ok if "obj" is non_NULL and
+  * isl_stat_error otherwise.
+  */
+-isl_stat isl_stat_non_null(void *obj)
++isl_stat isl_stat_non_null(const void *obj)
+ {
+ 	if (obj != NULL)
+ 		return isl_stat_ok;

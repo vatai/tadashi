@@ -1,8 +1,11 @@
-/** @file */
-// Date: 2024, January
-// Author: Emil VATAI, Riken
-//
-// This file is the "C side" between the C and Python code of tadashi.
+/**
+ * @file ctadashi.cc
+ *
+ * @brief ctadashi.cc is the entry point on the "C side" between the C and
+ * Python code of tadashi.
+ *
+ * Loading a Python \p App object invokes \ref init_scops.
+ */
 
 #include <cassert>
 #include <climits>
@@ -11,6 +14,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <string>
+#include <vector>
+
+using namespace std;
 
 #include <isl/aff.h>
 #include <isl/ast.h>
@@ -33,58 +40,50 @@
 #include "scops.h"
 #include "transformations.h"
 
-ScopsPool SCOPS_POOL;
-
-/// Entry point.
-extern "C" size_t
-init_scops(char *input) {
-  // Entry point (PET backend)
-  // pet_options_set_autodetect(ctx, 1);
-  // pet_options_set_signed_overflow(ctx, 1);
-  // pet_options_set_encapsulate_dynamic_control(ctx, 1);
-
-  // printf(">>> init_scops()\n");
-  size_t pool_idx = SCOPS_POOL.add(new Scops(input));
-  // printf("<<< init_scops(pool_idx=%zu)\n", pool_idx);
-  return pool_idx;
+Scops *
+init_scops(char *input, const std::vector<std::string> &defines) {
+  /**
+   * Create a @ref Scop.
+   */
+  return new Scops(input, defines);
 }
 
-extern "C" size_t
+Scops *
 init_scops_from_json(char *compiler, char *input) {
-  // Entry point (Polly backend)
-  size_t pool_idx = SCOPS_POOL.add(new Scops(compiler, input));
-  return pool_idx;
+  return new Scops(compiler, input);
 }
 
-extern "C" size_t
-num_scops(size_t pool_idx) {
-  return SCOPS_POOL[pool_idx].scops.size();
+size_t
+num_scops(Scops *app) {
+  /**
+   * Get the number of @ref Scop "Scop"s.
+   */
+  return app->scops.size();
 }
 
-extern "C" void
-free_scops(size_t pool_idx) {
-  // printf(">>> free_scops(pool_idx=%zu)\n", pool_idx);
-  SCOPS_POOL.remove(pool_idx);
-  // printf("<<< free_scops(pool_idx=%zu)\n", pool_idx);
+void
+free_scops(Scops *app) {
+  /**
+   * Free the @ref Scops.
+   */
+  delete app;
 }
 
 /******** node info *****************************************/
 
-extern "C" int
-get_type(size_t pool_idx, size_t scop_idx) {
-  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
-  return isl_schedule_node_get_type(node);
+int
+get_type(Scops *app, size_t scop_idx) {
+  return isl_schedule_node_get_type(app->scops[scop_idx]->current_node);
 }
 
-extern "C" size_t
-get_num_children(size_t pool_idx, size_t scop_idx) {
-  return isl_schedule_node_n_children(
-      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
+size_t
+get_num_children(Scops *app, size_t scop_idx) {
+  return isl_schedule_node_n_children(app->scops[scop_idx]->current_node);
 }
 
-extern "C" const char *
-get_expr(size_t pool_idx, size_t idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[idx];
+const char *
+get_expr(Scops *app, size_t scop_idx) {
+  Scop *si = app->scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "";
   isl_multi_union_pw_aff *mupa =
@@ -94,9 +93,9 @@ get_expr(size_t pool_idx, size_t idx) {
   return si->add_string(tmp);
 }
 
-extern "C" const char *
-get_label(size_t pool_idx, size_t scop_idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
+const char *
+get_label(Scops *app, size_t scop_idx) {
+  Scop *si = app->scops[scop_idx];
   isl_multi_union_pw_aff *mupa;
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "foo";
@@ -108,9 +107,9 @@ get_label(size_t pool_idx, size_t scop_idx) {
   return si->add_string(ss);
 }
 
-extern "C" const char *
-get_loop_signature(size_t pool_idx, size_t scop_idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
+const char *
+get_loop_signature(Scops *app, size_t scop_idx) {
+  Scop *si = app->scops[scop_idx];
   if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
     return "[]";
   std::stringstream ss;
@@ -149,50 +148,45 @@ get_loop_signature(size_t pool_idx, size_t scop_idx) {
   return si->add_string(ss);
 }
 
-extern "C" const char *
-print_schedule_node(size_t pool_idx, size_t scop_idx) {
-  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
+const char *
+print_schedule_node(Scops *app, size_t scop_idx) {
+  isl_schedule_node *node = app->scops[scop_idx]->current_node;
   return isl_schedule_node_to_str(node);
 }
 
 /******** current node manipulation *************************/
 
-extern "C" void
-goto_root(size_t pool_idx, size_t scop_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_root(
-      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
-}
-
-extern "C" void
-goto_parent(size_t pool_idx, size_t scop_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_parent(
-      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node);
-}
-
-extern "C" void
-goto_child(size_t pool_idx, size_t scop_idx, size_t child_idx) {
-  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = isl_schedule_node_child(
-      SCOPS_POOL[pool_idx].scops[scop_idx]->current_node, child_idx);
-}
-
-extern "C" void
-rollback(size_t pool_idx, size_t scop_idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
-  isl_schedule_node *tmp = si->tmp_node;
-  si->tmp_node = si->current_node;
-  si->current_node = tmp;
+void
+goto_root(Scops *app, size_t scop_idx) {
+  app->scops[scop_idx]->current_node =
+      isl_schedule_node_root(app->scops[scop_idx]->current_node);
 }
 
 void
-reset_scop(size_t pool_idx, size_t scop_idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx];
-  si->current_node = isl_schedule_node_free(si->current_node);
-  si->current_node = isl_schedule_get_root(si->scop->schedule);
-  if (si->tmp_node)
-    if (si->tmp_node != nullptr)
-      si->tmp_node = isl_schedule_node_free(si->tmp_node);
-  si->tmp_node = nullptr;
-  si->modified = false;
+goto_parent(Scops *app, size_t scop_idx) {
+  app->scops[scop_idx]->current_node =
+      isl_schedule_node_parent(app->scops[scop_idx]->current_node);
+}
+
+void
+goto_child(Scops *app, size_t scop_idx, size_t child_idx) {
+  app->scops[scop_idx]->current_node =
+      isl_schedule_node_child(app->scops[scop_idx]->current_node, child_idx);
+}
+
+int
+get_legal(Scops *app, size_t scop_idx) {
+  return app->scops[scop_idx]->current_legal;
+}
+
+void
+rollback(Scops *app, size_t scop_idx) {
+  app->scops[scop_idx]->rollback();
+}
+
+void
+reset_scop(Scops *app, size_t scop_idx) {
+  app->scops[scop_idx]->reset();
 }
 
 static __isl_give isl_printer *
@@ -215,18 +209,17 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
   return p;
 }
 
-extern "C" int
-generate_code(size_t pool_idx, const char *input_path,
-              const char *output_path) {
+int
+generate_code(Scops *app, const char *input_path, const char *output_path) {
   int r = 0;
-  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
+  isl_ctx *ctx = app->ctx;
   size_t scop_idx = 0;
 
   //   isl_options_set_ast_print_macro_once(ctx, 1);
   //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
-  Scop **si = SCOPS_POOL[pool_idx].scops.data();
+  Scop **si = app->scops.data();
   r = pet_transform_C_source(ctx, input_path, output_file,
                              generate_code_callback, si);
   fclose(output_file);
@@ -235,165 +228,119 @@ generate_code(size_t pool_idx, const char *input_path,
 
 /******** transformations ***********************************/
 
-extern "C" Scop *
-pre_transform(size_t pool_idx, size_t scop_idx) {
-  // Set up `tmp_node` as a copy of `current_node` because we don't
-  // want to mess with the current node if the transformation is not
-  // legal.
-  //
-  // However now that I think about it, this approach may be wrong,
-  // since we might wanna get to illegal states, temporarily of course
-  // - the only requirement is that we're in a legal state at the
-  // final output.
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
-  if (si->tmp_node != nullptr)
-    si->tmp_node = isl_schedule_node_free(si->tmp_node);
-  si->tmp_node = isl_schedule_node_copy(si->current_node);
-  return si;
-}
+/**
+ * @section Transformations
+ *
+ * All transformations take a \p app, and \p scop_idx, and return 0,
+ * 1, -1.
+ *
+ * Which SCoP is transformed is determined by \p app which selects the
+ * @ref Scops corresponding to the Python \p App instance,
+ * and \p scop_idx determine the which @ref Scop within the app.
+ *
+ * Return values are:
+ * - 1 for legal
+ * - 0 for illegal
+ * - -1 for "same as previous"
+ */
 
-extern "C" int
-post_transform(size_t pool_idx, size_t scop_idx) {
-  Scop *si = SCOPS_POOL[pool_idx].scops[scop_idx]; // Just save some typing.
-  isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
-  isl_schedule *sched = isl_schedule_node_get_schedule(si->tmp_node);
-  // Got `dep` and `sched`.
-  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
-  isl_bool legal = tadashi_check_legality(sched, dep);
-  isl_schedule_free(sched);
-  si->modified = true;
-  isl_schedule_node *node = si->current_node;
-  si->current_node = si->tmp_node;
-  si->tmp_node = node;
-  return legal;
-}
-
-extern "C" int
-tile1d(size_t pool_idx, size_t scop_idx, size_t tile_size) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_1d(si->tmp_node, tile_size);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-tile2d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_2d(si->tmp_node, size1, size2);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-tile3d(size_t pool_idx, size_t scop_idx, size_t size1, size_t size2,
-       size_t size3) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_tile_3d(si->tmp_node, size1, size2, size3);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-interchange(size_t pool_idx, size_t scop_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_interchange(si->tmp_node);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-fuse(size_t pool_idx, size_t scop_idx, int idx1, int idx2) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_fuse(si->tmp_node, idx1, idx2);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-full_fuse(size_t pool_idx, size_t scop_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_fuse(si->tmp_node);
-  return post_transform(pool_idx, scop_idx);
+int
+tile1d(Scops *app, size_t scop_idx, size_t tile_size) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_tile_1d, tile_size);
 }
 
 int
-split(size_t pool_idx, size_t scop_idx, int split) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_split(si->tmp_node, split);
-  return post_transform(pool_idx, scop_idx);
+tile2d(Scops *app, size_t scop_idx, size_t size1, size_t size2) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_tile_2d, size1, size2);
 }
 
 int
-full_split(size_t pool_idx, size_t scop_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_split(si->tmp_node);
-  return post_transform(pool_idx, scop_idx);
+tile3d(Scops *app, size_t scop_idx, size_t size1, size_t size2, size_t size3) {
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_tile_3d, size1, size2, size3);
 }
 
-extern "C" int
-partial_shift_var(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+int
+interchange(Scops *app, size_t scop_idx) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_interchange);
+}
+
+int
+fuse(Scops *app, size_t scop_idx, int idx1, int idx2) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_fuse, idx1, idx2);
+}
+
+int
+full_fuse(Scops *app, size_t scop_idx) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_fuse);
+}
+
+int
+split(Scops *app, size_t scop_idx, int split) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_split, split);
+}
+
+int
+full_split(Scops *app, size_t scop_idx) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_split);
+}
+
+int
+partial_shift_var(Scops *app, size_t scop_idx, int pa_idx, long coeff,
                   long var_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node =
-      tadashi_partial_shift_var(si->tmp_node, pa_idx, coeff, var_idx);
-  return post_transform(pool_idx, scop_idx);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_partial_shift_var, pa_idx,
+                                             coeff, var_idx);
 }
 
-extern "C" int
-partial_shift_val(size_t pool_idx, size_t scop_idx, int pa_idx, long val) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_partial_shift_val(si->tmp_node, pa_idx, val);
-  return post_transform(pool_idx, scop_idx);
+int
+partial_shift_val(Scops *app, size_t scop_idx, int pa_idx, long val) {
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_partial_shift_val, pa_idx, val);
 }
 
-extern "C" int
-full_shift_var(size_t pool_idx, size_t scop_idx, long coeff, long var_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_var(si->tmp_node, coeff, var_idx);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-full_shift_val(size_t pool_idx, size_t scop_idx, long val) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_val(si->tmp_node, val);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-full_shift_param(size_t pool_idx, size_t scop_idx, long coeff, long param_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_full_shift_param(si->tmp_node, coeff, param_idx);
-  return post_transform(pool_idx, scop_idx);
-}
-
-extern "C" int
-partial_shift_param(size_t pool_idx, size_t scop_idx, int pa_idx, long coeff,
+int
+partial_shift_param(Scops *app, size_t scop_idx, int pa_idx, long coeff,
                     long param_idx) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node =
-      tadashi_partial_shift_param(si->tmp_node, pa_idx, coeff, param_idx);
-  return post_transform(pool_idx, scop_idx);
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_partial_shift_param,
+                                             pa_idx, coeff, param_idx);
 }
 
-extern "C" int
-set_parallel(size_t pool_idx, size_t scop_idx, int num_threads) {
-  Scop *si = pre_transform(pool_idx, scop_idx);
-  si->tmp_node = tadashi_set_parallel(si->tmp_node, num_threads);
-  isl_union_map *dep = isl_union_map_copy(si->scop->dep_flow);
-  isl_schedule_node *node = isl_schedule_node_copy(si->tmp_node);
-  isl_ctx *ctx = SCOPS_POOL[pool_idx].ctx;
-  node = isl_schedule_node_first_child(node);
-  isl_bool legal =
-      tadashi_check_legality_parallel(ctx, node, si->scop->dep_flow);
-  node = isl_schedule_node_free(node);
-  si->modified = true;
-  node = si->current_node;
-  si->current_node = si->tmp_node;
-  si->tmp_node = node;
-  return legal;
+int
+full_shift_var(Scops *app, size_t scop_idx, long coeff, long var_idx) {
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_full_shift_var, coeff, var_idx);
 }
 
-extern "C" int
-set_loop_opt(size_t pool_idx, size_t scop_idx, int pos, int opt) {
-  isl_schedule_node *node = SCOPS_POOL[pool_idx].scops[scop_idx]->current_node;
-  node = isl_schedule_node_band_member_set_ast_loop_type(
-      node, pos, (enum isl_ast_loop_type)opt);
-  SCOPS_POOL[pool_idx].scops[scop_idx]->current_node = node;
-  return 1;
+int
+full_shift_val(Scops *app, size_t scop_idx, long val) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality,
+                                             tadashi_full_shift_val, val);
+}
+
+int
+full_shift_param(Scops *app, size_t scop_idx, long coeff, long param_idx) {
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, tadashi_full_shift_param, coeff, param_idx);
+}
+
+int
+set_parallel(Scops *app, size_t scop_idx, int num_threads) {
+  return app->scops[scop_idx]->run_transform(tadashi_check_legality_parallel,
+                                             tadashi_set_parallel, num_threads);
+}
+
+int
+set_loop_opt(Scops *app, size_t scop_idx, int pos, int opt) {
+  return app->scops[scop_idx]->run_transform(
+      tadashi_check_legality, isl_schedule_node_band_member_set_ast_loop_type,
+      pos, (enum isl_ast_loop_type)opt);
 }

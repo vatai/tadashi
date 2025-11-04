@@ -10,13 +10,13 @@
 ///   {
 ///     third = (1. / 3.);
 ///     if (N >= 4)
-///       for(int c0 = 0; c0 < T; c0 += 1)
+///       for(int _tadashi_0 = 0; _tadashi_0 < T; _tadashi_0 += 1)
 ///         {
 ///           b[2] = (third * ((a[1] + a[2]) + a[3]));
-///           for(int c1 = 2 * c0 + 3; c1 < N + 2 * c0 - 1; c1 += 1)
+///           for(int _tadashi_1 = 2 * _tadashi_0 + 3; _tadashi_1 < N + 2 * _tadashi_0 - 1; _tadashi_1 += 1)
 ///             {
-///               b[-2 * c0 + c1] = (third * ((a[-2 * c0 + c1 - 1] + a[-2 * c0 + c1]) + a[-2 * c0 + c1 + 1]));
-///               a[-2 * c0 + c1 - 1] = b[-2 * c0 + c1 - 1];
+///               b[-2 * _tadashi_0 + _tadashi_1] = (third * ((a[-2 * _tadashi_0 + _tadashi_1 - 1] + a[-2 * _tadashi_0 + _tadashi_1]) + a[-2 * _tadashi_0 + _tadashi_1 + 1]));
+///               a[-2 * _tadashi_0 + _tadashi_1 - 1] = b[-2 * _tadashi_0 + _tadashi_1 - 1];
 ///             }
 ///           a[N - 2] = b[N - 2];
 ///         }

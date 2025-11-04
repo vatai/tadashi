@@ -2,6 +2,7 @@
 #define _LEGALITY_H_
 
 #include <isl/aff.h>
+#include <isl/schedule_node.h>
 #include <isl/set.h>
 
 #include <pet.h>
@@ -32,11 +33,10 @@ struct tadashi_scop *allocate_tadashi_scop_from_json(isl_union_set *domain,
 
 void free_tadashi_scop(struct tadashi_scop *ts);
 
-isl_bool tadashi_check_legality(__isl_keep isl_schedule *schedule,
+isl_bool tadashi_check_legality(__isl_keep isl_schedule_node *node,
                                 __isl_take isl_union_map *dep);
 
-isl_bool tadashi_check_legality_parallel(isl_ctx *ctx,
-                                         __isl_keep isl_schedule_node *node,
+isl_bool tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
                                          __isl_take isl_union_map *dep);
 #if defined(__cplusplus)
 }

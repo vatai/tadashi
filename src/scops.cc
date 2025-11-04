@@ -1,8 +1,10 @@
+#include <algorithm>
 #include <climits>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include <isl/union_map.h>
@@ -12,7 +14,8 @@
 #include "legality.h"
 #include "scops.h"
 
-Scop::Scop(pet_scop *ps) : tmp_node(nullptr), modified(false) {
+Scop::Scop(pet_scop *ps)
+    : tmp_node(nullptr), modified(false), current_legal(true) {
   scop = allocate_tadashi_scop(ps);
   current_node = isl_schedule_get_root(scop->schedule);
 }
@@ -44,7 +47,6 @@ Scop::~Scop() {
   if (tmp_node != nullptr)
     isl_schedule_node_free(tmp_node);
   free_tadashi_scop(scop);
-  // printf("<<< ~Scop()\n");
 }
 
 const char *
@@ -60,6 +62,27 @@ Scop::add_string(std::stringstream &ss) {
   return strings.back().c_str();
 }
 
+void
+Scop::rollback() {
+  if (!modified)
+    return;
+  std::swap(current_legal, tmp_legal);
+  std::swap(current_node, tmp_node);
+}
+
+void
+Scop::reset() {
+  if (!modified)
+    return;
+  current_node = isl_schedule_node_free(current_node);
+  current_node = isl_schedule_get_root(scop->schedule);
+  current_legal = true;
+  tmp_node = isl_schedule_node_free(tmp_node);
+  tmp_node = nullptr;
+  tmp_legal = false;
+  modified = false;
+}
+
 // Scops
 
 __isl_give isl_printer *
@@ -69,8 +92,10 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   return p;
 }
 
-Scops::Scops(char *input) : ctx(isl_ctx_alloc_with_pet_options()) {
-
+Scops::Scops(char *input, const std::vector<std::string> &defines)
+    : ctx(isl_ctx_alloc_with_pet_options()) {
+  for (const auto &s : defines)
+    pet_options_append_defines(ctx, s.c_str());
   // printf("Scops::Scops(ctx=%p)\n", ctx);
   FILE *output = fopen("/dev/null", "w");
   // pet_options_set_autodetect(ctx, 1);
@@ -127,46 +152,4 @@ Scops::~Scops() {
 int
 Scops::num_scops() {
   return scops.size();
-}
-
-// POOL
-
-// ScopsPool::ScopsPool() {
-//   // printf("> ScopsPool()\n"); //
-// }
-
-ScopsPool::~ScopsPool() {
-  size_t size = scops_vector.size();
-  for (int pool_idx = 0; pool_idx < size; pool_idx++) {
-    if (scops_vector[pool_idx] != nullptr)
-      delete scops_vector[pool_idx];
-  }
-  // scops_map.clear();
-  // free_indexes.clear();
-  // printf("< ~ScopsPool()\n");
-}
-
-size_t
-ScopsPool::add(Scops *scops_ptr) {
-  size_t index = scops_vector.size();
-  if (!free_indexes.empty()) {
-    index = free_indexes.front();
-    free_indexes.pop_front();
-    scops_vector[index] = scops_ptr;
-  } else {
-    scops_vector.push_back(scops_ptr);
-  }
-  return index;
-}
-
-void
-ScopsPool::remove(size_t pool_idx) {
-  delete scops_vector[pool_idx];
-  scops_vector[pool_idx] = nullptr;
-  free_indexes.push_back(pool_idx);
-};
-
-Scops &
-ScopsPool::operator[](size_t idx) {
-  return *scops_vector[idx];
 }

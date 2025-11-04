@@ -25,7 +25,10 @@ class App:
             binary = self.output_binary
             if binary.exists():
                 binary.unlink()
-            self.source.unlink()
+            if self.source.exists():
+                self.source.unlink()
+            else:
+                print("WARNING: source file missing!")
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
@@ -36,6 +39,20 @@ class App:
 
     def _codegen_init_args(self) -> dict:
         return {}
+
+    @staticmethod
+    def _get_defines(options: list[str]):
+        defines = []
+        for i, opt in enumerate(options):
+            if not opt.startswith("-D"):
+                continue
+            if opt == "-D":
+                if i + 1 >= len(options):
+                    raise ValueError("Empty -D comiler option")
+                defines.append(options[i + 1])
+            else:
+                defines.append(opt[2:])
+        return defines
 
     def _finalize_object(
         self,
@@ -55,7 +72,8 @@ class App:
         self.source = Path(source)
         if not self.source.exists():
             raise ValueError(f"{self.source=} doesn't exist!")
-        self.scops = Scops(str(self.source)) if self.populate_scops else None
+        defines = self._get_defines(compiler_options)
+        self.scops = Scops(str(self.source), defines) if self.populate_scops else None
 
     def _source_with_infix(self, alt_infix: str):
         mark = "INFIX"
@@ -68,18 +86,7 @@ class App:
         suffix = self.source.suffix
         return self.source.with_suffix(f".{alt_infix}{suffix}")
 
-    @classmethod
-    def make_ephemeral(cls, *args, **kwargs):
-        app = cls(*args, **kwargs)
-        app.ephemeral = True
-        return app
-
-    def make_new_app(self, ephemeral, populate_scops, **kwargs):
-        kwargs["compiler_options"] = self.user_compiler_options
-        kwargs["populate_scops"] = populate_scops
-        return self.make_ephemeral(**kwargs) if ephemeral else self.__class__(**kwargs)
-
-    def make_new_filename(self) -> Path:
+    def _make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
         now_str = datetime.datetime.isoformat(now).replace(":", "-")
@@ -99,9 +106,35 @@ class App:
         """Command executed for compilation (list of strings)."""
         raise NotImplementedError()
 
-    def generate_code(self):
+    def generate_code(
+        self,
+        alt_infix=None,
+        ephemeral: bool = True,
+        populate_scops: bool = False,
+        ensure_legality: bool = True,
+    ):
         """Create a transformed copy of the app object."""
-        raise NotImplementedError()
+        if ensure_legality:
+            if not self.scops:
+                raise ValueError(
+                    "The App was created without scops, cannot check legality"
+                )
+            if not self.scops.legal:
+                raise ValueError("The App is not in a legal state")
+        if alt_infix:
+            new_file = self._source_with_infix(alt_infix)
+        else:
+            new_file = self._make_new_filename()
+        self.scops.generate_code(self.source, new_file)
+        kwargs = {
+            "source": new_file,
+            "compiler_options": self.user_compiler_options,
+            "populate_scops": populate_scops,
+        }
+        kwargs.update(self._codegen_init_args())
+        app = self.__class__(**kwargs)
+        app.ephemeral = ephemeral
+        return app
 
     def reset_scops(self):
         for scop in self.scops:
@@ -114,21 +147,19 @@ class App:
     @property
     def output_binary(self) -> Path:
         """The output binary obtained after compilation."""
-        # TODO: delete before merge when we fix exit issues
-        # print("------------")
-        # print(type(self.source), self.source)
-        # print(self.source.with_suffix(""))
-        # print("------------")
         return self.source.with_suffix("")
 
-    @property
-    def run_cmd(self) -> list[Path]:
-        """The command which gets executed when we measure runtime."""
-        return [self.output_binary]
-
-    def compile(self, verbose: bool = False):
+    def compile(
+        self,
+        verbose: bool = False,
+        extra_compiler_options: list[str] = [],
+        output_binary_suffix="",
+    ):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd + self.user_compiler_options
+        cmd = self.compile_cmd
+        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
+        cmd += self.user_compiler_options
+        cmd += extra_compiler_options
         if verbose:
             print(f"{' '.join(cmd)}")
         result = subprocess.run(cmd)
@@ -137,10 +168,12 @@ class App:
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
+        if not self.output_binary.exists():
+            self.compile()
         results = []
         for _ in range(repeat):
             result = subprocess.run(
-                self.run_cmd, stdout=subprocess.PIPE, *args, **kwargs
+                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
             )
             stdout = result.stdout.decode()
             results.append(self.extract_runtime(stdout))
@@ -176,6 +209,10 @@ class App:
             return Result(legal, walltime)
         return results
 
+    @property
+    def legal(self) -> bool:
+        return all(s.legal for s in self.scops)
+
 
 class Simple(App):
     runtime_prefix: str
@@ -201,8 +238,6 @@ class Simple(App):
             self.compiler(),
             str(self.source),
             "-fopenmp",
-            "-o",
-            str(self.output_binary),
         ]
 
     def extract_runtime(self, stdout) -> float:
@@ -211,20 +246,6 @@ class Simple(App):
                 num = line.split(self.runtime_prefix)[1]
                 return float(num)
         return 0.0
-
-    def generate_code(
-        self,
-        alt_infix=None,
-        ephemeral: bool = True,
-        populate_scops: bool = False,
-    ):
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, Path(new_file))
-        kwargs = {"source": new_file}
-        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
 
 POLYBENCH_BASE = str(Path(__file__).parent.parent / "examples/polybench")
@@ -296,28 +317,7 @@ class Polybench(App):
             "-DPOLYBENCH_USE_RESTRICT",
             "-lm",
             "-fopenmp",
-            "-o",
-            str(self.output_binary),
         ]
-
-    def generate_code(
-        self,
-        alt_infix=None,
-        ephemeral: bool = True,
-        populate_scops: bool = False,
-    ):
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, new_file)
-        kwargs = {
-            "source": new_file,
-            "benchmark": self.benchmark,
-            "base": self.base,
-            # "infix": alt_infix,
-        }
-        return self.make_new_app(ephemeral, populate_scops, **kwargs)
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
@@ -326,6 +326,33 @@ class Polybench(App):
         except IndexError as e:
             print(f"App probaly crashed: {e}")
         return result
+
+    def dump_arrays(self):
+        suffix = ".dump"
+        self.compile(
+            extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
+            output_binary_suffix=suffix,
+        )
+        result = subprocess.run(
+            f"{self.output_binary}{suffix}",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return result.stderr.decode()
+
+    def dump_scop(self):
+        src = self.source.read_text()
+        lines = []
+        inside_scop = False
+        for line in src.split("\n"):
+            if "#pragma" in line and "endscop" in line:
+                break
+            if inside_scop:
+                print(f"{line}")
+                lines.append(line)
+            if "#pragma" in line and "scop" in line:
+                inside_scop = True
+        return "\n".join(lines)
 
 
 class SimpleLLVM(App):

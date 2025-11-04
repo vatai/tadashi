@@ -13,7 +13,7 @@ CONFIGURE_ARGS=(
   --with-clang-prefix="$3" # ${CMAKE_SOURCE_DIR}/deps/opt
 )
 ./get_submodules.sh
-git -C ./isl checkout 433e17b9
+git -C ./isl checkout 15f1e39bed3997f773056d3fd127f38967adaa8a
 ./autogen.sh
 ./configure "${CONFIGURE_ARGS[@]}"
 make -j
