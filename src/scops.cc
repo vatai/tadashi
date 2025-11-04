@@ -21,7 +21,7 @@ Scop::Scop(pet_scop *ps)
 }
 
 Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
-    : tmp_node(nullptr), modified(false) {
+    : tmp_node(nullptr), modified(false), current_legal(true) {
   std::ifstream istream(jscop_path);
 
   json jscop;
