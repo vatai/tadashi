@@ -159,7 +159,7 @@ class TestCtadashi(unittest.TestCase):
 
 
 class TestCtadashiLLVM(unittest.TestCase):
-    @unittest.skip("wip")
+    # @unittest.skip("wip")
     def test_foobar(self):
         app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
         print(app.source.exists())
@@ -168,6 +168,7 @@ class TestCtadashiLLVM(unittest.TestCase):
         tr = tadashi.TrEnum.FULL_SHIFT_VAR
         args = [1, 13]
         legal = node.transform(tr, *args)
+        tapp = app.generate_code()
         print(f"{legal=}")
         self.assertTrue(True)
 
