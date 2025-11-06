@@ -21,10 +21,10 @@ Scop::Scop(pet_scop *ps)
 }
 
 Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
-    : tmp_node(nullptr), modified(false), current_legal(true) {
-  std::ifstream istream(jscop_path);
+    : tmp_node(nullptr), modified(false), current_legal(true),
+      jscop_path(jscop_path) {
 
-  json jscop;
+  std::ifstream istream(jscop_path);
   istream >> jscop;
   isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
   isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
@@ -109,21 +109,23 @@ Scops::Scops(char *input, const std::vector<std::string> &defines)
 Scops::Scops(char *compiler, char *input)
     : ctx(isl_ctx_alloc_with_pet_options()) {
   char cmd[LINE_MAX];
-  char *line = NULL;
-  size_t size = 0;
   snprintf(
       cmd, LINE_MAX,
       "%s -S -emit-llvm %s -O1 -o - "
       "| opt -load LLVMPolly.so -disable-polly-legality -polly-canonicalize "
       "-polly-export-jscop -o %s.ll 2>&1",
       compiler, input, input);
+
   std::vector<std::string> json_paths;
+
+  size_t size = 0;
+  char *line = NULL;
   FILE *out = popen(cmd, "r");
   while (getline(&line, &size, out) != -1) {
     char *ptr = strstr(line, "command not found");
     if (ptr) {
       std::cout << line << std::endl;
-// TODO throw an exception here!
+      // TODO throw an exception here!
 #warning "TODO"
     }
 
@@ -137,8 +139,9 @@ Scops::Scops(char *compiler, char *input)
   }
   free(line);
   pclose(out);
+
   for (std::string json_path : json_paths) {
-    this->scops.emplace_back(new Scop(ctx, json_path));
+    scops.emplace_back(new Scop(ctx, json_path));
   }
 }
 

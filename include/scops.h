@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 #include <isl/ctx.h>
 #include <isl/schedule_node.h>
@@ -18,7 +17,8 @@ using json = nlohmann::json;
 class Scop {
 private:
   std::vector<std::string> strings;
-  std::vector<std::pair<std::string, json>> jsons; // for LLVM Scops
+  std::string jscop_path;
+  nlohmann::json jscop;
 
 public:
   struct tadashi_scop *scop;
