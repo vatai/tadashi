@@ -26,19 +26,20 @@ Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
 
   std::ifstream istream(jscop_path);
   istream >> jscop;
-  isl_union_map *union_schedule = isl_union_map_empty_ctx(ctx);
-  isl_union_set *union_domain = isl_union_set_empty_ctx(ctx);
+  isl_union_map *sched = isl_union_map_empty_ctx(ctx);
+  isl_union_set *domain = isl_union_set_empty_ctx(ctx);
   std::map<std::string, isl_union_map *> acc_map;
-  for (auto &s : jscop["statements"]) {
-    std::string name = s["name"];
-    isl_union_set *domain = isl_union_set_read_from_str(
-        ctx, s["domain"].template get<std::string>().c_str());
-    union_domain = isl_union_set_union(union_domain, domain);
-    isl_union_map *schedule = isl_union_map_read_from_str(
-        ctx, s["schedule"].template get<std::string>().c_str());
-    union_schedule = isl_union_map_union(union_schedule, schedule);
+  for (auto &stmt : jscop["statements"]) {
+    const char *str;
+    std::string name = stmt["name"];
+    str = stmt["domain"].get_ref<const std::string &>().c_str();
+    printf("name: %s, dmn: %s, ", name.c_str(), str);
+    domain = isl_union_set_union(domain, isl_union_set_read_from_str(ctx, str));
+    str = stmt["schedule"].get_ref<const std::string &>().c_str();
+    printf("sch: %s\n", str);
+    sched = isl_union_map_union(sched, isl_union_map_read_from_str(ctx, str));
   }
-  scop = allocate_tadashi_scop_from_json(union_domain, union_schedule);
+  scop = allocate_tadashi_scop_from_json(domain, sched);
   current_node = isl_schedule_get_root(scop->schedule);
 }
 

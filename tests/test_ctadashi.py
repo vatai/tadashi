@@ -161,13 +161,15 @@ class TestCtadashi(unittest.TestCase):
 class TestCtadashiLLVM(unittest.TestCase):
     # @unittest.skip("wip")
     def test_foobar(self):
+        # app = Polybench("gemm")
         app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
         print(app.source.exists())
+        # node = app.scops[0].schedule_tree[2]
         node = app.scops[0].schedule_tree[1]
         print(node.yaml_str)
-        tr = tadashi.TrEnum.FULL_SHIFT_VAR
-        args = [1, 13]
-        legal = node.transform(tr, *args)
+        # tr = [tadashi.TrEnum.FULL_SPLIT]
+        tr = [TrEnum.TILE2D, 3, 3]
+        legal = node.transform(*tr)
         tapp = app.generate_code()
         print(f"{legal=}")
         self.assertTrue(True)
