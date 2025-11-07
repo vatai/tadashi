@@ -15,7 +15,7 @@
 /* get dependencies (for legality check) */
 
 static __isl_give isl_union_flow *
-_get_flow_from_scop(__isl_keep pet_scop *scop) {
+_get_raw_flow(__isl_keep pet_scop *scop) {
   isl_union_map *reads, *may_writes, *must_source, *kills, *must_writes;
   isl_union_access_info *access;
   isl_schedule *schedule;
@@ -24,15 +24,15 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
   access = isl_union_access_info_from_sink(reads);
 
   kills = pet_scop_get_must_kills(scop);
-  must_writes = pet_scop_get_tagged_must_writes(scop);
+  must_writes = pet_scop_get_must_writes(scop);
   kills = isl_union_map_union(kills, must_writes);
   access = isl_union_access_info_set_kill(access, kills);
 
   may_writes = pet_scop_get_may_writes(scop);
   access = isl_union_access_info_set_may_source(access, may_writes);
 
-  /* must_source = pet_scop_get_must_writes(scop); */
-  /* access = isl_union_access_info_set_must_source(access, must_source); */
+  must_source = pet_scop_get_must_writes(scop);
+  access = isl_union_access_info_set_must_source(access, must_source);
 
   schedule = pet_scop_get_schedule(scop);
   access = isl_union_access_info_set_schedule(access, schedule);
@@ -42,10 +42,11 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
 }
 
 __isl_give isl_union_map *
-get_dependencies(__isl_keep struct pet_scop *scop) {
+get_dependencies(__isl_keep struct pet_scop *scop,
+                 __isl_give isl_union_flow *(*fn)(__isl_keep pet_scop *scop)) {
   isl_union_map *dep;
   isl_union_flow *flow;
-  flow = _get_flow_from_scop(scop);
+  flow = fn(scop);
   dep = isl_union_flow_get_may_dependence(flow);
   isl_union_flow_free(flow);
   return dep;
@@ -124,7 +125,6 @@ isl_bool
 tadashi_check_legality(__isl_keep isl_schedule_node *node,
                        __isl_take isl_union_map *dep) {
   isl_bool legal;
-  isl_union_pw_multi_aff *dep_upma;
   isl_schedule *schedule = isl_schedule_node_get_schedule(node);
   isl_union_map *map = isl_schedule_get_map(schedule);
   isl_schedule_free(schedule);
@@ -139,7 +139,7 @@ main(int argc, char *argv[]) {
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, "bdi.c", NULL);
 
   /* get deps */
-  isl_union_map *deps = get_dependencies(scop);
+  isl_union_map *deps = get_dependencies(scop, _get_raw_flow);
 
   isl_schedule *schedule = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(schedule);
