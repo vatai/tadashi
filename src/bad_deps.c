@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <isl/ast.h>
-#include <isl/schedule_type.h>
 #include <isl/union_map.h>
 #include <stdio.h>
 
@@ -16,25 +15,46 @@
 
 static __isl_give isl_union_flow *
 _get_raw_flow(__isl_keep pet_scop *scop) {
-  isl_union_map *reads, *may_writes, *must_source, *kills, *must_writes;
+  isl_union_map *may_reads, *may_writes, *must_source, *kills, *must_writes;
   isl_union_access_info *access;
   isl_schedule *schedule;
   isl_union_flow *flow;
-  reads = pet_scop_get_may_reads(scop);
-  access = isl_union_access_info_from_sink(reads);
 
-  kills = pet_scop_get_must_kills(scop);
-  must_writes = pet_scop_get_must_writes(scop);
-  kills = isl_union_map_union(kills, must_writes);
-  access = isl_union_access_info_set_kill(access, kills);
-
+  may_reads = pet_scop_get_may_reads(scop);
   may_writes = pet_scop_get_may_writes(scop);
-  access = isl_union_access_info_set_may_source(access, may_writes);
-
-  must_source = pet_scop_get_must_writes(scop);
-  access = isl_union_access_info_set_must_source(access, must_source);
-
+  must_writes = pet_scop_get_must_writes(scop);
+  kills = pet_scop_get_must_kills(scop);
+  // kills = isl_union_map_union(kills, must_writes);
   schedule = pet_scop_get_schedule(scop);
+
+  access = isl_union_access_info_from_sink(may_reads);
+  access = isl_union_access_info_set_kill(access, kills);
+  access = isl_union_access_info_set_may_source(access, may_writes);
+  access = isl_union_access_info_set_must_source(access, must_writes);
+  access = isl_union_access_info_set_schedule(access, schedule);
+
+  flow = isl_union_access_info_compute_flow(access);
+  return flow;
+}
+
+static __isl_give isl_union_flow *
+_get_war_flow(__isl_keep pet_scop *scop) {
+  isl_union_map *may_reads, *may_writes, *must_source, *kills, *must_writes;
+  isl_union_access_info *access;
+  isl_schedule *schedule;
+  isl_union_flow *flow;
+
+  may_reads = pet_scop_get_may_reads(scop);
+  may_writes = pet_scop_get_may_writes(scop);
+  must_writes = pet_scop_get_must_writes(scop);
+  kills = pet_scop_get_must_kills(scop);
+  // kills = isl_union_map_union(kills, must_writes);
+  schedule = pet_scop_get_schedule(scop);
+
+  access = isl_union_access_info_from_sink(may_writes);
+  access = isl_union_access_info_set_kill(access, kills);
+  access = isl_union_access_info_set_may_source(access, may_reads);
+  // access = isl_union_access_info_set_must_source(access, must_writes);
   access = isl_union_access_info_set_schedule(access, schedule);
 
   flow = isl_union_access_info_compute_flow(access);
@@ -139,7 +159,6 @@ main(int argc, char *argv[]) {
   pet_scop *scop = pet_scop_extract_from_C_source(ctx, "bdi.c", NULL);
 
   /* get deps */
-  isl_union_map *deps = get_dependencies(scop, _get_raw_flow);
 
   isl_schedule *schedule = pet_scop_get_schedule(scop);
   isl_schedule_node *node = isl_schedule_get_root(schedule);
@@ -154,7 +173,11 @@ main(int argc, char *argv[]) {
 
   /* check legality */
 
+  isl_union_map *deps = get_dependencies(scop, _get_raw_flow);
   assert(tadashi_check_legality(node, deps));
+  deps = get_dependencies(scop, _get_war_flow);
+  printf("WAR: %s\n", isl_union_map_to_str(deps));
+  printf("legal: %d\n", tadashi_check_legality(node, deps));
 
   schedule = isl_schedule_node_get_schedule(node);
   isl_ast_build *build = isl_ast_build_alloc(ctx);
