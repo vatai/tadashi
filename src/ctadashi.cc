@@ -227,10 +227,17 @@ int
 generate_code_polly(Scops *app, const char *input_path,
                     const char *output_path) {
   for (auto &scop : app->scops) {
+    isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
+    isl_union_map *map = isl_schedule_get_map(sched);
+    printf("[cg] map: %s\n", isl_union_map_to_str(map));
+
     for (auto &stmt : scop->jscop["statements"]) {
       const char *name = stmt["name"].get_ref<std::string &>().c_str();
       printf("[cg] name: %s\n", name);
       printf("DO THIS HERE\n");
+      // 0. figure out which scop (main or f) are we transforming and
+      // make it the f one
+      //
       // 1. Get schedule
       //
       // 2. "project out" the statement
