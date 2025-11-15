@@ -226,7 +226,20 @@ generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
 int
 generate_code_polly(Scops *app, const char *input_path,
                     const char *output_path) {
-  printf("GENERATE CODE POLLLY!");
+  for (auto &scop : app->scops) {
+    for (auto &stmt : scop->jscop["statements"]) {
+      const char *name = stmt["name"].get_ref<std::string &>().c_str();
+      printf("[cg] name: %s\n", name);
+      printf("DO THIS HERE\n");
+      // 1. Get schedule
+      //
+      // 2. "project out" the statement
+      //
+      // 3. modify the jscop
+      //
+      // 4. write out the jscop
+    }
+  }
   return 0;
 }
 

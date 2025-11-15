@@ -170,6 +170,7 @@ class TestCtadashiLLVM(unittest.TestCase):
         # tr = [tadashi.TrEnum.FULL_SPLIT]
         tr = [TrEnum.TILE2D, 3, 3]
         legal = node.transform(*tr)
+        print(node.yaml_str)
         tapp = app.generate_code()
         print(f"{legal=}")
         self.assertTrue(True)

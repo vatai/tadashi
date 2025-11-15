@@ -17,10 +17,11 @@
 class Scop {
 private:
   std::vector<std::string> strings;
+
+public:
   std::string jscop_path;
   nlohmann::json jscop;
 
-public:
   struct tadashi_scop *scop;
   isl_schedule_node *current_node;
   bool current_legal;
@@ -47,7 +48,6 @@ public:
     tmp_legal = current_legal;
 
     current_node = transform(current_node, std::forward<Args>(args)...);
-
     isl_union_map *dep = isl_union_map_copy(scop->dep_flow);
     current_legal = check_legality(current_node, dep);
     modified = true;
