@@ -245,6 +245,9 @@ generate_code_polly(Scops *app, const char *input_path,
       // 3. modify the jscop
       //
       // 4. write out the jscop
+      //
+      // 5. find example with multiple statements in one scop and make
+      // sure it works.
     }
   }
   return 0;
