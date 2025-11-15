@@ -232,6 +232,7 @@ generate_code_polly(Scops *app, const char *input_path,
   for (auto &scop : app->scops) {
     isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
     isl_union_map *map = isl_schedule_get_map(sched);
+    isl_schedule_free(sched);
     printf("[cg] %s map: %s\n", scop->jscop_path.c_str(),
            isl_union_map_to_str(map));
 
@@ -245,31 +246,30 @@ generate_code_polly(Scops *app, const char *input_path,
       ofstream of(scop->jscop_path);
       stmt["schedule"] = isl_union_map_to_str(map);
       of << scop->jscop;
-      char cmd[LINE_MAX];
-      snprintf(cmd, LINE_MAX,
-               "%s -S -emit-llvm %s -O1 -o - "
-               "| opt -load LLVMPolly.so -disable-polly-legality "
-               "-polly-canonicalize "
-               "-polly-import-jscop -o %s.ll 2>&1",
-               app->compiler.c_str(), app->input.c_str(), app->input.c_str());
-
-      printf("[cg] cmd1: %s\n", cmd);
-      FILE *out = popen(cmd, "r");
-      pclose(out);
-      snprintf(cmd, LINE_MAX, "%s %s.ll -O3 ", app->compiler.c_str(),
-               app->input.c_str());
-      printf("[cg] cmd2: %s\n", cmd);
-      out = popen(cmd, "r");
-      pclose(out);
-
-      // finish compilation
-      //
-      // [ ] find example with multiple statements in one scop and make
-      // sure it works.
-      //
-      // [ ] "project out" the statement
     }
+    isl_union_map_free(map);
   }
+  char cmd[LINE_MAX];
+  snprintf(cmd, LINE_MAX,
+           "%s -S -emit-llvm %s -O1 -o - "
+           "| opt -load LLVMPolly.so -disable-polly-legality "
+           "-polly-canonicalize "
+           "-polly-import-jscop -o %s.ll 2>&1",
+           app->compiler.c_str(), app->input.c_str(), app->input.c_str());
+
+  printf("[cg] cmd1: %s\n", cmd);
+  system(cmd);
+  snprintf(cmd, LINE_MAX, "%s %s.ll -O3 -o %s", app->compiler.c_str(),
+           app->input.c_str(), "OUTPUT.x");
+  printf("[cg] cmd2: %s\n", cmd);
+  system(cmd);
+
+  // finish compilation
+  //
+  // [ ] find example with multiple statements in one scop and make
+  // sure it works.
+  //
+  // [ ] "project out" the statement
   return 0;
 }
 
