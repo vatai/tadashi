@@ -33,10 +33,8 @@ Scop::Scop(isl_ctx *ctx, std::string &jscop_path)
     const char *str;
     std::string name = stmt["name"];
     str = stmt["domain"].get_ref<const std::string &>().c_str();
-    printf("name: %s, dmn: %s, ", name.c_str(), str);
     domain = isl_union_set_union(domain, isl_union_set_read_from_str(ctx, str));
     str = stmt["schedule"].get_ref<const std::string &>().c_str();
-    printf("sch: %s\n", str);
     sched = isl_union_map_union(sched, isl_union_map_read_from_str(ctx, str));
   }
   scop = allocate_tadashi_scop_from_json(domain, sched);
@@ -108,7 +106,7 @@ Scops::Scops(char *input, const std::vector<std::string> &defines)
 };
 
 Scops::Scops(char *compiler, char *input)
-    : ctx(isl_ctx_alloc_with_pet_options()) {
+    : input(input), compiler(compiler), ctx(isl_ctx_alloc_with_pet_options()) {
   char cmd[LINE_MAX];
   snprintf(
       cmd, LINE_MAX,

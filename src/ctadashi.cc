@@ -13,6 +13,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <isl/union_map_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -229,25 +232,42 @@ generate_code_polly(Scops *app, const char *input_path,
   for (auto &scop : app->scops) {
     isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
     isl_union_map *map = isl_schedule_get_map(sched);
-    printf("[cg] map: %s\n", isl_union_map_to_str(map));
+    printf("[cg] %s map: %s\n", scop->jscop_path.c_str(),
+           isl_union_map_to_str(map));
 
     for (auto &stmt : scop->jscop["statements"]) {
       const char *name = stmt["name"].get_ref<std::string &>().c_str();
       printf("[cg] name: %s\n", name);
       printf("DO THIS HERE\n");
-      // 0. figure out which scop (main or f) are we transforming and
-      // make it the f one
+      std::filesystem::copy(scop->jscop_path,
+                            scop->jscop_path + std::string(".bak"),
+                            std::filesystem::copy_options::overwrite_existing);
+      ofstream of(scop->jscop_path);
+      stmt["schedule"] = isl_union_map_to_str(map);
+      of << scop->jscop;
+      char cmd[LINE_MAX];
+      snprintf(cmd, LINE_MAX,
+               "%s -S -emit-llvm %s -O1 -o - "
+               "| opt -load LLVMPolly.so -disable-polly-legality "
+               "-polly-canonicalize "
+               "-polly-import-jscop -o %s.ll 2>&1",
+               app->compiler.c_str(), app->input.c_str(), app->input.c_str());
+
+      printf("[cg] cmd1: %s\n", cmd);
+      FILE *out = popen(cmd, "r");
+      pclose(out);
+      snprintf(cmd, LINE_MAX, "%s %s.ll -O3 ", app->compiler.c_str(),
+               app->input.c_str());
+      printf("[cg] cmd2: %s\n", cmd);
+      out = popen(cmd, "r");
+      pclose(out);
+
+      // finish compilation
       //
-      // 1. Get schedule
-      //
-      // 2. "project out" the statement
-      //
-      // 3. modify the jscop
-      //
-      // 4. write out the jscop
-      //
-      // 5. find example with multiple statements in one scop and make
+      // [ ] find example with multiple statements in one scop and make
       // sure it works.
+      //
+      // [ ] "project out" the statement
     }
   }
   return 0;

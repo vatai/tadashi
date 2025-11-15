@@ -66,6 +66,8 @@ public:
 public:
   isl_ctx *ctx; ///< Context for @ref Scop "Scop"s in a (Python) App object.
   std::vector<Scop *> scops;
+  std::string compiler;
+  std::string input;
 };
 
 #endif // _SCOPS_H_
