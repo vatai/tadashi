@@ -7,7 +7,15 @@
  * Loading a Python \p App object invokes \ref init_scops.
  */
 
+#include <cassert>
+#include <climits>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <isl/union_map_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -41,6 +49,11 @@ init_scops(char *input, const std::vector<std::string> &defines) {
    * Create a @ref Scop.
    */
   return new Scops(input, defines);
+}
+
+Scops *
+init_scops_from_json(char *compiler, char *input) {
+  return new Scops(compiler, input);
 }
 
 size_t
@@ -200,13 +213,10 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
 }
 
 int
-generate_code(Scops *app, const char *input_path, const char *output_path) {
+generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
   int r = 0;
   isl_ctx *ctx = app->ctx;
   size_t scop_idx = 0;
-
-  //   isl_options_set_ast_print_macro_once(ctx, 1);
-  //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
   Scop **si = app->scops.data();
@@ -214,6 +224,62 @@ generate_code(Scops *app, const char *input_path, const char *output_path) {
                              generate_code_callback, si);
   fclose(output_file);
   return r;
+}
+
+int
+generate_code_polly(Scops *app, const char *input_path,
+                    const char *output_path) {
+  for (auto &scop : app->scops) {
+    isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
+    isl_union_map *map = isl_schedule_get_map(sched);
+    isl_schedule_free(sched);
+    printf("[cg] %s map: %s\n", scop->jscop_path.c_str(),
+           isl_union_map_to_str(map));
+
+    for (auto &stmt : scop->jscop["statements"]) {
+      const char *name = stmt["name"].get_ref<std::string &>().c_str();
+      printf("[cg] name: %s\n", name);
+      printf("DO THIS HERE\n");
+      std::filesystem::copy(scop->jscop_path,
+                            scop->jscop_path + std::string(".bak"),
+                            std::filesystem::copy_options::overwrite_existing);
+      ofstream of(scop->jscop_path);
+      stmt["schedule"] = isl_union_map_to_str(map);
+      of << scop->jscop;
+    }
+    isl_union_map_free(map);
+  }
+  char cmd[LINE_MAX];
+  snprintf(cmd, LINE_MAX,
+           "%s -S -emit-llvm %s -O1 -o - "
+           "| opt -load LLVMPolly.so -disable-polly-legality "
+           "-polly-canonicalize "
+           "-polly-import-jscop -o %s.ll 2>&1",
+           app->compiler.c_str(), app->input.c_str(), app->input.c_str());
+
+  printf("[cg] cmd1: %s\n", cmd);
+  system(cmd);
+  snprintf(cmd, LINE_MAX, "%s %s.ll -O3 -o %s", app->compiler.c_str(),
+           app->input.c_str(), "OUTPUT.x");
+  printf("[cg] cmd2: %s\n", cmd);
+  system(cmd);
+
+  // finish compilation
+  //
+  // [ ] find example with multiple statements in one scop and make
+  // sure it works.
+  //
+  // [ ] "project out" the statement
+  return 0;
+}
+
+int
+generate_code(Scops *app, const char *input_path, const char *output_path) {
+  if (app->scops.size() == 0)
+    return 0;
+  if (app->scops[0]->scop->pet_scop == NULL)
+    return generate_code_polly(app, input_path, output_path);
+  return generate_code_isl(app, input_path, output_path);
 }
 
 /******** transformations ***********************************/

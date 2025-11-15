@@ -24,6 +24,11 @@ class TransformData:
     transformation_args: list[int] = field(default_factory=list)
 
 
+def get_inputs_path() -> Path:
+    base = Path(__file__).parent.parent
+    return base / "examples/inputs"
+
+
 class TestCtadashi(unittest.TestCase):
     @staticmethod
     def _read_app_comments(app):
@@ -151,6 +156,24 @@ class TestCtadashi(unittest.TestCase):
     def test_legality_new(self):
         app = Polybench("gemm")
         self.assertTrue(app.legal)
+
+
+class TestCtadashiLLVM(unittest.TestCase):
+    # @unittest.skip("wip")
+    def test_foobar(self):
+        # app = Polybench("gemm")
+        app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c")
+        print(app.source.exists())
+        # node = app.scops[0].schedule_tree[2]
+        node = app.scops[0].schedule_tree[1]
+        # print(node.yaml_str)
+        # tr = [tadashi.TrEnum.FULL_SPLIT]
+        tr = [TrEnum.TILE2D, 3, 3]
+        legal = node.transform(*tr)
+        # print(node.yaml_str)
+        tapp = app.generate_code()
+        print(f"{legal=}")
+        self.assertTrue(True)
 
 
 def setup():

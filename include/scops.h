@@ -5,9 +5,12 @@
 #include <string>
 #include <vector>
 
-#include <pet.h>
+#include <nlohmann/json.hpp>
 
+#include <isl/ctx.h>
 #include <isl/schedule_node.h>
+
+#include <pet.h>
 
 #include "legality.h"
 
@@ -16,6 +19,9 @@ private:
   std::vector<std::string> strings;
 
 public:
+  std::string jscop_path;
+  nlohmann::json jscop;
+
   struct tadashi_scop *scop;
   isl_schedule_node *current_node;
   bool current_legal;
@@ -24,6 +30,7 @@ public:
   int modified;
 
   Scop(pet_scop *scop);
+  Scop(isl_ctx *ctx, std::string &jscop_path);
   ~Scop();
 
   const char *add_string(char *str);
@@ -41,7 +48,6 @@ public:
     tmp_legal = current_legal;
 
     current_node = transform(current_node, std::forward<Args>(args)...);
-
     isl_union_map *dep = isl_union_map_copy(scop->dep_flow);
     current_legal = check_legality(current_node, dep);
     modified = true;
@@ -53,12 +59,15 @@ class Scops {
 
 public:
   Scops(char *input, const std::vector<std::string> &defines);
+  Scops(char *compiler, char *input);
   ~Scops();
   int num_scops();
 
 public:
   isl_ctx *ctx; ///< Context for @ref Scop "Scop"s in a (Python) App object.
   std::vector<Scop *> scops;
+  std::string compiler;
+  std::string input;
 };
 
 #endif // _SCOPS_H_

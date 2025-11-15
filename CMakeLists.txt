@@ -123,7 +123,7 @@ add_library(scops SHARED src/scops.cc)
 target_link_libraries(scops PUBLIC PkgConfig::ISL PkgConfig::PET PRIVATE nlohmann_json::nlohmann_json)
 
 add_library(ctadashi SHARED src/ctadashi.cc)
-target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops)
+target_link_libraries(ctadashi PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations scops PRIVATE nlohmann_json::nlohmann_json)
 
 add_library(CTadashi::ctadashi ALIAS ctadashi)
 
@@ -131,9 +131,6 @@ add_executable(goodbadtest src/goodbadtest.c)
 
 add_executable(scop_detector src/scop_detector.c)
 target_link_libraries(scop_detector PUBLIC PkgConfig::ISL PkgConfig::PET legality)
-
-add_executable(raiser src/raiser.cc)
-target_link_libraries(raiser PUBLIC PkgConfig::ISL PkgConfig::PET legality code_gen transformations nlohmann_json::nlohmann_json)
 
 # enable_testing()
 # include(GoogleTest)
@@ -230,7 +227,7 @@ swig_add_library(ctadashi_swig
   SOURCES src/ctadashi.i)
 
 swig_link_libraries(ctadashi_swig
-  PRIVATE CTadashi::ctadashi Python3::Python PkgConfig::PET)
+  PRIVATE CTadashi::ctadashi Python3::Python PkgConfig::PET nlohmann_json::nlohmann_json)
 
 set_target_properties(ctadashi_swig PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ctadashi

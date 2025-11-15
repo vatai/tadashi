@@ -8,7 +8,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
-from . import Scops
+from . import LLVMScops, Scops
 
 Result = namedtuple("Result", ["legal", "walltime"])
 
@@ -57,7 +57,7 @@ class App:
     def _finalize_object(
         self,
         source: str | Path,
-        include_paths: Optional[list[str | Path]] = None,
+        include_paths: Optional[list[str]] = None,
         compiler_options: Optional[list[str]] = None,
     ):
         if include_paths is None:
@@ -71,7 +71,7 @@ class App:
             os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
         self.source = Path(source)
         if not self.source.exists():
-            raise ValueError(f"{self.source=} doesn't exist!")
+            raise ValueError(f"{self.source=} does not exist!")
         defines = self._get_defines(compiler_options)
         self.scops = Scops(str(self.source), defines) if self.populate_scops else None
 
@@ -353,3 +353,44 @@ class Polybench(App):
             if "#pragma" in line and "scop" in line:
                 inside_scop = True
         return "\n".join(lines)
+
+
+class SimpleLLVM(App):
+    compiler: str
+
+    def __init__(
+        self,
+        source: Path,
+        compiler: str = "clang",
+        compiler_options: Optional[list[str]] = None,
+        runtime_prefix: str = "WALLTIME: ",
+        populate_scops: bool = True,
+    ):
+        if compiler_options:
+            compiler_options = []
+        self.runtime_prefix = runtime_prefix
+        self.populate_scops = populate_scops
+        self._finalize_object_llvm(
+            source,
+            compiler=compiler,
+            compiler_options=compiler_options,
+        )
+
+    def _finalize_object_llvm(
+        self,
+        source: Path,
+        compiler: str,
+        include_paths: Optional[list[str | Path]] = None,
+        compiler_options: Optional[list[str]] = None,
+    ):
+        if include_paths is None:
+            include_paths = []
+        if compiler_options is None:
+            compiler_options = []
+        self.compiler = compiler
+        self.user_compiler_options = compiler_options
+        os.environ["C_INCLUDE_PATH"] = ":".join(map(str, include_paths))
+        self.source = Path(source)
+        self.scops = None
+        if self.populate_scops:
+            self.scops = LLVMScops(self.source, compiler=compiler)
