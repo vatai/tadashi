@@ -51,7 +51,7 @@ Scops *init_scops(char *input, const std::vector<std::string> &defines);
  *
  * @returns Pointer to the new @ref Scops object.
  */
-Scops *init_scops_from_json(char *compiler, char *input);
+PollyApp *init_scops_from_json(char *compiler, char *input);
 
 /**
  * @brief Return the number of @ref Scop "Scop"s in the @ref Scops

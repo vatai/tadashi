@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <isl/ctx.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -91,6 +92,8 @@ get_scop_callback(__isl_take isl_printer *p, pet_scop *scop, void *user) {
   return p;
 }
 
+Scops::Scops(isl_ctx *ctx) : ctx(ctx) {};
+
 Scops::Scops(char *input, const std::vector<std::string> &defines)
     : ctx(isl_ctx_alloc_with_pet_options()) {
   for (const auto &s : defines)
@@ -105,8 +108,20 @@ Scops::Scops(char *input, const std::vector<std::string> &defines)
   // printf("Scops::Scops(ctx=%p)\n", ctx);
 };
 
-Scops::Scops(char *compiler, char *input)
-    : input(input), compiler(compiler), ctx(isl_ctx_alloc_with_pet_options()) {
+Scops::~Scops() {
+  for (Scop *p : scops)
+    delete p;
+  scops.clear();
+  isl_ctx_free(ctx);
+};
+
+int
+Scops::num_scops() {
+  return scops.size();
+}
+
+PollyApp::PollyApp(char *compiler, char *input)
+    : Scops(isl_ctx_alloc()), input(input), compiler(compiler) {
   char cmd[LINE_MAX];
   snprintf(
       cmd, LINE_MAX,
@@ -144,14 +159,48 @@ Scops::Scops(char *compiler, char *input)
   }
 }
 
-Scops::~Scops() {
-  for (Scop *p : scops)
-    delete p;
-  scops.clear();
-  isl_ctx_free(ctx);
-};
-
 int
-Scops::num_scops() {
-  return scops.size();
+PollyApp::generate_code(const char *input_path, const char *output_path) {
+  for (auto &scop : scops) {
+    isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
+    isl_union_map *map = isl_schedule_get_map(sched);
+    isl_schedule_free(sched);
+    printf("[cg] %s map: %s\n", scop->jscop_path.c_str(),
+           isl_union_map_to_str(map));
+
+    for (auto &stmt : scop->jscop["statements"]) {
+      const char *name = stmt["name"].get_ref<std::string &>().c_str();
+      printf("[cg] name: %s\n", name);
+      printf("DO THIS HERE\n");
+      std::filesystem::copy(scop->jscop_path,
+                            scop->jscop_path + std::string(".bak"),
+                            std::filesystem::copy_options::overwrite_existing);
+      std::ofstream of(scop->jscop_path);
+      stmt["schedule"] = isl_union_map_to_str(map);
+      of << scop->jscop;
+    }
+    isl_union_map_free(map);
+  }
+  char cmd[LINE_MAX];
+  snprintf(cmd, LINE_MAX,
+           "%s -S -emit-llvm %s -O1 -o - "
+           "| opt -load LLVMPolly.so -disable-polly-legality "
+           "-polly-canonicalize "
+           "-polly-import-jscop -o %s.ll 2>&1",
+           compiler.c_str(), input.c_str(), input.c_str());
+
+  printf("[cg] cmd1: %s\n", cmd);
+  system(cmd);
+  snprintf(cmd, LINE_MAX, "%s %s.ll -O3 -o %s", compiler.c_str(), input.c_str(),
+           "OUTPUT.x");
+  printf("[cg] cmd2: %s\n", cmd);
+  system(cmd);
+
+  // finish compilation
+  //
+  // [ ] find example with multiple statements in one scop and make
+  // sure it works.
+  //
+  // [ ] "project out" the statement
+  return 0;
 }

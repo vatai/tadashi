@@ -58,16 +58,22 @@ public:
 class Scops {
 
 public:
+  Scops(isl_ctx *ctx);
   Scops(char *input, const std::vector<std::string> &defines);
-  Scops(char *compiler, char *input);
-  ~Scops();
+  virtual ~Scops();
   int num_scops();
 
 public:
   isl_ctx *ctx; ///< Context for @ref Scop "Scop"s in a (Python) App object.
   std::vector<Scop *> scops;
+};
+
+class PollyApp : public Scops {
+public:
+  PollyApp(char *compiler, char *input);
   std::string compiler;
   std::string input;
+  int generate_code(const char *input_path, const char *output_path);
 };
 
 #endif // _SCOPS_H_

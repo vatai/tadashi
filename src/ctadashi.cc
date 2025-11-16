@@ -51,9 +51,9 @@ init_scops(char *input, const std::vector<std::string> &defines) {
   return new Scops(input, defines);
 }
 
-Scops *
+PollyApp *
 init_scops_from_json(char *compiler, char *input) {
-  return new Scops(compiler, input);
+  return new PollyApp(compiler, input);
 }
 
 size_t
@@ -227,59 +227,15 @@ generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
 }
 
 int
-generate_code_polly(Scops *app, const char *input_path,
-                    const char *output_path) {
-  for (auto &scop : app->scops) {
-    isl_schedule *sched = isl_schedule_node_get_schedule(scop->current_node);
-    isl_union_map *map = isl_schedule_get_map(sched);
-    isl_schedule_free(sched);
-    printf("[cg] %s map: %s\n", scop->jscop_path.c_str(),
-           isl_union_map_to_str(map));
-
-    for (auto &stmt : scop->jscop["statements"]) {
-      const char *name = stmt["name"].get_ref<std::string &>().c_str();
-      printf("[cg] name: %s\n", name);
-      printf("DO THIS HERE\n");
-      std::filesystem::copy(scop->jscop_path,
-                            scop->jscop_path + std::string(".bak"),
-                            std::filesystem::copy_options::overwrite_existing);
-      ofstream of(scop->jscop_path);
-      stmt["schedule"] = isl_union_map_to_str(map);
-      of << scop->jscop;
-    }
-    isl_union_map_free(map);
-  }
-  char cmd[LINE_MAX];
-  snprintf(cmd, LINE_MAX,
-           "%s -S -emit-llvm %s -O1 -o - "
-           "| opt -load LLVMPolly.so -disable-polly-legality "
-           "-polly-canonicalize "
-           "-polly-import-jscop -o %s.ll 2>&1",
-           app->compiler.c_str(), app->input.c_str(), app->input.c_str());
-
-  printf("[cg] cmd1: %s\n", cmd);
-  system(cmd);
-  snprintf(cmd, LINE_MAX, "%s %s.ll -O3 -o %s", app->compiler.c_str(),
-           app->input.c_str(), "OUTPUT.x");
-  printf("[cg] cmd2: %s\n", cmd);
-  system(cmd);
-
-  // finish compilation
-  //
-  // [ ] find example with multiple statements in one scop and make
-  // sure it works.
-  //
-  // [ ] "project out" the statement
-  return 0;
-}
-
-int
 generate_code(Scops *app, const char *input_path, const char *output_path) {
+  PollyApp *polly_app = dynamic_cast<PollyApp *>(app);
+  if (polly_app)
+    return polly_app->generate_code(input_path, output_path);
   if (app->scops.size() == 0)
     return 0;
   if (app->scops[0]->scop->pet_scop == NULL)
-    return generate_code_polly(app, input_path, output_path);
-  return generate_code_isl(app, input_path, output_path);
+    return generate_code_isl(app, input_path, output_path);
+  return 0;
 }
 
 /******** transformations ***********************************/
