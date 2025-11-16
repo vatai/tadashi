@@ -233,9 +233,7 @@ generate_code(Scops *app, const char *input_path, const char *output_path) {
     return polly_app->generate_code(input_path, output_path);
   if (app->scops.size() == 0)
     return 0;
-  if (app->scops[0]->scop->pet_scop == NULL)
-    return generate_code_isl(app, input_path, output_path);
-  return 0;
+  return generate_code_isl(app, input_path, output_path);
 }
 
 /******** transformations ***********************************/
