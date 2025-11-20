@@ -1,31 +1,35 @@
 [build-system]
-requires = ["setuptools", "cmake_build_extension", "wheel", "setuptools-git-versioning"]
+requires = ["setuptools", "cmake_build_extension", "wheel", "setuptools-git-versioning", "cibuildwheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Tadashi"  # as it would appear on PyPI
-readme = "readme.md"
+name = "tadashi"  # as it would appear on PyPI
+readme = "README.org"
 dynamic = ["dependencies", "version"]
 authors = [
-  {name = "Emil Vatai",      email = "emil.vatai@gmail.com"}
+  {name = "Emil Vatai",      email = "emil.vatai@riken.jp"},
+  {name = "Aleksandr Drozd",      email = "aleksandr.drozd@riken.jp"},
+  {name = "Ivan R. Ivanov",      email = "ivanov.i.e641@m.isct.ac.jp"},
+  {name = "Jo\~ao E. Batista",      email = "joao.batista@riken.jp"},
+  {name = "Yinghao Ren",      email = "yinghaoren.cs@gmail.com"},
+  {name = "Mohamed Wahib",      email = "mohamed.attia@riken.jp"},
 ]
 maintainers = [
-  {name = "Emil Vatai",      email = "emil.vatai@gmail.com"},
+  {name = "Emil Vatai",      email = "emil.vatai@gmail.com"}
 ]
-### keywords = ["simulation", "spin-dynamics", "radical pairs"]
-### license = {text = "MIT"}
+license = {text = "MIT"}
 
 [tools.setuptools]
 packages = ["tadashi"]
 # package-dir = {"tadashi" = "tadashi", "ctadashi"="src"}
 
 [tool.setuptools.packages]
-find = {}  # Scanning implicit namespaces is active by default
+# find = {}  # Scanning implicit namespaces is active by default
 
 [project.urls]
-### Homepage = "https://github.com/Spin-Chemistry-Labs/radicalpy"
-### Documentation = "https://radicalpy.readthedocs.io/en/latest/"
-Source = "https://github.com/vatai/tadashi"
+Homepage = "https://vatai.github.io/projects/tadashi/"
+Documentation = "https://tadashi.readthedocs.io/en/latest/"
+Source = "https://github.com/vatai/tadashi/"
 
 [tool.setuptools-git-versioning]
 enabled = true
