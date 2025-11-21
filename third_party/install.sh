@@ -12,7 +12,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 THIRD_PARTY="$ROOT/third_party"
 ISL_ORIGIN="$THIRD_PARTY/isl.bundle"
 PREFIX="$THIRD_PARTY/opt"
-CLANG_PREFIX="$(dirname "$(realpath "$(which llvm-config-19)")")"
+CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config-19)")")")"
 
 if [ -e "$ROOT/third_party/isl.bundle" ]; then
 	ISL_ORIGIN="$ROOT/third_party/isl.bundle"
