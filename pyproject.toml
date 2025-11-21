@@ -17,8 +17,6 @@ authors = [
 maintainers = [
   {name = "Emil Vatai",      email = "emil.vatai@gmail.com"}
 ]
-license = "MIT"
-license-files = ["LICENSE"]
 
 [project.urls]
 Homepage = "https://vatai.github.io/projects/tadashi/"
