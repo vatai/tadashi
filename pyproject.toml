@@ -7,12 +7,12 @@ name = "tadashi"  # as it would appear on PyPI
 readme = "README"
 dynamic = ["dependencies", "version"]
 authors = [
-  {name = "Emil Vatai",      email = "emil.vatai@riken.jp"},
-  {name = "Aleksandr Drozd",      email = "aleksandr.drozd@riken.jp"},
-  {name = "Ivan R. Ivanov",      email = "ivanov.i.e641@m.isct.ac.jp"},
-  {name = "João E. Batista",      email = "joao.batista@riken.jp"},
-  {name = "Yinghao Ren",      email = "yinghaoren.cs@gmail.com"},
-  {name = "Mohamed Wahib",      email = "mohamed.attia@riken.jp"},
+  {name = "Emil Vatai",      email = "emil.vatai@riken.jp"       },
+  {name = "Aleksandr Drozd", email = "aleksandr.drozd@riken.jp"  },
+  {name = "Ivan R. Ivanov",  email = "ivanov.i.e641@m.isct.ac.jp"},
+  {name = "João E. Batista", email = "joao.batista@riken.jp"     },
+  {name = "Yinghao Ren",     email = "yinghaoren.cs@gmail.com"   },
+  {name = "Mohamed Wahib",   email = "mohamed.attia@riken.jp"    },
 ]
 maintainers = [
   {name = "Emil Vatai",      email = "emil.vatai@gmail.com"}
@@ -26,6 +26,9 @@ Source = "https://github.com/vatai/tadashi/"
 
 [tool.setuptools]
 packages = ["tadashi"]
+
+[tool.setuptools_scm]
+version_file = "tadashi/_version.py"
 
 [tool.setuptools-git-versioning]
 enabled = true
