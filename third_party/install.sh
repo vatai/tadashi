@@ -6,6 +6,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 THIRD_PARTY="$ROOT/third_party"
 ISL_ORIGIN="$THIRD_PARTY/isl.bundle"
 PREFIX="$THIRD_PARTY/opt"
+CLANG_PREFX="$(dirname $(realpath $(which llvm-config)))"
 
 if [ -e "$ROOT/third_party/isl.bundle" ]; then
 	ISL_ORIGIN="$ROOT/third_party/isl.bundle"
@@ -19,7 +20,7 @@ else
 fi
 
 if [ -e "$(which yum)" ]; then
-	yum install -y gmp-c++ gmp-devel gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
+	yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
 fi
 if [ -e "$(which apk)" ]; then
 	apk add gmp
@@ -37,6 +38,7 @@ git checkout master
 ./configure --prefix="$PREFIX"
 make -j install
 
+
 cd /tmp
 rm -fr pet
 git init pet
@@ -45,5 +47,5 @@ git remote add origin "$PET_ORIGIN"
 git fetch
 git checkout master
 ./autogen.sh
-./configure --prefix="$PREFIX" --with-isl-prefix="$THIRD_PARTY/opt" --with-clang-prefix=/usr/lib/llvm19
+./configure --prefix="$PREFIX" --with-clang-prefix="$CLANG_PREFIX" --with-isl-prefix="$PREFIX"
 make -j install
