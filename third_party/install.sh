@@ -23,8 +23,7 @@ if [ -e "$(which yum)" ]; then
 	yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
 fi
 if [ -e "$(which apk)" ]; then
-	apk add gmp
-	apk add gmp-dev
+	apk add gmp-dev clang19-dev llvm19-dev
 fi
 
 cd /tmp

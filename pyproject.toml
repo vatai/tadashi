@@ -39,5 +39,5 @@ dependencies = {file = ["requirements.txt"]}
 [tool.cibuildwheel]
 build-frontend="build[uv]"
 before-all = ["third_party/install.sh"]
-build = "cp313-manylinux_x86_64"
+# build = "cp313-manylinux_x86_64"
 # manylinux-x86_64-image = "manylinux-mod"
