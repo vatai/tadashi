@@ -2,13 +2,15 @@ deps/downloads
 deps/opt
 deps/patches
 
+_version.py
 *build
 ctadashi
 wheelhouse
 *.egg-info
 dist
 third_party/opt
-third_party/*.bundle
+third_party/isl*
+third_party/pet*
 
 .aider*
 *.tex

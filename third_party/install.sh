@@ -14,36 +14,20 @@ ISL_ORIGIN="$THIRD_PARTY/isl.bundle"
 PREFIX="$THIRD_PARTY/opt"
 CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config-19)")")")"
 
-if [ -e "$ROOT/third_party/isl.bundle" ]; then
-	ISL_ORIGIN="$ROOT/third_party/isl.bundle"
-	PET_ORIGIN="$ROOT/third_party/pet.bundle"
-elif [ -e /project/third_party/isl.bundle ]; then
-	ISL_ORIGIN=/project/third_party/isl.bundle
-	PET_ORIGIN=/project/third_party/pet.bundle
-else
-	ISL_ORIGIN=https://repo.or.cz/isl.git
-	PET_ORIGIN=https://repo.or.cz/pet.git
-fi
+cd "$THIRD_PARTY"
+curl https://repo.or.cz/isl.git/snapshot/15f1e39bed3997f773056d3fd127f38967adaa8a.tar.gz -o isl.tgz
+curl https://repo.or.cz/pet.git/snapshot/b85d6e89cfd95c7228216307faa6e95caecbecf9.tar.gz -o pet.tgz
+rm -fr isl pet
+tar xzf isl.tgz && mv isl-* isl
+tar xzf pet.tgz && mv pet-* pet
 
-cd /tmp
-rm -fr isl
-git init isl
-cd isl
-git remote add origin "$ISL_ORIGIN"
-git fetch
-git checkout master
+cd "$THIRD_PARTY/isl"
 ./autogen.sh
 ./configure --prefix="$PREFIX"
 make -j install
 
 
-cd /tmp
-rm -fr pet
-git init pet
-cd pet
-git remote add origin "$PET_ORIGIN"
-git fetch
-git checkout master
+cd "$THIRD_PARTY/pet"
 ./autogen.sh
 ./configure --prefix="$PREFIX" --with-clang-prefix="$CLANG_PREFIX" --with-isl-prefix="$PREFIX"
 make -j install

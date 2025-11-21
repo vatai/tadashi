@@ -1,18 +1,52 @@
 # distutils: language=c++
 import cython
-from cython.cimports import isl, pet
 from cython.cimports.libc.stdio import fopen
 from cython.cimports.libcpp.vector import vector
+from cython.cimports.tadashi import isl, pet
 
-_vec_t = cython.typedef(vector[cython.int])
-pet_scop_p_vec = cython.typedef(vector[pet.pet_scop_p])
+# from .scop import Scop
+
+vec_p_pet_scop = cython.typedef(vector[pet.p_pet_scop])
+
+
+@cython.cfunc
+@cython.exceptval(check=False)
+def _populate_scops(
+    p: cython.pointer[isl.isl_printer],
+    scop: pet.p_pet_scop,
+    user: cython.p_void,
+) -> cython.pointer[isl.isl_printer]:
+    tmp = cython.declare(cython.pointer[vector[cython.int]])
+    tmp = cython.cast(cython.pointer[vector[cython.int]], user)
+    print(f"{tmp[0].size()=}")
+    sched = pet.pet_scop_get_schedule(scop)
+    s = isl.isl_schedule_to_str(sched)
+    isl.isl_schedule_free(sched)
+    print(s)
+    pet.pet_scop_free(scop)
+    return p
+
+
+@cython.cfunc
+@cython.exceptval(check=False)
+def pupulate_scops(
+    infile: str, ctx: cython.pointer(isl.isl_ctx), scops: vec_p_pet_scop
+) -> cython.void:
+    pet.pet_transform_C_source(
+        ctx,
+        infile.encode(),
+        fopen("/dev/null".encode(), "w"),
+        _populate_scops,
+        # cython.NULL,
+        cython.address(scops),
+    )
 
 
 @cython.cclass
 class App:
+    _vec = cython.declare(vec_p_pet_scop)
     _ctx = cython.declare(cython.pointer[isl.isl_ctx])
-    _vec = cython.declare(_vec_t)
-    _scops = cython.declare(pet_scop_p_vec)
+    _scops = cython.declare(vec_p_pet_scop)
 
     def __cinit__(self):
         self._ctx = pet.isl_ctx_alloc_with_pet_options()
@@ -51,8 +85,8 @@ class PETApp(App):
     def size(self):
         print(f"{self._vec.size()=}")
 
-    def append(self, x: int):
-        self._vec.push_back(x)
+    # def append(self, x: int):
+    #     self._vec.push_back(x)
 
     def foobar(self, infile: str, outfile: str):
         pet.pet_transform_C_source(
@@ -61,8 +95,9 @@ class PETApp(App):
             fopen(outfile.encode(), "w"),
             self.tr,
             # cython.NULL,
-            cython.address(self._vec),
+            cython.address(self._ctx),
         )
+        return None
 
 
 @cython.cclass
@@ -100,3 +135,16 @@ class Pet(Translator):
         if self._ctx is not cython.NULL:
             isl.isl_ctx_free(self._ctx)
             print("<<< destroyed")
+
+
+@cython.cclass
+class Dummy:
+    def method(self):
+        print("dummy.method()")
+
+
+# @cython.ccall
+def mul(a, b):
+    d = Dummy()
+    d.method()
+    return a * b
