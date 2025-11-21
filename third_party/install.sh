@@ -2,6 +2,12 @@
 set -e
 set -x
 
+if [ -e "$(which yum)" ]; then
+	yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
+elif [ -e "$(which apk)" ]; then
+	apk add gmp-dev clang19-dev llvm19-dev
+fi
+
 ROOT="$(git rev-parse --show-toplevel)"
 THIRD_PARTY="$ROOT/third_party"
 ISL_ORIGIN="$THIRD_PARTY/isl.bundle"
@@ -17,13 +23,6 @@ elif [ -e /project/third_party/isl.bundle ]; then
 else
 	ISL_ORIGIN=https://repo.or.cz/isl.git
 	PET_ORIGIN=https://repo.or.cz/pet.git
-fi
-
-if [ -e "$(which yum)" ]; then
-	yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
-fi
-if [ -e "$(which apk)" ]; then
-	apk add gmp-dev clang19-dev llvm19-dev
 fi
 
 cd /tmp
