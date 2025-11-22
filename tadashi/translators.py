@@ -61,7 +61,7 @@ class Pet(Translator):
 
     def __dealloc__(self):
         print(self.source)
-        del self._scops
+        self._scops.clear()
         if self._ctx is not cython.NULL:
             isl.isl_ctx_free(self._ctx)
             print("<<< destroyed TODO")
