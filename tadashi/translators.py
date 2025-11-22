@@ -1,6 +1,7 @@
 # distutils: language=c++
 import cython
 from cython.cimports.libc.stdio import fopen
+from cython.cimports.libcpp.string import string
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 
@@ -119,32 +120,28 @@ class Pet(Translator):
     """The `Pet` `Translator` is the PET backend of Tadashi."""
 
     _ctx = cython.declare(cython.pointer[isl.isl_ctx])
+    source: str
 
-    def get_scops(source: str):
-        print("Pet.get_scops")
-
-    def __cinit__(self):
+    def __cinit__(self, source):
         self._ctx = pet.isl_ctx_alloc_with_pet_options()
-        if self._ctx is cython.NULL:
-            raise MemoryError()
+        self.source = source
+        # if self._ctx is cython.NULL:
+        #     raise MemoryError()
 
-        print(f"{self._vec.size()=}")
+        # print(f"{self._vec.size()=}")
         print(">>> created")
 
     def __dealloc__(self):
+        print(self.source)
         if self._ctx is not cython.NULL:
             isl.isl_ctx_free(self._ctx)
             print("<<< destroyed")
 
-
-@cython.cclass
-class Dummy:
-    def method(self):
-        print("dummy.method()")
+    @property
+    def scops(self):
+        return [1, 2, 3]
 
 
 # @cython.ccall
 def mul(a, b):
-    d = Dummy()
-    d.method()
     return a * b
