@@ -7,10 +7,8 @@
 
 Scop::Scop(pet_scop *scop) : scop(scop) {}
 Scop::~Scop() {
-  if (scop) {
-    std::cout << "BYEEEEEE" << std::endl;
+  if (scop)
     scop = pet_scop_free(scop);
-  }
 }
 
 std::string
