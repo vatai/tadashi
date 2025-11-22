@@ -6,6 +6,12 @@
 #include <isl/schedule.h>
 
 Scop::Scop(pet_scop *scop) : scop(scop) {}
+Scop::~Scop() {
+  if (scop) {
+    std::cout << "BYEEEEEE" << std::endl;
+    scop = pet_scop_free(scop);
+  }
+}
 
 std::string
 Scop::to_string() {
