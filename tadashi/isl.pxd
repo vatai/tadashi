@@ -4,6 +4,7 @@ cdef extern from "isl/schedule.h":
 
 cdef extern from "isl/printer.h":
     ctypedef struct isl_printer: pass
+ctypedef isl_printer* p_isl_printer
 
 cdef extern from "isl/ctx.h":
     ctypedef struct isl_ctx: pass
