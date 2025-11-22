@@ -27,18 +27,31 @@
  * @todo The functions here can be grouped.
  */
 
-#include <vector>
-#include "scops.h"
 #include <cstddef>
+#include <vector>
 
+#include "scops.h"
 /**
- * @brief Entry point of CTadashi which creates a @ref Scops object.
+ * @brief Entry point of CTadashi which creates a @ref Scops object
+ * (PET backend).
  *
  * @param input Location of the source file.
  *
  * @returns Pointer to the new @ref Scops object.
  */
 Scops *init_scops(char *input, const std::vector<std::string> &defines);
+
+/**
+ * @brief Entry point of CTadashi which creates a @ref Scops object
+ * (LLVM/Polly backend).
+ *
+ * @param compiler LLVM compiler used (usually clang or flang).
+ *
+ * @param input Location of the source file.
+ *
+ * @returns Pointer to the new @ref Scops object.
+ */
+PollyApp *init_scops_from_json(char *compiler, char *input);
 
 /**
  * @brief Return the number of @ref Scop "Scop"s in the @ref Scops
@@ -449,4 +462,3 @@ int set_loop_opt(Scops *app, size_t scop_idx, int pos, int opt);
  * legal.
  */
 int set_parallel(Scops *app, size_t scop_idx, int num_threads);
-

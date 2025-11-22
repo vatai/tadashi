@@ -7,7 +7,15 @@
  * Loading a Python \p App object invokes \ref init_scops.
  */
 
+#include <cassert>
+#include <climits>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <isl/union_map_type.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -41,6 +49,11 @@ init_scops(char *input, const std::vector<std::string> &defines) {
    * Create a @ref Scop.
    */
   return new Scops(input, defines);
+}
+
+PollyApp *
+init_scops_from_json(char *compiler, char *input) {
+  return new PollyApp(compiler, input);
 }
 
 size_t
@@ -200,13 +213,10 @@ generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
 }
 
 int
-generate_code(Scops *app, const char *input_path, const char *output_path) {
+generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
   int r = 0;
   isl_ctx *ctx = app->ctx;
   size_t scop_idx = 0;
-
-  //   isl_options_set_ast_print_macro_once(ctx, 1);
-  //   pet_options_set_encapsulate_dynamic_control(ctx, 1);
 
   FILE *output_file = fopen(output_path, "w");
   Scop **si = app->scops.data();
@@ -214,6 +224,16 @@ generate_code(Scops *app, const char *input_path, const char *output_path) {
                              generate_code_callback, si);
   fclose(output_file);
   return r;
+}
+
+int
+generate_code(Scops *app, const char *input_path, const char *output_path) {
+  PollyApp *polly_app = dynamic_cast<PollyApp *>(app);
+  if (polly_app)
+    return polly_app->generate_code(input_path, output_path);
+  if (app->scops.size() == 0)
+    return 0;
+  return generate_code_isl(app, input_path, output_path);
 }
 
 /******** transformations ***********************************/
