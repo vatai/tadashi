@@ -10,6 +10,19 @@ Scop::~Scop() {
   if (scop)
     scop = pet_scop_free(scop);
 }
+Scop::Scop(const Scop &other) : scop(other.scop) {}
+Scop &
+Scop::operator=(const Scop &other) {
+  scop = other.scop;
+  return *this;
+}
+Scop::Scop(Scop &&other) : scop(other.scop) {}
+Scop &
+Scop::operator=(Scop &&other) {
+  scop = other.scop;
+  other.scop = nullptr;
+  return *this;
+}
 
 std::string
 Scop::to_string() {
