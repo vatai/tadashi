@@ -15,4 +15,4 @@ cdef extern from "pet.h":
                                                          void *user),
                                void *user)
 
-ctypedef pet_scop* p_pet_scop
+ctypedef pet_scop* scop
