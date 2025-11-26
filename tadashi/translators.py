@@ -12,7 +12,12 @@ from cython.cimports.tadashi.scop import Scop
 @cython.cclass
 class Pet:
 
-    _scops: list[Scop]
+    _scops: list[Scop]  # C/C++ version (not visible to pyton)
+
+    @property
+    def scops(self):  # exposes self._scops to python
+        return self._scops
+
     _ctx = cython.declare(cython.pointer[isl.isl_ctx])
     source: str
 
@@ -36,13 +41,11 @@ class Pet:
             self._scops.append(obj)
 
     def __dealloc__(self):
-        self._scops.clear()
+        for s in self._scops:
+            s.free_scop()
         if self._ctx is not cython.NULL:
+            print("DEL CTX")
             isl.isl_ctx_free(self._ctx)
-
-    @property
-    def scops(self):
-        return self._scops
 
     @staticmethod
     @cython.cfunc
