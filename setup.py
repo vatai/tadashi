@@ -19,7 +19,7 @@ kwargs = {
 ext_modules = [
     Extension(
         "tadashi.scop",
-        sources=["tadashi/scop.py"],
+        sources=["tadashi/scop.py", "tadashi/transformations.c"],
         **kwargs,
     ),
     Extension(

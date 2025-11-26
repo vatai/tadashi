@@ -16,3 +16,8 @@ class TestNewTadashi(unittest.TestCase):
             s,
             """{ domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }", child: { schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]", child: { schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]" } } }""",
         )
+
+    def test_tranfo(self):
+        app = apps.BaseApp("examples/inputs/depnodep.c", translators.Pet)
+        s = app.scops[0]
+        s.transform(1)
