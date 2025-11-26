@@ -18,8 +18,13 @@ kwargs = {
 
 ext_modules = [
     Extension(
-        "tadashi",
-        sources=["tadashi/translators.py", "tadashi/scop.cc"],
+        "tadashi.scop",
+        sources=["tadashi/scop.py"],
+        **kwargs,
+    ),
+    Extension(
+        "tadashi.translators",
+        sources=["tadashi/translators.py"],
         **kwargs,
     ),
 ]

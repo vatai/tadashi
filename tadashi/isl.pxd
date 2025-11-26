@@ -1,6 +1,7 @@
 cdef extern from "isl/schedule.h":
     ctypedef struct isl_schedule: pass
     isl_schedule *isl_schedule_free(isl_schedule *sched)
+ctypedef isl_schedule* schedule
 
 cdef extern from "isl/printer.h":
     ctypedef struct isl_printer: pass

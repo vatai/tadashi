@@ -1,4 +1,5 @@
 # distutils: language=c++
+
 import cython
 from cython.cimports.libc.stdio import fopen
 from cython.cimports.libcpp.vector import vector
@@ -9,32 +10,30 @@ from cython.cimports.tadashi.scop import Scop
 
 
 @cython.cclass
-class Translator:
-    """`Translator`s extract `Scop`s from source files, and generate
-    code from `Scop`s."""
+class Pet:
 
-    _scops = cython.declare(vector[Scop])
+    _scops: list[Scop]
     _ctx = cython.declare(cython.pointer[isl.isl_ctx])
     source: str
 
-
-@cython.cclass
-class Pet(Translator):
-    """The `Pet` `Translator` is the PET backend of Tadashi."""
-
     def __cinit__(self, source):
         self._ctx = pet.isl_ctx_alloc_with_pet_options()
+        self.source = source
         if self._ctx is cython.NULL:
             raise MemoryError()
-        self._scops.reserve(42)
-        self.source = source
+        vec = cython.declare(vector[pet.scop])
         pet.pet_transform_C_source(
             self._ctx,
             source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._populate_scops,
-            cython.address(self._scops),
+            cython.address(vec),
         )
+        self._scops = []
+        for ptr in vec:
+            obj = Scop()
+            obj.set_scop(ptr)
+            self._scops.append(obj)
 
     def __dealloc__(self):
         self._scops.clear()
@@ -43,19 +42,15 @@ class Pet(Translator):
 
     @property
     def scops(self):
-        print(">>> TODO NEXT <<<")
-        rv = []
-        for i in range(self._scops.size()):
-            rv.append(self._scops[i].to_string())
-        return rv
+        return self._scops
 
     @staticmethod
     @cython.cfunc
     @cython.exceptval(check=False)
     def _populate_scops(
-        p: isl.p_isl_printer, scop: pet.p_pet_scop, user: cython.p_void
+        p: isl.p_isl_printer, scop: pet.scop, user: cython.p_void
     ) -> isl.p_isl_printer:
-        vec = cython.declare(cython.pointer[vector[Scop]])
-        vec = cython.cast(cython.pointer[vector[Scop]], user)
+        vec = cython.declare(cython.pointer[vector[pet.scop]])
+        vec = cython.cast(cython.pointer[vector[pet.scop]], user)
         vec.emplace_back(scop)
         return p

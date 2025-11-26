@@ -1,7 +1,6 @@
-from tadashi.pet cimport p_pet_scop
-from libcpp.string cimport string
+from tadashi cimport pet
 
-cdef extern from "scop.h":
-    cdef cppclass Scop:
-        Scop(p_pet_scop scop)
-        string to_string()
+cdef class Scop:
+    cdef pet.scop pet_scop
+    cdef void set_scop(self, pet.scop ptr)
+
