@@ -1,7 +1,12 @@
 #!/bin/env python
 from enum import Enum, StrEnum, auto
 
-TRANSFORMATIONS = []  # : list["transformation"]
+
+class TransformInfo:
+    pass
+
+
+TRANSFORMATIONS: list[TransformInfo] = []
 
 
 class TrEnum(StrEnum):
@@ -16,10 +21,6 @@ def register(enum: TrEnum):
         return cls
 
     return _decorator
-
-
-class TransformInfo:
-    pass
 
 
 @register(TrEnum.INTERCHANGE)
