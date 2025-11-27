@@ -15,8 +15,8 @@ PREFIX="$THIRD_PARTY/opt"
 CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config-19)")")")"
 
 cd "$THIRD_PARTY"
-git clone https://repo.or.cz/isl.git
-git clone https://repo.or.cz/pet.git
+git clone git://repo.or.cz/isl.git
+git clone git://repo.or.cz/pet.git
 
 cd "$THIRD_PARTY/isl"
 ./autogen.sh
