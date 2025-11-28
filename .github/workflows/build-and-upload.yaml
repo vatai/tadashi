@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
-    if: false # <-- This line disables the job
+    # if: false # <-- This line disables the job
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
