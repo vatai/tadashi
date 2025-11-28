@@ -5,7 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tadashi"  # as it would appear on PyPI
 readme = "README.md"
-dynamic = ["dependencies", "version"]
+# dynamic = ["dependencies", "version"]
+dynamic = ["dependencies"]
+version = "v0.1.0"
 authors = [
   {name = "Emil Vatai",      email = "emil.vatai@riken.jp"       },
   {name = "Aleksandr Drozd", email = "aleksandr.drozd@riken.jp"  },
