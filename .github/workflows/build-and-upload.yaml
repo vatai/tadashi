@@ -1,6 +1,7 @@
 name: Build and Upload Python Package
 
-on: [push, pull_request]
+# on: [push, pull_request]
+on: [push] # TODO return pull_request
 
 jobs:
   build_wheels:

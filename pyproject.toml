@@ -7,7 +7,7 @@ name = "tadashi"  # as it would appear on PyPI
 readme = "README.md"
 # dynamic = ["dependencies", "version"]
 dynamic = ["dependencies"]
-version = "v0.1.3" # TODO: enable automatic versioning (see deployment condition)
+version = "v0.1.4" # TODO: enable automatic versioning (see deployment condition)
 authors = [
   {name = "Emil Vatai",      email = "emil.vatai@riken.jp"       },
   {name = "Aleksandr Drozd", email = "aleksandr.drozd@riken.jp"  },
