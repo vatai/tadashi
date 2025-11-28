@@ -64,7 +64,7 @@ jobs:
       with:
         pattern: cibw-*
         path: dist
-        # merge-multiple: true # TODO return this if I don't figure out what it is
+        merge-multiple: true
 
     - uses: pypa/gh-action-pypi-publish@release/v1
       with:
