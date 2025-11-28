@@ -5,7 +5,7 @@ set -x
 if [ -e "$(which yum)" ]; then
 	yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
 elif [ -e "$(which apk)" ]; then
-	apk add gmp-dev clang19-dev llvm19-dev
+	apk add gmp-dev clang17-dev llvm17-dev
 fi
 
 ROOT="$(git rev-parse --show-toplevel)"
