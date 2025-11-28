@@ -1,0 +1,118 @@
+#+title: Tadashi
+
+* Install
+
+After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
+
+#+begin_src bash
+  pip install git+https://github.com/vatai/tadashi.git
+#+end_src
+
+Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
+libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
+
+Using [[file:./deps/docker/][Docker]] is also an option.
+
+** Development
+
+#+begin_src bash
+   cmake -S . -B build -GNinja -DCMAKE_INSTALL_PREFIX=ctadashi -DCALL_FROM_SETUP_PY=ON
+   ninja -C build install
+#+end_src
+
+Execute with:
+
+#+begin_src bash
+  PYTHONPATH=. python examples/end2end.py
+#+end_src
+
+
+* Documentation
+
+After the double blind review and the end of the anonymity
+requirement, detailed API documentation will be uploaded to
+https://tadashi.readthedocs.io/ (or a similar URL).
+
+** Quick start
+
+An [[./examples/inputs/end2end.py][end-to-end]] example is provided below (split into parts with
+comments and outputs).  This example can be run from the repository
+root with the following command:
+#+begin_src bash
+  python examples/inputs/end2end.py
+#+end_src
+
+#+RESULTS:
+
+*** End-to-end example
+
+After importing Tadashi we obtain the loop nests (SCoPs) from a [[./tadashi/apps.py][Simple]]
+app.
+
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  #!/bin/env python
+  from pathlib import Path
+  from random import choice, seed
+
+  import tadashi
+  from tadashi.apps import Simple
+
+  seed(1234)
+
+  dir_path = Path(__file__).parent
+  examples_path = dir_path if dir_path.name == "examples" else "examples"
+  app = Simple(f"{examples_path}/inputs/depnodep.c")
+  print(app)
+#+end_src
+
+#+RESULTS:
+: <tadashi.apps.Simple object at 0x7f7dfe220dd0>
+
+Select a node and a transformation, and check that the transformation
+is available on the selected node.
+#+begin_src python :exports both :session s1 :results output :exports both :tangle examples/end2end.py
+  node = app.scops[0].schedule_tree[1]
+  print(f"{node=}")
+  tr = choice(node.available_transformations)
+  print(f"{tr=}")
+  # output:
+#+end_src
+
+#+RESULTS:
+: node=Node type: NodeType.BAND, [{'params': ['N'], 'vars': ['j', 'i']}], [N] -> L_0[{ S_0[j, i] -> [(j)] }], [0]
+: tr=TrEnum.FULL_SHIFT_PARAM
+
+Check the available arguments for the given node-transformation pair.
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  args = choice(node.get_args(tr, -10, 10))
+  print(f"{args=}")
+  # output:
+#+end_src
+
+#+RESULTS:
+: args=[0, -7]
+
+
+Perform the transformation and check legality.
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  legal = node.transform(tr, *args)
+  print(f"{legal=}")
+  # output:
+#+end_src
+
+#+RESULTS:
+: legal=True
+
+Generate new code, compile it and measure the performance.
+#+begin_src python :session s1 :results output :exports both :tangle examples/end2end.py
+  app.compile()
+  print(f"{app.measure()=}")
+  transformed_app = app.generate_code()
+  transformed_app.compile()
+  print(f"{transformed_app.measure()=}")
+  # output:
+#+end_src
+
+#+RESULTS:
+: app.measure()=24.0
+: transformed_app.measure()=39.0
