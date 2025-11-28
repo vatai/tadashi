@@ -10,20 +10,14 @@ fi
 
 ROOT="$(git rev-parse --show-toplevel)"
 THIRD_PARTY="$ROOT/third_party"
-ISL_ORIGIN="$THIRD_PARTY/isl.bundle"
 PREFIX="$THIRD_PARTY/opt"
 CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config-19)")")")"
 
 cd "$THIRD_PARTY"
-git clone git://repo.or.cz/isl.git
 git clone git://repo.or.cz/pet.git
 
-cd "$THIRD_PARTY/isl"
-./autogen.sh
-./configure --prefix="$PREFIX"
-make -j install
-
 cd "$THIRD_PARTY/pet"
+./get_submodules.sh
 ./autogen.sh
-./configure --prefix="$PREFIX" --with-clang-prefix="$CLANG_PREFIX" --with-isl-prefix="$PREFIX"
+./configure --prefix="$PREFIX" --with-clang-prefix="$CLANG_PREFIX"
 make -j install
