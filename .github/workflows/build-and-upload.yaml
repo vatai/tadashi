@@ -1,4 +1,4 @@
-name: Build Python Package
+name: Build and Upload Python Package
 
 on: [push, pull_request]
 
@@ -50,7 +50,8 @@ jobs:
         path: dist/*.tar.gz
 
   upload_all:
-    needs: [build_wheels, make_sdist]
+    # needs: [build_wheels, make_sdist]
+    needs: [make_sdist]
     environment: testpypi
     permissions:
       id-token: write
