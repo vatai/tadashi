@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
+    if: false # <-- This line disables the job
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -66,4 +67,4 @@ jobs:
 
     - uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/
