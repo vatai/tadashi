@@ -10,25 +10,33 @@ from cython.cimports.tadashi.scop import Scop
 
 
 @cython.cclass
-class Pet:
-
+class Translator:
     _scops: list[Scop]  # C/C++ version (not visible to pyton)
+    _ctx = cython.declare(cython.pointer[isl.isl_ctx])
+    source: str
 
     @property
     def scops(self):  # exposes self._scops to python
         return self._scops
 
-    _ctx = cython.declare(cython.pointer[isl.isl_ctx])
-    source: str
+    def __dealloc__(self):
+        for s in self._scops:
+            s.free_scop()
+        if self._ctx is not cython.NULL:
+            isl.isl_ctx_free(self._ctx)
 
-    def __cinit__(self, source):
-        self._ctx = pet.isl_ctx_alloc_with_pet_options()
+
+@cython.cclass
+class Pet(Translator):
+
+    def __init__(self, source):
         self.source = source
-        if self._ctx is cython.NULL:
-            raise MemoryError()
         self._populate_scos(source)
 
     def _populate_scos(self, source):
+        self._ctx = pet.isl_ctx_alloc_with_pet_options()
+        if self._ctx is cython.NULL:
+            raise MemoryError()
         vec = cython.declare(vector[pet.scop])
         pet.pet_transform_C_source(
             self._ctx,
@@ -53,9 +61,3 @@ class Pet:
         vec = cython.cast(cython.pointer[vector[pet.scop]], user)
         vec.emplace_back(scop)
         return p
-
-    def __dealloc__(self):
-        for s in self._scops:
-            s.free_scop()
-        if self._ctx is not cython.NULL:
-            isl.isl_ctx_free(self._ctx)
