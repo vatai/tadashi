@@ -26,7 +26,3 @@ def register(enum: TrEnum):
 @register(TrEnum.INTERCHANGE)
 class InterchangeInfo(TransformInfo):
     pass
-
-
-print("=========================")
-print(f"{TRANSFORMATIONS=}")

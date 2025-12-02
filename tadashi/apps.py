@@ -4,41 +4,79 @@ import abc
 from pathlib import Path
 from typing import Optional
 
+from .scop import Scop
 from .translators import Translator
 
 
-class BaseApp(abc.ABC):
+class App(abc.ABC):
 
     user_compiler_options: list[str]
+    """User compiler options are passed to the compilation command."""
+
     ephemeral: bool = False
+    """Ephemeral, i.e. short lived apps.
+
+    If set to `True`, the files of the `App` (usually `App.source`) is
+    deleted in the destructor of the Python `App` object.
+
+    """
+
     populate_scops: bool = True
+    """For an `App` that is not intended for transformations.
 
-    def __init__(self, source: str, translator: Translator):
-        self.source = source
-        self.translator = translator.set_source(source)
+    If set to `False` populating `App.scops` is skipped. This is
+    useful to create a "shallow copy" of an `App`.
 
-    @property
-    def scops(self):
-        return self.translator.scops
-
-
-class Simple(BaseApp):
-    runtime_prefix: str
+    """
 
     def __init__(
         self,
-        source: str | Path,
+        source: str,
+        translator: Translator,
         compiler_options: Optional[list[str]] = None,
-        runtime_prefix: str = "WALLTIME: ",
         ephemeral: bool = False,
         populate_scops: bool = True,
     ):
+        self.source = source
+        self.translator = translator.set_source(source)
         if compiler_options is None:
             compiler_options = []
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
+
+    @property
+    def scops(self) -> list[Scop]:
+        """The `Scop` list forwarded from `App.translator` (both for
+        compatibility and convenience reasons)."""
+        return self.translator.scops
+
+    @property
+    @abc.abstractmethod
+    def compile_cmd(self):
+        pass
+
+
+class Simple(App):
+    runtime_prefix: str
+
+    def __init__(
+        self,
+        source: str,
+        translator: Translator,
+        compiler_options: Optional[list[str]] = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
+        *,
+        runtime_prefix: str = "WALLTIME: ",
+    ):
         self.runtime_prefix = runtime_prefix
-        self._finalize_object(source, compiler_options=compiler_options)
+        super().__init__(
+            source,
+            translator,
+            compiler_options=compiler_options,
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
+        )
 
     @property
     def compile_cmd(self) -> list[str]:

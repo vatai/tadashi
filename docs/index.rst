@@ -7,16 +7,18 @@ Tadashi documentation
 =====================
 
 
+Work In Progress!!!
+
 .. mermaid::
 
   flowchart LR
     subgraph apps["Files on disc"]
-      direction TB
+      direction LR
       app["orig.c"]
       tapp["new.c"]
     end
     subgraph states["States of the polyhedral representation"]
-      direction TB
+      direction LR
       S1["$$S1$$"]
       S2["$$S_2$$"]
       S3["$$S_3$$"]
