@@ -5,10 +5,12 @@ from cython.cimports.tadashi.transformations import *
 
 @cython.cclass
 class Scop:
+    _scop: pet.scop
+
     def __init__(self):
         self._scop = cython.NULL
 
-    def init(self, ptr):
+    def init(self, ptr: pet.scop):
         self._scop = ptr
         return self
 
@@ -23,7 +25,7 @@ class Scop:
         if self._scop != cython.NULL:
             self._scop = pet.pet_scop_free(self._scop)
 
-    def transform(self, node_idx):
+    def transform(self, node_idx: int):
         sched = cython.declare(isl.schedule)
         sched = pet.pet_scop_get_schedule(self._scop)
         node = cython.declare(isl.schedule_node)

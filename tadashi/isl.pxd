@@ -5,6 +5,7 @@ cdef extern from "isl/ctx.h":
     ctypedef struct isl_ctx: pass
     isl_ctx* isl_ctx_alloc()
     void isl_ctx_free(isl_ctx* ctx)
+ctypedef isl_ctx* ctx
 
 # -------
 # printer
@@ -12,7 +13,7 @@ cdef extern from "isl/ctx.h":
 cdef extern from "isl/printer.h":
     ctypedef struct isl_printer: pass
     isl_printer *isl_printer_free(isl_printer *p)
-ctypedef isl_printer* p_isl_printer
+ctypedef isl_printer* printer
 
 # --------
 # schedule

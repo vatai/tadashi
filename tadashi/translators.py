@@ -12,7 +12,7 @@ from cython.cimports.tadashi.scop import Scop
 @cython.cclass
 class Translator:
     _scops: list[Scop]  # C/C++ version (not visible to pyton)
-    _ctx = cython.declare(cython.pointer[isl.isl_ctx])
+    _ctx: isl.ctx = cython.declare(isl.ctx)
     source: str
 
     def __dealloc__(self):
@@ -25,7 +25,7 @@ class Translator:
     def scops(self):  # exposes self._scops to python
         return self._scops
 
-    def set_source(self, source):
+    def set_source(self, source: str):
         self.source = source
         self._populate_scos(source)
         return self
@@ -34,7 +34,7 @@ class Translator:
 @cython.cclass
 class Pet(Translator):
 
-    def _populate_scos(self, source):
+    def _populate_scos(self, source: str):
         self._ctx = pet.isl_ctx_alloc_with_pet_options()
         if self._ctx is cython.NULL:
             raise MemoryError()
@@ -52,8 +52,10 @@ class Pet(Translator):
     @cython.cfunc
     @cython.exceptval(check=False)
     def _extract_scops(
-        p: isl.p_isl_printer, scop: pet.scop, user: cython.p_void
-    ) -> isl.p_isl_printer:
+        p: isl.printer,
+        scop: pet.scop,
+        user: cython.p_void,
+    ) -> isl.printer:
         vec = cython.declare(cython.pointer[vector[pet.scop]])
         vec = cython.cast(cython.pointer[vector[pet.scop]], user)
         vec.emplace_back(scop)
