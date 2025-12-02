@@ -15,23 +15,24 @@ class Translator:
     _ctx = cython.declare(cython.pointer[isl.isl_ctx])
     source: str
 
-    @property
-    def scops(self):  # exposes self._scops to python
-        return self._scops
-
     def __dealloc__(self):
         for s in self._scops:
             s.free_scop()
         if self._ctx is not cython.NULL:
             isl.isl_ctx_free(self._ctx)
 
+    @property
+    def scops(self):  # exposes self._scops to python
+        return self._scops
+
+    def set_source(self, source):
+        self.source = source
+        self._populate_scos(source)
+        return self
+
 
 @cython.cclass
 class Pet(Translator):
-
-    def __init__(self, source):
-        self.source = source
-        self._populate_scos(source)
 
     def _populate_scos(self, source):
         self._ctx = pet.isl_ctx_alloc_with_pet_options()

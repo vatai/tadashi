@@ -4,7 +4,7 @@
 class BaseApp:
     def __init__(self, source, translator):
         self.source = source
-        self.translator = translator(source)
+        self.translator = translator.set_source(source)
 
     @property
     def scops(self):

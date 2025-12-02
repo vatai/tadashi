@@ -9,7 +9,7 @@ from tadashi import apps, translators
 
 class TestNewTadashi(unittest.TestCase):
     def test_devel(self):
-        app = apps.BaseApp("examples/inputs/depnodep.c", translators.Pet)
+        app = apps.BaseApp("examples/inputs/depnodep.c", translators.Pet())
         self.assertEqual(len(app.scops), 1)
         s = str(app.scops[0])
         self.assertEqual(
@@ -18,6 +18,6 @@ class TestNewTadashi(unittest.TestCase):
         )
 
     def test_tranfo(self):
-        app = apps.BaseApp("examples/inputs/depnodep.c", translators.Pet)
+        app = apps.BaseApp("examples/inputs/depnodep.c", translators.Pet())
         s = app.scops[0]
         s.transform(1)
