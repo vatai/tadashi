@@ -8,7 +8,7 @@ class Scop:
     def __init__(self):
         self._scop = cython.NULL
 
-    def set_scop(self, ptr):
+    def init(self, ptr):
         self._scop = ptr
         return self
 
