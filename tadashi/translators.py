@@ -45,11 +45,7 @@ class Pet(Translator):
             self._extract_scops,
             cython.address(vec),
         )
-        self._scops = []
-        for ptr in vec:
-            obj = Scop()
-            obj.set_scop(ptr)
-            self._scops.append(obj)
+        self._scops = [Scop().set_scop(ptr) for ptr in vec]
 
     @staticmethod
     @cython.cfunc

@@ -10,6 +10,7 @@ class Scop:
 
     def set_scop(self, ptr):
         self._scop = ptr
+        return self
 
     def __repr__(self):
         sched = cython.declare(isl.schedule)
