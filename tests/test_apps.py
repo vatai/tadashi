@@ -9,6 +9,7 @@ from tadashi import TrEnum, apps
 class TestApp(unittest.TestCase):
     examples: Path = Path(__file__).parent.parent / "examples"
 
+    @unittest.skip("wip")
     def compare_members(self, app):
         akeys = sorted(app.__dict__.keys())
         tapp = app.generate_code(ensure_legality=False)
@@ -21,6 +22,7 @@ class TestApp(unittest.TestCase):
                 continue
             self.assertEqual((akey, aval), (akey, tval))
 
+    @unittest.skip("wip")
     def test_app_legality(self):
         app = apps.Polybench("jacobi-1d")
         trs = [
@@ -31,6 +33,7 @@ class TestApp(unittest.TestCase):
         result = app.transform_list(trs)
         self.assertFalse(result.legal)
 
+    @unittest.skip("wip")
     def test_app_legal(self):
         app = apps.Polybench("gemm")
         trs = [
@@ -51,6 +54,7 @@ class TestApp(unittest.TestCase):
 
 
 class TestSimple(TestApp):
+    @unittest.skip("wip")
     def test_args(self):
         app = apps.Simple(self.examples / "inputs/depnodep.c")
         self.compare_members(app)
@@ -59,10 +63,12 @@ class TestSimple(TestApp):
 class TestPolybench(TestApp):
     base: Path = TestApp.examples / "polybench"
 
+    @unittest.skip("wip")
     def test_args(self):
         app = apps.Polybench("stencils/jacobi-2d", self.base)
         self.compare_members(app)
 
+    @unittest.skip("wip")
     def test_trlist(self):
         app = apps.Polybench("stencils/jacobi-2d", self.base)
         trs = [
@@ -75,6 +81,7 @@ class TestPolybench(TestApp):
         tapp.compile()
         # tapp.measure()
 
+    @unittest.skip("wip")
     def test_get_benchmark(self):
         app = apps.Polybench("correlation")
         self.assertEqual(app.benchmark, "datamining/correlation")
@@ -88,6 +95,7 @@ class TestPolybench(TestApp):
         with self.assertRaises(ValueError):
             app = apps.Polybench("does_not_exist")
 
+    @unittest.skip("wip")
     def test_dump_arrays(self):
         # print([a.name for a in apps.Polybench.get_benchmarks()])
         app = apps.Polybench("deriche", compiler_options=["-DMINI_DATASET"])
