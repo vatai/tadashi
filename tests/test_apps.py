@@ -4,18 +4,18 @@ import unittest
 from pathlib import Path
 
 from tadashi import TrEnum, apps
+from tadashi.translators import Pet
 
 
 class TestApp(unittest.TestCase):
     examples: Path = Path(__file__).parent.parent / "examples"
 
-    @unittest.skip("wip")
     def compare_members(self, app):
         akeys = sorted(app.__dict__.keys())
         tapp = app.generate_code(ensure_legality=False)
         tkeys = sorted(tapp.__dict__.keys())
         self.assertListEqual(akeys, tkeys)
-        not_equal = ["source", "ephemeral", "populate_scops", "scops"]
+        not_equal = ["source", "ephemeral", "populate_scops", "translator"]
         for akey, aval in app.__dict__.items():
             tval = tapp.__dict__[akey]
             if akey in not_equal:
@@ -54,9 +54,9 @@ class TestApp(unittest.TestCase):
 
 
 class TestSimple(TestApp):
-    @unittest.skip("wip")
     def test_args(self):
-        app = apps.Simple(self.examples / "inputs/depnodep.c")
+        file = self.examples / "inputs/depnodep.c"
+        app = apps.Simple(file, Pet())
         self.compare_members(app)
 
 

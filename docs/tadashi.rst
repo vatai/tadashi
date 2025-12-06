@@ -12,6 +12,22 @@ tadashi.apps module
    :show-inheritance:
    :undoc-members:
 
+tadashi.scop module
+-------------------
+
+.. automodule:: tadashi.scop
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+tadashi.translators module
+--------------------------
+
+.. automodule:: tadashi.translators
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 
