@@ -7,3 +7,4 @@ cdef extern from "ccscop.h":
         ccScop() except +
         ccScop(pet.scop ps) except +
         pet.scop scop
+        void dealloc() except +

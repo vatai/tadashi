@@ -15,13 +15,13 @@ class Translator:
     """Translator base class."""
 
     ccscops: vector[ccScop]
-    scops: list[Scop]
+    scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
     source: str
 
     def __dealloc__(self):
-        for ts in self.ccscops:
-            pet.pet_scop_free(ts.scop)
+        for idx in range(self.ccscops.size()):
+            self.ccscops[idx].dealloc()
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
@@ -34,6 +34,11 @@ class Translator:
     def set_source(self, source: str | Path) -> Translator:
         self.source = str(source)
         self._populate_scops(str(source))
+        self.scops = []
+        for idx in range(self.ccscops.size()):
+            ptr = cython.address(self.ccscops[idx])
+            self.scops.append(Scop.create(ptr))
+
         return self
 
     def generate_code(self, input_path, output_path):
@@ -55,7 +60,6 @@ class Pet(Translator):
             self._extract_scops_callback,
             cython.address(self.ccscops),
         )
-        self.scops = [Scop.create(cython.address(ts)) for ts in self.ccscops]
 
     @staticmethod
     @cython.cfunc
@@ -93,6 +97,7 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
+        print("CODEGEN")
         # isl_ctx *ctx;
         # isl_schedule *sched;
         # Scop **si_ptr = (Scop **)user;

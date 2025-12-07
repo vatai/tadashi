@@ -8,6 +8,7 @@ public:
   virtual ~ccScop();
   ccScop();
   ccScop(pet_scop *ps);
+  void dealloc();
 
   // private:
   pet_scop *scop;
