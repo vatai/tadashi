@@ -7,17 +7,17 @@ from tadashi.translators import *
 
 
 class TestTranslator(unittest.TestCase):
+    """!!! Consider other functionality. Also consider testing ccscop
+    functionality.
+
+    """
+
     examples: Path = Path(__file__).parent.parent / "examples"
 
     @unittest.skip("todo")
     def test_pet_scop_extraction(self):
         """Test the things done in the constructor: does it populate
-        ccscops and scops correctly.
-
-        !!! Consider other functionality. Also consider testing ccscop
-            functionality.
-
-        """
+        ccscops and scops correctly."""
 
     @unittest.skip("todo")
     def test_pet_codegen(self):

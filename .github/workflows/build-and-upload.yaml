@@ -57,8 +57,7 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    # if: github.event_name == 'release' && github.event.action == 'published'
-    # TODO: enable deployment condition (see automatic versioning)
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
     - uses: actions/download-artifact@v5
       with:
