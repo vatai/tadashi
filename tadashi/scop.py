@@ -4,12 +4,13 @@ from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.tadashi_scop import TadashiScop
 from cython.cimports.tadashi.transformations import *
 
-PtrTScop = cython.typedef(cython.pointer(TadashiScop))
-
 
 @cython.cclass
 class Scop:
-    ptr: PtrTScop
+    ptr: cython.pointer(TadashiScop)
+
+    def __init__(self):
+        print("THIS IS SCOOOOP!")
 
     def __dealloc__(self):
         if self.ptr != cython.NULL:
@@ -17,15 +18,15 @@ class Scop:
 
     @staticmethod
     @cython.cfunc
-    def create(ptr: PtrTScop):
+    def create(ptr: cython.pointer(TadashiScop)) -> Scop:
         scop = Scop()
         scop.ptr = ptr
         return scop
 
-    @cython.cfunc
-    def init(self, ptr: PtrTScop) -> Scop:
-        self.ptr = ptr
-        return self
+    # @cython.cfunc
+    # def init(self, ptr: cython.pointer(TadashiScop)) -> Scop:
+    #     self.ptr = ptr
+    #     return self
 
     # def __repr__(self):
     #     sched = cython.declare(isl.schedule)

@@ -25,18 +25,12 @@ class Translator:
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
+    @property
+    @cython.ccall
     def scops(self) -> list[Scop]:
         """Exposes `Translator.scops` (which is a C++ object) to
         Python."""
-        # ts = cython.declare(TadashiScop)
-        # ts = self.tadashi_scops[0]
-        # tmp = cython.declare(Scop)
-        # void_ts = cython.declare(cython.p_void)
-        # void_ts = cython.cast(cython.p_void, cython.address(ts))
-        # tmp = Scop.create(void_ts)
-        return []
-        # return [Scop.create(cython.p_void) for ts in self.tadashi_scops]
-        # return [Scop.create(cython.address(ts)) for ts in self.tadashi_scops]
+        return [Scop.create(cython.address(ts)) for ts in self.tadashi_scops]
 
     def set_source(self, source: str | Path) -> Translator:
         self.source = str(source)
@@ -71,8 +65,8 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
-        vec = cython.declare(cython.pointer[vector[pet.scop]])
-        vec = cython.cast(cython.pointer[vector[pet.scop]], user)
+        vec = cython.declare(cython.pointer[vector[TadashiScop]])
+        vec = cython.cast(cython.pointer[vector[TadashiScop]], user)
         vec.emplace_back(scop)
         return p
 
