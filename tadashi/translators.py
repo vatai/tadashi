@@ -25,20 +25,13 @@ class Translator:
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
-    # @cython.ccall
-    # def scops(self) -> list[Scop]:
-    #     """Exposes `Translator.scops` (which is a C++ object) to
-    #     Python."""
-    #     return [Scop.create(cython.address(ts)) for ts in self.ccscops]
-
     def set_source(self, source: str | Path) -> Translator:
         self.source = str(source)
-        self._populate_scops(str(source))
+        self._populate_ccscops(str(source))
         self.scops = []
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
             self.scops.append(Scop.create(ptr))
-
         return self
 
     def generate_code(self, input_path, output_path):
@@ -49,7 +42,7 @@ class Translator:
 class Pet(Translator):
 
     @cython.ccall
-    def _populate_scops(self, source: str):
+    def _populate_ccscops(self, source: str):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
         if self.ctx is cython.NULL:
             raise MemoryError()
@@ -97,13 +90,11 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
-        print("CODEGEN")
-        # isl_ctx *ctx;
         # isl_schedule *sched;
         # Scop **si_ptr = (Scop **)user;
         # Scop *si = *si_ptr;
-        # if (!scop || !p)
-        #     return isl_printer_free(p);
+        if not scop or not p:
+            return isl.isl_printer_free(p)
         # if (!si->modified) {
         #     p = pet_scop_print_original(scop, p);
         # } else {
