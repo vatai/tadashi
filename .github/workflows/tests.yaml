@@ -34,7 +34,7 @@ jobs:
     #   run: python -m pip install mpi4py halo --user
 
     - name: Build python package 📦
-      run: pip install .
+      run: pip install . && ./setup.py build_ext -i
 
     # - name: Run end2end.py
     #   run: python examples/end2end.py
