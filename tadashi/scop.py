@@ -16,20 +16,13 @@ class Scop:
         return scop
 
     def __repr__(self):
-        sched = pet.pet_scop_get_schedule(self.ptr.scop)
-        repr = isl.isl_schedule_to_str(sched)
-        isl.isl_schedule_free(sched)
-        return repr.decode()
+        node = self.ptr.current_node
+        return isl.isl_schedule_node_to_str(node).decode()
 
     def foobar_transform(self, node_idx: int):  # TODO
-        sched = cython.declare(isl.schedule)
-        sched = pet.pet_scop_get_schedule(self.ptr.scop)
-        node = cython.declare(isl.schedule_node)
-        node = isl.isl_schedule_get_root(sched)
-        sched = isl.isl_schedule_free(sched)
+        node = self.ptr.current_node
         node = isl.isl_schedule_node_first_child(node)
-        # print(isl.isl_schedule_node_to_str(node).decode())
         node = tadashi_interchange(node)
         result = isl.isl_schedule_node_to_str(node).decode()
-        isl.isl_schedule_node_free(node)
+        self.ptr.current_node = node
         return result

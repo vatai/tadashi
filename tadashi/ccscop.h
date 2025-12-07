@@ -10,7 +10,10 @@ public:
   ccScop(pet_scop *ps);
   void dealloc();
 
-  // private:
+public:
+  isl_schedule_node *current_node;
+
+private:
   pet_scop *scop;
 };
 
