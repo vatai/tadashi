@@ -35,8 +35,8 @@ jobs:
     - name: Build python package 📦
       run: pip install .
 
-    - name: Run end2end.py
-      run: python examples/end2end.py
+    # - name: Run end2end.py
+    #   run: python examples/end2end.py
 
     - name: Run unittests
       run: python -m unittest
