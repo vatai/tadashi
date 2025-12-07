@@ -1,6 +1,6 @@
-from tadashi.tadashi_scop cimport TadashiScop
+from tadashi.ccscop cimport ccScop
 
 cdef class Scop:
   @staticmethod
-  cdef Scop create(TadashiScop *ptr)
-  cdef TadashiScop *ptr
+  cdef Scop create(ccScop *ptr)
+  cdef ccScop *ptr

@@ -3,10 +3,11 @@
 
 #include <pet.h>
 
-class TadashiScop {
+class ccScop {
 public:
-  TadashiScop();
-  TadashiScop(pet_scop *ps);
+  virtual ~ccScop();
+  ccScop();
+  ccScop(pet_scop *ps);
 
   // private:
   pet_scop *scop;

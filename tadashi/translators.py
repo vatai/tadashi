@@ -6,31 +6,30 @@ import cython
 from cython.cimports.libc.stdio import FILE, fclose, fopen
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
+from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.scop import Scop
-from cython.cimports.tadashi.tadashi_scop import TadashiScop
 
 
 @cython.cclass
 class Translator:
     """Translator base class."""
 
-    tadashi_scops: vector[TadashiScop]
+    ccscops: vector[ccScop]
+    scops: list[Scop]
     ctx: isl.ctx
     source: str
 
     def __dealloc__(self):
-        # todo: return these two lines
-        # for ts in self.tadashi_scops:
-        #     pet.pet_scop_free(ts.scop)
+        for ts in self.ccscops:
+            pet.pet_scop_free(ts.scop)
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
-    @property
-    @cython.ccall
-    def scops(self) -> list[Scop]:
-        """Exposes `Translator.scops` (which is a C++ object) to
-        Python."""
-        return [Scop.create(cython.address(ts)) for ts in self.tadashi_scops]
+    # @cython.ccall
+    # def scops(self) -> list[Scop]:
+    #     """Exposes `Translator.scops` (which is a C++ object) to
+    #     Python."""
+    #     return [Scop.create(cython.address(ts)) for ts in self.ccscops]
 
     def set_source(self, source: str | Path) -> Translator:
         self.source = str(source)
@@ -54,8 +53,9 @@ class Pet(Translator):
             source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
-            cython.address(self.tadashi_scops),
+            cython.address(self.ccscops),
         )
+        self.scops = [Scop.create(cython.address(ts)) for ts in self.ccscops]
 
     @staticmethod
     @cython.cfunc
@@ -65,8 +65,7 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
-        vec = cython.declare(cython.pointer[vector[TadashiScop]])
-        vec = cython.cast(cython.pointer[vector[TadashiScop]], user)
+        vec = cython.cast(cython.pointer[vector[ccScop]], user)
         vec.emplace_back(scop)
         return p
 
@@ -81,7 +80,7 @@ class Pet(Translator):
             input_path.encode(),
             output_file,
             self._codegen_callback,
-            self.tadashi_scops.data(),
+            self.ccscops.data(),
         )
         fclose(output_file)
         return r

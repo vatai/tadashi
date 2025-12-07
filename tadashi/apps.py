@@ -63,7 +63,7 @@ class App(abc.ABC):
     def scops(self) -> list[Scop]:
         """The `Scop` list forwarded from `App.translator` (both for
         compatibility and convenience reasons)."""
-        return self.translator.scops
+        return self.translator.scops()
 
     def generate_code(
         self,
