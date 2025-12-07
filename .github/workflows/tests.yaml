@@ -2,8 +2,8 @@ name: Run tests
 on: push
 
 jobs:
-  build-pet:
-    name: Build PET
+  build_deps:
+    name: Build deps
     runs-on: ubuntu-latest
     steps:
 
@@ -24,23 +24,19 @@ jobs:
     # - name: Install mpi4py
     #   run: python -m pip install mpi4py halo --user
 
-    - name: Check out repo
+    - name: Check out repo 😸
       uses: actions/checkout@master
       with:
         submodules: recursive
 
-    # - name: Configure Project
-    #   # continue-on-error: true
-    #   uses: threeal/cmake-action@v1.3.0
-    #   with:
-    #     generator: Ninja
+    - name: Build deps
+      run: third_party/install.sh
 
-    # - name: Build Project
-    #   run: cmake --build build
-
-    # - name: Run cmake gtest
-    #   run: ctest --test-dir build
-
+  run_tests:
+    name: Run tests
+    needs: [build_deps]
+    runs-on: ubuntu-latest
+    steps:
     - name: Build python package
       run: pip install .
 
