@@ -192,40 +192,6 @@ reset_scop(Scops *app, size_t scop_idx) {
   app->scops[scop_idx]->reset();
 }
 
-static __isl_give isl_printer *
-generate_code_callback(__isl_take isl_printer *p, struct pet_scop *scop,
-                       void *user) {
-  isl_ctx *ctx;
-  isl_schedule *sched;
-  Scop **si_ptr = (Scop **)user;
-  Scop *si = *si_ptr;
-  if (!scop || !p)
-    return isl_printer_free(p);
-  if (!si->modified) {
-    p = pet_scop_print_original(scop, p);
-  } else {
-    sched = isl_schedule_node_get_schedule(si->current_node);
-    p = codegen(p, si->scop->pet_scop, sched);
-  }
-  pet_scop_free(scop);
-  si_ptr++;
-  return p;
-}
-
-int
-generate_code_isl(Scops *app, const char *input_path, const char *output_path) {
-  int r = 0;
-  isl_ctx *ctx = app->ctx;
-  size_t scop_idx = 0;
-
-  FILE *output_file = fopen(output_path, "w");
-  Scop **si = app->scops.data();
-  r = pet_transform_C_source(ctx, input_path, output_file,
-                             generate_code_callback, si);
-  fclose(output_file);
-  return r;
-}
-
 int
 generate_code(Scops *app, const char *input_path, const char *output_path) {
   PollyApp *polly_app = dynamic_cast<PollyApp *>(app);
