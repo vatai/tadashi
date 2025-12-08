@@ -56,17 +56,17 @@ class TestApp(unittest.TestCase):
 class TestSimple(TestApp):
     def test_generate_code_ephemeral(self):
         """Test the `generate_code`s method `ephemeral` parameter."""
-        file = self.examples / "inputs/depnodep.c"
+        input_file = self.examples / "inputs/depnodep.c"
         for ephemeral in [True, False]:
             expected = not ephemeral
             with self.subTest(ephemeral=ephemeral):
-                app = apps.Simple(file, Pet())
+                app = apps.Simple(input_file, Pet())
                 tapp = app.generate_code(ensure_legality=False, ephemeral=ephemeral)
-                file = Path(tapp.source)
+                file_path = tapp.source
                 del tapp
-                file_exists = file.exists()
+                file_exists = file_path.exists()
                 if file_exists:
-                    file.unlink()
+                    file_path.unlink()
                 self.assertEqual(file_exists, expected)
 
     def test_args(self):
