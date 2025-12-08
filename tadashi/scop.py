@@ -1,7 +1,13 @@
+#!/bin/env python
+
+
 import cython
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.transformations import *
+
+from .node import Node
+from .node_type import NodeType
 
 
 @cython.cclass
@@ -18,6 +24,42 @@ class Scop:
     def __repr__(self):
         node = self.ptr.current_node
         return isl.isl_schedule_node_to_str(node).decode()
+
+    def _make_node(self, parent, current_idx, location):
+
+        cur = self.ptr.current_node
+        num_children = isl.isl_schedule_node_n_children(cur)
+        node = Node(
+            scop=self,
+            node_type=NodeType(isl.isl_schedule_node_get_type(cur)),
+            num_children=num_children,
+            parent_idx=parent,
+            index=current_idx,
+            label=self.get_label(),
+            location=location,
+            loop_signature=self.get_loop_signature(),
+            expr=self.get_expr(),
+            children_idx=[-1] * num_children,
+        )
+        return node
+
+    def _traverse(self, nodes, parent, location):
+        current_idx = len(nodes)
+        node = self._make_node(parent, current_idx, location)
+        nodes.append(node)
+        if not node.node_type == NodeType.LEAF:
+            for c in range(node.num_children):
+                self.goto_child()
+                node.children_idx[c] = len(nodes)
+                self._traverse(nodes, current_idx, location + [c])
+                self.goto_parent()
+
+    @property
+    def schedule_tree(self) -> list[Node]:
+        self.goto_root()
+        nodes: list[Node] = []
+        self._traverse(nodes, parent=-1, location=[])
+        return nodes
 
     def foobar_transform(self, node_idx: int):  # TODO
         node = self.ptr.current_node

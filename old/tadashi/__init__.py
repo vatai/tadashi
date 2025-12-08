@@ -34,28 +34,6 @@ class AstLoopType(Enum):
     SEPARATE = auto()
 
 
-class NodeType(Enum):
-    """Type of the schedule tree node.
-
-    Details: `ISL online user manual (Schedule Trees)`_.
-
-    .. _ISL online user manual (Schedule Trees):
-       https://libisl.sourceforge.io/user.html#Schedule-Trees
-    """
-
-    BAND = 0
-    CONTEXT = auto()
-    DOMAIN = auto()
-    EXPANSION = auto()
-    EXTENSION = auto()
-    FILTER = auto()
-    LEAF = auto()
-    GUARD = auto()
-    MARK = auto()
-    SEQUENCE = auto()
-    SET = auto()
-
-
 class TrEnum(StrEnum):
     """Enums of implemented transformations.
 
@@ -86,65 +64,6 @@ class TrEnum(StrEnum):
 
 @dataclass
 class Node:
-    """Schedule node (Python representation)."""
-
-    #: Pointer to the `Scop` object the node belongs to.
-    scop: "Scop"
-
-    #: Type of the node in the schedule tree.
-    node_type: NodeType
-
-    #: Number of children of the node in the schedule tree.
-    num_children: int
-
-    #: The index of the parent of the node in the schedule tree
-    #: according to `Scop.schedule_tree`.
-    parent_idx: int
-
-    #: The index of the current node in `Scop.schedule_tree`.
-    index: int
-
-    #: A string identifying the node.
-    label: str
-
-    #: List of child indexes which determine the location of the node
-    #: starting from the root.  See `Scop.locate`.
-    location: list[int]
-
-    #: Description of the band nodes (see `Scop.get_loop_signature`).
-    loop_signature: list[dict]
-
-    #: The ISL expression of the schedule node.
-    expr: str
-
-    #: Index of the children in `Scop.schedule_tree`.
-    children_idx: list[str]
-
-    @property
-    def parent(self):
-        """The node which is the parent of the current node."""
-        return self.scop.schedule_tree[self.parent_idx]
-
-    @property
-    def children(self):
-        """List of nodes which are the children of the current node."""
-        return [self.scop.schedule_tree[i] for i in self.children_idx]
-
-    def __repr__(self):
-        """Textual representation of a node."""
-        words = [
-            "Node type:",
-            f"{self.node_type},",
-            f"{self.loop_signature},",
-            f"{self.expr},",
-            f"{self.location}",
-        ]
-        return " ".join(words)
-
-    def locate(self):
-        """Set the `current_node` to point to `self`."""
-        self.scop.locate(self.location)
-        return self.scop.get_current_node_from_ISL(None, None)
 
     def transform(self, trkey: TrEnum, *args) -> bool:
         """Execute the selected transformation.
@@ -644,40 +563,6 @@ class Scop:
         """
         loop_signature = ctadashi.get_loop_signature(self.app_ptr, self.scop_idx)
         return literal_eval(loop_signature)
-
-    def _make_node(self, parent, current_idx, location):
-        num_children = ctadashi.get_num_children(self.app_ptr, self.scop_idx)
-        node = Node(
-            scop=self,
-            node_type=NodeType(ctadashi.get_type(self.app_ptr, self.scop_idx)),
-            num_children=num_children,
-            parent_idx=parent,
-            index=current_idx,
-            label=ctadashi.get_label(self.app_ptr, self.scop_idx),
-            location=location,
-            loop_signature=self.get_loop_signature(),
-            expr=ctadashi.get_expr(self.app_ptr, self.scop_idx),
-            children_idx=[-1] * num_children,
-        )
-        return node
-
-    def _traverse(self, nodes, parent, location):
-        current_idx = len(nodes)
-        node = self._make_node(parent, current_idx, location)
-        nodes.append(node)
-        if not node.node_type == NodeType.LEAF:
-            for c in range(node.num_children):
-                ctadashi.goto_child(self.app_ptr, self.scop_idx, c)
-                node.children_idx[c] = len(nodes)
-                self._traverse(nodes=nodes, parent=current_idx, location=location + [c])
-                ctadashi.goto_parent(self.app_ptr, self.scop_idx)
-
-    @property
-    def schedule_tree(self) -> list[Node]:
-        ctadashi.goto_root(self.app_ptr, self.scop_idx)
-        nodes: list[Node] = []
-        self._traverse(nodes, parent=-1, location=[])
-        return nodes
 
     def locate(self, location: list[int]):
         """Update the current node on the C/C++ side."""
