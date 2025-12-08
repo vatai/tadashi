@@ -28,7 +28,7 @@ ext_modules = [
     ),
     Extension(
         "tadashi.translators",
-        sources=["tadashi/translators.py", "tadashi/ccscop.cc"],
+        sources=["tadashi/translators.py", "tadashi/ccscop.cc", "tadashi/codegen.c"],
         **kwargs,
     ),
 ]

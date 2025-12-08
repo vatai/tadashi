@@ -7,6 +7,7 @@ from cython.cimports.libc.stdio import FILE, fclose, fopen
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
+from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
 
@@ -113,10 +114,9 @@ class Pet(Translator):
             return isl.isl_printer_free(p)
         if not ccscop.modified:
             p = pet.pet_scop_print_original(scop, p)
-        # } else {
-        #     sched = isl_schedule_node_get_schedule(si->current_node);
-        #     p = codegen(p, si->scop->pet_scop, sched);
-        # }
+        else:
+            sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
+            p = codegen(p, scop, sched)
         pet.pet_scop_free(scop)
 
         # increment the outer pointer.

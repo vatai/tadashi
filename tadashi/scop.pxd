@@ -1,3 +1,5 @@
+# -*- mode:cython -*-
+
 from tadashi.ccscop cimport ccScop
 
 cdef class Scop:

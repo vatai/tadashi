@@ -1,3 +1,5 @@
+# -*- mode:cython -*-
+
 from tadashi.isl cimport *
 
 cdef extern from "transformations.h":

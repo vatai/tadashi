@@ -1,3 +1,5 @@
+# -*- mode:cython -*-
+
 # ---
 # ctx
 # ---
@@ -33,5 +35,6 @@ cdef extern from "isl/schedule_node.h":
     ctypedef struct isl_schedule_node: pass
     isl_schedule_node *isl_schedule_node_free(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_first_child(isl_schedule_node *node)
+    isl_schedule *isl_schedule_node_get_schedule(isl_schedule_node *node)
     const char *isl_schedule_node_to_str(isl_schedule_node *node)
 ctypedef isl_schedule_node* schedule_node

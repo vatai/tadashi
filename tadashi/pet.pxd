@@ -1,4 +1,4 @@
-# -*- mode: cython -*-
+# -*- mode:cython -*-
 
 include "isl.pxd"
 cdef extern from "stdio.h":
