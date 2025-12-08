@@ -80,12 +80,13 @@ class Pet(Translator):
         scop_idx: int = 0
         output_file = cython.declare(cython.pointer[FILE])
         output_file = fopen(output_path.encode(), "w")
+        scop_ptr = self.ccscops.data()
         r = pet.pet_transform_C_source(
             self.ctx,
             input_path.encode(),
             output_file,
             self._codegen_callback,
-            self.ccscops.data(),
+            cython.address(scop_ptr),
         )
         fclose(output_file)
         return r
@@ -98,19 +99,26 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
-        cur_scop = cython.cast(cython.pointer[ccScop], user)
-        node = cur_scop.current_node
+        # `pptr` is a pointer to the "pointer in the outside function
+        # pointing to the ccScop objects'
+        pptr = cython.cast(cython.pointer[cython.pointer[ccScop]], user)
+        ccscop = cython.operator.dereference(pptr)
+
+        # todo: remove
+        node = ccscop.current_node
         sn = isl.isl_schedule_node_to_str(node)
-        print(f"{sn=}")
+        # print(f"{sn=}")
 
         if not scop or not p:
             return isl.isl_printer_free(p)
-        # if (!si->modified) {
-        #     p = pet_scop_print_original(scop, p);
+        if not ccscop.modified:
+            p = pet.pet_scop_print_original(scop, p)
         # } else {
         #     sched = isl_schedule_node_get_schedule(si->current_node);
         #     p = codegen(p, si->scop->pet_scop, sched);
         # }
         pet.pet_scop_free(scop)
-        # si_ptr++;
+
+        # increment the outer pointer.
+        cython.operator.postincrement(cython.operator.dereference(pptr))
         return p

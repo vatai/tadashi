@@ -12,6 +12,7 @@ public:
 
 public:
   isl_schedule_node *current_node;
+  int modified;
 
 private:
   pet_scop *scop;

@@ -33,6 +33,16 @@ class App(abc.ABC):
 
     """
 
+    def __del__(self):
+        if self.ephemeral:
+            binary = self.output_binary
+            if binary.exists():
+                binary.unlink()
+            if self.source.exists():
+                self.source.unlink()
+            else:
+                print("WARNING: source file missing!")
+
     def __init__(
         self,
         source: str | Path,
@@ -64,6 +74,11 @@ class App(abc.ABC):
         """The `Scop` list forwarded from `App.translator` (both for
         compatibility and convenience reasons)."""
         return self.translator.scops
+
+    @property
+    def output_binary(self) -> Path:
+        """The output binary obtained after compilation."""
+        return self.source.with_suffix("")
 
     def generate_code(
         self,

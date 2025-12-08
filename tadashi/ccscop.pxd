@@ -10,3 +10,4 @@ cdef extern from "ccscop.h":
         void dealloc() except +
         # members
         isl.isl_schedule_node *current_node
+        bint modified
