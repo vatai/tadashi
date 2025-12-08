@@ -5,6 +5,7 @@ cdef extern from "stdio.h":
 cdef extern from "pet.h":
     ctypedef struct pet_scop: pass
     isl_ctx *isl_ctx_alloc_with_pet_options()
+    int pet_options_set_autodetect(isl_ctx *ctx, int val)
     isl_schedule *pet_scop_get_schedule(pet_scop *scop)
     pet_scop *pet_scop_free(pet_scop* scop)
     int pet_transform_C_source(isl_ctx *ctx,

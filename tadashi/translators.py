@@ -15,6 +15,8 @@ class Translator:
     """Translator base class."""
 
     ccscops: vector[ccScop]
+    """ccscops is the single source of truth for the polyhedral
+    representation. Python Scop objects have pointers to its elements."""
     scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
     source: str
@@ -40,10 +42,16 @@ class Translator:
 
 @cython.cclass
 class Pet(Translator):
+    autodetect: bool
+
+    def __init__(self, autodetect: bool = False):
+        self.autodetect = autodetect
 
     @cython.ccall
     def _populate_ccscops(self, source: str):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
+        opt = 1 if self.autodetect else 0
+        pet.pet_options_set_autodetect(self.ctx, opt)
         if self.ctx is cython.NULL:
             raise MemoryError()
         pet.pet_transform_C_source(
@@ -90,9 +98,11 @@ class Pet(Translator):
         scop: pet.scop,
         user: cython.p_void,
     ) -> isl.printer:
-        # isl_schedule *sched;
-        # Scop **si_ptr = (Scop **)user;
-        # Scop *si = *si_ptr;
+        cur_scop = cython.cast(cython.pointer[ccScop], user)
+        node = cur_scop.current_node
+        sn = isl.isl_schedule_node_to_str(node)
+        print(f"{sn=}")
+
         if not scop or not p:
             return isl.isl_printer_free(p)
         # if (!si->modified) {
@@ -101,6 +111,6 @@ class Pet(Translator):
         #     sched = isl_schedule_node_get_schedule(si->current_node);
         #     p = codegen(p, si->scop->pet_scop, sched);
         # }
-        # pet_scop_free(scop);
+        pet.pet_scop_free(scop)
         # si_ptr++;
         return p

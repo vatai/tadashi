@@ -14,6 +14,19 @@ class TestTranslator(unittest.TestCase):
 
     examples: Path = Path(__file__).parent.parent / "examples"
 
+    def test_pet_autodetect(self):
+        """Test the `translators.Pet`'s `autodetect` parameter."""
+        file = self.examples / "inputs/depnodep.c"
+        cases = [
+            (False, 1),
+            (True, 3),
+        ]
+        for autodetect, num_scops in cases:
+            with self.subTest(autodetect=autodetect):
+                translator = Pet(autodetect=autodetect)
+                translator.set_source(file)
+                self.assertEqual(len(translator.scops), num_scops)
+
     @unittest.skip("todo")
     def test_pet_scop_extraction(self):
         """Test the things done in the constructor: does it populate
