@@ -26,12 +26,67 @@ class Scop:
         return isl.isl_schedule_node_to_str(node).decode()
 
     def get_label(self):
+        # Scop *si = app->scops[scop_idx];
+        # isl_multi_union_pw_aff *mupa;
+        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
+        #     return "foo";
+        # mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
+        # const char *label = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+        # mupa = isl_multi_union_pw_aff_free(mupa);
+        # std::stringstream ss;
+        # ss << label;
+        # return si->add_string(ss);
         pass  # todo
 
     def get_loop_signature(self):
+        # Scop *si = app->scops[scop_idx];
+        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
+        #   return "[]";
+        # std::stringstream ss;
+        # isl_multi_union_pw_aff *mupa;
+        # mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
+        # // assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
+        # // TODO save name
+        # isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
+        # isl_size num_sets = isl_union_set_n_set(domain);
+        # isl_set_list *slist = isl_union_set_get_set_list(domain);
+        # ss << "[";
+        # for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
+        #   if (set_idx)
+        #     ss << ", ";
+        #   isl_set *set = isl_set_list_get_at(slist, set_idx);
+        #   isl_size num_params = isl_set_dim(set, isl_dim_param);
+        #   ss << "{'params' : [";
+        #   for (isl_size di = 0; di < num_params; di++) {
+        #     if (di)
+        #       ss << ", ";
+        #     ss << "'" << isl_set_get_dim_name(set, isl_dim_param, di) << "'";
+        #   }
+        #   ss << "], 'vars' :[";
+        #   isl_size num_vars = isl_set_dim(set, isl_dim_set);
+        #   for (isl_size di = 0; di < num_vars; di++) {
+        #     if (di)
+        #       ss << ", ";
+        #     ss << "'" << isl_set_get_dim_name(set, isl_dim_set, di) << "'";
+        #   }
+        #   ss << "]}";
+        #   isl_set_free(set);
+        # }
+        # ss << "]";
+        # isl_set_list_free(slist);
+        # isl_union_set_free(domain);
+        # return si->add_string(ss);
         pass  # todo
 
     def get_expr(self):
+        # Scop *si = app->scops[scop_idx];
+        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
+        #   return "";
+        # isl_multi_union_pw_aff *mupa =
+        #     isl_schedule_node_band_get_partial_schedule(si->current_node);
+        # char *tmp = isl_multi_union_pw_aff_to_str(mupa);
+        # mupa = isl_multi_union_pw_aff_free(mupa);
+        # return si->add_string(tmp);
         pass  # todo
 
     def _make_node(self, parent, current_idx, location):
