@@ -2,7 +2,7 @@
 
 from tadashi cimport isl, pet
 
-cdef extern from "ccscop.h":
+cdef extern from "src/ccscop.h":
     cdef cppclass ccScop:
         # methods
         ccScop() except +
