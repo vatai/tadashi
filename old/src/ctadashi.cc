@@ -82,24 +82,6 @@ print_schedule_node(Scops *app, size_t scop_idx) {
 
 /******** current node manipulation *************************/
 
-void
-goto_root(Scops *app, size_t scop_idx) {
-  app->scops[scop_idx]->current_node =
-      isl_schedule_node_root(app->scops[scop_idx]->current_node);
-}
-
-void
-goto_parent(Scops *app, size_t scop_idx) {
-  app->scops[scop_idx]->current_node =
-      isl_schedule_node_parent(app->scops[scop_idx]->current_node);
-}
-
-void
-goto_child(Scops *app, size_t scop_idx, size_t child_idx) {
-  app->scops[scop_idx]->current_node =
-      isl_schedule_node_child(app->scops[scop_idx]->current_node, child_idx);
-}
-
 int
 get_legal(Scops *app, size_t scop_idx) {
   return app->scops[scop_idx]->current_legal;
