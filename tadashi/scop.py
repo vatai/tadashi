@@ -21,6 +21,13 @@ class Scop:
         scop.scop = ptr
         return scop
 
+    @property
+    def schedule_tree(self) -> list[Node]:
+        self._goto_root()
+        nodes: list[Node] = []
+        self._traverse(nodes, parent=-1, location=[])
+        return nodes
+
     def __repr__(self):
         node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
@@ -34,7 +41,7 @@ class Scop:
         tmp = isl.isl_schedule_node_get_type(self._cur())
         return NodeType(tmp) == node_type
 
-    def get_label(self):
+    def _get_label(self):
         if not self._node_type_is(NodeType.BAND):
             return ""
         mupa = isl.isl_schedule_node_band_get_partial_schedule(self._cur())
@@ -42,7 +49,7 @@ class Scop:
         mupa = isl.isl_multi_union_pw_aff_free(mupa)
         return label.decode()
 
-    def get_loop_signature(self):
+    def _get_loop_signature(self):
         # Scop *si = app->scops[scop_idx];
         # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
         #   return "[]";
@@ -82,7 +89,7 @@ class Scop:
         # return si->add_string(ss);
         pass  # todo
 
-    def get_expr(self) -> str:
+    def _get_expr(self) -> str:
         if not self._node_type_is(NodeType.BAND):
             return ""
         cur = self.scop.current_node
@@ -100,25 +107,25 @@ class Scop:
             num_children=num_children,
             parent_idx=parent,
             index=current_idx,
-            label=self.get_label(),
+            label=self._get_label(),
             location=location,
-            loop_signature=self.get_loop_signature(),
-            expr=self.get_expr(),
+            loop_signature=self._get_loop_signature(),
+            expr=self._get_expr(),
             children_idx=[-1] * num_children,
         )
         return node
 
-    def goto_root(self) -> None:
+    def _goto_root(self) -> None:
         ptr = self.scop.current_node
         ptr = isl.isl_schedule_node_root(ptr)
         self.scop.current_node = ptr
 
-    def goto_parent(self) -> None:
+    def _goto_parent(self) -> None:
         ptr = self.scop.current_node
         ptr = isl.isl_schedule_node_parent(ptr)
         self.scop.current_node = ptr
 
-    def goto_child(self, n: int) -> None:
+    def _goto_child(self, n: int) -> None:
         ptr = self.scop.current_node
         ptr = isl.isl_schedule_node_child(ptr, n)
         self.scop.current_node = ptr
@@ -129,17 +136,10 @@ class Scop:
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                self.goto_child(c)
+                self._goto_child(c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes, current_idx, location + [c])
-                self.goto_parent()
-
-    @property
-    def schedule_tree(self) -> list[Node]:
-        self.goto_root()
-        nodes: list[Node] = []
-        self._traverse(nodes, parent=-1, location=[])
-        return nodes
+                self._goto_parent()
 
     def foobar_transform(self, node_idx: int):  # TODO
         node = self.scop.current_node
