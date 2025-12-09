@@ -6,6 +6,7 @@ from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.transformations import *
 
+from . import SHOULD_NOT_HAPPEN
 from .node import Node
 from .node_type import NodeType
 
@@ -51,43 +52,40 @@ class Scop:
 
     def _get_loop_signature(self):
         # Scop *si = app->scops[scop_idx];
-        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
-        #   return "[]";
-        # std::stringstream ss;
-        # isl_multi_union_pw_aff *mupa;
-        # mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
-        # // assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
-        # // TODO save name
-        # isl_union_set *domain = isl_multi_union_pw_aff_domain(mupa);
-        # isl_size num_sets = isl_union_set_n_set(domain);
-        # isl_set_list *slist = isl_union_set_get_set_list(domain);
-        # ss << "[";
-        # for (isl_size set_idx = 0; set_idx < num_sets; set_idx++) {
-        #   if (set_idx)
-        #     ss << ", ";
-        #   isl_set *set = isl_set_list_get_at(slist, set_idx);
-        #   isl_size num_params = isl_set_dim(set, isl_dim_param);
-        #   ss << "{'params' : [";
-        #   for (isl_size di = 0; di < num_params; di++) {
-        #     if (di)
-        #       ss << ", ";
-        #     ss << "'" << isl_set_get_dim_name(set, isl_dim_param, di) << "'";
-        #   }
-        #   ss << "], 'vars' :[";
-        #   isl_size num_vars = isl_set_dim(set, isl_dim_set);
-        #   for (isl_size di = 0; di < num_vars; di++) {
-        #     if (di)
-        #       ss << ", ";
-        #     ss << "'" << isl_set_get_dim_name(set, isl_dim_set, di) << "'";
-        #   }
-        #   ss << "]}";
-        #   isl_set_free(set);
-        # }
-        # ss << "]";
-        # isl_set_list_free(slist);
-        # isl_union_set_free(domain);
-        # return si->add_string(ss);
-        pass  # todo
+        if not self._node_type_is(NodeType.BAND):
+            return "[]"
+        mupa = isl.isl_schedule_node_band_get_partial_schedule(self._cur())
+        out_dims = isl.isl_multi_union_pw_aff_dim(mupa, isl.isl_dim_out)
+        assert out_dims == 1, SHOULD_NOT_HAPPEN
+        # TODO save name??? Copied from times of old
+        domain = isl.isl_multi_union_pw_aff_domain(mupa)
+        num_sets = isl.isl_union_set_n_set(domain)
+        slist = isl.isl_union_set_get_set_list(domain)
+        result = "["
+        for set_idx in range(num_sets):
+            if set_idx:
+                result += ", "
+            set = isl.isl_set_list_get_at(slist, set_idx)
+            num_params = isl.isl_set_dim(set, isl.isl_dim_param)
+            result += "{'params': ["
+            for di in range(num_params):
+                if di:
+                    result += ", "
+                dim_name = isl.isl_set_get_dim_name(set, isl.isl_dim_param, di)
+                result += f"'{dim_name.decode()}'"
+            result += "], 'vars': ["
+            num_vars = isl.isl_set_dim(set, isl.isl_dim_set)
+            for di in range(num_vars):
+                if di:
+                    result += ", "
+                dim_name = isl.isl_set_get_dim_name(set, isl.isl_dim_set, di)
+                result += f"'{dim_name.decode()}'"
+            result += "]}"
+            isl.isl_set_free(set)
+        result += "]"
+        isl.isl_set_list_free(slist)
+        isl.isl_union_set_free(domain)
+        return result
 
     def _get_expr(self) -> str:
         if not self._node_type_is(NodeType.BAND):
