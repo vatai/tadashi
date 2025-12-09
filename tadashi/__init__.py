@@ -2,7 +2,6 @@
 from collections import namedtuple
 from enum import Enum, StrEnum, auto
 
-from .node import Node
 from .node_type import NodeType
 
 SHOULD_NOT_HAPPEN = "This should not have happened. Please report an issue at https://github.com/vatai/tadashi/issues/"
@@ -81,7 +80,7 @@ def register(tre: TrEnum):
     return _decorator
 
 
-def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
+def _tilable(node: "Node", dim: int) -> bool:  # todo: try to move to Node
     for _ in range(dim):
         if node.node_type != NodeType.BAND:
             return False
@@ -96,7 +95,7 @@ class InterchangeInfo(TransformInfo):
     func_name = "interchange"
 
     @staticmethod
-    def valid(node: Node):
+    def valid(node: "Node"):
         return (
             node.node_type == NodeType.BAND
             and len(node.children) == 1
@@ -110,7 +109,7 @@ class Tile2DInfo(TransformInfo):
     arg_help = ["Size1", "Size2"]
 
     @staticmethod
-    def valid(node: Node):
+    def valid(node: "Node"):
         return _tilable(node, 2)
 
     @staticmethod
@@ -118,7 +117,7 @@ class Tile2DInfo(TransformInfo):
         return size1 > 1 and size2 > 1
 
     @staticmethod
-    def available_args(node: Node):
+    def available_args(node: "Node"):
         return [
             LowerUpperBound(lower=2, upper=None),
             LowerUpperBound(lower=2, upper=None),

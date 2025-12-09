@@ -1,10 +1,8 @@
 #!/bin/env python
 
-
 import cython
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
-from cython.cimports.tadashi.transformations import *
 
 from . import SHOULD_NOT_HAPPEN
 from .node import Node
@@ -57,7 +55,7 @@ class Scop:
         mupa = isl.isl_schedule_node_band_get_partial_schedule(self._cur())
         out_dims = isl.isl_multi_union_pw_aff_dim(mupa, isl.isl_dim_out)
         assert out_dims == 1, SHOULD_NOT_HAPPEN
-        # TODO save name??? Copied from times of old
+        # TODO save name??? Comment copied from `times of old'(tm)
         domain = isl.isl_multi_union_pw_aff_domain(mupa)
         num_sets = isl.isl_union_set_n_set(domain)
         slist = isl.isl_union_set_get_set_list(domain)
@@ -138,11 +136,3 @@ class Scop:
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes, current_idx, location + [c])
                 self._goto_parent()
-
-    def foobar_transform(self, node_idx: int):  # TODO
-        node = self.scop.current_node
-        node = isl.isl_schedule_node_first_child(node)
-        node = tadashi_interchange(node)
-        result = isl.isl_schedule_node_to_str(node).decode()
-        self.scop.current_node = node
-        return result
