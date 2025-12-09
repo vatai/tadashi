@@ -31,6 +31,25 @@ cdef extern from "isl/schedule.h":
 ctypedef isl_schedule* schedule
 
 
+# ---
+# aff
+# ---
+cdef extern from "isl/aff.h":
+    ctypedef struct isl_multi_union_pw_aff: pass
+    cdef enum isl_dim_type:
+            isl_dim_cst
+            isl_dim_param
+            isl_dim_in
+            isl_dim_out
+            isl_dim_set = isl_dim_out
+            isl_dim_div
+            isl_dim_all
+    #
+    const char *isl_multi_union_pw_aff_to_str(isl_multi_union_pw_aff *mupa)
+    isl_multi_union_pw_aff *isl_multi_union_pw_aff_free(isl_multi_union_pw_aff *mupa)
+    const char *isl_multi_union_pw_aff_get_tuple_name(isl_multi_union_pw_aff *mupa, isl_dim_type dim_type)
+ctypedef isl_multi_union_pw_aff* multi_union_pw_aff
+
 # -------------
 # schedule_node
 # -------------
@@ -47,4 +66,6 @@ cdef extern from "isl/schedule_node.h":
     const char *isl_schedule_node_to_str(isl_schedule_node *node)
     int isl_schedule_node_n_children(isl_schedule_node *node)
     isl_schedule_node_type isl_schedule_node_get_type(isl_schedule_node *node)
+    isl_multi_union_pw_aff* isl_schedule_node_band_get_partial_schedule(isl_schedule_node *node)
 ctypedef isl_schedule_node* schedule_node
+

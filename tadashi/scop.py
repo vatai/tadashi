@@ -25,18 +25,22 @@ class Scop:
         node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
 
+    @cython.cfunc
+    def _cur(self) -> isl.schedule_node:
+        # shortcut to save typing
+        return self.scop.current_node
+
+    def _node_type_is(self, node_type: NodeType):
+        tmp = isl.isl_schedule_node_get_type(self._cur())
+        return NodeType(tmp) == node_type
+
     def get_label(self):
-        # Scop *si = app->scops[scop_idx];
-        # isl_multi_union_pw_aff *mupa;
-        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
-        #     return "foo";
-        # mupa = isl_schedule_node_band_get_partial_schedule(si->current_node);
-        # const char *label = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
-        # mupa = isl_multi_union_pw_aff_free(mupa);
-        # std::stringstream ss;
-        # ss << label;
-        # return si->add_string(ss);
-        pass  # todo
+        if not self._node_type_is(NodeType.BAND):
+            return ""
+        mupa = isl.isl_schedule_node_band_get_partial_schedule(self._cur())
+        label = isl.isl_multi_union_pw_aff_get_tuple_name(mupa, isl.isl_dim_out)
+        mupa = isl.isl_multi_union_pw_aff_free(mupa)
+        return label.decode()
 
     def get_loop_signature(self):
         # Scop *si = app->scops[scop_idx];
@@ -78,24 +82,21 @@ class Scop:
         # return si->add_string(ss);
         pass  # todo
 
-    def get_expr(self):
-        # Scop *si = app->scops[scop_idx];
-        # if (isl_schedule_node_get_type(si->current_node) != isl_schedule_node_band)
-        #   return "";
-        # isl_multi_union_pw_aff *mupa =
-        #     isl_schedule_node_band_get_partial_schedule(si->current_node);
-        # char *tmp = isl_multi_union_pw_aff_to_str(mupa);
-        # mupa = isl_multi_union_pw_aff_free(mupa);
-        # return si->add_string(tmp);
-        pass  # todo
+    def get_expr(self) -> str:
+        if not self._node_type_is(NodeType.BAND):
+            return ""
+        cur = self.scop.current_node
+        mupa = isl.isl_schedule_node_band_get_partial_schedule(cur)
+        expr = isl.isl_multi_union_pw_aff_to_str(mupa)
+        mupa = isl.isl_multi_union_pw_aff_free(mupa)
+        return expr.decode()
 
     def _make_node(self, parent, current_idx, location):
-
-        cur = self.scop.current_node
-        num_children = isl.isl_schedule_node_n_children(cur)
+        num_children = isl.isl_schedule_node_n_children(self._cur())
+        node_type = isl.isl_schedule_node_get_type(self._cur())
         node = Node(
             scop=self,
-            node_type=NodeType(isl.isl_schedule_node_get_type(cur)),
+            node_type=NodeType(node_type),
             num_children=num_children,
             parent_idx=parent,
             index=current_idx,
