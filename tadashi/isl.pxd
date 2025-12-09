@@ -39,6 +39,9 @@ cdef extern from "isl/schedule_node.h":
     enum isl_schedule_node_type: pass
     #
     isl_schedule_node *isl_schedule_node_free(isl_schedule_node *node)
+    isl_schedule_node *isl_schedule_node_root(isl_schedule_node *node)
+    isl_schedule_node *isl_schedule_node_parent(isl_schedule_node *node)
+    isl_schedule_node *isl_schedule_node_child(isl_schedule_node *node, int pos)
     isl_schedule_node *isl_schedule_node_first_child(isl_schedule_node *node)
     isl_schedule *isl_schedule_node_get_schedule(isl_schedule_node *node)
     const char *isl_schedule_node_to_str(isl_schedule_node *node)

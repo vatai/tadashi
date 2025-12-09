@@ -12,22 +12,31 @@ from .node_type import NodeType
 
 @cython.cclass
 class Scop:
-    ptr: cython.pointer(ccScop)
+    scop: cython.pointer(ccScop)
 
     @staticmethod
     @cython.cfunc
     def create(ptr: cython.pointer(ccScop)) -> Scop:
         scop = Scop()
-        scop.ptr = ptr
+        scop.scop = ptr
         return scop
 
     def __repr__(self):
-        node = self.ptr.current_node
+        node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
+
+    def get_label(self):
+        pass  # todo
+
+    def get_loop_signature(self):
+        pass  # todo
+
+    def get_expr(self):
+        pass  # todo
 
     def _make_node(self, parent, current_idx, location):
 
-        cur = self.ptr.current_node
+        cur = self.scop.current_node
         num_children = isl.isl_schedule_node_n_children(cur)
         node = Node(
             scop=self,
@@ -43,13 +52,28 @@ class Scop:
         )
         return node
 
-    def _traverse(self, nodes, parent, location):
+    def goto_root(self) -> None:
+        ptr = self.scop.current_node
+        ptr = isl.isl_schedule_node_root(ptr)
+        self.scop.current_node = ptr
+
+    def goto_parent(self) -> None:
+        ptr = self.scop.current_node
+        ptr = isl.isl_schedule_node_parent(ptr)
+        self.scop.current_node = ptr
+
+    def goto_child(self, n: int) -> None:
+        ptr = self.scop.current_node
+        ptr = isl.isl_schedule_node_child(ptr, n)
+        self.scop.current_node = ptr
+
+    def _traverse(self, nodes: list[Node], parent: int, location: list[int]):
         current_idx = len(nodes)
         node = self._make_node(parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
-                self.goto_child()
+                self.goto_child(c)
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes, current_idx, location + [c])
                 self.goto_parent()
@@ -62,9 +86,9 @@ class Scop:
         return nodes
 
     def foobar_transform(self, node_idx: int):  # TODO
-        node = self.ptr.current_node
+        node = self.scop.current_node
         node = isl.isl_schedule_node_first_child(node)
         node = tadashi_interchange(node)
         result = isl.isl_schedule_node_to_str(node).decode()
-        self.ptr.current_node = node
+        self.scop.current_node = node
         return result
