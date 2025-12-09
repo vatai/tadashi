@@ -19,49 +19,6 @@ if rtd != "True":
     from ctadashi import ctadashi
 
 
-class AstLoopType(Enum):
-    """Possible values for `SET_LOOP_OPT`.
-
-    `UNROLL` should be avoided unless the requirements in the
-    `ISL Docs <https://libisl.sourceforge.io/user.html#AST-Generation-Options-Schedule-Tree>`_.
-    are satisfied.
-
-    """
-
-    DEFAULT = 0
-    ATOMIC = auto()
-    UNROLL = auto()
-    SEPARATE = auto()
-
-
-class TrEnum(StrEnum):
-    """Enums of implemented transformations.
-
-    One of these enums needs to be passed to `Node.transform()` (with
-    args) to perform the transformation.
-    """
-
-    TILE1D = auto()
-    TILE2D = auto()
-    TILE3D = auto()
-    INTERCHANGE = auto()
-    FUSE = auto()
-    FULL_FUSE = auto()
-    SPLIT = auto()
-    FULL_SPLIT = auto()
-    PARTIAL_SHIFT_VAR = auto()
-    PARTIAL_SHIFT_VAL = auto()
-    PARTIAL_SHIFT_PARAM = auto()
-    FULL_SHIFT_VAR = auto()
-    FULL_SHIFT_VAL = auto()
-    FULL_SHIFT_PARAM = auto()
-    SET_PARALLEL = auto()
-    SET_LOOP_OPT = auto()
-
-    def __repr__(self):
-        return f"TrEnum.{self.value.upper()}"
-
-
 @dataclass
 class Node:
 

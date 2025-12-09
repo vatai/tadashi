@@ -62,10 +62,5 @@ class Node:
         ]
         return " ".join(words)
 
-    def locate(self):
-        """Set the `current_node` to point to `self`."""
-        self.scop.locate(self.location)
-        return self.scop.get_current_node_from_ISL(None, None)
-
-    def transform(self) -> bool:
+    def transform(self: "TrEnum", *args) -> bool:
         pass
