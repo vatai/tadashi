@@ -147,7 +147,7 @@ class Scop:
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
-    def __repr__(self):
+    def __repr__(self):  # todo this is not a good node representation
         node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
 
