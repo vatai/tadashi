@@ -126,6 +126,22 @@ class Scop:
         ptr = isl.isl_schedule_node_child(ptr, n)
         self.scop.current_node = ptr
 
+    def _locate(self, loc: list[int]) -> None:
+        print("begin locate")
+        self._goto_root()
+        print("locate mark 1")
+        print(str(self))
+        print("locate mark 2")
+        print(isl.isl_schedule_node_to_str(self._cur()).decode())
+        for child in loc:
+            print(f"loc(): {child=}")
+            print(isl.isl_schedule_node_to_str(self._cur()).decode())
+            self._goto_child(child)
+
+    def _yaml_str(self) -> str:
+        node = self.scop.current_node
+        return isl.isl_schedule_node_to_str(node).decode()
+
     def _traverse(self, nodes: list[Node], parent: int, location: list[int]):
         current_idx = len(nodes)
         node = self._make_node(parent, current_idx, location)
