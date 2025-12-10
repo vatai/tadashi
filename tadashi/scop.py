@@ -319,7 +319,7 @@ class Node:
         ]
         return " ".join(words)
 
-    def transform(self, tr: TrEnum, *args) -> bool:
+    def transform(self, tr: TrEnum, *args) -> cython.bint:
         """Execute the selected transformation.
 
         Args:
@@ -332,6 +332,9 @@ class Node:
         print(f"{t=}")
         print(f"{t.func_name=}")
         func_name = f"tadashi_{t.func_name}"
+
+        self.scop._locate(self.location)
+        transformations.tadashi_interchange(self.scop.scop.current_node)
         # tr_fun(self.scop.scop, *args)
 
         # TODO proc_args (from olden times)
