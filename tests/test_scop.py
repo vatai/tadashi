@@ -27,7 +27,6 @@ class TestScop(unittest.TestCase):
             with self.subTest(idx=idx):
                 self.assertEqual(fn(node), target[idx])
 
-    @unittest.skip("todo")
     def test_node_type(self):
         target = [NodeType.DOMAIN, NodeType.BAND, NodeType.BAND, NodeType.LEAF]
         self._assert_perperties_equal(target, lambda t: t.node_type)

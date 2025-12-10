@@ -138,7 +138,7 @@ class Node:
     """Schedule node (Python representation)."""
 
     scop: Scop
-    node_type: NodeType
+    _type: cython.declare(isl.isl_schedule_node_type, visibility="public")
     num_children = cython.declare(int, visibility="public")
     parent_idx = cython.declare(int, visibility="public")
     index = cython.declare(int, visibility="public")
@@ -147,6 +147,10 @@ class Node:
     loop_signature = cython.declare(str, visibility="public")
     expr = cython.declare(str, visibility="public")
     children_idx = cython.declare(list[str], visibility="public")
+
+    @property
+    def node_type(self) -> NodeType:
+        return NodeType(self._type)
 
     @staticmethod
     @cython.cfunc
@@ -161,7 +165,7 @@ class Node:
         node = Node()
         scop = Scop.create(ptr)
         node.scop = scop
-        node.node_type = NodeType(node_type)
+        node._type = node_type
         node.num_children = num_children
         node.parent_idx = parent
         node.index = current_idx
