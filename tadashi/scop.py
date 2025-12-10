@@ -1,11 +1,12 @@
 #!/bin/env python
 
+from dataclasses import dataclass
+
 import cython
-from cython.cimports.tadashi import isl, pet
+from cython.cimports.tadashi import isl, pet, transformations
 from cython.cimports.tadashi.ccscop import ccScop
 
 from . import SHOULD_NOT_HAPPEN
-from .node import Node
 from .node_type import NodeType
 
 
@@ -94,23 +95,6 @@ class Scop:
         mupa = isl.isl_multi_union_pw_aff_free(mupa)
         return expr.decode()
 
-    def _make_node(self, parent, current_idx, location):
-        num_children = isl.isl_schedule_node_n_children(self._cur())
-        node_type = isl.isl_schedule_node_get_type(self._cur())
-        node = Node(
-            scop=self,
-            node_type=NodeType(node_type),
-            num_children=num_children,
-            parent_idx=parent,
-            index=current_idx,
-            label=self._get_label(),
-            location=location,
-            loop_signature=self._get_loop_signature(),
-            expr=self._get_expr(),
-            children_idx=[-1] * num_children,
-        )
-        return node
-
     def _goto_root(self) -> None:
         ptr = self.scop.current_node
         ptr = isl.isl_schedule_node_root(ptr)
@@ -127,12 +111,7 @@ class Scop:
         self.scop.current_node = ptr
 
     def _locate(self, loc: list[int]) -> None:
-        print("begin locate")
         self._goto_root()
-        print("locate mark 1")
-        print(str(self))
-        print("locate mark 2")
-        print(isl.isl_schedule_node_to_str(self._cur()).decode())
         for child in loc:
             print(f"loc(): {child=}")
             print(isl.isl_schedule_node_to_str(self._cur()).decode())
@@ -144,7 +123,7 @@ class Scop:
 
     def _traverse(self, nodes: list[Node], parent: int, location: list[int]):
         current_idx = len(nodes)
-        node = self._make_node(parent, current_idx, location)
+        node = Node.create(self.scop, parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
@@ -152,3 +131,72 @@ class Scop:
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes, current_idx, location + [c])
                 self._goto_parent()
+
+
+@cython.cclass
+class Node:
+    """Schedule node (Python representation)."""
+
+    scop: Scop
+    node_type: NodeType
+    num_children = cython.declare(int, visibility="public")
+    parent_idx = cython.declare(int, visibility="public")
+    index = cython.declare(int, visibility="public")
+    label = cython.declare(str, visibility="public")
+    location = cython.declare(list[int], visibility="public")
+    loop_signature = cython.declare(str, visibility="public")
+    expr = cython.declare(str, visibility="public")
+    children_idx = cython.declare(list[str], visibility="public")
+
+    @staticmethod
+    @cython.cfunc
+    def create(
+        ptr: cython.pointer(ccScop),
+        parent: int,
+        current_idx: int,
+        location: list[int],
+    ) -> Node:
+        num_children = isl.isl_schedule_node_n_children(ptr.current_node)
+        node_type = isl.isl_schedule_node_get_type(ptr.current_node)
+        node = Node()
+        scop = Scop.create(ptr)
+        node.scop = scop
+        node.node_type = NodeType(node_type)
+        node.num_children = num_children
+        node.parent_idx = parent
+        node.index = current_idx
+        node.label = scop._get_label()
+        node.location = location
+        node.loop_signature = scop._get_loop_signature()
+        node.expr = scop._get_expr()
+        node.children_idx = [-1] * num_children
+        return node
+
+    @property
+    def parent(self):
+        """The node which is the parent of the current node."""
+        return self.scop.schedule_tree[self.parent_idx]
+
+    @property
+    def children(self):
+        """List of nodes which are the children of the current node."""
+        return [self.scop.schedule_tree[i] for i in self.children_idx]
+
+    @property
+    def yaml_str(self):
+        self.scop._locate(self.location)
+        return self.scop._yaml_str()
+
+    def __repr__(self):
+        """Textual representation of a node."""
+        words = [
+            "Node type:",
+            f"{self.node_type},",
+            f"{self.loop_signature},",
+            f"{self.expr},",
+            f"{self.location}",
+        ]
+        return " ".join(words)
+
+    def transform(self: "TrEnum", *args) -> bool:
+        pass
