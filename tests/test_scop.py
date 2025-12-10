@@ -22,6 +22,17 @@ class TestScop(unittest.TestCase):
         """Test the basic schedule_tree functionality."""
         self.assertEqual(len(self._get_schedule_tree()), 4)
 
+
+class TestNode(unittest.TestCase):
+    examples: Path = Path(__file__).parent.parent / "examples"
+
+    def _get_schedule_tree(self):
+        file = self.examples / "inputs/depnodep.c"
+        translator = Pet()
+        translator.set_source(file)
+        scop = translator.scops[0]
+        return scop.schedule_tree
+
     def _assert_perperties_equal(self, target: list, fn: Callable):
         for idx, node in enumerate(self._get_schedule_tree()):
             with self.subTest(idx=idx):
