@@ -22,40 +22,6 @@ if rtd != "True":
 @dataclass
 class Node:
 
-    def transform(self, trkey: TrEnum, *args) -> bool:
-        """Execute the selected transformation.
-
-        Args:
-          TrEnum trkey: Transformation `Enum`.
-          args: Arguments passed to the transformation corresponding toe `trkey`.
-        """
-        # TODO proc_args
-        tr = TRANSFORMATIONS[trkey]
-        if len(args) != len(tr.arg_help):
-            raise ValueError(
-                f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
-            )
-        if not tr.valid(self):
-            msg = f"Not a valid transformation: {tr}"
-            raise ValueError(msg)
-        if not tr.valid_args(self, *args):
-            tr_name = tr.__class__.__name__
-            msg = f"Not valid {args=}, for {tr_name=}"
-            raise ValueError(msg)
-
-        func = getattr(ctadashi, tr.func_name)
-        self.scop.locate(self.location)
-        legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
-        return bool(legal)
-
-    @property
-    def yaml_str(self):
-        self.scop.locate(self.location)
-        encoded_result = ctadashi.print_schedule_node(
-            self.scop.app_ptr, self.scop.scop_idx
-        )
-        return encoded_result
-
     @property
     def valid_transformation(self, tr: TrEnum) -> bool:
         """Check the validity of the transformation."""

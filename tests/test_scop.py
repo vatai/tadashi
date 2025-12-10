@@ -127,4 +127,6 @@ child:
     def test_simple_transformation(self):
         app = Simple(self.examples / "inputs/depnodep.c", Pet())
         node = app.scops[0].schedule_tree[1]
-        node.transform(TrEnum.INTERCHANGE)
+        print(node.yaml_str)
+        legal = node.transform(TrEnum.INTERCHANGE)
+        print(node.yaml_str)

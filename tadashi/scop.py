@@ -320,6 +320,12 @@ class Node:
         return " ".join(words)
 
     def transform(self, tr: TrEnum, *args) -> bool:
+        """Execute the selected transformation.
+
+        Args:
+          TrEnum trkey: Transformation `Enum`.
+          args: Arguments passed to the transformation corresponding toe `trkey`.
+        """
         t = TRANSFORMATIONS[tr]
         print(f"{TRANSFORMATIONS=}")
         print(f"{tr=}")
@@ -327,3 +333,23 @@ class Node:
         print(f"{t.func_name=}")
         func_name = f"tadashi_{t.func_name}"
         # tr_fun(self.scop.scop, *args)
+
+        # TODO proc_args (from olden times)
+        # tr = TRANSFORMATIONS[trkey]
+        # if len(args) != len(tr.arg_help):
+        #     raise ValueError(
+        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
+        #     )
+        # if not tr.valid(self):
+        #     msg = f"Not a valid transformation: {tr}"
+        #     raise ValueError(msg)
+        # if not tr.valid_args(self, *args):
+        #     tr_name = tr.__class__.__name__
+        #     msg = f"Not valid {args=}, for {tr_name=}"
+        #     raise ValueError(msg)
+
+        # func = getattr(ctadashi, tr.func_name)
+        # self.scop.locate(self.location)
+        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
+        # return bool(legal)
+        pass
