@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from typing import Callable
 
+from tadashi.apps import Simple
 from tadashi.node_type import NodeType
 from tadashi.translators import Pet
 
@@ -83,3 +84,41 @@ class TestNode(unittest.TestCase):
     def test_children_idx(self):
         target = [[1], [2], [3], []]
         self._assert_perperties_equal(target, lambda t: t.children_idx)
+
+    def test_yaml_str(self):
+        app = Simple(self.examples / "inputs/depnodep.c", Pet())
+        yamls = [
+            """# YOU ARE HERE
+domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+  child:
+    schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+""",
+            """domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  # YOU ARE HERE
+  schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+  child:
+    schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+""",
+            """domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+  child:
+    # YOU ARE HERE
+    schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+""",
+            """domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+  child:
+    schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+    child:
+      # YOU ARE HERE
+      leaf
+""",
+        ]
+        nodes = app.scops[0].schedule_tree
+        for idx, node in enumerate(nodes):
+            self.assertEqual(node.yaml_str, yamls[idx])
