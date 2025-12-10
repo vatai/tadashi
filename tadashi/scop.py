@@ -113,8 +113,6 @@ class Scop:
     def _locate(self, loc: list[int]) -> None:
         self._goto_root()
         for child in loc:
-            print(f"loc(): {child=}")
-            print(isl.isl_schedule_node_to_str(self._cur()).decode())
             self._goto_child(child)
 
     def _yaml_str(self) -> str:
