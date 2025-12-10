@@ -3,7 +3,8 @@
 import unittest
 from pathlib import Path
 
-from tadashi import TrEnum, apps
+from tadashi import apps
+from tadashi.scop import TrEnum
 from tadashi.translators import Pet
 
 

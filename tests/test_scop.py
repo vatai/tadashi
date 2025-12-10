@@ -6,6 +6,7 @@ from typing import Callable
 
 from tadashi.apps import Simple
 from tadashi.node_type import NodeType
+from tadashi.scop import TrEnum
 from tadashi.translators import Pet
 
 
@@ -122,3 +123,8 @@ child:
         nodes = app.scops[0].schedule_tree
         for idx, node in enumerate(nodes):
             self.assertEqual(node.yaml_str, yamls[idx])
+
+    def test_simple_transformation(self):
+        app = Simple(self.examples / "inputs/depnodep.c", Pet())
+        node = app.scops[0].schedule_tree[1]
+        node.transform(TrEnum.INTERCHANGE)
