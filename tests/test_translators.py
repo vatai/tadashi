@@ -3,6 +3,7 @@
 import unittest
 from pathlib import Path
 
+from tadashi.scop import Scop
 from tadashi.translators import *
 
 
@@ -26,6 +27,20 @@ class TestTranslator(unittest.TestCase):
                 translator = Pet(autodetect=autodetect)
                 translator.set_source(file)
                 self.assertEqual(len(translator.scops), num_scops)
+
+    @unittest.skip("todo")
+    def test_deleted_translator(self):
+        """This test should simply not crash."""
+
+        def _get_schedule_tree():
+            file = self.examples / "inputs/depnodep.c"
+            translator = Pet()
+            translator.set_source(file)
+            scop = translator.scops[0]
+            return scop.schedule_tree
+
+        node = _get_schedule_tree()[1]
+        print(node.yaml_str)
 
     @unittest.skip("todo")
     def test_pet_scop_extraction(self):
