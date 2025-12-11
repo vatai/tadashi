@@ -8,15 +8,9 @@ import cython
 from cython.cimports.tadashi import isl, pet, transformations
 from cython.cimports.tadashi.ccscop import ccScop
 
-from . import SHOULD_NOT_HAPPEN
 from .node_type import NodeType
 
-
-class TransformInfo:
-    pass
-
-
-TRANSFORMATIONS: list[TransformInfo] = {}
+SHOULD_NOT_HAPPEN = "This should not have happened. Please report an issue at https://github.com/vatai/tadashi/issues/"
 
 
 class AstLoopType(Enum):
@@ -135,7 +129,7 @@ class ValidInterchange(Validation):
 
 
 @register(TrEnum.TILE2D)
-class Tile2DInfo(TransformInfo):
+class Tile2DInfo:
     func_name = "tile_2d"
     arg_help = ["Size1", "Size2"]
 
@@ -311,7 +305,9 @@ class Node:
         self.scop._locate(self.location)
         cur = self.scop.scop.current_node
         if tr == TrEnum.INTERCHANGE:
-            transformations.tadashi_interchange(cur)
+            cur = transformations.tadashi_interchange(cur)
+        self.scop.scop.current_node = cur
+        return True  # todo
 
         # tr_fun(self.scop.scop, *args)
 
