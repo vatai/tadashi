@@ -125,8 +125,22 @@ child:
             self.assertEqual(node.yaml_str, yamls[idx])
 
     def test_simple_transformation(self):
+        first = """domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  # YOU ARE HERE
+  schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+  child:
+    schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+"""
+        second = """domain: "[N] -> { S_0[j, i] : 0 < j < N and 0 < i < N }"
+child:
+  # YOU ARE HERE
+  schedule: "[N] -> L_1[{ S_0[j, i] -> [(i)] }]"
+  child:
+    schedule: "[N] -> L_0[{ S_0[j, i] -> [(j)] }]"
+"""
         app = Simple(self.examples / "inputs/depnodep.c", Pet())
         node = app.scops[0].schedule_tree[1]
-        print(node.yaml_str)
+        self.assertEqual(node.yaml_str, first)
         legal = node.transform(TrEnum.INTERCHANGE)
-        print(node.yaml_str)
+        self.assertEqual(node.yaml_str, second)

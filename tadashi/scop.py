@@ -75,11 +75,14 @@ arguments for transformations. `None` indicates no upper/lower bound.
 """
 
 
+_VALID = {}
+
+
 def register(tre: TrEnum):
-    """Decorator to register transformations"""
+    """Register classes to _VALID dict."""
 
     def _decorator(cls):
-        TRANSFORMATIONS[tre] = cls
+        _VALID[tre] = cls
         return cls
 
     return _decorator
@@ -95,7 +98,24 @@ def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
     return True
 
 
+class Validation:
+    pass
+
+
 @register(TrEnum.INTERCHANGE)
+class ValidInterchange(Validation):
+    num_args = 0
+
+    @staticmethod
+    def valid_tr(node: Node) -> bool:
+        return (
+            node.node_type == NodeType.BAND
+            and len(node.children) == 1
+            and node.children[0].node_type == NodeType.BAND
+        )
+
+
+# @register(TrEnum.INTERCHANGE)
 class InterchangeInfo(TransformInfo):
     func_name = "interchange"
 
@@ -265,6 +285,64 @@ class Node:
     expr = cython.declare(str, visibility="public")
     children_idx = cython.declare(list[str], visibility="public")
 
+    def transform(self, tr: TrEnum, *args) -> cython.bint:
+        """Execute the selected transformation.
+
+        Args:
+          TrEnum trkey: Transformation `Enum`.
+          args: Arguments passed to the transformation corresponding toe `trkey`.
+        """
+        self.scop._locate(self.location)
+        cur = self.scop.scop.current_node
+
+        nargs = len(args)
+        num = _VALID[tr].num_args
+        if nargs != num:
+            raise ValueError(f"Number of args ({nargs}) for {tr} should be {num}")
+        if not _VALID[tr].valid_tr(self):
+            raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
+        # self._check_args_valid(tr, args)
+        # print(f"xxxxxx{self.yaml_str}")
+        if tr == TrEnum.INTERCHANGE:
+            transformations.tadashi_interchange(cur)
+
+        # tr_fun(self.scop.scop, *args)
+
+        # TODO proc_args (from olden times)
+        # tr = TRANSFORMATIONS[trkey]
+        # if len(args) != len(tr.arg_help):
+        #     raise ValueError(
+        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
+        #     )
+        # if not tr.valid(self):
+        #     msg = f"Not a valid transformation: {tr}"
+        #     raise ValueError(msg)
+        # if not tr.valid_args(self, *args):
+        #     tr_name = tr.__class__.__name__
+        #     msg = f"Not valid {args=}, for {tr_name=}"
+        #     raise ValueError(msg)
+
+        # func = getattr(ctadashi, tr.func_name)
+        # self.scop.locate(self.location)
+        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
+        # return bool(legal)
+        #######
+        # template <typename Chk, typename Trn, typename... Args>
+        # int
+        # run_transform(Chk check_legality, Trn transform, Args &&...args) {
+        #   if (this->tmp_node != nullptr)
+        #     this->tmp_node = isl_schedule_node_free(this->tmp_node);
+        #   tmp_node = isl_schedule_node_copy(this->current_node);
+        #   this->tmp_legal = current_legal;
+
+        #   current_node = transform(current_node, std::forward<Args>(args)...);
+        #   isl_union_map *dep = isl_union_map_copy(this->dep_flow);
+        #   current_legal = check_legality(current_node, dep);
+        #   modified = true;
+        #   return current_legal;
+        # }
+        pass
+
     @property
     def node_type(self) -> NodeType:
         return NodeType(self._type)
@@ -318,41 +396,3 @@ class Node:
             f"{self.location}",
         ]
         return " ".join(words)
-
-    def transform(self, tr: TrEnum, *args) -> cython.bint:
-        """Execute the selected transformation.
-
-        Args:
-          TrEnum trkey: Transformation `Enum`.
-          args: Arguments passed to the transformation corresponding toe `trkey`.
-        """
-        t = TRANSFORMATIONS[tr]
-        print(f"{TRANSFORMATIONS=}")
-        print(f"{tr=}")
-        print(f"{t=}")
-        print(f"{t.func_name=}")
-        func_name = f"tadashi_{t.func_name}"
-
-        self.scop._locate(self.location)
-        transformations.tadashi_interchange(self.scop.scop.current_node)
-        # tr_fun(self.scop.scop, *args)
-
-        # TODO proc_args (from olden times)
-        # tr = TRANSFORMATIONS[trkey]
-        # if len(args) != len(tr.arg_help):
-        #     raise ValueError(
-        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
-        #     )
-        # if not tr.valid(self):
-        #     msg = f"Not a valid transformation: {tr}"
-        #     raise ValueError(msg)
-        # if not tr.valid_args(self, *args):
-        #     tr_name = tr.__class__.__name__
-        #     msg = f"Not valid {args=}, for {tr_name=}"
-        #     raise ValueError(msg)
-
-        # func = getattr(ctadashi, tr.func_name)
-        # self.scop.locate(self.location)
-        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
-        # return bool(legal)
-        pass
