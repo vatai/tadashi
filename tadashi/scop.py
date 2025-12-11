@@ -1,8 +1,8 @@
 #!/bin/env python
-
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
+from typing import Tuple
 
 import cython
 from cython.cimports.tadashi import isl, pet, transformations
@@ -99,7 +99,13 @@ def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
 
 
 class Validation:
-    pass
+    @staticmethod
+    def valid_tr(node: Node) -> bool:
+        return True
+
+    @staticmethod
+    def valid_args(args: Tuple) -> bool:
+        return True
 
 
 @register(TrEnum.INTERCHANGE)
@@ -116,16 +122,16 @@ class ValidInterchange(Validation):
 
 
 # @register(TrEnum.INTERCHANGE)
-class InterchangeInfo(TransformInfo):
-    func_name = "interchange"
+# class InterchangeInfo(TransformInfo):
+#     func_name = "interchange"
 
-    @staticmethod
-    def valid(node: Node):
-        return (
-            node.node_type == NodeType.BAND
-            and len(node.children) == 1
-            and node.children[0].node_type == NodeType.BAND
-        )
+#     @staticmethod
+#     def valid(node: Node):
+#         return (
+#             node.node_type == NodeType.BAND
+#             and len(node.children) == 1
+#             and node.children[0].node_type == NodeType.BAND
+#         )
 
 
 @register(TrEnum.TILE2D)
@@ -292,8 +298,6 @@ class Node:
           TrEnum trkey: Transformation `Enum`.
           args: Arguments passed to the transformation corresponding toe `trkey`.
         """
-        self.scop._locate(self.location)
-        cur = self.scop.scop.current_node
 
         nargs = len(args)
         num = _VALID[tr].num_args
@@ -301,8 +305,11 @@ class Node:
             raise ValueError(f"Number of args ({nargs}) for {tr} should be {num}")
         if not _VALID[tr].valid_tr(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
+        _VALID[tr].valid_args(args)
         # self._check_args_valid(tr, args)
         # print(f"xxxxxx{self.yaml_str}")
+        self.scop._locate(self.location)
+        cur = self.scop.scop.current_node
         if tr == TrEnum.INTERCHANGE:
             transformations.tadashi_interchange(cur)
 
