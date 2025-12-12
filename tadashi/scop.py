@@ -27,32 +27,6 @@ class AstLoopType(Enum):
     UNROLL = auto()
     SEPARATE = auto()
 
-
-class TrEnum(StrEnum):
-    """Enums of implemented transformations.
-
-    One of these enums needs to be passed to `Node.transform()` (with
-    args) to perform the transformation.
-    """
-
-    TILE1D = auto()
-    TILE2D = auto()
-    TILE3D = auto()
-    INTERCHANGE = auto()
-    FULL_FUSE = auto()
-    FUSE = auto()
-    FULL_SPLIT = auto()
-    SPLIT = auto()
-    SCALE = auto()
-    FULL_SHIFT_VAL = auto()
-    PARTIAL_SHIFT_VAL = auto()
-    FULL_SHIFT_VAR = auto()
-    PARTIAL_SHIFT_VAR = auto()
-    FULL_SHIFT_PARAM = auto()
-    PARTIAL_SHIFT_PARAM = auto()
-    SET_PARALLEL = auto()
-    SET_LOOP_OPT = auto()
-
     def __repr__(self):
         return f"TrEnum.{self.value.upper()}"
 
@@ -103,39 +77,55 @@ class Validation:
         return True
 
 
-@register(TrEnum.INTERCHANGE)
-class ValidInterchange(Validation):
-    num_args = 0
+class TrEnum(StrEnum):
+    """Enums of implemented transformations.
+
+    One of these enums needs to be passed to `Node.transform()` (with
+    args) to perform the transformation.
+    """
+
+    TILE1D = auto()
+    TILE2D = auto()
+    TILE3D = auto()
+    INTERCHANGE = auto()
+    FULL_FUSE = auto()
+    FUSE = auto()
+    FULL_SPLIT = auto()
+    SPLIT = auto()
+    SCALE = auto()
+    FULL_SHIFT_VAL = auto()
+    PARTIAL_SHIFT_VAL = auto()
+    FULL_SHIFT_VAR = auto()
+    PARTIAL_SHIFT_VAR = auto()
+    FULL_SHIFT_PARAM = auto()
+    PARTIAL_SHIFT_PARAM = auto()
+    SET_PARALLEL = auto()
+    SET_LOOP_OPT = auto()
+
+
+@register(TrEnum.TILE1D)
+class Tile1DInfo:
+    num_args = 1
 
     @staticmethod
-    def valid_tr(node: Node) -> bool:
-        return (
-            node.node_type == NodeType.BAND
-            and len(node.children) == 1
-            and node.children[0].node_type == NodeType.BAND
-        )
+    def valid(node: Node) -> bool:
+        return _tilable(node, 1)
 
+    @staticmethod
+    def valid_args(node, size1) -> bool:
+        return size1 > 1
 
-# @register(TrEnum.INTERCHANGE)
-# class InterchangeInfo(TransformInfo):
-#     func_name = "interchange"
-
-#     @staticmethod
-#     def valid(node: Node):
-#         return (
-#             node.node_type == NodeType.BAND
-#             and len(node.children) == 1
-#             and node.children[0].node_type == NodeType.BAND
-#         )
+    @staticmethod
+    def available_args(node: Node):
+        return [LowerUpperBound(lower=2, upper=None)]
 
 
 @register(TrEnum.TILE2D)
 class Tile2DInfo:
-    func_name = "tile_2d"
-    arg_help = ["Size1", "Size2"]
+    num_args = 2
 
     @staticmethod
-    def valid(node: Node):
+    def valid(node: Node) -> bool:
         return _tilable(node, 2)
 
     @staticmethod
@@ -148,6 +138,40 @@ class Tile2DInfo:
             LowerUpperBound(lower=2, upper=None),
             LowerUpperBound(lower=2, upper=None),
         ]
+
+
+@register(TrEnum.TILE3D)
+class Tile3DInfo:
+    num_args = 3
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        return _tilable(node, 3)
+
+    @staticmethod
+    def valid_args(node, size1, size2, size3):
+        return size1 > 1 and size2 > 1 and size3 > 1
+
+    @staticmethod
+    def available_args(node: Node):
+        return [
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+            LowerUpperBound(lower=2, upper=None),
+        ]
+
+
+@register(TrEnum.INTERCHANGE)
+class ValidInterchange(Validation):
+    num_args = 0
+
+    @staticmethod
+    def valid_tr(node: Node) -> bool:
+        return (
+            node.node_type == NodeType.BAND
+            and len(node.children) == 1
+            and node.children[0].node_type == NodeType.BAND
+        )
 
 
 @cython.cclass
