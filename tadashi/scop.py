@@ -104,7 +104,7 @@ class TrEnum(StrEnum):
 
 
 @register(TrEnum.TILE1D)
-class Tile1DInfo:
+class Tile1DInfo(Validation):
     num_args = 1
 
     @staticmethod
@@ -121,7 +121,7 @@ class Tile1DInfo:
 
 
 @register(TrEnum.TILE2D)
-class Tile2DInfo:
+class Tile2DInfo(Validation):
     num_args = 2
 
     @staticmethod
@@ -141,7 +141,7 @@ class Tile2DInfo:
 
 
 @register(TrEnum.TILE3D)
-class Tile3DInfo:
+class Tile3DInfo(Validation):
     num_args = 3
 
     @staticmethod
@@ -314,28 +314,26 @@ class Node:
         """Execute the selected transformation.
 
         Args:
-          TrEnum trkey: Transformation `Enum`.
+          TrEnum tr: Transformation `Enum`.
           args: Arguments passed to the transformation corresponding toe `trkey`.
         """
 
         nargs = len(args)
-        num = _VALID[tr].num_args
-        if nargs != num:
-            raise ValueError(f"Number of args ({nargs}) for {tr} should be {num}")
+        target = _VALID[tr].num_args
+        if nargs != target:
+            raise ValueError(f"Number of args ({nargs}) for {tr} should be {target}")
         if not _VALID[tr].valid_tr(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
-        _VALID[tr].valid_args(args)
-        # self._check_args_valid(tr, args)
-        # print(f"xxxxxx{self.yaml_str}")
+        _VALID[tr].valid_args(*args)
         self.scop._locate(self.location)
         cur = self.scop.scop.current_node
         if tr == TrEnum.INTERCHANGE:
             cur = transformations.tadashi_interchange(cur)
         self.scop.scop.current_node = cur
-        return True  # todo
+        legal = True  # todo
+        return legal
 
         # tr_fun(self.scop.scop, *args)
-
         # TODO proc_args (from olden times)
         # tr = TRANSFORMATIONS[trkey]
         # if len(args) != len(tr.arg_help):
