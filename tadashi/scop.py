@@ -105,47 +105,24 @@ class Node:
             raise ValueError(f"Number of args ({nargs}) for {tr} should be {target}")
         if not TRANSFORMATIONS[tr].valid(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
-        TRANSFORMATIONS[tr].valid_args(self, *args)
-        self.scop._locate(self.location)
-        TRANSFORMATIONS[tr].func(self.scop, *args)
-        legal = True  # todo
-        return legal
-
-        # tr_fun(self.scop.scop, *args)
+        if not TRANSFORMATIONS[tr].valid_args(self, *args):
+            tr_name = tr.__class__.__name__
+            msg = f"Not valid {args=}, for {tr_name=}"
+            raise ValueError(msg)
         # TODO proc_args (from olden times)
-        # tr = TRANSFORMATIONS[trkey]
-        # if len(args) != len(tr.arg_help):
-        #     raise ValueError(
-        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
-        #     )
-        # if not tr.valid(self):
-        #     msg = f"Not a valid transformation: {tr}"
-        #     raise ValueError(msg)
-        # if not tr.valid_args(self, *args):
-        #     tr_name = tr.__class__.__name__
-        #     msg = f"Not valid {args=}, for {tr_name=}"
-        #     raise ValueError(msg)
-
-        # func = getattr(ctadashi, tr.func_name)
-        # self.scop.locate(self.location)
-        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
-        # return bool(legal)
-        #######
-        # template <typename Chk, typename Trn, typename... Args>
-        # int
-        # run_transform(Chk check_legality, Trn transform, Args &&...args) {
+        self.scop._locate(self.location)
         #   if (this->tmp_node != nullptr)
         #     this->tmp_node = isl_schedule_node_free(this->tmp_node);
         #   tmp_node = isl_schedule_node_copy(this->current_node);
         #   this->tmp_legal = current_legal;
-
-        #   current_node = transform(current_node, std::forward<Args>(args)...);
+        TRANSFORMATIONS[tr].transform(self.scop, *args)
         #   isl_union_map *dep = isl_union_map_copy(this->dep_flow);
         #   current_legal = check_legality(current_node, dep);
         #   modified = true;
         #   return current_legal;
-        # }
-        pass
+        ### legal = TRANSFORMATIONS[tr].check_legality(self.scop, *args)
+        legal = True  # todo
+        return bool(legal)
 
     @property
     def node_type(self) -> NodeType:
@@ -211,7 +188,7 @@ def register(cls):
     funcname = cls.__name__
     funcname = funcname.replace("Info", "")
     funcname = CAMEL_TO_SNAKE.sub("_", funcname).lower()
-    cls.func = getattr(w, funcname)
+    cls.transform = getattr(w, funcname)
     TRANSFORMATIONS[TrEnum(funcname)] = cls
     return cls
 

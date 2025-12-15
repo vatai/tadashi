@@ -98,6 +98,7 @@ cdef extern from "isl/schedule_node.h":
         isl_schedule_node_set
     #
     isl_schedule_node *isl_schedule_node_free(isl_schedule_node *node)
+    isl_schedule_node *isl_schedule_node_copy(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_root(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_parent(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_child(isl_schedule_node *node, int pos)
