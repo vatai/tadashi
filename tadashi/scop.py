@@ -47,20 +47,7 @@ arguments for transformations. `None` indicates no upper/lower bound.
 """
 
 
-_VALID = {}
-
-
 CAMEL_TO_SNAKE = re.compile(r"(?<=[a-z])(?=[A-Z0-9])")
-
-
-def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
-    for _ in range(dim):
-        if node.node_type != NodeType.BAND:
-            return False
-        # if "tile" in node.label and "outer" in node.label:
-        #     return False
-        node = node.children[0]
-    return True
 
 
 class TrEnum(StrEnum):
@@ -87,6 +74,132 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
+
+
+@cython.cclass
+class Node:
+    """Schedule node (Python representation)."""
+
+    scop: Scop
+    _type: cython.declare(isl.isl_schedule_node_type, visibility="public")
+    num_children = cython.declare(int, visibility="public")
+    parent_idx = cython.declare(int, visibility="public")
+    index = cython.declare(int, visibility="public")
+    label = cython.declare(str, visibility="public")
+    location = cython.declare(list[int], visibility="public")
+    loop_signature = cython.declare(str, visibility="public")
+    expr = cython.declare(str, visibility="public")
+    children_idx = cython.declare(list[str], visibility="public")
+
+    def transform(self, tr: TrEnum, *args) -> cython.bint:
+        """Execute the selected transformation.
+
+        Args:
+          TrEnum tr: Transformation `Enum`.
+          args: Arguments passed to the transformation corresponding toe `trkey`.
+        """
+
+        nargs = len(args)
+        target = TRANSFORMATIONS[tr].num_args()
+        if nargs != target:
+            raise ValueError(f"Number of args ({nargs}) for {tr} should be {target}")
+        if not TRANSFORMATIONS[tr].valid(self):
+            raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
+        TRANSFORMATIONS[tr].valid_args(self, *args)
+        self.scop._locate(self.location)
+        TRANSFORMATIONS[tr].func(self.scop, *args)
+        legal = True  # todo
+        return legal
+
+        # tr_fun(self.scop.scop, *args)
+        # TODO proc_args (from olden times)
+        # tr = TRANSFORMATIONS[trkey]
+        # if len(args) != len(tr.arg_help):
+        #     raise ValueError(
+        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
+        #     )
+        # if not tr.valid(self):
+        #     msg = f"Not a valid transformation: {tr}"
+        #     raise ValueError(msg)
+        # if not tr.valid_args(self, *args):
+        #     tr_name = tr.__class__.__name__
+        #     msg = f"Not valid {args=}, for {tr_name=}"
+        #     raise ValueError(msg)
+
+        # func = getattr(ctadashi, tr.func_name)
+        # self.scop.locate(self.location)
+        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
+        # return bool(legal)
+        #######
+        # template <typename Chk, typename Trn, typename... Args>
+        # int
+        # run_transform(Chk check_legality, Trn transform, Args &&...args) {
+        #   if (this->tmp_node != nullptr)
+        #     this->tmp_node = isl_schedule_node_free(this->tmp_node);
+        #   tmp_node = isl_schedule_node_copy(this->current_node);
+        #   this->tmp_legal = current_legal;
+
+        #   current_node = transform(current_node, std::forward<Args>(args)...);
+        #   isl_union_map *dep = isl_union_map_copy(this->dep_flow);
+        #   current_legal = check_legality(current_node, dep);
+        #   modified = true;
+        #   return current_legal;
+        # }
+        pass
+
+    @property
+    def node_type(self) -> NodeType:
+        return NodeType(self._type)
+
+    @staticmethod
+    @cython.cfunc
+    def create(
+        ptr: cython.pointer(ccScop),
+        parent: int,
+        current_idx: int,
+        location: list[int],
+    ) -> Node:
+        num_children = isl.isl_schedule_node_n_children(ptr.current_node)
+        node_type = isl.isl_schedule_node_get_type(ptr.current_node)
+        node = Node()
+        scop = Scop.create(ptr)
+        node.scop = scop
+        node._type = node_type
+        node.num_children = num_children
+        node.parent_idx = parent
+        node.index = current_idx
+        node.label = scop._get_label()
+        node.location = location
+        node.loop_signature = scop._get_loop_signature()
+        node.expr = scop._get_expr()
+        node.children_idx = [-1] * num_children
+        return node
+
+    @property
+    def parent(self):
+        """The node which is the parent of the current node."""
+        return self.scop.schedule_tree[self.parent_idx]
+
+    @property
+    def children(self):
+        """List of nodes which are the children of the current node."""
+        return [self.scop.schedule_tree[i] for i in self.children_idx]
+
+    @property
+    def yaml_str(self):
+        self.scop._locate(self.location)
+        return self.scop._yaml_str()
+
+    def __repr__(self):
+        """Textual representation of a node."""
+        words = [
+            "Node type:",
+            f"{self.node_type},",
+            f"{self.loop_signature},",
+            f"{self.expr},",
+            f"{self.location}",
+        ]
+        return " ".join(words)
 
 
 TRANSFORMATIONS = {}
@@ -142,6 +255,16 @@ class TransformInfo:
     @classmethod
     def num_args(cls):
         return len(cls.arg_help)
+
+
+def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
+    for _ in range(dim):
+        if node.node_type != NodeType.BAND:
+            return False
+        # if "tile" in node.label and "outer" in node.label:
+        #     return False
+        node = node.children[0]
+    return True
 
 
 @register
@@ -592,129 +715,3 @@ class Scop:
                 node.children_idx[c] = len(nodes)
                 self._traverse(nodes, current_idx, location + [c])
                 self._goto_parent()
-
-
-@cython.cclass
-class Node:
-    """Schedule node (Python representation)."""
-
-    scop: Scop
-    _type: cython.declare(isl.isl_schedule_node_type, visibility="public")
-    num_children = cython.declare(int, visibility="public")
-    parent_idx = cython.declare(int, visibility="public")
-    index = cython.declare(int, visibility="public")
-    label = cython.declare(str, visibility="public")
-    location = cython.declare(list[int], visibility="public")
-    loop_signature = cython.declare(str, visibility="public")
-    expr = cython.declare(str, visibility="public")
-    children_idx = cython.declare(list[str], visibility="public")
-
-    def transform(self, tr: TrEnum, *args) -> cython.bint:
-        """Execute the selected transformation.
-
-        Args:
-          TrEnum tr: Transformation `Enum`.
-          args: Arguments passed to the transformation corresponding toe `trkey`.
-        """
-
-        nargs = len(args)
-        target = TRANSFORMATIONS[tr].num_args()
-        if nargs != target:
-            raise ValueError(f"Number of args ({nargs}) for {tr} should be {target}")
-        if not TRANSFORMATIONS[tr].valid(self):
-            raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
-        TRANSFORMATIONS[tr].valid_args(self, *args)
-        self.scop._locate(self.location)
-        TRANSFORMATIONS[tr].func(self.scop, *args)
-        legal = True  # todo
-        return legal
-
-        # tr_fun(self.scop.scop, *args)
-        # TODO proc_args (from olden times)
-        # tr = TRANSFORMATIONS[trkey]
-        # if len(args) != len(tr.arg_help):
-        #     raise ValueError(
-        #         f"Incorrect number of args ({len(args)} should be {len(tr.arg_help)}) for {tr}!"
-        #     )
-        # if not tr.valid(self):
-        #     msg = f"Not a valid transformation: {tr}"
-        #     raise ValueError(msg)
-        # if not tr.valid_args(self, *args):
-        #     tr_name = tr.__class__.__name__
-        #     msg = f"Not valid {args=}, for {tr_name=}"
-        #     raise ValueError(msg)
-
-        # func = getattr(ctadashi, tr.func_name)
-        # self.scop.locate(self.location)
-        # legal = func(self.scop.app_ptr, self.scop.scop_idx, *args)
-        # return bool(legal)
-        #######
-        # template <typename Chk, typename Trn, typename... Args>
-        # int
-        # run_transform(Chk check_legality, Trn transform, Args &&...args) {
-        #   if (this->tmp_node != nullptr)
-        #     this->tmp_node = isl_schedule_node_free(this->tmp_node);
-        #   tmp_node = isl_schedule_node_copy(this->current_node);
-        #   this->tmp_legal = current_legal;
-
-        #   current_node = transform(current_node, std::forward<Args>(args)...);
-        #   isl_union_map *dep = isl_union_map_copy(this->dep_flow);
-        #   current_legal = check_legality(current_node, dep);
-        #   modified = true;
-        #   return current_legal;
-        # }
-        pass
-
-    @property
-    def node_type(self) -> NodeType:
-        return NodeType(self._type)
-
-    @staticmethod
-    @cython.cfunc
-    def create(
-        ptr: cython.pointer(ccScop),
-        parent: int,
-        current_idx: int,
-        location: list[int],
-    ) -> Node:
-        num_children = isl.isl_schedule_node_n_children(ptr.current_node)
-        node_type = isl.isl_schedule_node_get_type(ptr.current_node)
-        node = Node()
-        scop = Scop.create(ptr)
-        node.scop = scop
-        node._type = node_type
-        node.num_children = num_children
-        node.parent_idx = parent
-        node.index = current_idx
-        node.label = scop._get_label()
-        node.location = location
-        node.loop_signature = scop._get_loop_signature()
-        node.expr = scop._get_expr()
-        node.children_idx = [-1] * num_children
-        return node
-
-    @property
-    def parent(self):
-        """The node which is the parent of the current node."""
-        return self.scop.schedule_tree[self.parent_idx]
-
-    @property
-    def children(self):
-        """List of nodes which are the children of the current node."""
-        return [self.scop.schedule_tree[i] for i in self.children_idx]
-
-    @property
-    def yaml_str(self):
-        self.scop._locate(self.location)
-        return self.scop._yaml_str()
-
-    def __repr__(self):
-        """Textual representation of a node."""
-        words = [
-            "Node type:",
-            f"{self.node_type},",
-            f"{self.loop_signature},",
-            f"{self.expr},",
-            f"{self.location}",
-        ]
-        return " ".join(words)
