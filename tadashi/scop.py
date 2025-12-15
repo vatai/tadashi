@@ -129,8 +129,8 @@ class ValidTile1D(Validation):
         return [LowerUpperBound(lower=2, upper=None)]
 
 
-# @register(TrEnum.TILE2D)
-class Tile2DInfo(Validation):
+@register(TrEnum.TILE2D)
+class ValidTile2D(Validation):
     num_args = 2
 
     @staticmethod
@@ -150,7 +150,7 @@ class Tile2DInfo(Validation):
 
 
 # @register(TrEnum.TILE3D)
-class Tile3DInfo(Validation):
+class ValidTile3D(Validation):
     num_args = 3
 
     @staticmethod
