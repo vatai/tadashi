@@ -1,4 +1,5 @@
 #!/bin/env python
+import multiprocessing
 import re
 from collections import namedtuple
 from dataclasses import dataclass
@@ -52,20 +53,6 @@ _VALID = {}
 CAMEL_TO_SNAKE = re.compile(r"(?<=[a-z])(?=[A-Z0-9])")
 
 
-def register(tre: TrEnum):
-    """Register classes to _VALID dict."""
-
-    def _decorator(cls):
-        funcname = cls.__name__
-        funcname = funcname.replace("Valid", "")
-        funcname = CAMEL_TO_SNAKE.sub("_", funcname).lower()
-        cls.func = getattr(w, funcname)
-        _VALID[tre] = cls
-        return cls
-
-    return _decorator
-
-
 def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
     for _ in range(dim):
         if node.node_type != NodeType.BAND:
@@ -76,16 +63,6 @@ def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
     return True
 
 
-class Validation:
-    @staticmethod
-    def valid_tr(node: Node) -> bool:
-        return True
-
-    @staticmethod
-    def valid_args(*args) -> bool:
-        return True
-
-
 class TrEnum(StrEnum):
     """Enums of implemented transformations.
 
@@ -93,9 +70,9 @@ class TrEnum(StrEnum):
     args) to perform the transformation.
     """
 
-    TILE1D = auto()
-    TILE2D = auto()
-    TILE3D = auto()
+    TILE_1D = auto()
+    TILE_2D = auto()
+    TILE_3D = auto()
     INTERCHANGE = auto()
     FULL_FUSE = auto()
     FUSE = auto()
@@ -112,29 +89,87 @@ class TrEnum(StrEnum):
     SET_LOOP_OPT = auto()
 
 
-# @register(TrEnum.TILE1D)
-class ValidTile1D(Validation):
-    num_args = 1
+TRANSFORMATIONS = {}
+
+
+def register(cls):
+    """Register classes to TRANSFORMATIONS dict."""
+
+    funcname = cls.__name__
+    funcname = funcname.replace("Info", "")
+    funcname = CAMEL_TO_SNAKE.sub("_", funcname).lower()
+    cls.func = getattr(w, funcname)
+    TRANSFORMATIONS[TrEnum(funcname)] = cls
+    return cls
+
+
+class TransformInfo:
+    """Abstract base class used to describe transformations."""
+
+    func_name: str
+    """The name of the C/C++ function in the `.so` file."""
+
+    arg_help: list[str] = []
+    """Help string describing the arg."""
 
     @staticmethod
     def valid(node: Node) -> bool:
+        """Check that the transformation is valid on the node."""
+        return node.node_type == NodeType.BAND
+
+    @staticmethod
+    def valid_args(node: Node, *arg, **kwargs) -> bool:
+        """Check that args of the transformation is valid on node."""
+        return True
+
+    @staticmethod
+    def _is_valid_stmt_idx(node: Node, idx: int) -> bool:
+        return 0 <= idx < len(node.loop_signature)
+
+    @staticmethod
+    def _valid_idx_all_stmt(node: Node, idx: int, stmt_key: str) -> bool:
+        return all(0 <= idx < len(s[stmt_key]) for s in node.loop_signature)
+
+    @staticmethod
+    def _is_valid_child_idx(node: Node, idx):
+        return 0 <= idx and idx < len(node.children)
+
+    @staticmethod
+    def available_args(node: Node) -> list:
+        """Return a list describing each of the args."""
+        return []
+
+    @classmethod
+    def num_args(cls):
+        return len(cls.arg_help)
+
+
+@register
+class Tile1DInfo(TransformInfo):
+    arg_help = ["Tile size"]
+
+    @staticmethod
+    def valid(node: Node):
         return _tilable(node, 1)
 
     @staticmethod
-    def valid_args(node, size1) -> bool:
+    def valid_args(node, size1):
         return size1 > 1
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound(lower=2, upper=None)]
+        return [
+            LowerUpperBound(lower=2, upper=None),
+        ]
 
 
-@register(TrEnum.TILE2D)
-class ValidTile2D(Validation):
-    num_args = 2
+@register
+class Tile2DInfo(TransformInfo):
+    func_name = "tile2d"
+    arg_help = ["Size1", "Size2"]
 
     @staticmethod
-    def valid(node: Node) -> bool:
+    def valid(node: Node):
         return _tilable(node, 2)
 
     @staticmethod
@@ -149,17 +184,18 @@ class ValidTile2D(Validation):
         ]
 
 
-# @register(TrEnum.TILE3D)
-class ValidTile3D(Validation):
-    num_args = 3
+@register
+class Tile3DInfo(TransformInfo):
+    func_name = "tile3d"
+    arg_help = ["Size1", "Size2", "Size3"]
 
     @staticmethod
-    def valid(node: Node) -> bool:
+    def valid(node: Node):
         return _tilable(node, 3)
 
     @staticmethod
     def valid_args(node, size1, size2, size3):
-        return size1 > 1 and size2 > 1 and size3 > 1
+        return size1 > 0 and size2 > 0 and size3 > 0
 
     @staticmethod
     def available_args(node: Node):
@@ -170,17 +206,271 @@ class ValidTile3D(Validation):
         ]
 
 
-@register(TrEnum.INTERCHANGE)
-class ValidInterchange(Validation):
-    num_args = 0
+@register
+class InterchangeInfo(TransformInfo):
+    func_name = "interchange"
 
     @staticmethod
-    def valid_tr(node: Node) -> bool:
+    def valid(node: Node):
         return (
             node.node_type == NodeType.BAND
             and len(node.children) == 1
             and node.children[0].node_type == NodeType.BAND
         )
+
+
+@register
+class FuseInfo(TransformInfo):
+    func_name = "fuse"
+    arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
+
+    @staticmethod
+    def valid(node: Node):
+        return (
+            (node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET)
+            and (len(node.children) > 1)
+            and (all(ch.children[0].node_type == NodeType.BAND for ch in node.children))
+        )
+
+    @staticmethod
+    def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
+        return (
+            TransformInfo._is_valid_child_idx(node, loop_idx1)
+            and TransformInfo._is_valid_child_idx(node, loop_idx2),
+        )
+
+    @staticmethod
+    def available_args(node: Node):
+        nc = len(node.children)
+        args = []
+        for arg1 in range(nc):
+            for arg2 in range(arg1 + 1, nc):
+                args.append([arg1, arg2])
+        return args
+
+
+@register
+class FullFuseInfo(TransformInfo):
+    func_name = "full_fuse"
+
+    @staticmethod
+    def valid(node: Node):
+        return (
+            node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET
+        ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
+
+
+@register
+class SplitInfo(TransformInfo):
+    func_name = "split"
+    arg_help = ["Index where the sequence should be split"]
+
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if len(node.children) < 2:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        args = SplitInfo.available_args(node)
+        if any([isinstance(a, LowerUpperBound) and a.lower >= a.upper for a in args]):
+            return False
+        return args is not None
+
+    @staticmethod
+    def valid_args(node: Node, split_idx: int) -> bool:
+        nc = len(node.children)
+        return 1 <= split_idx and split_idx < nc - 1
+
+    @staticmethod
+    def available_args(node: Node) -> list:
+        nc = len(node.children)
+        return [LowerUpperBound(lower=1, upper=nc - 1)]
+
+
+@register
+class FullSplitInfo(TransformInfo):
+    func_name = "full_split"
+
+    # TODO -> split sequence!
+    @staticmethod
+    def valid(node: Node):
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        return True
+
+
+@register
+class PartialShiftVarInfo(TransformInfo):
+    func_name = "partial_shift_var"
+    arg_help = ["Statement index", "Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
+        args = PartialShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return [stmt_idx, var_idx] in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
+
+
+@register
+class PartialShiftValInfo(TransformInfo):
+    func_name = "partial_shift_val"
+    arg_help = ["Statement index", "Value"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, value: int):
+        return TransformInfo._is_valid_stmt_idx(node, stmt_idx)
+
+    @staticmethod
+    def available_args(node: Node):
+        ns = len(node.loop_signature)
+        return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
+
+
+@register
+class PartialShiftParamInfo(TransformInfo):
+    func_name = "partial_shift_param"
+    arg_help = ["Statement index", "Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return [stmt_idx, param_idx] in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
+
+
+@register
+class FullShiftVarInfo(TransformInfo):
+    func_name = "full_shift_var"
+    arg_help = ["Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, var_idx: int, _coeff: int):
+        args = FullShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return var_idx in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        if not all(s["vars"] for s in node.loop_signature):
+            return []
+        # "transpose" loop signatures
+        zs = zip(*[s["vars"] for s in node.loop_signature])
+        # var is same at idx for all loop_signatures
+        same = [len(set(z)) == 1 for z in zs]
+        # index of the first "false" in same (or len(same))
+        diff_idx = same.index(False) if not all(same) else len(same)
+        return [list(range(diff_idx)), LowerUpperBound()]
+
+
+@register
+class FullShiftValInfo(TransformInfo):
+    func_name = "full_shift_val"
+    arg_help = ["Value"]
+
+    @staticmethod
+    def available_args(node: Node):
+        return [LowerUpperBound()]
+
+
+@register
+class FullShiftParamInfo(TransformInfo):
+    func_name = "full_shift_param"
+    arg_help = ["Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, param_idx: int, coeff: int):
+        args = FullShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return param_idx in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        if not all(s["params"] for s in node.loop_signature):
+            return []
+        min_np = len(node.loop_signature[0]["params"])
+        return [list(range(min_np)), LowerUpperBound()]
+
+
+@register
+class SetParallelInfo(TransformInfo):
+    func_name = "set_parallel"
+    arg_help = ["omp num_threads"]
+
+    @staticmethod
+    def available_args(node: Node):
+        nproc = multiprocessing.cpu_count()
+        return [
+            LowerUpperBound(0, nproc),
+        ]
+
+
+# @register
+class SetLoopOptInfo(TransformInfo):
+    func_name = "set_loop_opt"
+    arg_help = ["Iterator index", "Option"]
+
+    @staticmethod
+    def available_args(node: Node):
+        # TODO: I don't know the first element
+        return [
+            LowerUpperBound(0, 1),
+            [
+                AstLoopType.DEFAULT.value,
+                AstLoopType.ATOMIC.value,
+                AstLoopType.SEPARATE.value,
+            ],
+        ]
 
 
 @cython.cclass
@@ -328,14 +618,14 @@ class Node:
         """
 
         nargs = len(args)
-        target = _VALID[tr].num_args
+        target = TRANSFORMATIONS[tr].num_args()
         if nargs != target:
             raise ValueError(f"Number of args ({nargs}) for {tr} should be {target}")
-        if not _VALID[tr].valid_tr(self):
+        if not TRANSFORMATIONS[tr].valid(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
-        _VALID[tr].valid_args(*args)
+        TRANSFORMATIONS[tr].valid_args(self, *args)
         self.scop._locate(self.location)
-        _VALID[tr].func(self.scop, *args)
+        TRANSFORMATIONS[tr].func(self.scop, *args)
         legal = True  # todo
         return legal
 
