@@ -1,4 +1,5 @@
 #!/bin/env python
+import re
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
@@ -48,11 +49,16 @@ arguments for transformations. `None` indicates no upper/lower bound.
 _VALID = {}
 
 
+CAMEL_TO_SNAKE = re.compile(r"(?<=[a-z])(?=[A-Z0-9])")
+
+
 def register(tre: TrEnum):
     """Register classes to _VALID dict."""
 
     def _decorator(cls):
-        funcname = cls.__name__.replace("Valid", "").lower()
+        funcname = cls.__name__
+        funcname = funcname.replace("Valid", "")
+        funcname = CAMEL_TO_SNAKE.sub("_", funcname).lower()
         cls.func = getattr(w, funcname)
         _VALID[tre] = cls
         return cls
@@ -107,7 +113,7 @@ class TrEnum(StrEnum):
 
 
 # @register(TrEnum.TILE1D)
-class Tile1DInfo(Validation):
+class ValidTile1D(Validation):
     num_args = 1
 
     @staticmethod
