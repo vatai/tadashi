@@ -27,6 +27,11 @@ ext_modules = [
         ["tadashi/translators.py", "tadashi/src/ccscop.cc", "tadashi/src/codegen.c"],
         **kwargs,
     ),
+    Extension(
+        "tadashi._tr_wrappers",
+        ["tadashi/_tr_wrappers.py", "tadashi/src/transformations.c"],
+        **kwargs,
+    ),
 ]
 
 setup(ext_modules=cythonize(ext_modules))

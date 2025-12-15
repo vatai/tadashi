@@ -8,6 +8,7 @@ import cython
 from cython.cimports.tadashi import isl, pet, transformations
 from cython.cimports.tadashi.ccscop import ccScop
 
+from . import _tr_wrappers as w
 from .node_type import NodeType
 
 SHOULD_NOT_HAPPEN = "This should not have happened. Please report an issue at https://github.com/vatai/tadashi/issues/"
@@ -51,6 +52,8 @@ def register(tre: TrEnum):
     """Register classes to _VALID dict."""
 
     def _decorator(cls):
+        funcname = cls.__name__.replace("Valid", "").lower()
+        cls.func = getattr(w, funcname)
         _VALID[tre] = cls
         return cls
 
@@ -73,7 +76,7 @@ class Validation:
         return True
 
     @staticmethod
-    def valid_args(args: Tuple) -> bool:
+    def valid_args(*args) -> bool:
         return True
 
 
@@ -103,7 +106,7 @@ class TrEnum(StrEnum):
     SET_LOOP_OPT = auto()
 
 
-@register(TrEnum.TILE1D)
+# @register(TrEnum.TILE1D)
 class Tile1DInfo(Validation):
     num_args = 1
 
@@ -120,7 +123,7 @@ class Tile1DInfo(Validation):
         return [LowerUpperBound(lower=2, upper=None)]
 
 
-@register(TrEnum.TILE2D)
+# @register(TrEnum.TILE2D)
 class Tile2DInfo(Validation):
     num_args = 2
 
@@ -140,7 +143,7 @@ class Tile2DInfo(Validation):
         ]
 
 
-@register(TrEnum.TILE3D)
+# @register(TrEnum.TILE3D)
 class Tile3DInfo(Validation):
     num_args = 3
 
@@ -326,10 +329,7 @@ class Node:
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
         _VALID[tr].valid_args(*args)
         self.scop._locate(self.location)
-        cur = self.scop.scop.current_node
-        if tr == TrEnum.INTERCHANGE:
-            cur = transformations.tadashi_interchange(cur)
-        self.scop.scop.current_node = cur
+        _VALID[tr].func(self.scop, *args)
         legal = True  # todo
         return legal
 
