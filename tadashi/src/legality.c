@@ -208,29 +208,6 @@ allocate_tadashi_scop_from_json(isl_union_set *domain,
   return ts;
 }
 
-void
-free_tadashi_scop(struct tadashi_scop *ts) {
-  ts->domain = isl_union_set_free(ts->domain);
-  if (ts->call != NULL)
-    ts->call = isl_union_set_free(ts->call);
-  if (ts->may_writes != NULL)
-    ts->may_writes = isl_union_map_free(ts->may_writes);
-  if (ts->must_writes != NULL)
-    ts->must_writes = isl_union_map_free(ts->must_writes);
-  if (ts->must_kills != NULL)
-    ts->must_kills = isl_union_map_free(ts->must_kills);
-  if (ts->may_reads != NULL)
-    ts->may_reads = isl_union_map_free(ts->may_reads);
-  ts->schedule = isl_schedule_free(ts->schedule);
-  if (ts->dep_flow != NULL)
-    ts->dep_flow = isl_union_map_free(ts->dep_flow);
-  if (ts->live_out != NULL)
-    ts->live_out = isl_union_map_free(ts->live_out);
-  if (ts->pet_scop != NULL)
-    ts->pet_scop = pet_scop_free(ts->pet_scop);
-  free(ts);
-}
-
 static __isl_give isl_union_set *
 _get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
   isl_set *delta_set;

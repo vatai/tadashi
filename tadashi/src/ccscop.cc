@@ -183,13 +183,23 @@ ccScop::~ccScop() {
 #endif // NDEBUG
 }
 
-ccScop::ccScop() : current_node(nullptr), _pet_scop(nullptr) {
+ccScop::ccScop()
+    : current_node(nullptr), tmp_node(nullptr), current_legal(true),
+      tmp_legal(true), modified(0), domain(nullptr), call(nullptr),
+      may_writes(nullptr), must_writes(nullptr), must_kills(nullptr),
+      may_reads(nullptr), live_out(nullptr), schedule(nullptr),
+      _pet_scop(nullptr) {
 #ifndef NDEBUG
   std::cout << ">>> [c]Default()" << std::endl;
 #endif // NDEBUG
 }
 
-ccScop::ccScop(pet_scop *ps) : _pet_scop(ps) {
+ccScop::ccScop(pet_scop *ps)
+    : current_node(nullptr), tmp_node(nullptr), current_legal(true),
+      tmp_legal(true), modified(0), domain(nullptr), call(nullptr),
+      may_writes(nullptr), must_writes(nullptr), must_kills(nullptr),
+      may_reads(nullptr), live_out(nullptr), schedule(nullptr),
+      _pet_scop(nullptr) {
 #ifndef NDEBUG
   std::cout << ">>> [c]PetPtr()" << std::endl;
 #endif // NDEBUG
@@ -202,10 +212,10 @@ ccScop::ccScop(pet_scop *ps) : _pet_scop(ps) {
   this->must_writes = pet_scop_get_must_writes(ps);
   this->must_kills = pet_scop_get_must_kills(ps);
   this->may_reads = pet_scop_get_may_reads(ps);
-  this->schedule = isl_schedule_copy(ps->schedule);
+  this->schedule = schedule;
   this->_pet_compute_live_out();
   //   this->dep_flow = get_dependencies(ps);
-  if (this->domain == NULL)
+  if (this->domain == nullptr)
     this->domain = isl_schedule_get_domain(this->schedule);
   //   else
   //     eliminate_dead_code(this);
@@ -216,6 +226,24 @@ void
 ccScop::dealloc() {
   if (this->current_node != nullptr)
     this->current_node = isl_schedule_node_free(this->current_node);
+  if (this->tmp_node != nullptr)
+    this->tmp_node = isl_schedule_node_free(this->tmp_node);
+  this->domain = isl_union_set_free(this->domain);
+  if (this->call != nullptr)
+    this->call = isl_union_set_free(this->call);
+  if (this->may_writes != nullptr)
+    this->may_writes = isl_union_map_free(this->may_writes);
+  if (this->must_writes != nullptr)
+    this->must_writes = isl_union_map_free(this->must_writes);
+  if (this->must_kills != nullptr)
+    this->must_kills = isl_union_map_free(this->must_kills);
+  if (this->may_reads != nullptr)
+    this->may_reads = isl_union_map_free(this->may_reads);
+  this->schedule = isl_schedule_free(this->schedule);
+  // if (this->dep_flow != nullptr)
+  //   this->dep_flow = isl_union_map_free(this->dep_flow);
+  if (this->live_out != nullptr)
+    this->live_out = isl_union_map_free(this->live_out);
   if (this->_pet_scop != nullptr)
     this->_pet_scop = pet_scop_free(this->_pet_scop);
 }
