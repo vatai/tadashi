@@ -4,6 +4,7 @@
 #include <utility>
 
 #include <isl/union_map.h>
+#include <isl/union_set.h>
 #include <pet.h>
 
 class ccScop {
@@ -37,7 +38,17 @@ public:
   int modified;
 
 private:
-  pet_scop *scop;
+  // pet related
+  void _pet_compute_live_out();
+  pet_scop *_pet_scop;
+  isl_union_set *domain;
+  isl_union_set *call;
+  isl_union_map *may_writes;
+  isl_union_map *must_writes;
+  isl_union_map *must_kills;
+  isl_union_map *may_reads;
+  isl_union_map *live_out;
+  isl_schedule *schedule;
 };
 
 #endif
