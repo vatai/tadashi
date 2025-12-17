@@ -171,6 +171,110 @@ ccScop::_pet_compute_live_out() {
   this->live_out = exposed;
 }
 
+static __isl_give isl_union_set *
+shared_constraints(__isl_take isl_union_set *old,
+                   __isl_take isl_union_set *extended) {
+  isl_union_set *hull, *gist;
+
+  hull = isl_union_set_plain_unshifted_simple_hull(old);
+  gist = isl_union_set_copy(hull);
+  gist = isl_union_set_gist(gist, extended);
+  return isl_union_set_gist(hull, gist);
+}
+
+void
+ccScop::_pet_eliminate_dead_code() {
+  isl_union_set *live;
+  isl_union_map *dep;
+  isl_union_pw_multi_aff *tagger;
+
+  live = isl_union_map_domain(isl_union_map_copy(this->live_out));
+  if (!isl_union_set_is_empty(this->call)) {
+    live = isl_union_set_union(live, isl_union_set_copy(this->call));
+    live = isl_union_set_coalesce(live);
+  }
+
+  dep = isl_union_map_copy(this->dep_flow);
+  dep = isl_union_map_reverse(dep);
+
+  for (;;) {
+    isl_union_set *extra, *universe, *same_space, *other_space;
+    isl_union_set *prev, *valid;
+
+    extra =
+        isl_union_set_apply(isl_union_set_copy(live), isl_union_map_copy(dep));
+    if (isl_union_set_is_subset(extra, live)) {
+      isl_union_set_free(extra);
+      break;
+    }
+
+    universe = isl_union_set_universe(isl_union_set_copy(live));
+    same_space = isl_union_set_intersect(isl_union_set_copy(extra),
+                                         isl_union_set_copy(universe));
+    other_space = isl_union_set_subtract(extra, universe);
+
+    prev = isl_union_set_copy(live);
+    live = isl_union_set_union(live, same_space);
+    valid = shared_constraints(prev, isl_union_set_copy(live));
+
+    live = isl_union_set_affine_hull(live);
+    live = isl_union_set_intersect(live, valid);
+    live = isl_union_set_intersect(live, isl_union_set_copy(this->domain));
+    live = isl_union_set_union(live, other_space);
+  }
+
+  isl_union_map_free(dep);
+
+  /* report_dead_code(ps, live); */
+
+  this->domain =
+      isl_union_set_intersect(this->domain, isl_union_set_copy(live));
+  this->schedule =
+      isl_schedule_intersect_domain(this->schedule, isl_union_set_copy(live));
+  this->dep_flow = isl_union_map_intersect_range(this->dep_flow, live);
+  /* tagger = isl_union_pw_multi_aff_copy(ps->tagger); */
+  /* live = isl_union_set_preimage_union_pw_multi_aff(live, tagger); */
+  /* ps->tagged_dep_flow = isl_union_map_intersect_range(ps->tagged_dep_flow, */
+  /* 					live); */
+}
+
+static __isl_give isl_union_flow *
+_get_flow_from_scop(__isl_keep pet_scop *scop) {
+  isl_union_map *reads, *may_writes, *must_source, *kills, *must_writes;
+  isl_union_access_info *access;
+  isl_schedule *schedule;
+  isl_union_flow *flow;
+  reads = pet_scop_get_may_reads(scop);
+  access = isl_union_access_info_from_sink(reads);
+
+  kills = pet_scop_get_must_kills(scop);
+  must_writes = pet_scop_get_tagged_must_writes(scop);
+  kills = isl_union_map_union(kills, must_writes);
+  access = isl_union_access_info_set_kill(access, kills);
+
+  may_writes = pet_scop_get_may_writes(scop);
+  access = isl_union_access_info_set_may_source(access, may_writes);
+
+  /* must_source = pet_scop_get_must_writes(scop); */
+  /* access = isl_union_access_info_set_must_source(access, must_source); */
+
+  schedule = pet_scop_get_schedule(scop);
+  access = isl_union_access_info_set_schedule(access, schedule);
+
+  flow = isl_union_access_info_compute_flow(access);
+  return flow;
+}
+
+__isl_give isl_union_map *
+get_dependencies(__isl_keep struct pet_scop *scop) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  flow = _get_flow_from_scop(scop);
+  dep = isl_union_flow_get_may_dependence(flow);
+  isl_union_flow_free(flow);
+  return dep;
+}
+
 // ====================================================================== //
 // === METHOD IMPLEMETATIONS ============================================ //
 // ====================================================================== //
@@ -214,11 +318,11 @@ ccScop::ccScop(pet_scop *ps)
   this->may_reads = pet_scop_get_may_reads(ps);
   this->schedule = schedule;
   this->_pet_compute_live_out();
-  //   this->dep_flow = get_dependencies(ps);
+  this->dep_flow = get_dependencies(ps);
   if (this->domain == nullptr)
     this->domain = isl_schedule_get_domain(this->schedule);
-  //   else
-  //     eliminate_dead_code(this);
+  else
+    this->_pet_eliminate_dead_code();
   this->_pet_scop = ps;
 }
 
@@ -240,8 +344,8 @@ ccScop::dealloc() {
   if (this->may_reads != nullptr)
     this->may_reads = isl_union_map_free(this->may_reads);
   this->schedule = isl_schedule_free(this->schedule);
-  // if (this->dep_flow != nullptr)
-  //   this->dep_flow = isl_union_map_free(this->dep_flow);
+  if (this->dep_flow != nullptr)
+    this->dep_flow = isl_union_map_free(this->dep_flow);
   if (this->live_out != nullptr)
     this->live_out = isl_union_map_free(this->live_out);
   if (this->_pet_scop != nullptr)

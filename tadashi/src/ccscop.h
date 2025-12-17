@@ -33,7 +33,7 @@ public:
 public:
   isl_schedule_node *current_node;
   isl_schedule_node *tmp_node;
-  // isl_union_map *dep_flow;
+  isl_union_map *dep_flow; // todo maybe private?
   bool current_legal;
   bool tmp_legal;
   int modified;
@@ -41,6 +41,7 @@ public:
 private:
   // pet related
   void _pet_compute_live_out();
+  void _pet_eliminate_dead_code();
   isl_union_set *domain;
   isl_union_set *call;
   isl_union_map *may_writes;
