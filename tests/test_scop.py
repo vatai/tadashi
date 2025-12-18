@@ -66,10 +66,10 @@ class TestNode(unittest.TestCase):
 
     def test_loop_signature(self):
         target = [
-            "[]",
-            "[{'params': ['N'], 'vars': ['j', 'i']}]",
-            "[{'params': ['N'], 'vars': ['j', 'i']}]",
-            "[]",
+            [],
+            [{"params": ["N"], "vars": ["j", "i"]}],
+            [{"params": ["N"], "vars": ["j", "i"]}],
+            [],
         ]
         self._assert_perperties_equal(target, lambda t: t.loop_signature)
 

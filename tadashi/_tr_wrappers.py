@@ -34,8 +34,8 @@ def full_split(scop: Scop):
     scop.scop.current_node = tadashi_full_split(scop.scop.current_node)
 
 @cython.ccall
-def split(scop: Scop, split: int):
-    scop.scop.current_node = tadashi_split(scop.scop.current_node, split)
+def split(scop: Scop, split_idx: int):
+    scop.scop.current_node = tadashi_split(scop.scop.current_node, split_idx)
 
 @cython.ccall
 def scale(scop: Scop, scale: int):
@@ -68,4 +68,8 @@ def partial_shift_param(scop: Scop, pa_idx: int, param_idx: int, coeff: int):
 @cython.ccall
 def set_parallel(scop: Scop, num_threads: int):
     scop.scop.current_node = tadashi_set_parallel(scop.scop.current_node, num_threads)
+
+@cython.ccall
+def set_loop_opt(scop: Scop, pos: int, opt: int):
+    scop.scop.current_node = tadashi_set_loop_opt(scop.scop.current_node, pos, opt)
 

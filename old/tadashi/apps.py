@@ -97,10 +97,6 @@ class App:
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    @staticmethod
-    def compiler():
-        return os.getenv("CC", "gcc")
-
     @property
     def compile_cmd(self) -> list[str]:
         """Command executed for compilation (list of strings)."""
@@ -148,23 +144,6 @@ class App:
     def output_binary(self) -> Path:
         """The output binary obtained after compilation."""
         return self.source.with_suffix("")
-
-    def compile(
-        self,
-        verbose: bool = False,
-        extra_compiler_options: list[str] = [],
-        output_binary_suffix="",
-    ):
-        """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd
-        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
-        cmd += self.user_compiler_options
-        cmd += extra_compiler_options
-        if verbose:
-            print(f"{' '.join(cmd)}")
-        result = subprocess.run(cmd)
-        # raise an exception if it didn't compile
-        result.check_returncode()
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""

@@ -7,12 +7,11 @@
 
 #include "ccscop.h"
 
-// ====================================================================== //
 // === PET RELATED HELPER FUNCTIONS ===================================== //
 // ====================================================================== //
 
-/* Is "stmt" not a kill statement?
- */
+;
+/* Is "stmt" not a kill statement? */
 static int
 is_not_kill(struct pet_stmt *stmt) {
   return !pet_stmt_is_kill(stmt);
@@ -186,7 +185,7 @@ void
 ccScop::_pet_eliminate_dead_code() {
   isl_union_set *live;
   isl_union_map *dep;
-  isl_union_pw_multi_aff *tagger;
+  // isl_union_pw_multi_aff *tagger;
 
   live = isl_union_map_domain(isl_union_map_copy(this->live_out));
   if (!isl_union_set_is_empty(this->call)) {
@@ -240,7 +239,8 @@ ccScop::_pet_eliminate_dead_code() {
 
 static __isl_give isl_union_flow *
 _get_flow_from_scop(__isl_keep pet_scop *scop) {
-  isl_union_map *reads, *may_writes, *must_source, *kills, *must_writes;
+  isl_union_map *reads, *may_writes, *kills, *must_writes;
+  // *must_source,
   isl_union_access_info *access;
   isl_schedule *schedule;
   isl_union_flow *flow;
@@ -265,7 +265,7 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
   return flow;
 }
 
-__isl_give isl_union_map *
+static __isl_give isl_union_map *
 get_dependencies(__isl_keep struct pet_scop *scop) {
   isl_union_map *dep;
   isl_union_flow *flow;
@@ -275,7 +275,6 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
   return dep;
 }
 
-// ====================================================================== //
 // === METHOD IMPLEMETATIONS ============================================ //
 // ====================================================================== //
 
@@ -307,22 +306,20 @@ ccScop::ccScop(pet_scop *ps)
 #ifndef NDEBUG
   std::cout << ">>> [c]PetPtr()" << std::endl;
 #endif // NDEBUG
-  isl_schedule *sched = pet_scop_get_schedule(ps);
-  this->current_node = isl_schedule_get_root(sched);
-  isl_schedule_free(sched);
+  this->schedule = pet_scop_get_schedule(ps);
+  this->dep_flow = get_dependencies(ps);
   this->domain = collect_non_kill_domains(ps);
   this->call = collect_call_domains(ps);
   this->may_writes = pet_scop_get_may_writes(ps);
   this->must_writes = pet_scop_get_must_writes(ps);
   this->must_kills = pet_scop_get_must_kills(ps);
   this->may_reads = pet_scop_get_may_reads(ps);
-  this->schedule = schedule;
   this->_pet_compute_live_out();
-  this->dep_flow = get_dependencies(ps);
   if (this->domain == nullptr)
     this->domain = isl_schedule_get_domain(this->schedule);
   else
     this->_pet_eliminate_dead_code();
+  this->current_node = isl_schedule_get_root(this->schedule);
   this->_pet_scop = ps;
 }
 
@@ -343,11 +340,87 @@ ccScop::dealloc() {
     this->must_kills = isl_union_map_free(this->must_kills);
   if (this->may_reads != nullptr)
     this->may_reads = isl_union_map_free(this->may_reads);
-  this->schedule = isl_schedule_free(this->schedule);
+  if (this->schedule != nullptr)
+    this->schedule = isl_schedule_free(this->schedule);
   if (this->dep_flow != nullptr)
     this->dep_flow = isl_union_map_free(this->dep_flow);
   if (this->live_out != nullptr)
     this->live_out = isl_union_map_free(this->live_out);
   if (this->_pet_scop != nullptr)
     this->_pet_scop = pet_scop_free(this->_pet_scop);
+}
+
+static __isl_give isl_union_set *
+_get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
+  isl_set *delta_set;
+  isl_multi_aff *ma;
+
+  delta_set = isl_set_from_union_set(delta_uset);
+  ma = isl_multi_aff_zero(isl_set_get_space(delta_set));
+  isl_set_free(delta_set);
+  return isl_union_set_from_set(isl_set_from_multi_aff(ma));
+}
+
+static __isl_give isl_bool
+_check_legality(__isl_take isl_union_map *schedule_map,
+                __isl_take isl_union_map *dep) {
+  isl_union_map *domain, *le;
+  isl_union_set *delta, *zeros;
+
+  if (isl_union_map_is_empty(dep)) {
+    isl_union_map_free(dep);
+    isl_union_map_free(schedule_map);
+    return isl_bool_true;
+  }
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
+  domain = isl_union_map_apply_range(domain, schedule_map);
+  delta = isl_union_map_deltas(domain);
+  zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
+  le = isl_union_set_lex_le_union_set(delta, zeros);
+  isl_bool retval = isl_union_map_is_empty(le);
+  isl_union_map_free(le);
+  return retval;
+}
+
+bool
+ccScop::check_legality() {
+  isl_union_map *dep = isl_union_map_copy(this->dep_flow);
+  isl_schedule *schedule = isl_schedule_node_get_schedule(this->current_node);
+  isl_union_map *map = isl_schedule_get_map(schedule);
+  isl_schedule_free(schedule);
+  return _check_legality(map, dep);
+}
+
+bool
+tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
+                                __isl_take isl_union_map *dep) {
+  isl_union_map *map;
+  bool retval;
+  isl_union_map *domain, *cmp;
+  isl_union_set *delta, *zeros;
+  node = isl_schedule_node_first_child(node);
+  map = isl_schedule_node_band_get_partial_schedule_union_map(node);
+  node = isl_schedule_node_parent(node);
+
+  if (isl_union_map_is_empty(dep)) {
+    dep = isl_union_map_free(dep);
+    map = isl_union_map_free(map);
+    return isl_bool_true;
+  }
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
+  domain = isl_union_map_apply_range(domain, map);
+  delta = isl_union_map_deltas(domain);
+  if (isl_union_set_is_empty(delta)) {
+    delta = isl_union_set_free(delta);
+    return isl_bool_true;
+  }
+  zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
+  cmp = isl_union_set_lex_lt_union_set(isl_union_set_copy(delta),
+                                       isl_union_set_copy(zeros));
+  retval = isl_union_map_is_empty(cmp);
+  cmp = isl_union_map_free(cmp);
+  cmp = isl_union_set_lex_gt_union_set(delta, zeros);
+  retval = retval && isl_union_map_is_empty(cmp);
+  isl_union_map_free(cmp);
+  return retval;
 }

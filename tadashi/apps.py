@@ -2,7 +2,9 @@
 
 import abc
 import datetime
+import os
 import re
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -58,7 +60,7 @@ class App(abc.ABC):
           source: The source file.
           translator: See `Translator`.
         """
-        self.source = source
+        self.source = Path(source)
         if populate_scops:
             self.translator = translator.set_source(source)
         else:
@@ -130,6 +132,27 @@ class App(abc.ABC):
 
     def codegen_init_args(self) -> dict:
         return {}
+
+    @staticmethod
+    def compiler():
+        return os.getenv("CC", "gcc")
+
+    def compile(
+        self,
+        verbose: bool = False,
+        extra_compiler_options: list[str] = [],
+        output_binary_suffix="",
+    ):
+        """Compile the app so it can be measured/executed."""
+        cmd = self.compile_cmd
+        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
+        cmd += self.user_compiler_options
+        cmd += extra_compiler_options
+        if verbose:
+            print(f"{' '.join(cmd)}")
+        result = subprocess.run(cmd)
+        # raise an exception if it didn't compile
+        result.check_returncode()
 
 
 class Simple(App):

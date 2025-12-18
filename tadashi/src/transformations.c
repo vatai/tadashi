@@ -1,5 +1,6 @@
 /** @file */
 #include <assert.h>
+#include <isl/ast_type.h>
 #include <limits.h>
 
 #include <isl/aff.h>
@@ -261,9 +262,8 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   // want, you can then also delete the original band nodes, but this
   // is not strictly required since they will mostly be ignored during
   // AST generation.
-  enum isl_schedule_node_type node_type = isl_schedule_node_get_type(node);
-  assert(node_type == isl_schedule_node_sequence ||
-         node_type == isl_schedule_node_set);
+  assert(isl_schedule_node_get_type(node) == isl_schedule_node_sequence ||
+         isl_schedule_node_get_type(node) == isl_schedule_node_set);
   isl_size num_children = isl_schedule_node_n_children(node);
   node = isl_schedule_node_first_child(node);
   isl_multi_union_pw_aff *mupa = NULL;
@@ -307,8 +307,9 @@ tadashi_fuse(__isl_take isl_schedule_node *node, int idx1, int idx2) {
   struct _fuse_result_t result[2];
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
 
-  assert(0 <= idx1 && idx1 < size);
-  assert(0 <= idx2 && idx2 < size);
+  assert(0 <= idx1 && idx1 < isl_schedule_node_n_children(node));
+  assert(0 <= idx2 && idx2 < isl_schedule_node_n_children(node));
+
   node = _fuse_insert_outer_shorter_sequence(node, idx1, idx2);
   node = isl_schedule_node_child(node, idx1);
   node = isl_schedule_node_first_child(node);
@@ -434,17 +435,17 @@ tadashi_valid_split(__isl_keep isl_schedule_node *node, int split) {
  *
  */
 __isl_give isl_schedule_node *
-tadashi_split(__isl_take isl_schedule_node *node, int split) {
+tadashi_split(__isl_take isl_schedule_node *node, int split_idx) {
   isl_union_set_list *filters, *left, *right;
   isl_union_set *lefts, *rights;
-  assert(tadashi_valid_split(node, split));
+  assert(tadashi_valid_split(node, split_idx));
   isl_size num_children = isl_schedule_node_n_children(node);
 
-  left = alloc_half_list(&node, 0, split);
+  left = alloc_half_list(&node, 0, split_idx);
   lefts = isl_union_set_list_union(left);
   filters = isl_union_set_list_from_union_set(lefts);
 
-  right = alloc_half_list(&node, split, num_children);
+  right = alloc_half_list(&node, split_idx, num_children);
   rights = isl_union_set_list_union(right);
   filters = isl_union_set_list_add(filters, rights);
 
@@ -618,3 +619,9 @@ tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads) {
   return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
 }
 // sink & order?
+
+__isl_give isl_schedule_node *
+tadashi_set_loop_opt(__isl_take isl_schedule_node *node, int pos, int opt) {
+  return isl_schedule_node_band_member_set_ast_loop_type(
+      node, pos, (enum isl_ast_loop_type)opt);
+}

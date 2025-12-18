@@ -10,7 +10,7 @@ cdef extern from "transformations.h":
     cdef isl_schedule_node *tadashi_full_fuse(isl_schedule_node * node)
     cdef isl_schedule_node *tadashi_fuse(isl_schedule_node * node, int idx1, int idx2)
     cdef isl_schedule_node *tadashi_full_split(isl_schedule_node * node)
-    cdef isl_schedule_node *tadashi_split(isl_schedule_node * node, int split)
+    cdef isl_schedule_node *tadashi_split(isl_schedule_node * node, int split_idx)
     cdef isl_schedule_node *tadashi_scale(isl_schedule_node * node, long scale)
     cdef isl_schedule_node *tadashi_full_shift_val(isl_schedule_node * node, long val)
     cdef isl_schedule_node *tadashi_partial_shift_val(isl_schedule_node * node, int pa_idx, long val)
@@ -19,3 +19,4 @@ cdef extern from "transformations.h":
     cdef isl_schedule_node *tadashi_full_shift_param(isl_schedule_node * node, long param_idx, long coeff)
     cdef isl_schedule_node *tadashi_partial_shift_param(isl_schedule_node * node, int pa_idx, long param_idx, long coeff)
     cdef isl_schedule_node *tadashi_set_parallel(isl_schedule_node * node, int num_threads)
+    cdef isl_schedule_node *tadashi_set_loop_opt(isl_schedule_node * node, int pos, int opt)

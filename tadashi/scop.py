@@ -1,6 +1,7 @@
 #!/bin/env python
 import multiprocessing
 import re
+from ast import literal_eval
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum, StrEnum, auto
@@ -81,13 +82,13 @@ class Node:
     """Schedule node (Python representation)."""
 
     scop: Scop
-    _type: cython.declare(isl.isl_schedule_node_type, visibility="public")
+    _type = cython.declare(isl.isl_schedule_node_type, visibility="public")
     num_children = cython.declare(int, visibility="public")
     parent_idx = cython.declare(int, visibility="public")
     index = cython.declare(int, visibility="public")
     label = cython.declare(str, visibility="public")
     location = cython.declare(list[int], visibility="public")
-    loop_signature = cython.declare(str, visibility="public")
+    loop_signature = cython.declare(list, visibility="public")
     expr = cython.declare(str, visibility="public")
     children_idx = cython.declare(list[str], visibility="public")
 
@@ -111,18 +112,18 @@ class Node:
             raise ValueError(msg)
         # TODO proc_args (from olden times)
         self.scop._locate(self.location)
-        #   if (this->tmp_node != nullptr)
-        #     this->tmp_node = isl_schedule_node_free(this->tmp_node);
-        #   tmp_node = isl_schedule_node_copy(this->current_node);
-        #   this->tmp_legal = current_legal;
+        # begin todo: this is ugly
+        if self.scop.scop.tmp_node != cython.NULL:
+            isl.isl_schedule_node_free(self.scop.scop.tmp_node)
+
+        tmp = isl.isl_schedule_node_copy(self.scop.scop.current_node)
+        self.scop.scop.tmp_node = tmp
+        self.scop.scop.tmp_legal = self.scop.scop.current_legal
         TRANSFORMATIONS[tr].transform(self.scop, *args)
-        #   isl_union_map *dep = isl_union_map_copy(this->dep_flow);
-        #   current_legal = check_legality(current_node, dep);
-        #   modified = true;
-        #   return current_legal;
-        ### legal = TRANSFORMATIONS[tr].check_legality(self.scop, *args)
-        legal = True  # todo
-        return bool(legal)
+        self.scop.scop.current_legal = self.scop.scop.check_legality()
+        self.scop.scop.modified = True
+        # end todo: this is ugly
+        return bool(self.scop.scop.current_legal)
 
     @property
     def node_type(self) -> NodeType:
@@ -147,7 +148,7 @@ class Node:
         node.index = current_idx
         node.label = scop._get_label()
         node.location = location
-        node.loop_signature = scop._get_loop_signature()
+        node.loop_signature = literal_eval(scop._get_loop_signature())
         node.expr = scop._get_expr()
         node.children_idx = [-1] * num_children
         return node
@@ -555,7 +556,7 @@ class SetParallelInfo(TransformInfo):
         ]
 
 
-# @register
+@register
 class SetLoopOptInfo(TransformInfo):
     func_name = "set_loop_opt"
     arg_help = ["Iterator index", "Option"]
@@ -591,6 +592,17 @@ class Scop:
         self._traverse(nodes, parent=-1, location=[])
         return nodes
 
+    @property
+    def legal(self) -> bool:
+        return bool(self.scop.current_legal)
+
+    def transform_list(self, trs: list) -> list[bool]:
+        result = []
+        for node_idx, tr, *args in trs:
+            node = self.schedule_tree[node_idx]
+            result.append(node.transform(tr, *args))
+        return result
+
     def __repr__(self):  # todo this is not a good node representation
         node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
@@ -612,7 +624,7 @@ class Scop:
         mupa = isl.isl_multi_union_pw_aff_free(mupa)
         return label.decode()
 
-    def _get_loop_signature(self):
+    def _get_loop_signature(self) -> str:
         # Scop *si = app->scops[scop_idx];
         if not self._node_type_is(NodeType.BAND):
             return "[]"

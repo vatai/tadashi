@@ -13,6 +13,7 @@ public:
   ccScop();
   ccScop(pet_scop *ps);
   void dealloc();
+  bool check_legality();
 
   // template <typename Chk, typename Trn, typename... Args>
   // int
@@ -49,8 +50,8 @@ private:
   isl_union_map *must_kills;
   isl_union_map *may_reads;
   isl_union_map *live_out;
-  isl_schedule *schedule;
-  pet_scop *_pet_scop;
+  isl_schedule *schedule; // todo maybe remove
+  pet_scop *_pet_scop;    // todo maybe remove
 };
 
 #endif
