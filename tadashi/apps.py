@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from .scop import Scop
-from .translators import Translator
+from .translators import Pet, Translator
 
 
 class App(abc.ABC):
@@ -161,7 +161,7 @@ class Simple(App):
     def __init__(
         self,
         source: str | Path,
-        translator: Translator,
+        translator: Translator = Pet(),
         compiler_options: Optional[list[str]] = None,
         ephemeral: bool = False,
         populate_scops: bool = True,
