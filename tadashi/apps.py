@@ -6,11 +6,14 @@ import os
 import re
 import subprocess
 import tempfile
+from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
 from .scop import Scop
 from .translators import Pet, Translator
+
+Result = namedtuple("Result", ["legal", "walltime"])
 
 
 class App(abc.ABC):
@@ -61,21 +64,55 @@ class App(abc.ABC):
           translator: See `Translator`.
         """
         self.source = Path(source)
-        if populate_scops:
-            self.translator = translator.set_source(source)
-        else:
-            self.translator = None
+        if translator is None and populate_scops:
+            translator = Pet()
         if compiler_options is None:
             compiler_options = []
+        if populate_scops and translator:
+            includes = self._get_flags("I", compiler_options)
+            self.translator = translator.set_includes(includes).set_source(source)
+        else:
+            self.translator = None
         self.user_compiler_options = compiler_options
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
+
+    @staticmethod
+    def _get_flags(flag: str, flags: list[str]):
+        """Get values of the certain compiler flags from compiler options."""
+        defines = []
+        for i, opt in enumerate(flags):
+            if not opt.startswith(f"-{flag}"):
+                continue
+            if opt == f"-{flag}":
+                if i + 1 >= len(flags):
+                    raise ValueError(f"Empty -{flag} comiler option")
+                defines.append(flags[i + 1])
+            else:
+                defines.append(opt[2:])
+        return defines
 
     @property
     def scops(self) -> list[Scop]:
         """The `Scop` list forwarded from `App.translator` (both for
         compatibility and convenience reasons)."""
         return self.translator.scops
+
+    @property
+    def legal(self) -> bool:
+        return all(s.legal for s in self.scops)
+
+    def transform_list(self, transformation_list: list) -> Result:
+        for si, ni, *tr in transformation_list:
+            node = self.scops[si].schedule_tree[ni]
+            legal = node.transform(*tr)
+        self.compile()
+        walltime = self.measure()
+        return Result(legal, walltime)
+
+    def reset_scops(self):
+        for scop in self.scops:
+            scop.reset()
 
     @property
     def output_binary(self) -> Path:
@@ -154,6 +191,19 @@ class App(abc.ABC):
         # raise an exception if it didn't compile
         result.check_returncode()
 
+    def measure(self, repeat=1, *args, **kwargs) -> float:
+        """Measure the runtime of the app."""
+        if not self.output_binary.exists():
+            self.compile()
+        results = []
+        for _ in range(repeat):
+            result = subprocess.run(
+                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
+            )
+            stdout = result.stdout.decode()
+            results.append(self.extract_runtime(stdout))
+        return min(results)
+
 
 class Simple(App):
     runtime_prefix: str
@@ -161,7 +211,7 @@ class Simple(App):
     def __init__(
         self,
         source: str | Path,
-        translator: Translator = Pet(),
+        translator: Optional[Translator] = None,
         compiler_options: Optional[list[str]] = None,
         ephemeral: bool = False,
         populate_scops: bool = True,
@@ -179,11 +229,7 @@ class Simple(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
-            self.compiler(),
-            str(self.source),
-            "-fopenmp",
-        ]
+        return [self.compiler(), str(self.source), "-fopenmp"]
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -206,26 +252,26 @@ class Polybench(App):
         self,
         benchmark: str,
         source: Optional[Path] = None,
-        translator: Translator = None,
+        translator: Optional[Translator] = None,
         base: Path = Path(POLYBENCH_BASE),
         compiler_options: Optional[list[str]] = None,
         ephemeral: bool = False,
         populate_scops: bool = True,
     ):
-        if compiler_options is None:
-            compiler_options = []
-        self.ephemeral = ephemeral
-        self.populate_scops = populate_scops
         self.base = Path(base)
         self.benchmark = self._get_benchmark(benchmark)
         if source is None:
             filename = Path(self.benchmark).with_suffix(".c").name
             source = self.base / self.benchmark / filename
-        # "-DMEDIUM_DATASET",
-        self._finalize_object(
-            source=source,
+        if compiler_options is None:
+            compiler_options = []
+        compiler_options.append(f"-I{self.base / 'utilities'}")
+        super().__init__(
+            source,
+            translator,
             compiler_options=compiler_options,
-            include_paths=[self.base / "utilities"],
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
         )
 
     def _get_benchmark(self, benchmark: str) -> str:

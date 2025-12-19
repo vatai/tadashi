@@ -23,7 +23,7 @@ class TestApp(unittest.TestCase):
                 continue
             self.assertEqual((akey, aval), (akey, tval))
 
-    @unittest.skip("wip")
+    @unittest.skip("todo")
     def test_app_legality(self):
         app = apps.Polybench("jacobi-1d")
         trs = [
@@ -34,7 +34,6 @@ class TestApp(unittest.TestCase):
         result = app.transform_list(trs)
         self.assertFalse(result.legal)
 
-    @unittest.skip("wip")
     def test_app_legal(self):
         app = apps.Polybench("gemm")
         trs = [
@@ -42,7 +41,7 @@ class TestApp(unittest.TestCase):
             [2, "full_fuse"],
             [1, "set_parallel", 6],
             [2, "full_shift_param", 1, 48],
-            [2, "tile2d", 32, 32],
+            [2, "tile_2d", 32, 32],
             [3, "set_loop_opt", 0, 3],
         ]
         result = app.scops[0].transform_list(trs)
@@ -89,8 +88,8 @@ class TestPolybench(TestApp):
         app = apps.Polybench("stencils/jacobi-2d", self.base)
         trs = [
             [2, TrEnum.FULL_SPLIT],
-            [3, TrEnum.TILE2D, 20, 20],
-            [10, TrEnum.TILE3D, 30, 30, 30],
+            [3, TrEnum.TILE_2D, 20, 20],
+            [10, TrEnum.TILE_3D, 30, 30, 30],
         ]
         app.scops[0].transform_list(trs)
         tapp = app.generate_code(ensure_legality=False)
@@ -124,4 +123,3 @@ class TestPolybench(TestApp):
         tapp = app.generate_code()
         tarrays = tapp.dump_arrays()
         tapp.measure()
-        # print(tarrays)

@@ -603,6 +603,13 @@ class Scop:
             result.append(node.transform(tr, *args))
         return result
 
+    def reset(self):
+        self.scop.reset()
+
+    def rollback(self) -> None:
+        """Roll back (revert) the last transformation."""
+        self.scop.rollback()
+
     def __repr__(self):  # todo this is not a good node representation
         node = self.scop.current_node
         return isl.isl_schedule_node_to_str(node).decode()

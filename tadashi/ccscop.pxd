@@ -8,6 +8,8 @@ cdef extern from "src/ccscop.h":
         ccScop() except +
         ccScop(pet.scop ps) except +
         void dealloc() except +
+        void reset() except +
+        void rollback() except +
         bint check_legality();
         # members
         isl.isl_schedule_node *current_node

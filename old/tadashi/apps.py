@@ -132,10 +132,6 @@ class App:
         app.ephemeral = ephemeral
         return app
 
-    def reset_scops(self):
-        for scop in self.scops:
-            scop.reset()
-
     def extract_runtime(self, stdout: str) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
@@ -144,19 +140,6 @@ class App:
     def output_binary(self) -> Path:
         """The output binary obtained after compilation."""
         return self.source.with_suffix("")
-
-    def measure(self, repeat=1, *args, **kwargs) -> float:
-        """Measure the runtime of the app."""
-        if not self.output_binary.exists():
-            self.compile()
-        results = []
-        for _ in range(repeat):
-            result = subprocess.run(
-                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
-            )
-            stdout = result.stdout.decode()
-            results.append(self.extract_runtime(stdout))
-        return min(results)
 
     def compile_and_measure(self, *args, **kwargs) -> float | str:
         try:

@@ -1,5 +1,5 @@
 # distutils: language=c++
-
+import os
 from pathlib import Path
 
 import cython
@@ -10,14 +10,14 @@ from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
+ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class"
+
 
 @cython.cclass
 class Translator:
     """Translator base class."""
 
-    ccscops: vector[ccScop]
-    """ccscops is the single source of truth for the polyhedral
-    representation. Python Scop objects have pointers to its elements."""
+    ccscops = cython.declare(vector[ccScop])
     scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
     source: str
@@ -29,8 +29,13 @@ class Translator:
             isl.isl_ctx_free(self.ctx)
 
     def set_source(self, source: str | Path) -> Translator:
+        """Do the bookkeeping of the init.
+
+        This method should be called from the derived class as
+        super().set_source() after populatin the `ccScop`s.
+
+        """
         self.source = str(source)
-        self._populate_ccscops(str(source))
         self.scops = []
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
@@ -38,7 +43,10 @@ class Translator:
         return self
 
     def generate_code(self, input_path, output_path):
-        pass
+        raise NotImplementedError(ABC_ERROR_MSG)
+
+    def set_include_paths(self, include_paths: list[str]):
+        return self
 
 
 @cython.cclass
@@ -122,3 +130,15 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
+
+    def set_source(self, source: str | Path) -> Translator():
+        """Populate the `ccScop`s and do the necesary bookkeeping."""
+        self._populate_ccscops(str(source))
+        return super().set_source(source)
+
+    def set_includes(self, include_paths: list[str]):
+        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
+        os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
+        if prev_include_path:
+            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
+        return self

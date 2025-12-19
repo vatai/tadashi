@@ -13,6 +13,8 @@ public:
   ccScop();
   ccScop(pet_scop *ps);
   void dealloc();
+  void rollback();
+  void reset();
   bool check_legality();
 
   // template <typename Chk, typename Trn, typename... Args>

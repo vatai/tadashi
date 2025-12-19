@@ -154,13 +154,6 @@ class Scop:
     def legal(self):
         return bool(ctadashi.get_legal(self.app_ptr, self.scop_idx))
 
-    def reset(self):
-        ctadashi.reset_scop(self.app_ptr, self.scop_idx)
-
-    def rollback(self) -> None:
-        """Roll back (revert) the last transformation."""
-        ctadashi.rollback(self.app_ptr, self.scop_idx)
-
 
 class Scops:
     """All SCoPs which belong to a given file.

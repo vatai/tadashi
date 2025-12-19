@@ -329,7 +329,8 @@ ccScop::dealloc() {
     this->current_node = isl_schedule_node_free(this->current_node);
   if (this->tmp_node != nullptr)
     this->tmp_node = isl_schedule_node_free(this->tmp_node);
-  this->domain = isl_union_set_free(this->domain);
+  if (this->domain != nullptr)
+    this->domain = isl_union_set_free(this->domain);
   if (this->call != nullptr)
     this->call = isl_union_set_free(this->call);
   if (this->may_writes != nullptr)
@@ -348,6 +349,27 @@ ccScop::dealloc() {
     this->live_out = isl_union_map_free(this->live_out);
   if (this->_pet_scop != nullptr)
     this->_pet_scop = pet_scop_free(this->_pet_scop);
+}
+
+void
+ccScop::rollback() {
+  if (!this->modified)
+    return;
+  std::swap(this->current_legal, this->tmp_legal);
+  std::swap(this->current_node, this->tmp_node);
+}
+
+void
+ccScop::reset() {
+  if (!this->modified)
+    return;
+  this->current_node = isl_schedule_node_free(this->current_node);
+  this->current_node = isl_schedule_get_root(this->schedule);
+  this->current_legal = true;
+  this->tmp_node = isl_schedule_node_free(this->tmp_node);
+  this->tmp_node = nullptr;
+  this->tmp_legal = false;
+  this->modified = false;
 }
 
 static __isl_give isl_union_set *
