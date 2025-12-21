@@ -37,7 +37,7 @@ class Translator:
         """
         self.source = str(source)
         self.scops = []
-        self.ccscops.clear()
+        self.ccscops.clear()  # todo. memory leak
         self._populate_ccscops(str(source))
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
