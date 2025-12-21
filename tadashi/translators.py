@@ -37,6 +37,8 @@ class Translator:
         """
         self.source = str(source)
         self.scops = []
+        self.ccscops.clear()
+        self._populate_ccscops(str(source))
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
             self.scops.append(Scop.create(ptr))
@@ -130,11 +132,6 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
-
-    def set_source(self, source: str | Path) -> Translator():
-        """Populate the `ccScop`s and do the necesary bookkeeping."""
-        self._populate_ccscops(str(source))
-        return super().set_source(source)
 
     def set_includes(self, include_paths: list[str]):
         prev_include_path = os.getenv("C_INCLUDE_PATH", "")
