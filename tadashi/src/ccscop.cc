@@ -280,9 +280,7 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
 
 ccScop::~ccScop() {
 #ifndef NDEBUG
-  std::cout << "<<< [d]Default()";
-  dealloc();
-  std::cout << std::endl;
+  std::cout << "<<< [d]Default()" << std::endl;
 #endif // NDEBUG
 }
 
