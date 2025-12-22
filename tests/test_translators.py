@@ -28,13 +28,12 @@ class TestTranslator(unittest.TestCase):
                 translator.set_source(file)
                 self.assertEqual(len(translator.scops), num_scops)
 
-    @unittest.skip("wip: maybe remove?")
     def test_double_set(self):
         """Calling set_source() 2x on a translator should raise an error!"""
         translator = Pet()
         file = self.examples / "inputs/depnodep.c"
         translator.set_source(file)
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             translator.set_source(file)
 
     def test_deleted_translator(self):

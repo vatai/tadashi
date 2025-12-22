@@ -10,7 +10,8 @@ from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
-ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class"
+ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
+DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
 
 @cython.cclass
@@ -34,9 +35,11 @@ class Translator:
         super().set_source() after populatin the `ccScop`s.
 
         """
+        if self.ccscops.size():
+            raise RuntimeError(DOUBLE_SET_SOURCE)
         self.source = str(source)
         self.scops = []
-        self.ccscops.clear()  # todo. memory leak
+        self.ccscops.clear()
         self._populate_ccscops(str(source))
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
