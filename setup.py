@@ -14,6 +14,7 @@ kwargs = {
     "library_dirs": [os.path.join(PREFIX, "lib")],
     "runtime_library_dirs": [os.path.join(PREFIX, "lib")],
     "language": "c++",
+    # "undef_macros": ["NDEBUG"],
 }
 
 ext_modules = [
