@@ -28,7 +28,7 @@ class TestTranslator(unittest.TestCase):
                 translator.set_source(file)
                 self.assertEqual(len(translator.scops), num_scops)
 
-    @unittest.skip("todo: maybe remove?")
+    @unittest.skip("wip: maybe remove?")
     def test_double_set(self):
         """Calling set_source() 2x on a translator should raise an error!"""
         translator = Pet()
@@ -37,7 +37,7 @@ class TestTranslator(unittest.TestCase):
         with self.assertRaises(Exception):
             translator.set_source(file)
 
-    @unittest.skip("todo")
+    @unittest.skip("wip: shouldn't crash")
     def test_deleted_translator(self):
         """This test should simply not crash."""
 

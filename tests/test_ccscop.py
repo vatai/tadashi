@@ -161,7 +161,7 @@ class TestCcScop(unittest.TestCase):
 
 
 class TestCtadashiLLVM(unittest.TestCase):
-    @unittest.skip("wip")
+    @unittest.skip("wip llvm")
     def test_foobar(self):
         # app = Polybench("gemm")
         app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c", Pet())
