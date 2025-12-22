@@ -102,7 +102,6 @@ class TestCcScop(unittest.TestCase):
         node = self._get_band_node()
         self.assertRaises(ValueError, node.transform, TrEnum.TILE_1D, 2, 3)
 
-    @unittest.skip("todo parallel legality check")
     def test_transformation_list(self):
         app = Simple("examples/inputs/depnodep.c", Pet())
         scop = app.scops[0]

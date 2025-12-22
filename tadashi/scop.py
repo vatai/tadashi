@@ -113,15 +113,14 @@ class Node:
         # TODO proc_args (from olden times)
         self.scop._locate(self.location)
         # begin todo: this is ugly
-        if self.scop.ptr_ccscop.tmp_node != cython.NULL:
-            isl.isl_schedule_node_free(self.scop.ptr_ccscop.tmp_node)
-
-        tmp = isl.isl_schedule_node_copy(self.scop.ptr_ccscop.current_node)
-        self.scop.ptr_ccscop.tmp_node = tmp
-        self.scop.ptr_ccscop.tmp_legal = self.scop.ptr_ccscop.current_legal
+        ps = self.scop.ptr_ccscop
+        if ps.tmp_node != cython.NULL:
+            isl.isl_schedule_node_free(ps.tmp_node)
+        ps.tmp_node = isl.isl_schedule_node_copy(ps.current_node)
+        ps.tmp_legal = ps.current_legal
         TRANSFORMATIONS[tr].transform(self.scop, *args)
-        self.scop.ptr_ccscop.current_legal = self.scop.ptr_ccscop.check_legality()
-        self.scop.ptr_ccscop.modified = True
+        ps.current_legal = ps.check_legality()
+        ps.modified = True
         # end todo: this is ugly
         return bool(self.scop.ptr_ccscop.current_legal)
 

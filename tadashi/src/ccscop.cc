@@ -1,9 +1,13 @@
 #include <assert.h>
+#include <cstring>
 #include <iostream>
 
 #include <isl/flow.h>
+#include <isl/id.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
+#include <isl/schedule_type.h>
+#include <ostream>
 
 #include "ccscop.h"
 
@@ -555,18 +559,20 @@ _get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
 }
 
 static __isl_give isl_bool
-_check_legality(__isl_take isl_union_map *schedule_map,
+_check_legality(__isl_keep isl_schedule_node *node,
                 __isl_take isl_union_map *dep) {
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
-
+  isl_schedule *schedule = isl_schedule_node_get_schedule(node);
+  isl_union_map *map = isl_schedule_get_map(schedule);
+  isl_schedule_free(schedule);
   if (isl_union_map_is_empty(dep)) {
     isl_union_map_free(dep);
-    isl_union_map_free(schedule_map);
+    isl_union_map_free(map);
     return isl_bool_true;
   }
-  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(schedule_map));
-  domain = isl_union_map_apply_range(domain, schedule_map);
+  domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
+  domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
   zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
   le = isl_union_set_lex_le_union_set(delta, zeros);
@@ -575,25 +581,17 @@ _check_legality(__isl_take isl_union_map *schedule_map,
   return retval;
 }
 
-bool
-ccScop::check_legality() {
-  isl_union_map *dep = isl_union_map_copy(this->dep_flow);
-  isl_schedule *schedule = isl_schedule_node_get_schedule(this->current_node);
-  isl_union_map *map = isl_schedule_get_map(schedule);
-  isl_schedule_free(schedule);
-  return _check_legality(map, dep);
-}
-
-bool
-tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
-                                __isl_take isl_union_map *dep) {
+static bool
+_check_legality_parallel(__isl_keep isl_schedule_node *node,
+                         __isl_take isl_union_map *dep) {
   isl_union_map *map;
   bool retval;
   isl_union_map *domain, *cmp;
   isl_union_set *delta, *zeros;
+  node = isl_schedule_node_copy(node);
   node = isl_schedule_node_first_child(node);
   map = isl_schedule_node_band_get_partial_schedule_union_map(node);
-  node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_free(node);
 
   if (isl_union_map_is_empty(dep)) {
     dep = isl_union_map_free(dep);
@@ -616,4 +614,22 @@ tadashi_check_legality_parallel(__isl_keep isl_schedule_node *node,
   retval = retval && isl_union_map_is_empty(cmp);
   isl_union_map_free(cmp);
   return retval;
+}
+
+bool
+ccScop::check_legality() {
+  isl_schedule_node_type current_node_type;
+  current_node_type = isl_schedule_node_get_type(this->current_node);
+  bool is_parallel = false;
+  if (current_node_type == isl_schedule_node_mark) {
+    isl_id *id = isl_schedule_node_mark_get_id(this->current_node);
+    const char *name = isl_id_get_name(id);
+    if (0 == strncmp("pragma_parallel_", name, 16))
+      is_parallel = true;
+    isl_id_free(id);
+  }
+  isl_union_map *dep = isl_union_map_copy(this->dep_flow);
+  if (is_parallel)
+    return _check_legality_parallel(this->current_node, dep);
+  return _check_legality(this->current_node, dep);
 }
