@@ -8,7 +8,6 @@ from tadashi.apps import Polybench, Simple
 
 
 class TestTadashi(unittest.TestCase):
-    @unittest.skip("todo")
     def test_get_args(self):
         app = Simple(Path(__file__).parent.parent / "examples/inputs/shifts.c")
         node = app.scops[0].schedule_tree[3]
@@ -21,7 +20,6 @@ class TestTadashi(unittest.TestCase):
         # is an infinite interval...
         self.assertEqual(len(avail_args[0]) * (end - start), len(args))
 
-    @unittest.skip("todo")
     def test_scop_legality(self):
         app = Polybench("jacobi-1d")
         trs = [

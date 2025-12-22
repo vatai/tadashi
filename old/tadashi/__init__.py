@@ -40,32 +40,6 @@ class Node:
         """Check the validity of args."""
         return TRANSFORMATIONS[tr].valid_args(self, *args)
 
-    def available_args(self, tr: TrEnum) -> list:
-        """Describe available args."""
-        return TRANSFORMATIONS[tr].available_args(self)
-
-    def get_args(self, tr: TrEnum, start: int, end: int) -> list:
-        expanded: list[list] = [[]]
-        params = self.available_args(tr)
-        if not params:
-            return expanded
-        if all([isinstance(p, list) for p in params]):
-            return params
-        for param in params:
-            args = param
-            if isinstance(param, LowerUpperBound):
-                if param.lower is not None and param.lower > start:
-                    start = param.lower
-                if param.upper is not None and param.upper < end:
-                    end = param.upper
-                args = list(range(start, end))
-                expanded = [[*e, a] for e in expanded for a in args]
-            elif isinstance(param, list) and len(param) and isinstance(param[0], list):
-                expanded = [[*e, *a] for e in expanded for a in args]
-            else:
-                expanded = [[*e, a] for e in expanded for a in args]
-        return expanded
-
 
 LowerUpperBound = namedtuple(
     "LowerUpperBound",
