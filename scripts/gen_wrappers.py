@@ -135,7 +135,7 @@ def generate():
             # Check if first arg is isl_schedule_node*
             if args and "isl_schedule_node" in args[0][0]:
                 py_args.append("scop: Scop")
-                c_args.append("scop.scop.current_node")
+                c_args.append("scop.ptr_ccscop.current_node")
                 start_idx = 1
             else:
                 # Should not happen for these transformations but safer
@@ -156,7 +156,7 @@ def generate():
 
             f.write(f"@cython.ccall\n")
             f.write(f"def {py_name}({py_sig}):\n")
-            f.write(f"    scop.scop.current_node = {name}({c_call_args})\n\n")
+            f.write(f"    scop.ptr_ccscop.current_node = {name}({c_call_args})\n\n")
 
     print(f"Generated {H_FILE}, {PXD_FILE}, and {PY_FILE} with {len(funcs)} functions.")
 

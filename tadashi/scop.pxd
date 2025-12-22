@@ -8,4 +8,4 @@ cdef class Scop:
   cdef Scop create(ccScop *ptr)
   cdef isl.isl_schedule_node *_cur(self)
   #
-  cdef ccScop *scop
+  cdef ccScop *ptr_ccscop

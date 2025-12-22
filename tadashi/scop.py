@@ -113,17 +113,17 @@ class Node:
         # TODO proc_args (from olden times)
         self.scop._locate(self.location)
         # begin todo: this is ugly
-        if self.scop.scop.tmp_node != cython.NULL:
-            isl.isl_schedule_node_free(self.scop.scop.tmp_node)
+        if self.scop.ptr_ccscop.tmp_node != cython.NULL:
+            isl.isl_schedule_node_free(self.scop.ptr_ccscop.tmp_node)
 
-        tmp = isl.isl_schedule_node_copy(self.scop.scop.current_node)
-        self.scop.scop.tmp_node = tmp
-        self.scop.scop.tmp_legal = self.scop.scop.current_legal
+        tmp = isl.isl_schedule_node_copy(self.scop.ptr_ccscop.current_node)
+        self.scop.ptr_ccscop.tmp_node = tmp
+        self.scop.ptr_ccscop.tmp_legal = self.scop.ptr_ccscop.current_legal
         TRANSFORMATIONS[tr].transform(self.scop, *args)
-        self.scop.scop.current_legal = self.scop.scop.check_legality()
-        self.scop.scop.modified = True
+        self.scop.ptr_ccscop.current_legal = self.scop.ptr_ccscop.check_legality()
+        self.scop.ptr_ccscop.modified = True
         # end todo: this is ugly
-        return bool(self.scop.scop.current_legal)
+        return bool(self.scop.ptr_ccscop.current_legal)
 
     @property
     def node_type(self) -> NodeType:
@@ -602,13 +602,13 @@ class SetLoopOptInfo(TransformInfo):
 
 @cython.cclass
 class Scop:
-    scop: cython.pointer(ccScop)
+    ptr_ccscop: cython.pointer(ccScop)
 
     @staticmethod
     @cython.cfunc
     def create(ptr: cython.pointer(ccScop)) -> Scop:
         scop = Scop()
-        scop.scop = ptr
+        scop.ptr_ccscop = ptr
         return scop
 
     @property
@@ -620,7 +620,7 @@ class Scop:
 
     @property
     def legal(self) -> bool:
-        return bool(self.scop.current_legal)
+        return bool(self.ptr_ccscop.current_legal)
 
     def transform_list(self, trs: list) -> list[bool]:
         result = []
@@ -630,20 +630,20 @@ class Scop:
         return result
 
     def reset(self):
-        self.scop.reset()
+        self.ptr_ccscop.reset()
 
     def rollback(self) -> None:
         """Roll back (revert) the last transformation."""
-        self.scop.rollback()
+        self.ptr_ccscop.rollback()
 
     def __repr__(self):  # todo this is not a good node representation
-        node = self.scop.current_node
+        node = self.ptr_ccscop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
 
     @cython.cfunc
     def _cur(self) -> isl.schedule_node:
         # shortcut to save typing
-        return self.scop.current_node
+        return self.ptr_ccscop.current_node
 
     def _node_type_is(self, node_type: NodeType):
         tmp = isl.isl_schedule_node_get_type(self._cur())
@@ -697,26 +697,26 @@ class Scop:
     def _get_expr(self) -> str:
         if not self._node_type_is(NodeType.BAND):
             return ""
-        cur = self.scop.current_node
+        cur = self.ptr_ccscop.current_node
         mupa = isl.isl_schedule_node_band_get_partial_schedule(cur)
         expr = isl.isl_multi_union_pw_aff_to_str(mupa)
         mupa = isl.isl_multi_union_pw_aff_free(mupa)
         return expr.decode()
 
     def _goto_root(self) -> None:
-        ptr = self.scop.current_node
+        ptr = self.ptr_ccscop.current_node
         ptr = isl.isl_schedule_node_root(ptr)
-        self.scop.current_node = ptr
+        self.ptr_ccscop.current_node = ptr
 
     def _goto_parent(self) -> None:
-        ptr = self.scop.current_node
+        ptr = self.ptr_ccscop.current_node
         ptr = isl.isl_schedule_node_parent(ptr)
-        self.scop.current_node = ptr
+        self.ptr_ccscop.current_node = ptr
 
     def _goto_child(self, n: int) -> None:
-        ptr = self.scop.current_node
+        ptr = self.ptr_ccscop.current_node
         ptr = isl.isl_schedule_node_child(ptr, n)
-        self.scop.current_node = ptr
+        self.ptr_ccscop.current_node = ptr
 
     def _locate(self, loc: list[int]) -> None:
         self._goto_root()
@@ -724,12 +724,12 @@ class Scop:
             self._goto_child(child)
 
     def _yaml_str(self) -> str:
-        node = self.scop.current_node
+        node = self.ptr_ccscop.current_node
         return isl.isl_schedule_node_to_str(node).decode()
 
     def _traverse(self, nodes: list[Node], parent: int, location: list[int]):
         current_idx = len(nodes)
-        node = Node.create(self.scop, parent, current_idx, location)
+        node = Node.create(self.ptr_ccscop, parent, current_idx, location)
         nodes.append(node)
         if not node.node_type == NodeType.LEAF:
             for c in range(node.num_children):
