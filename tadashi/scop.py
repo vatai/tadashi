@@ -15,6 +15,9 @@ from . import _tr_wrappers as w
 from .node_type import NodeType
 
 SHOULD_NOT_HAPPEN = "This should not have happened. Please report an issue at https://github.com/vatai/tadashi/issues/"
+DELETED_TRANSLATOR_EXCMSG = (
+    "Something is wrong! Was the translator deleted before the scop?"
+)
 
 
 class AstLoopType(Enum):
@@ -718,6 +721,8 @@ class Scop:
         self.ptr_ccscop.current_node = ptr
 
     def _locate(self, loc: list[int]) -> None:
+        if self.ptr_ccscop.current_node == cython.NULL:
+            raise RuntimeError(DELETED_TRANSLATOR_EXCMSG)
         self._goto_root()
         for child in loc:
             self._goto_child(child)

@@ -37,7 +37,6 @@ class TestTranslator(unittest.TestCase):
         with self.assertRaises(Exception):
             translator.set_source(file)
 
-    @unittest.skip("wip: shouldn't crash")
     def test_deleted_translator(self):
         """This test should simply not crash."""
 
@@ -46,10 +45,13 @@ class TestTranslator(unittest.TestCase):
             translator = Pet()
             translator.set_source(file)
             scop = translator.scops[0]
+            # `translator` is freed after the next line.
             return scop.schedule_tree
 
-        node = _get_schedule_tree()[1]
-        print(node.yaml_str)
+        with self.assertRaises(RuntimeError):
+            node = _get_schedule_tree()[1]
+            # The translator is qeried when in the next line!
+            print(node.yaml_str)
 
     @unittest.skip("todo")
     def test_pet_scop_extraction(self):
