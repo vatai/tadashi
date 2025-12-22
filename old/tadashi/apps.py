@@ -219,12 +219,6 @@ class Polybench(App):
                 return str(c_file.relative_to(self.base).parent)
         raise ValueError(f"Not a polybench {benchmark=}")
 
-    def _codegen_init_args(self):
-        return {
-            "benchmark": self.benchmark,
-            "base": self.base,
-        }
-
     @staticmethod
     def get_benchmarks(path: str = POLYBENCH_BASE):
         benchmarks = []

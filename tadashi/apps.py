@@ -145,7 +145,7 @@ class App(abc.ABC):
             "compiler_options": self.user_compiler_options,
             "populate_scops": populate_scops,
         }
-        kwargs.update(self.codegen_init_args())
+        kwargs.update(self._codegen_init_args())
         app = self.__class__(**kwargs)
         app.ephemeral = ephemeral
         return app
@@ -167,7 +167,7 @@ class App(abc.ABC):
         """Command executed for compilation (list of strings)."""
         pass
 
-    def codegen_init_args(self) -> dict:
+    def _codegen_init_args(self) -> dict:
         return {}
 
     @staticmethod

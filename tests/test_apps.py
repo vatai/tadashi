@@ -23,7 +23,6 @@ class TestApp(unittest.TestCase):
                 continue
             self.assertEqual((akey, aval), (akey, tval))
 
-    @unittest.skip("todo")
     def test_app_legality(self):
         app = apps.Polybench("jacobi-1d")
         trs = [
@@ -78,14 +77,13 @@ class TestSimple(TestApp):
 class TestPolybench(TestApp):
     base: Path = TestApp.examples / "polybench"
 
-    @unittest.skip("wip")
     def test_args(self):
-        app = apps.Polybench("stencils/jacobi-2d", self.base)
+        app = apps.Polybench("stencils/jacobi-2d")
         self.compare_members(app)
 
     @unittest.skip("wip")
     def test_trlist(self):
-        app = apps.Polybench("stencils/jacobi-2d", self.base)
+        app = apps.Polybench("stencils/jacobi-2d")
         trs = [
             [2, TrEnum.FULL_SPLIT],
             [3, TrEnum.TILE_2D, 20, 20],
