@@ -81,7 +81,6 @@ class TestPolybench(TestApp):
         app = apps.Polybench("stencils/jacobi-2d")
         self.compare_members(app)
 
-    @unittest.skip("wip")
     def test_trlist(self):
         app = apps.Polybench("stencils/jacobi-2d")
         trs = [
@@ -94,7 +93,6 @@ class TestPolybench(TestApp):
         tapp.compile()
         # tapp.measure()
 
-    @unittest.skip("wip")
     def test_get_benchmark(self):
         app = apps.Polybench("correlation")
         self.assertEqual(app.benchmark, "datamining/correlation")
@@ -108,7 +106,6 @@ class TestPolybench(TestApp):
         with self.assertRaises(ValueError):
             app = apps.Polybench("does_not_exist")
 
-    @unittest.skip("wip")
     def test_dump_arrays(self):
         # print([a.name for a in apps.Polybench.get_benchmarks()])
         app = apps.Polybench("deriche", compiler_options=["-DMINI_DATASET"])
