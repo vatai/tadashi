@@ -115,7 +115,6 @@ class Node:
             raise ValueError(msg)
         # TODO proc_args (from olden times)
         self.scop._locate(self.location)
-        # begin todo: this is ugly
         ps = self.scop.ptr_ccscop
         if ps.tmp_node != cython.NULL:
             isl.isl_schedule_node_free(ps.tmp_node)
@@ -124,7 +123,6 @@ class Node:
         TRANSFORMATIONS[tr].transform(self.scop, *args)
         ps.current_legal = ps.check_legality()
         ps.modified = True
-        # end todo: this is ugly
         return bool(self.scop.ptr_ccscop.current_legal)
 
     @property
@@ -721,6 +719,12 @@ class Scop:
         self.ptr_ccscop.current_node = ptr
 
     def _locate(self, loc: list[int]) -> None:
+        # todo (low priority): This might be done in a better way by
+        # standardizing accessing the current_node.  We check NULL
+        # pointer here because the destructor zeros out the
+        # `current_node`, the pointer to ccScop is not zero.  One idea
+        # is to clear the pointer in Scop.__dealloc__ (or __del__),
+        # but I need to see when is that executed.
         if self.ptr_ccscop.current_node == cython.NULL:
             raise RuntimeError(DELETED_TRANSLATOR_EXCMSG)
         self._goto_root()
