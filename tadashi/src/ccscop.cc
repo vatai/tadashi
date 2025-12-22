@@ -278,29 +278,43 @@ get_dependencies(__isl_keep struct pet_scop *scop) {
 // === METHOD IMPLEMETATIONS ============================================ //
 // ====================================================================== //
 
-ccScop::~ccScop() {
-#ifndef NDEBUG
-  std::cout << "<<< [d]Default()" << std::endl;
-#endif // NDEBUG
-}
-
 ccScop::ccScop()
-    : current_node(nullptr), tmp_node(nullptr), current_legal(true),
-      tmp_legal(true), modified(0), domain(nullptr), call(nullptr),
-      may_writes(nullptr), must_writes(nullptr), must_kills(nullptr),
-      may_reads(nullptr), live_out(nullptr), schedule(nullptr),
-      _pet_scop(nullptr) {
+    : schedule(nullptr),     // 1.
+      dep_flow(nullptr),     // 2.
+      domain(nullptr),       // 3.
+      call(nullptr),         // 4.
+      may_writes(nullptr),   // 5.
+      must_writes(nullptr),  // 6.
+      must_kills(nullptr),   // 7.
+      may_reads(nullptr),    // 8.
+      live_out(nullptr),     // 9.
+      current_node(nullptr), // 10.
+      tmp_node(nullptr),     // 11.
+      current_legal(true),   // 12.
+      tmp_legal(true),       // 13.
+      modified(0)            // 14.
+{
 #ifndef NDEBUG
   std::cout << ">>> [c]Default()" << std::endl;
 #endif // NDEBUG
 }
 
 ccScop::ccScop(pet_scop *ps)
-    : current_node(nullptr), tmp_node(nullptr), current_legal(true),
-      tmp_legal(true), modified(0), domain(nullptr), call(nullptr),
-      may_writes(nullptr), must_writes(nullptr), must_kills(nullptr),
-      may_reads(nullptr), live_out(nullptr), schedule(nullptr),
-      _pet_scop(nullptr) {
+    : schedule(nullptr),     // 1.
+      dep_flow(nullptr),     // 2.
+      domain(nullptr),       // 3.
+      call(nullptr),         // 4.
+      may_writes(nullptr),   // 5.
+      must_writes(nullptr),  // 6.
+      must_kills(nullptr),   // 7.
+      may_reads(nullptr),    // 8.
+      live_out(nullptr),     // 9.
+      current_node(nullptr), // 10.
+      tmp_node(nullptr),     // 11.
+      current_legal(true),   // 12.
+      tmp_legal(true),       // 13.
+      modified(0)            // 14.
+{
 #ifndef NDEBUG
   std::cout << ">>> [c]PetPtr()" << std::endl;
 #endif // NDEBUG
@@ -318,35 +332,194 @@ ccScop::ccScop(pet_scop *ps)
   else
     this->_pet_eliminate_dead_code();
   this->current_node = isl_schedule_get_root(this->schedule);
-  this->_pet_scop = ps;
+  if (ps != nullptr)
+    pet_scop_free(ps);
 }
 
 void
-ccScop::dealloc() {
-  if (this->current_node != nullptr)
-    this->current_node = isl_schedule_node_free(this->current_node);
-  if (this->tmp_node != nullptr)
-    this->tmp_node = isl_schedule_node_free(this->tmp_node);
-  if (this->domain != nullptr)
-    this->domain = isl_union_set_free(this->domain);
-  if (this->call != nullptr)
-    this->call = isl_union_set_free(this->call);
-  if (this->may_writes != nullptr)
-    this->may_writes = isl_union_map_free(this->may_writes);
-  if (this->must_writes != nullptr)
-    this->must_writes = isl_union_map_free(this->must_writes);
-  if (this->must_kills != nullptr)
-    this->must_kills = isl_union_map_free(this->must_kills);
-  if (this->may_reads != nullptr)
-    this->may_reads = isl_union_map_free(this->may_reads);
-  if (this->schedule != nullptr)
-    this->schedule = isl_schedule_free(this->schedule);
-  if (this->dep_flow != nullptr)
-    this->dep_flow = isl_union_map_free(this->dep_flow);
-  if (this->live_out != nullptr)
-    this->live_out = isl_union_map_free(this->live_out);
-  if (this->_pet_scop != nullptr)
-    this->_pet_scop = pet_scop_free(this->_pet_scop);
+ccScop::_dealloc() {
+  // 14-12 need no freeing!
+  if (this->tmp_node != nullptr) { // 11.
+    isl_schedule_node_free(this->tmp_node);
+    this->tmp_node = nullptr;
+  }
+  if (this->current_node != nullptr) { // 10.
+    isl_schedule_node_free(this->current_node);
+    this->current_node = nullptr;
+  }
+  if (this->live_out != nullptr) { // 9.
+    isl_union_map_free(this->live_out);
+    this->live_out = nullptr;
+  }
+  if (this->may_reads != nullptr) { // 8.
+    isl_union_map_free(this->may_reads);
+    this->may_reads = nullptr;
+  }
+  if (this->must_kills != nullptr) { // 7.
+    isl_union_map_free(this->must_kills);
+    this->must_kills = nullptr;
+  }
+  if (this->must_writes != nullptr) { // 6.
+    isl_union_map_free(this->must_writes);
+    this->must_writes = nullptr;
+  }
+  if (this->may_writes != nullptr) { // 5.
+    isl_union_map_free(this->may_writes);
+    this->may_writes = nullptr;
+  }
+  if (this->call != nullptr) { // 4.
+    isl_union_set_free(this->call);
+    this->call = nullptr;
+  }
+  if (this->domain != nullptr) { // 3.
+    isl_union_set_free(this->domain);
+    this->domain = nullptr;
+  }
+  if (this->dep_flow != nullptr) { // 2.
+    isl_union_map_free(this->dep_flow);
+    this->dep_flow = nullptr;
+  }
+  if (this->schedule != nullptr) { // 1.
+    isl_schedule_free(this->schedule);
+    this->schedule = nullptr;
+  }
+}
+
+ccScop::~ccScop() {
+#ifndef NDEBUG
+  std::cout << "<<< [~]***destructor***()" << std::endl;
+#endif // NDEBUG
+  this->_dealloc();
+}
+
+void
+ccScop::_copy(const ccScop &other) {
+  this->_dealloc();
+  if (other.schedule != nullptr) // 1.
+    this->schedule = isl_schedule_copy(other.schedule);
+  if (other.dep_flow != nullptr) // 2.
+    this->dep_flow = isl_union_map_copy(other.dep_flow);
+  if (other.domain != nullptr) // 3.
+    this->domain = isl_union_set_copy(other.domain);
+  if (other.call != nullptr) // 4.
+    this->call = isl_union_set_copy(other.call);
+  if (other.may_writes != nullptr) // 5.
+    this->may_writes = isl_union_map_copy(other.may_writes);
+  if (other.must_writes != nullptr) // 6.
+    this->must_writes = isl_union_map_copy(other.must_writes);
+  if (other.must_kills != nullptr) // 7.
+    this->must_kills = isl_union_map_copy(other.must_kills);
+  if (other.may_reads != nullptr) // 8.
+    this->may_reads = isl_union_map_copy(other.may_reads);
+  if (other.live_out != nullptr) // 9.
+    this->live_out = isl_union_map_copy(other.live_out);
+  if (other.current_node != nullptr) // 10.
+    this->current_node = isl_schedule_node_copy(other.current_node);
+  if (other.tmp_node != nullptr) // 11.
+    this->tmp_node = isl_schedule_node_copy(other.tmp_node);
+  this->current_legal = other.current_legal; // 12.
+  this->tmp_legal = other.tmp_legal;         // 13.
+  this->modified = other.modified;           // 14.
+}
+
+ccScop::ccScop(const ccScop &other)
+    : schedule(nullptr),     // 1.
+      dep_flow(nullptr),     // 2.
+      domain(nullptr),       // 3.
+      call(nullptr),         // 4.
+      may_writes(nullptr),   // 5.
+      must_writes(nullptr),  // 6.
+      must_kills(nullptr),   // 7.
+      may_reads(nullptr),    // 8.
+      live_out(nullptr),     // 9.
+      current_node(nullptr), // 10.
+      tmp_node(nullptr),     // 11.
+      current_legal(true),   // 12.
+      tmp_legal(true),       // 13.
+      modified(0)            // 14.
+{
+#ifndef NDEBUG
+  std::cout << ">>> [c]Copy()" << std::endl;
+#endif // NDEBUG
+  this->_copy(other);
+}
+
+void
+ccScop::_set_nullptr(ccScop *scop) {
+  scop->schedule = nullptr;     // 1.
+  scop->dep_flow = nullptr;     // 2.
+  scop->domain = nullptr;       // 3.
+  scop->call = nullptr;         // 4.
+  scop->may_writes = nullptr;   // 5.
+  scop->must_writes = nullptr;  // 6.
+  scop->must_kills = nullptr;   // 7.
+  scop->may_reads = nullptr;    // 8.
+  scop->live_out = nullptr;     // 9.
+  scop->current_node = nullptr; // 10.
+  scop->tmp_node = nullptr;     // 11.
+  scop->current_legal = true;   // 12.
+  scop->tmp_legal = true;       // 13.
+  scop->modified = 0;           // 14.
+}
+
+ccScop::ccScop(ccScop &&other) noexcept
+    : schedule(other.schedule),           // 1.
+      dep_flow(other.dep_flow),           // 2.
+      domain(other.domain),               // 3.
+      call(other.call),                   // 4.
+      may_writes(other.may_writes),       // 5.
+      must_writes(other.must_writes),     // 6.
+      must_kills(other.must_kills),       // 7.
+      may_reads(other.may_reads),         // 8.
+      live_out(other.live_out),           // 9.
+      current_node(other.current_node),   // 10.
+      tmp_node(other.tmp_node),           // 11.
+      current_legal(other.current_legal), // 12.
+      tmp_legal(other.tmp_legal),         // 13.
+      modified(other.modified)            // 14.
+{
+#ifndef NDEBUG
+  std::cout << ">>> [c]Move()" << std::endl;
+#endif // NDEBUG
+  _set_nullptr(&other);
+}
+
+ccScop &
+ccScop::operator=(const ccScop &other) {
+#ifndef NDEBUG
+  std::cout << ">>> [op=]Copy()" << std::endl;
+#endif // NDEBUG
+  if (this == &other)
+    return *this;
+  this->_copy(other);
+  return *this;
+}
+
+ccScop &
+ccScop::operator=(ccScop &&other) noexcept {
+#ifndef NDEBUG
+  std::cout << ">>> [op=]Move()" << std::endl;
+#endif // NDEBUG
+  if (this == &other)
+    return *this;
+  this->_dealloc();
+  this->schedule = other.schedule;           // 1.
+  this->dep_flow = other.dep_flow;           // 2.
+  this->domain = other.domain;               // 3.
+  this->call = other.call;                   // 4.
+  this->may_writes = other.may_writes;       // 5.
+  this->must_writes = other.must_writes;     // 6.
+  this->must_kills = other.must_kills;       // 7.
+  this->may_reads = other.may_reads;         // 8.
+  this->live_out = other.live_out;           // 9.
+  this->current_node = other.current_node;   // 10.
+  this->tmp_node = other.tmp_node;           // 11.
+  this->current_legal = other.current_legal; // 12.
+  this->tmp_legal = other.tmp_legal;         // 13.
+  this->modified = other.modified;           // 14.
+  //
+  _set_nullptr(&other);
+  return *this;
 }
 
 void

@@ -23,8 +23,7 @@ class Translator:
     source: str
 
     def __dealloc__(self):
-        for idx in range(self.ccscops.size()):
-            self.ccscops[idx].dealloc()
+        self.ccscops.clear()
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
