@@ -122,7 +122,6 @@ class TestCcScop(unittest.TestCase):
             self.assertTrue(legal)
         self.assertFalse(legals[-1])
 
-    @unittest.skip("todo")
     def test_labels(self):
         app = Polybench(Path("correlation"))
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4")
@@ -132,12 +131,11 @@ class TestCcScop(unittest.TestCase):
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4-tile1d-inner")
 
         app.scops[0].reset()
-        trs = [[27, TrEnum.TILE2D, 11, 13]]
+        trs = [[27, TrEnum.TILE_2D, 11, 13]]
         app.scops[0].transform_list(trs)
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
-    @unittest.skip("todo")
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent
         app = Simple(base / "examples/inputs/simple/two_loops.c", Pet())
@@ -146,7 +144,6 @@ class TestCcScop(unittest.TestCase):
         for i in range(30):
             app = app.generate_code(populate_scops=True)
 
-    @unittest.skip("todo")
     def test_bad_deps(self):
         app = Simple("tests/bad_deps.c", Pet())
         scop = app.scops[0]
@@ -158,7 +155,6 @@ class TestCcScop(unittest.TestCase):
         # print(f"{valid=}")
         # print(tapp.source.read_text())
 
-    @unittest.skip("todo")
     def test_legality_new(self):
         app = Polybench("gemm")
         self.assertTrue(app.legal)
