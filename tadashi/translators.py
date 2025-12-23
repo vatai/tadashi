@@ -60,6 +60,10 @@ class Pet(Translator):
     def __init__(self, autodetect: bool = False):
         self.autodetect = autodetect
 
+    def __copy__(self):
+        cls = self.__class__
+        return cls(self.autodetect)
+
     @cython.ccall
     def _populate_ccscops(self, source: str):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()

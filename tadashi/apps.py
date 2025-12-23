@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import abc
+import copy
 import datetime
 import os
 import re
@@ -139,9 +140,10 @@ class App(abc.ABC):
         else:
             new_file = self._make_new_filename()
         self.translator.generate_code(str(self.source), str(new_file))
+        translator = copy.copy(self.translator) if populate_scops else None
         kwargs = {
             "source": new_file,
-            "translator": self.translator,
+            "translator": translator,
             "compiler_options": self.user_compiler_options,
             "populate_scops": populate_scops,
         }
