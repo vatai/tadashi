@@ -173,22 +173,3 @@ class Scops:
     @property
     def legal(self):
         return all(s.legal for s in self.scops)
-
-
-class LLVMScops(Scops):
-
-    def __init__(self, source_path: Path, compiler: str):
-        self._check_missing_file(Path(source_path))
-        self.app_ptr = ctadashi.init_scops_from_json(compiler, str(source_path))
-        self.num_scops = ctadashi.num_scops(self.app_ptr)
-        self.scops = [Scop(self.app_ptr, scop_idx=i) for i in range(self.num_scops)]
-
-    def generate_code(self, input_path, output_path):
-        """Generate the source code.
-
-        The transformations happen on the SCoPs (polyhedral
-        representations), and to put that into code, this method needs
-        to be called.
-
-        """
-        ctadashi.generate_code(self.app_ptr, str(input_path), str(output_path))
