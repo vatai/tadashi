@@ -189,6 +189,23 @@ class Node:
                 expanded = [[*e, a] for e in expanded for a in args]
         return expanded
 
+    def valid_transformation(self, tr: TrEnum) -> bool:  # todo add test
+        """Check the validity of the transformation."""
+        return TRANSFORMATIONS[tr].valid(self)
+
+    @property  # todo add test
+    def available_transformations(self) -> list[TrEnum]:
+        """List transformations available at the `Node`."""
+        result = []
+        for k, tr in TRANSFORMATIONS.items():
+            if tr.valid(self):
+                result.append(k)
+        return result
+
+    def valid_args(self, tr: TrEnum, *args) -> bool:  # todo add test
+        """Check the validity of args."""
+        return TRANSFORMATIONS[tr].valid_args(self, *args)
+
     @property
     def yaml_str(self):
         self.scop._locate(self.location)
