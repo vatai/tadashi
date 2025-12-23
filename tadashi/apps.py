@@ -208,6 +208,10 @@ class App(abc.ABC):
             results.append(self.extract_runtime(stdout))
         return min(results)
 
+    def extract_runtime(self, stdout: str) -> float:
+        """Extract the measured runtime from the output."""
+        raise NotImplementedError()
+
 
 class Simple(App):
     runtime_prefix: str
