@@ -240,9 +240,6 @@ def register(cls):
 class TransformInfo:
     """Abstract base class used to describe transformations."""
 
-    func_name: str
-    """The name of the C/C++ function in the `.so` file."""
-
     arg_help: list[str] = []
     """Help string describing the arg."""
 
@@ -309,7 +306,6 @@ class Tile1DInfo(TransformInfo):
 
 @register
 class Tile2DInfo(TransformInfo):
-    func_name = "tile2d"
     arg_help = ["Size1", "Size2"]
 
     @staticmethod
@@ -330,7 +326,6 @@ class Tile2DInfo(TransformInfo):
 
 @register
 class Tile3DInfo(TransformInfo):
-    func_name = "tile3d"
     arg_help = ["Size1", "Size2", "Size3"]
 
     @staticmethod
@@ -352,8 +347,6 @@ class Tile3DInfo(TransformInfo):
 
 @register
 class InterchangeInfo(TransformInfo):
-    func_name = "interchange"
-
     @staticmethod
     def valid(node: Node):
         return (
@@ -365,7 +358,6 @@ class InterchangeInfo(TransformInfo):
 
 @register
 class FuseInfo(TransformInfo):
-    func_name = "fuse"
     arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
 
     @staticmethod
@@ -395,8 +387,6 @@ class FuseInfo(TransformInfo):
 
 @register
 class FullFuseInfo(TransformInfo):
-    func_name = "full_fuse"
-
     @staticmethod
     def valid(node: Node):
         return (
@@ -406,7 +396,6 @@ class FullFuseInfo(TransformInfo):
 
 @register
 class SplitInfo(TransformInfo):
-    func_name = "split"
     arg_help = ["Index where the sequence should be split"]
 
     @staticmethod
@@ -435,8 +424,6 @@ class SplitInfo(TransformInfo):
 
 @register
 class FullSplitInfo(TransformInfo):
-    func_name = "full_split"
-
     # TODO -> split sequence!
     @staticmethod
     def valid(node: Node):
@@ -449,7 +436,6 @@ class FullSplitInfo(TransformInfo):
 
 @register
 class PartialShiftVarInfo(TransformInfo):
-    func_name = "partial_shift_var"
     arg_help = ["Statement index", "Variable index", "Coefficient"]
 
     @staticmethod
@@ -470,7 +456,6 @@ class PartialShiftVarInfo(TransformInfo):
 
 @register
 class PartialShiftValInfo(TransformInfo):
-    func_name = "partial_shift_val"
     arg_help = ["Statement index", "Value"]
 
     @staticmethod
@@ -485,7 +470,6 @@ class PartialShiftValInfo(TransformInfo):
 
 @register
 class PartialShiftParamInfo(TransformInfo):
-    func_name = "partial_shift_param"
     arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
     @staticmethod
@@ -515,7 +499,6 @@ class PartialShiftParamInfo(TransformInfo):
 
 @register
 class FullShiftVarInfo(TransformInfo):
-    func_name = "full_shift_var"
     arg_help = ["Variable index", "Coefficient"]
 
     @staticmethod
@@ -549,7 +532,6 @@ class FullShiftVarInfo(TransformInfo):
 
 @register
 class FullShiftValInfo(TransformInfo):
-    func_name = "full_shift_val"
     arg_help = ["Value"]
 
     @staticmethod
@@ -559,7 +541,6 @@ class FullShiftValInfo(TransformInfo):
 
 @register
 class FullShiftParamInfo(TransformInfo):
-    func_name = "full_shift_param"
     arg_help = ["Parameter index", "Coefficient"]
 
     @staticmethod
@@ -588,7 +569,6 @@ class FullShiftParamInfo(TransformInfo):
 
 @register
 class SetParallelInfo(TransformInfo):
-    func_name = "set_parallel"
     arg_help = ["omp num_threads"]
 
     @staticmethod
@@ -601,7 +581,6 @@ class SetParallelInfo(TransformInfo):
 
 @register
 class SetLoopOptInfo(TransformInfo):
-    func_name = "set_loop_opt"
     arg_help = ["Iterator index", "Option"]
 
     @staticmethod
