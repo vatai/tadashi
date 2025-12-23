@@ -63,46 +63,7 @@ class Scop:
 
 
 class Scops:
-    """All SCoPs which belong to a given file.
-
-    The object of type `Scops` is similar to a list."""
-
-    app_ptr: int
-    num_scops: int
-    scops: list[Scop]
-
-    def __init__(self, source_path: str, defines: list[str]):
-        self._check_missing_file(Path(source_path))
-        self.defines = defines
-        self.app_ptr = ctadashi.init_scops(str(source_path), defines)
-        self.num_scops = ctadashi.num_scops(self.app_ptr)
-        self.scops = [Scop(self.app_ptr, scop_idx=i) for i in range(self.num_scops)]
-
-    def __del__(self):
-        if ctadashi:
-            ctadashi.free_scops(self.app_ptr)
-
     @staticmethod
     def _check_missing_file(path: Path):
         if not path.exists():
             raise ValueError(f"{path} does not exist!")
-
-    def generate_code(self, input_path, output_path):
-        """Generate the source code.
-
-        The transformations happen on the SCoPs (polyhedral
-        representations), and to put that into code, this method needs
-        to be called.
-
-        """
-        ctadashi.generate_code(self.app_ptr, str(input_path), str(output_path))
-
-    def __len__(self):
-        return self.num_scops
-
-    def __getitem__(self, idx):
-        return self.scops[idx]
-
-    @property
-    def legal(self):
-        return all(s.legal for s in self.scops)
