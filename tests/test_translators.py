@@ -25,16 +25,16 @@ class TestTranslator(unittest.TestCase):
         for autodetect, num_scops in cases:
             with self.subTest(autodetect=autodetect):
                 translator = Pet(autodetect=autodetect)
-                translator.set_source(file)
+                translator.set_source(file, [])
                 self.assertEqual(len(translator.scops), num_scops)
 
     def test_double_set(self):
         """Calling set_source() 2x on a translator should raise an error!"""
         translator = Pet()
         file = self.examples / "inputs/depnodep.c"
-        translator.set_source(file)
+        translator.set_source(file, [])
         with self.assertRaises(RuntimeError):
-            translator.set_source(file)
+            translator.set_source(file, [])
 
     def test_deleted_translator(self):
         """This test should simply not crash."""
@@ -42,7 +42,7 @@ class TestTranslator(unittest.TestCase):
         def _get_schedule_tree():
             file = self.examples / "inputs/depnodep.c"
             translator = Pet()
-            translator.set_source(file)
+            translator.set_source(file, [])
             scop = translator.scops[0]
             # `translator` is freed after the next line.
             return scop.schedule_tree

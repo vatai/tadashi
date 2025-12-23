@@ -70,33 +70,26 @@ class App(abc.ABC):
         if compiler_options is None:
             compiler_options = []
         if populate_scops and translator:
-            includes = self._get_flags("I", compiler_options)
-            self.translator = translator.set_includes(includes).set_source(source)
+            self.translator = translator.set_source(source, compiler_options)
         else:
             self.translator = None
         self.user_compiler_options = compiler_options
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
 
-    @staticmethod
-    def _get_flags(flag: str, flags: list[str]):
-        """Get values of the certain compiler flags from compiler options."""
-        defines = []
-        for i, opt in enumerate(flags):
-            if not opt.startswith(f"-{flag}"):
-                continue
-            if opt == f"-{flag}":
-                if i + 1 >= len(flags):
-                    raise ValueError(f"Empty -{flag} comiler option")
-                defines.append(flags[i + 1])
-            else:
-                defines.append(opt[2:])
-        return defines
+    def __getstate__(self):
+        """This was probably needed for serialisation."""
+        state = {}
+        for k, v in self.__dict__.items():
+            state[k] = None if k == "translator" else v
+        return state
 
     @property
     def scops(self) -> list[Scop]:
         """The `Scop` list forwarded from `App.translator` (both for
         compatibility and convenience reasons)."""
+        if self.translator == None:
+            return None
         return self.translator.scops
 
     @property
@@ -151,6 +144,15 @@ class App(abc.ABC):
         app = self.__class__(**kwargs)
         app.ephemeral = ephemeral
         return app
+
+    def _source_with_infix(self, alt_infix: str):
+        mark = "INFIX"
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{alt_infix}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
     def _make_new_filename(self) -> Path:
         mark = "TMPFILE"

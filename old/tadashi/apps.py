@@ -20,26 +20,6 @@ class App:
     ephemeral: bool = False
     populate_scops: bool = True
 
-    def __del__(self):
-        if self.ephemeral:
-            binary = self.output_binary
-            if binary.exists():
-                binary.unlink()
-            if self.source.exists():
-                self.source.unlink()
-            else:
-                print("WARNING: source file missing!")
-
-    def __getstate__(self):
-        """This was probably needed for serialisation."""
-        state = {}
-        for k, v in self.__dict__.items():
-            state[k] = None if k == "scops" else v
-        return state
-
-    def _codegen_init_args(self) -> dict:
-        return {}
-
     @staticmethod
     def _get_defines(options: list[str]):
         defines = []
@@ -74,33 +54,6 @@ class App:
             raise ValueError(f"{self.source=} does not exist!")
         defines = self._get_defines(compiler_options)
         self.scops = Scops(str(self.source), defines) if self.populate_scops else None
-
-    def _source_with_infix(self, alt_infix: str):
-        mark = "INFIX"
-        suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
-        prefix = f"{filename}-{mark}-{alt_infix}-"
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-        suffix = self.source.suffix
-        return self.source.with_suffix(f".{alt_infix}{suffix}")
-
-    def _make_new_filename(self) -> Path:
-        mark = "TMPFILE"
-        now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now).replace(":", "-")
-        suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
-        prefix = f"{filename}-{mark}-{now_str}-"
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-
-    @property
-    def compile_cmd(self) -> list[str]:
-        """Command executed for compilation (list of strings)."""
-        raise NotImplementedError()
 
     def generate_code(
         self,

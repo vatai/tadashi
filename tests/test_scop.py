@@ -16,7 +16,7 @@ class TestScop(unittest.TestCase):
     def _get_schedule_tree(self):
         file = self.examples / "inputs/depnodep.c"
         translator = Pet()
-        translator.set_source(file)
+        translator.set_source(file, [])
         scop = translator.scops[0]
         return scop.schedule_tree
 
@@ -31,7 +31,7 @@ class TestNode(unittest.TestCase):
     def _get_schedule_tree(self):
         file = self.examples / "inputs/depnodep.c"
         translator = Pet()
-        translator.set_source(file)
+        translator.set_source(file, [])
         scop = translator.scops[0]
         return scop.schedule_tree
 

@@ -28,7 +28,22 @@ class Translator:
         if self.ctx is not cython.NULL:
             isl.isl_ctx_free(self.ctx)
 
-    def set_source(self, source: str | Path) -> Translator:
+    @staticmethod
+    def _get_flags(flag: str, flags: list[str]) -> list[str]:
+        """Get values of the certain compiler flags from compiler options."""
+        defines = []
+        for i, opt in enumerate(flags):
+            if not opt.startswith(f"-{flag}"):
+                continue
+            if opt == f"-{flag}":
+                if i + 1 >= len(flags):
+                    raise ValueError(f"Empty -{flag} comiler option")
+                defines.append(flags[i + 1])
+            else:
+                defines.append(opt[2:])
+        return defines
+
+    def set_source(self, source: str | Path, options: list[str]) -> Translator:
         """Do the bookkeeping of the init.
 
         This method should be called from the derived class as
@@ -40,7 +55,7 @@ class Translator:
         self.source = str(source)
         self.scops = []
         self.ccscops.clear()
-        self._populate_ccscops(str(source))
+        self._populate_ccscops(str(source), options)
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
             self.scops.append(Scop.create(ptr))
@@ -65,12 +80,24 @@ class Pet(Translator):
         return cls(self.autodetect)
 
     @cython.ccall
-    def _populate_ccscops(self, source: str):
+    def _populate_ccscops(self, source: str, options: list[str]):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
-        opt = 1 if self.autodetect else 0
-        pet.pet_options_set_autodetect(self.ctx, opt)
         if self.ctx is cython.NULL:
             raise MemoryError()
+        # Set includes
+        include_paths = self._get_flags("I", options)
+        includes_str = ":".join([p for p in include_paths])
+        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
+        os.environ["C_INCLUDE_PATH"] = includes_str
+        if prev_include_path:
+            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
+        # Set defines
+        for define in self._get_flags("D", options):
+            pet.pet_options_append_defines(self.ctx, define.encode())
+        # Set autodetect
+        opt = 1 if self.autodetect else 0
+        pet.pet_options_set_autodetect(self.ctx, opt)
+        # Fill self.ccscops
         pet.pet_transform_C_source(
             self.ctx,
             source.encode(),
@@ -138,10 +165,3 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
-
-    def set_includes(self, include_paths: list[str]):
-        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
-        os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
-        if prev_include_path:
-            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
-        return self
