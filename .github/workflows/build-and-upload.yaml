@@ -1,7 +1,6 @@
 name: Build and Upload Python Package
 
-# on: [push, pull_request]
-on: [push] # TODO return pull_request
+on: [push, pull_request]
 
 jobs:
   build_wheels:
@@ -58,7 +57,7 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    # if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
     - uses: actions/download-artifact@v5
       with:
