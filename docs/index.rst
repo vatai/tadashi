@@ -16,22 +16,23 @@ Tadashi can be installed from `PyPI`_.
 
 .. mermaid::
 
-  flowchart LR
+  flowchart TB
     subgraph apps["Files on disc"]
-      direction LR
+      direction TB
       app["orig.c"]
       tapp["new.c"]
     end
     subgraph states["States of the polyhedral representation"]
-      direction LR
-      S1["$$S1$$"]
-      S2["$$S_2$$"]
-      S3["$$S_3$$"]
+      direction TB
+      S1["State0"]
+      S2["State1"]
+      S3["State2"]
       S1-- "`legal = node.transform()`" -->S2
       S2-- "`legal = node.transform()`" -->S3
     end
     app-. "`node = app.scops[0].schedule_tree[42]`" .-> S1
     S3-. "`tapp = app.generate_code()`".-> tapp
+    S3-. "`app.reset_scops()`".-> S1
 
 Add your :math:`x` content using ``reStructuredText`` syntax. See the
 `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
@@ -52,11 +53,9 @@ documentation for details.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-
-.. include:: modules.rst
 
 
 Indices and tables
