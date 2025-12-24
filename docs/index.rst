@@ -11,7 +11,7 @@ Work In Progress!!!
 
 Tadashi can be installed from `PyPI`_.
 
-.. _PyPI: https://test.pypi.org/project/tadashi/
+.. _PyPI: https://pypi.org/project/tadashi/
 
 
 .. mermaid::

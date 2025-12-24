@@ -1,12 +1,12 @@
 name: Build and Upload Python Package
 
-on: [push, pull_request, release]
+on:
+  release:
+    types: [published]
 
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
-    # if: false # <-- This line disables the job
-    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -51,13 +51,12 @@ jobs:
         name: cibw-sdist
         path: dist/*.tar.gz
 
-  upload_all:
+  upload_to_pypi:
     needs: [build_wheels, make_sdist]
-    environment: testpypi
+    environment: pypi
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
     - uses: actions/download-artifact@v5
       with:
@@ -65,7 +64,8 @@ jobs:
         path: dist
         merge-multiple: true
 
-    - uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Upload package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/legacy/
+        # repository-url: https://test.pypi.org/legacy/
         verbose: true
