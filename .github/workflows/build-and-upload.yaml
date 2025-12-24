@@ -6,7 +6,7 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     # if: false # <-- This line disables the job
-    if: github.event_name == 'release' && github.event.action == 'published'
+    # if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
