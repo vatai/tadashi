@@ -145,7 +145,6 @@ static __isl_give isl_printer *
 print_declarations(__isl_take isl_printer *p, __isl_keep isl_ast_build *build,
                    struct pet_scop *scop, int *indent) {
   struct print_array_data data = {.p = p, .build = build};
-  int i;
 
   *indent = 0;
 

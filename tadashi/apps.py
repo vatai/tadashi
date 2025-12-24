@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/bin/env python
+
+import abc
+import copy
 import datetime
 import os
 import re
@@ -8,17 +11,33 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
-from . import Scops
+from .scop import Scop
+from .translators import Pet, Translator
 
 Result = namedtuple("Result", ["legal", "walltime"])
 
 
-class App:
-    scops: Scops | None
-    source: Path
+class App(abc.ABC):
+    """The (abstract) base class for app objects."""
+
     user_compiler_options: list[str]
+    """User compiler options are passed to the compilation command."""
+
     ephemeral: bool = False
+    """Ephemeral, i.e. short lived apps.
+
+    If set to `True`, the files of the `App` (usually `App.source`) is
+    deleted in the destructor of the Python `App` object.
+
+    """
+
     populate_scops: bool = True
+    """For an `App` that is not intended for transformations.
+
+    If set to `False` populating `App.scops` is skipped. This is
+    useful to create a "shallow copy" of an `App`.
+
+    """
 
     def __del__(self):
         if self.ephemeral:
@@ -30,81 +49,69 @@ class App:
             else:
                 print("WARNING: source file missing!")
 
+    def __init__(
+        self,
+        source: str | Path,
+        translator: Optional[Translator] = None,
+        compiler_options: Optional[list[str]] = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
+    ):
+        """Construct an app object.
+
+        Args:
+
+          source: The source file.
+          translator: See `Translator`.
+        """
+        self.source = Path(source)
+        if translator is None and populate_scops:
+            translator = Pet()
+        if compiler_options is None:
+            compiler_options = []
+        if populate_scops and translator:
+            self.translator = translator.set_source(source, compiler_options)
+        else:
+            self.translator = None
+        self.user_compiler_options = compiler_options
+        self.ephemeral = ephemeral
+        self.populate_scops = populate_scops
+
     def __getstate__(self):
         """This was probably needed for serialisation."""
         state = {}
         for k, v in self.__dict__.items():
-            state[k] = None if k == "scops" else v
+            state[k] = None if k == "translator" else v
         return state
 
-    def _codegen_init_args(self) -> dict:
-        return {}
-
-    @staticmethod
-    def _get_defines(options: list[str]):
-        defines = []
-        for i, opt in enumerate(options):
-            if not opt.startswith("-D"):
-                continue
-            if opt == "-D":
-                if i + 1 >= len(options):
-                    raise ValueError("Empty -D comiler option")
-                defines.append(options[i + 1])
-            else:
-                defines.append(opt[2:])
-        return defines
-
-    def _finalize_object(
-        self,
-        source: str | Path,
-        include_paths: Optional[list[str | Path]] = None,
-        compiler_options: Optional[list[str]] = None,
-    ):
-        if include_paths is None:
-            include_paths = []
-        if compiler_options is None:
-            compiler_options = []
-        self.user_compiler_options = compiler_options
-        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
-        os.environ["C_INCLUDE_PATH"] = ":".join([str(p) for p in include_paths])
-        if prev_include_path:
-            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
-        self.source = Path(source)
-        if not self.source.exists():
-            raise ValueError(f"{self.source=} doesn't exist!")
-        defines = self._get_defines(compiler_options)
-        self.scops = Scops(str(self.source), defines) if self.populate_scops else None
-
-    def _source_with_infix(self, alt_infix: str):
-        mark = "INFIX"
-        suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
-        prefix = f"{filename}-{mark}-{alt_infix}-"
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-        suffix = self.source.suffix
-        return self.source.with_suffix(f".{alt_infix}{suffix}")
-
-    def _make_new_filename(self) -> Path:
-        mark = "TMPFILE"
-        now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now).replace(":", "-")
-        suffix = self.source.suffix
-        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
-        prefix = f"{filename}-{mark}-{now_str}-"
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
-
-    @staticmethod
-    def compiler():
-        return os.getenv("CC", "gcc")
+    @property
+    def scops(self) -> list[Scop]:
+        """The `Scop` list forwarded from `App.translator` (both for
+        compatibility and convenience reasons)."""
+        if self.translator == None:
+            return None
+        return self.translator.scops
 
     @property
-    def compile_cmd(self) -> list[str]:
-        """Command executed for compilation (list of strings)."""
-        raise NotImplementedError()
+    def legal(self) -> bool:
+        return all(s.legal for s in self.scops)
+
+    def transform_list(self, transformation_list: list) -> Result:
+        for si, ni, *tr in transformation_list:
+            node = self.scops[si].schedule_tree[ni]
+            legal = node.transform(*tr)
+        self.compile()
+        walltime = self.measure()
+        return Result(legal, walltime)
+
+    def reset_scops(self):
+        for scop in self.scops:
+            scop.reset()
+
+    @property
+    def output_binary(self) -> Path:
+        """The output binary obtained after compilation."""
+        return self.source.with_suffix("")
 
     def generate_code(
         self,
@@ -119,15 +126,17 @@ class App:
                 raise ValueError(
                     "The App was created without scops, cannot check legality"
                 )
-            if not self.scops.legal:
+            if not all(s.legal for s in self.scops):
                 raise ValueError("The App is not in a legal state")
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self._make_new_filename()
-        self.scops.generate_code(self.source, new_file)
+        self.translator.generate_code(str(self.source), str(new_file))
+        translator = copy.copy(self.translator) if populate_scops else None
         kwargs = {
             "source": new_file,
+            "translator": translator,
             "compiler_options": self.user_compiler_options,
             "populate_scops": populate_scops,
         }
@@ -136,18 +145,38 @@ class App:
         app.ephemeral = ephemeral
         return app
 
-    def reset_scops(self):
-        for scop in self.scops:
-            scop.reset()
+    def _source_with_infix(self, alt_infix: str):
+        mark = "INFIX"
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{alt_infix}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    def extract_runtime(self, stdout: str) -> float:
-        """Extract the measured runtime from the output."""
-        raise NotImplementedError()
+    def _make_new_filename(self) -> Path:
+        mark = "TMPFILE"
+        now = datetime.datetime.now()
+        now_str = datetime.datetime.isoformat(now).replace(":", "-")
+        suffix = self.source.suffix
+        pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
+        m = re.match(pattern, str(self.source))
+        filename = m.groups()[0] if m else self.source.with_suffix("")
+        prefix = f"{filename}-{mark}-{now_str}-"
+        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
     @property
-    def output_binary(self) -> Path:
-        """The output binary obtained after compilation."""
-        return self.source.with_suffix("")
+    @abc.abstractmethod
+    def compile_cmd(self) -> list[str]:
+        """Command executed for compilation (list of strings)."""
+        pass
+
+    def _codegen_init_args(self) -> dict:
+        return {}
+
+    @staticmethod
+    def compiler():
+        return os.getenv("CC", "gcc")
 
     def compile(
         self,
@@ -179,39 +208,9 @@ class App:
             results.append(self.extract_runtime(stdout))
         return min(results)
 
-    def compile_and_measure(self, *args, **kwargs) -> float | str:
-        try:
-            self.compile()
-        except subprocess.CalledProcessError as err:
-            return str(err)
-        return self.measure(*args, **kwargs)
-
-    def transform_list(
-        self, transformation_list: list, run_each: bool = False
-    ) -> Result | list[Result]:
-        if transformation_list == []:
-            run_each = True
-        if run_each:
-            results = []
-            self.compile()
-            walltime = self.measure()
-            results.append(Result(True, walltime))
-        for si, ni, *tr in transformation_list:
-            node = self.scops[si].schedule_tree[ni]
-            legal = node.transform(*tr)
-            if run_each:
-                self.compile()
-                walltime = self.measure()
-                results.append(Result(legal, walltime))
-        if not run_each:
-            self.compile()
-            walltime = self.measure()
-            return Result(legal, walltime)
-        return results
-
-    @property
-    def legal(self) -> bool:
-        return all(s.legal for s in self.scops)
+    def extract_runtime(self, stdout: str) -> float:
+        """Extract the measured runtime from the output."""
+        raise NotImplementedError()
 
 
 class Simple(App):
@@ -220,25 +219,25 @@ class Simple(App):
     def __init__(
         self,
         source: str | Path,
+        translator: Optional[Translator] = None,
         compiler_options: Optional[list[str]] = None,
-        runtime_prefix: str = "WALLTIME: ",
         ephemeral: bool = False,
         populate_scops: bool = True,
+        *,
+        runtime_prefix: str = "WALLTIME: ",
     ):
-        if compiler_options is None:
-            compiler_options = []
-        self.ephemeral = ephemeral
-        self.populate_scops = populate_scops
         self.runtime_prefix = runtime_prefix
-        self._finalize_object(source, compiler_options=compiler_options)
+        super().__init__(
+            source,
+            translator,
+            compiler_options=compiler_options,
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
+        )
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
-            self.compiler(),
-            str(self.source),
-            "-fopenmp",
-        ]
+        return [self.compiler(), str(self.source), "-fopenmp"]
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -260,26 +259,27 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
+        source: Optional[Path] = None,
+        translator: Optional[Translator] = None,
         base: Path = Path(POLYBENCH_BASE),
         compiler_options: Optional[list[str]] = None,
-        source: Optional[Path] = None,
         ephemeral: bool = False,
         populate_scops: bool = True,
     ):
-        if compiler_options is None:
-            compiler_options = []
-        self.ephemeral = ephemeral
-        self.populate_scops = populate_scops
         self.base = Path(base)
         self.benchmark = self._get_benchmark(benchmark)
         if source is None:
             filename = Path(self.benchmark).with_suffix(".c").name
             source = self.base / self.benchmark / filename
-        # "-DMEDIUM_DATASET",
-        self._finalize_object(
-            source=source,
+        if compiler_options is None:
+            compiler_options = []
+        compiler_options.append(f"-I{self.base / 'utilities'}")
+        super().__init__(
+            source,
+            translator,
             compiler_options=compiler_options,
-            include_paths=[self.base / "utilities"],
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
         )
 
     def _get_benchmark(self, benchmark: str) -> str:

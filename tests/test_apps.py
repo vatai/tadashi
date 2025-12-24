@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/bin/env python
 
 import unittest
 from pathlib import Path
 
-from tadashi import TrEnum, apps
+from tadashi import apps
+from tadashi.scop import TrEnum
+from tadashi.translators import Pet
 
 
 class TestApp(unittest.TestCase):
@@ -14,7 +16,7 @@ class TestApp(unittest.TestCase):
         tapp = app.generate_code(ensure_legality=False)
         tkeys = sorted(tapp.__dict__.keys())
         self.assertListEqual(akeys, tkeys)
-        not_equal = ["source", "ephemeral", "populate_scops", "scops"]
+        not_equal = ["source", "ephemeral", "populate_scops", "translator"]
         for akey, aval in app.__dict__.items():
             tval = tapp.__dict__[akey]
             if akey in not_equal:
@@ -38,7 +40,7 @@ class TestApp(unittest.TestCase):
             [2, "full_fuse"],
             [1, "set_parallel", 6],
             [2, "full_shift_param", 1, 48],
-            [2, "tile2d", 32, 32],
+            [2, "tile_2d", 32, 32],
             [3, "set_loop_opt", 0, 3],
         ]
         result = app.scops[0].transform_list(trs)
@@ -51,8 +53,24 @@ class TestApp(unittest.TestCase):
 
 
 class TestSimple(TestApp):
+    def test_generate_code_ephemeral(self):
+        """Test the `generate_code`s method `ephemeral` parameter."""
+        input_file = self.examples / "inputs/depnodep.c"
+        for ephemeral in [True, False]:
+            expected = not ephemeral
+            with self.subTest(ephemeral=ephemeral):
+                app = apps.Simple(input_file, Pet())
+                tapp = app.generate_code(ensure_legality=False, ephemeral=ephemeral)
+                file_path = tapp.source
+                del tapp
+                file_exists = file_path.exists()
+                if file_exists:
+                    file_path.unlink()
+                self.assertEqual(file_exists, expected)
+
     def test_args(self):
-        app = apps.Simple(self.examples / "inputs/depnodep.c")
+        file = self.examples / "inputs/depnodep.c"
+        app = apps.Simple(file, Pet(autodetect=True))
         self.compare_members(app)
 
 
@@ -60,15 +78,15 @@ class TestPolybench(TestApp):
     base: Path = TestApp.examples / "polybench"
 
     def test_args(self):
-        app = apps.Polybench("stencils/jacobi-2d", self.base)
+        app = apps.Polybench("stencils/jacobi-2d")
         self.compare_members(app)
 
     def test_trlist(self):
-        app = apps.Polybench("stencils/jacobi-2d", self.base)
+        app = apps.Polybench("stencils/jacobi-2d")
         trs = [
             [2, TrEnum.FULL_SPLIT],
-            [3, TrEnum.TILE2D, 20, 20],
-            [10, TrEnum.TILE3D, 30, 30, 30],
+            [3, TrEnum.TILE_2D, 20, 20],
+            [10, TrEnum.TILE_3D, 30, 30, 30],
         ]
         app.scops[0].transform_list(trs)
         tapp = app.generate_code(ensure_legality=False)
@@ -100,4 +118,3 @@ class TestPolybench(TestApp):
         tapp = app.generate_code()
         tarrays = tapp.dump_arrays()
         tapp.measure()
-        # print(tarrays)

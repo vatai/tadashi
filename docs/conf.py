@@ -31,7 +31,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
-    # "sphinx_autodoc_typehints",  # did't work when I tried :(
+    "sphinx_autodoc_typehints",  # did't work when I tried :(
     "sphinxcontrib.katex",
     "sphinxcontrib.mermaid",
     "sphinx_rtd_theme",
@@ -39,7 +39,7 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-# autoclass_content = "both"
+autoclass_content = "both"
 default_role = "py:obj"
 todo_include_todos = True
 intersphinx_mapping = {

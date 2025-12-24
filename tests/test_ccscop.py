@@ -11,6 +11,7 @@ from typing import Optional
 import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
+from tadashi.translators import Pet
 
 HEADER = "/// TRANSFORMATION: "
 COMMENT = "///"
@@ -24,7 +25,12 @@ class TransformData:
     transformation_args: list[int] = field(default_factory=list)
 
 
-class TestCtadashi(unittest.TestCase):
+def get_inputs_path() -> Path:
+    base = Path(__file__).parent.parent
+    return base / "examples/inputs"
+
+
+class TestCcScop(unittest.TestCase):
     @staticmethod
     def _read_app_comments(app):
         TRANSFORMATION = " TRANSFORMATION: "
@@ -52,7 +58,7 @@ class TestCtadashi(unittest.TestCase):
 
     def check(self, app_file):
         logger = logging.getLogger(self._testMethodName)
-        app = Simple(source=app_file)
+        app = Simple(app_file, Pet())
         transforms, target_code = self._read_app_comments(app)
 
         # transform
@@ -80,7 +86,7 @@ class TestCtadashi(unittest.TestCase):
 
     @staticmethod
     def _get_node(idx):
-        app = Simple("tests/dummy.c")
+        app = Simple("tests/dummy.c", Pet())
         node = app.scops[0].schedule_tree[idx]
         return node
 
@@ -94,10 +100,10 @@ class TestCtadashi(unittest.TestCase):
 
     def test_wrong_number_of_args(self):
         node = self._get_band_node()
-        self.assertRaises(ValueError, node.transform, TrEnum.TILE1D, 2, 3)
+        self.assertRaises(ValueError, node.transform, TrEnum.TILE_1D, 2, 3)
 
     def test_transformation_list(self):
-        app = Simple("examples/inputs/depnodep.c")
+        app = Simple("examples/inputs/depnodep.c", Pet())
         scop = app.scops[0]
         transformations = [
             [2, tadashi.TrEnum.SET_PARALLEL, 1],
@@ -118,27 +124,27 @@ class TestCtadashi(unittest.TestCase):
     def test_labels(self):
         app = Polybench(Path("correlation"))
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4")
-        trs = [[27, TrEnum.TILE1D, 11]]
+        trs = [[27, TrEnum.TILE_1D, 11]]
         app.scops[0].transform_list(trs)
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile1d-outer")
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4-tile1d-inner")
 
         app.scops[0].reset()
-        trs = [[27, TrEnum.TILE2D, 11, 13]]
+        trs = [[27, TrEnum.TILE_2D, 11, 13]]
         app.scops[0].transform_list(trs)
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
         self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
 
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent
-        app = Simple(base / "examples/inputs/simple/two_loops.c")
+        app = Simple(base / "examples/inputs/simple/two_loops.c", Pet())
         node = app.scops[0].schedule_tree[1]
-        node.transform(TrEnum.TILE2D, 12, 4)
+        node.transform(TrEnum.TILE_2D, 12, 4)
         for i in range(30):
             app = app.generate_code(populate_scops=True)
 
     def test_bad_deps(self):
-        app = Simple("tests/bad_deps.c")
+        app = Simple("tests/bad_deps.c", Pet())
         scop = app.scops[0]
         node = scop.schedule_tree[1]
         # print(node.yaml_str)
@@ -153,6 +159,24 @@ class TestCtadashi(unittest.TestCase):
         self.assertTrue(app.legal)
 
 
+class TestCtadashiLLVM(unittest.TestCase):
+    @unittest.skip("wip llvm")
+    def test_foobar(self):
+        # app = Polybench("gemm")
+        app = tadashi.apps.SimpleLLVM(get_inputs_path() / "depnodep.c", Pet())
+        print(app.source.exists())
+        # node = app.scops[0].schedule_tree[2]
+        node = app.scops[0].schedule_tree[1]
+        # print(node.yaml_str)
+        # tr = [tadashi.TrEnum.FULL_SPLIT]
+        tr = [TrEnum.TILE2D, 3, 3]
+        legal = node.transform(*tr)
+        # print(node.yaml_str)
+        tapp = app.generate_code()
+        print(f"{legal=}")
+        self.assertTrue(True)
+
+
 def setup():
     if "-v" in sys.argv:
         logging.basicConfig(level=logging.INFO)
@@ -163,7 +187,7 @@ def setup():
             return lambda self: self.check(app_path)
 
         test_name = app_path.with_suffix("").name
-        setattr(TestCtadashi, test_name, ch(app_path))
+        setattr(TestCcScop, test_name, ch(app_path))
 
 
 setup()

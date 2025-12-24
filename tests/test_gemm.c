@@ -1,6 +1,6 @@
 /// TRANSFORMATION: 0, 2, "FULL_SPLIT"
-/// TRANSFORMATION: 0, 3, "TILE2D", 13, 25
-/// TRANSFORMATION: 0, 9, "TILE3D", 13, 25, 7
+/// TRANSFORMATION: 0, 3, "TILE_2D", 13, 25
+/// TRANSFORMATION: 0, 9, "TILE_3D", 13, 25, 7
 /// #include <stdlib.h>
 ///
 /// void f(double alpha, double beta,
