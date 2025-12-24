@@ -1,12 +1,3 @@
-#+title: Tadashi
-
-* Install
-
-After the requirements are installed, TADASHI can be ~pip~ installed from GitHub using:
-
-#+begin_src bash
-  pip install git+https://github.com/vatai/tadashi.git
-#+end_src
 
 Requirements are LLVM, clang, autotools, pkgconfig, libyaml, libntl,
 libgmp, swig. The exact ~apt-get~ packages can be found in [[file:./.github/workflows/tests.yaml][this file]].
