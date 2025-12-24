@@ -357,6 +357,15 @@ class InterchangeInfo(TransformInfo):
 
 
 @register
+class FullFuseInfo(TransformInfo):
+    @staticmethod
+    def valid(node: Node):
+        return (
+            node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET
+        ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
+
+
+@register
 class FuseInfo(TransformInfo):
     arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
 
@@ -386,12 +395,15 @@ class FuseInfo(TransformInfo):
 
 
 @register
-class FullFuseInfo(TransformInfo):
+class FullSplitInfo(TransformInfo):
+    # TODO -> split sequence!
     @staticmethod
     def valid(node: Node):
-        return (
-            node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET
-        ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if node.parent.node_type != NodeType.BAND:
+            return False
+        return True
 
 
 @register
@@ -423,35 +435,25 @@ class SplitInfo(TransformInfo):
 
 
 @register
-class FullSplitInfo(TransformInfo):
-    # TODO -> split sequence!
+class ScaleInfo(TransformInfo):
+    arg_help = []
+
     @staticmethod
     def valid(node: Node):
-        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
-            return False
-        if node.parent.node_type != NodeType.BAND:
-            return False
-        return True
+        return node.node_type != NodeType.BAND
+
+    @staticmethod
+    def available_args(node: Node) -> list:
+        return [LowerUpperBound()]
 
 
 @register
-class PartialShiftVarInfo(TransformInfo):
-    arg_help = ["Statement index", "Variable index", "Coefficient"]
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
-        args = PartialShiftVarInfo.available_args(node)
-        if not args:
-            return []
-        return [stmt_idx, var_idx] in args[0]
+class FullShiftValInfo(TransformInfo):
+    arg_help = ["Value"]
 
     @staticmethod
     def available_args(node: Node):
-        args = []
-        for stmt_idx, ls in enumerate(node.loop_signature):
-            for var_idx in range(len(ls["vars"])):
-                args.append([stmt_idx, var_idx])
-        return [args, LowerUpperBound()]
+        return [LowerUpperBound()]
 
 
 @register
@@ -466,35 +468,6 @@ class PartialShiftValInfo(TransformInfo):
     def available_args(node: Node):
         ns = len(node.loop_signature)
         return [LowerUpperBound(lower=0, upper=ns), LowerUpperBound()]
-
-
-@register
-class PartialShiftParamInfo(TransformInfo):
-    arg_help = ["Statement index", "Parameter index", "Coefficient"]
-
-    @staticmethod
-    def valid(node: Node) -> bool:
-        if node.node_type != NodeType.BAND:
-            return False
-        args = PartialShiftParamInfo.available_args(node)
-        if not args:
-            return False
-        return bool(args[0])
-
-    @staticmethod
-    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
-        args = PartialShiftParamInfo.available_args(node)
-        if not args:
-            return False
-        return [stmt_idx, param_idx] in args[0]
-
-    @staticmethod
-    def available_args(node: Node):
-        args = []
-        for stmt_idx, ls in enumerate(node.loop_signature):
-            for param_idx in range(len(ls["params"])):
-                args.append([stmt_idx, param_idx])
-        return [args, LowerUpperBound()]
 
 
 @register
@@ -531,12 +504,23 @@ class FullShiftVarInfo(TransformInfo):
 
 
 @register
-class FullShiftValInfo(TransformInfo):
-    arg_help = ["Value"]
+class PartialShiftVarInfo(TransformInfo):
+    arg_help = ["Statement index", "Variable index", "Coefficient"]
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, var_idx: int, coeff: int):
+        args = PartialShiftVarInfo.available_args(node)
+        if not args:
+            return []
+        return [stmt_idx, var_idx] in args[0]
 
     @staticmethod
     def available_args(node: Node):
-        return [LowerUpperBound()]
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for var_idx in range(len(ls["vars"])):
+                args.append([stmt_idx, var_idx])
+        return [args, LowerUpperBound()]
 
 
 @register
@@ -565,6 +549,35 @@ class FullShiftParamInfo(TransformInfo):
             return []
         min_np = len(node.loop_signature[0]["params"])
         return [list(range(min_np)), LowerUpperBound()]
+
+
+@register
+class PartialShiftParamInfo(TransformInfo):
+    arg_help = ["Statement index", "Parameter index", "Coefficient"]
+
+    @staticmethod
+    def valid(node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return bool(args[0])
+
+    @staticmethod
+    def valid_args(node: Node, stmt_idx: int, param_idx: int, coeff: int):
+        args = PartialShiftParamInfo.available_args(node)
+        if not args:
+            return False
+        return [stmt_idx, param_idx] in args[0]
+
+    @staticmethod
+    def available_args(node: Node):
+        args = []
+        for stmt_idx, ls in enumerate(node.loop_signature):
+            for param_idx in range(len(ls["params"])):
+                args.append([stmt_idx, param_idx])
+        return [args, LowerUpperBound()]
 
 
 @register
