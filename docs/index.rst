@@ -9,6 +9,11 @@ Tadashi documentation
 
 Work In Progress!!!
 
+Tadashi can be installed from `PyPI`_.
+
+.. _PyPI: https://test.pypi.org/project/tadashi/
+
+
 .. mermaid::
 
   flowchart LR

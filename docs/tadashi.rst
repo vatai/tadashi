@@ -12,14 +12,6 @@ tadashi.apps module
    :show-inheritance:
    :undoc-members:
 
-tadashi.node module
--------------------
-
-.. automodule:: tadashi.node
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 tadashi.node\_type module
 -------------------------
 
