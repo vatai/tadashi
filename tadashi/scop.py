@@ -100,7 +100,7 @@ class Node:
 
         Args:
           TrEnum tr: Transformation `Enum`.
-          args: Arguments passed to the transformation corresponding toe `trkey`.
+          args: Arguments passed to the transformation corresponding toe `tr`.
         """
 
         nargs = len(args)
