@@ -56,6 +56,8 @@ documentation for details.
    :maxdepth: 1
    :caption: Contents:
 
+.. include:: modules.rst
+
 
 
 Indices and tables
