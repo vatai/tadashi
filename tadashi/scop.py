@@ -95,7 +95,7 @@ class Node:
     expr = cython.declare(str, visibility="public")
     children_idx = cython.declare(list[str], visibility="public")
 
-    def transform(self, tr: TrEnum, *args) -> cython.bint:
+    def transform(self, tr: TrEnum, *args) -> bool:
         """Execute the selected transformation.
 
         Args:
