@@ -1,5 +1,6 @@
 #!/bin/env python
 
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -14,6 +15,7 @@ class TestTranslator(unittest.TestCase):
     """
 
     examples: Path = Path(__file__).parent.parent / "examples"
+    tests: Path = Path(__file__).parent
 
     def test_pet_autodetect(self):
         """Test the `translators.Pet`'s `autodetect` parameter."""
@@ -68,3 +70,20 @@ class TestTranslator(unittest.TestCase):
     @unittest.skip("todo")
     def test_polly_scop_extraction(self):
         """See same test for pet."""
+
+
+class TestPet(TestTranslator):
+    def test_non_existing_file(self):
+        """Test if Pet errors out when we try to open an non-existing file."""
+        with tempfile.TemporaryDirectory() as tmp:
+            print(f"{tmp=} {type(tmp)=}")
+            path = Path(tmp) / "does-not-exists.c"
+            self.assertFalse(path.exists())
+            with self.assertRaises(ValueError):
+                translator = Pet()
+                translator.set_source(path, [])
+
+    def test_compilation_error(self):
+        with self.assertRaises(Exception):
+            translator = Pet()
+            translator.set_source(self.tests / "syntax_error.c")
