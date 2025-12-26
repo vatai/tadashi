@@ -1,5 +1,6 @@
 # distutils: language=c++
 import os
+from importlib.resources import files
 from pathlib import Path
 
 import cython
@@ -92,7 +93,8 @@ class Pet(Translator):
         if self.ctx is cython.NULL:
             raise MemoryError()
         # Set includes
-        include_paths = self._get_flags("I", options)
+        llvm_include = str(files("tadashi") / "include")
+        include_paths = self._get_flags("I", options) + [llvm_include]
         includes_str = ":".join([p for p in include_paths])
         prev_include_path = os.getenv("C_INCLUDE_PATH", "")
         os.environ["C_INCLUDE_PATH"] = includes_str

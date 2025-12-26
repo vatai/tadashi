@@ -7,21 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Install packages 📦
-      run: >
-        sudo apt-get install -y
-        git build-essential autoconf pkg-config libtool libc++-dev
-        libyaml-dev libntl-dev libgmp-dev llvm-17 clang-17 llvm-17-dev
-        libclang-17-dev libpolly-17-dev swig
-        openmpi-bin openmpi-common libopenmpi-dev nlohmann-json3-dev
-
     - name: Check out repo 🐙😸
       uses: actions/checkout@master
       with:
         submodules: recursive
 
     - name: Build deps 🛠️
-      run: third_party/install.sh
+      run: sudo third_party/install.sh
 
     - name: Set up Python 🐍
       uses: actions/setup-python@v5

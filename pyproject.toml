@@ -36,7 +36,7 @@ enabled = true
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.package-data]
-"tadashi" = ["*.pxd"]
+"tadashi" = ["*.pxd", "include/*"]
 
 [tool.cibuildwheel]
 build-frontend="build[uv]"
