@@ -4,7 +4,7 @@
 #
 #  docker build <dir_where_this_file_is> -t manylinux-mod
 FROM quay.io/pypa/manylinux_2_28_x86_64
-RUN yum install -y gmp-c++ gmp-devel clang-devel-19.1.7 llvm-devel-19.1.7
+RUN yum install -y gmp-c++ gmp-devel clang-devel-17.0.6 llvm-devel-17.0.6
 
 WORKDIR /project/third_party
 RUN curl https://repo.or.cz/isl.git/snapshot/15f1e39bed3997f773056d3fd127f38967adaa8a.tar.gz -o isl.tgz
