@@ -84,6 +84,8 @@ class TestPet(TestTranslator):
                 translator.set_source(path, [])
 
     def test_compilation_error(self):
-        with self.assertRaises(Exception):
-            translator = Pet()
-            translator.set_source(self.tests / "syntax_error.c")
+        with self.assertRaises(ValueError):
+            translator = Pet(autodetect=True)
+            path = self.tests / "syntax_error.c"
+            self.assertTrue(path.exists())
+            translator.set_source(path, [])

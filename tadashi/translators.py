@@ -105,13 +105,17 @@ class Pet(Translator):
         opt = 1 if self.autodetect else 0
         pet.pet_options_set_autodetect(self.ctx, opt)
         # Fill self.ccscops
-        pet.pet_transform_C_source(
+        rv = pet.pet_transform_C_source(
             self.ctx,
             source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
             cython.address(self.ccscops),
         )
+        if -1 == rv:
+            raise ValueError(
+                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+            )
 
     @staticmethod
     @cython.cfunc
