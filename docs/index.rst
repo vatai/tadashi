@@ -6,10 +6,19 @@
 Tadashi documentation
 =====================
 
-
-Work In Progress!!!
-
 Tadashi can be installed from `PyPI`_.
+
+Known bugs
+----------------------------------------
+
+- If a sytactically incorrect file (with no scop pragmas and no
+  autodetect=True) is passed to the `Pet` translator it will not raise
+  an exception.
+
+
+Stuff below is work in progress!
+========================================
+
 
 .. _PyPI: https://pypi.org/project/tadashi/
 
@@ -34,9 +43,12 @@ Tadashi can be installed from `PyPI`_.
     S3-. "`tapp = app.generate_code()`".-> tapp
     S3-. "`app.reset_scops()`".-> S1
 
-Add your :math:`x` content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+
+
+
+.. Add your :math:`x` content using ``reStructuredText`` syntax. See the
+.. `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
+.. documentation for details.
 
 
 .. To get started take a look at the `quick start guide`_ or the `examples`_.

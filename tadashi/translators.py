@@ -29,6 +29,12 @@ class Translator:
             isl.isl_ctx_free(self.ctx)
 
     @staticmethod
+    def _check_missing_file(path: str | Path):
+        path = Path(path)
+        if not path.exists():
+            raise ValueError(f"{path} does not exist!")
+
+    @staticmethod
     def _get_flags(flag: str, flags: list[str]) -> list[str]:
         """Get values of the certain compiler flags from compiler options."""
         defines = []
@@ -50,6 +56,7 @@ class Translator:
         `super().set_source()` after populating the `ccScop` objects.
 
         """
+        self._check_missing_file(source)
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
         self.source = str(source)
@@ -98,13 +105,17 @@ class Pet(Translator):
         opt = 1 if self.autodetect else 0
         pet.pet_options_set_autodetect(self.ctx, opt)
         # Fill self.ccscops
-        pet.pet_transform_C_source(
+        rv = pet.pet_transform_C_source(
             self.ctx,
             source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
             cython.address(self.ccscops),
         )
+        if -1 == rv:
+            raise ValueError(
+                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+            )
 
     @staticmethod
     @cython.cfunc
