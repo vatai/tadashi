@@ -67,15 +67,19 @@ class App(abc.ABC):
         self.source = Path(source)
         if translator is None and populate_scops:
             translator = Pet()
-        if compiler_options is None:
-            compiler_options = []
+        amended_options = self._amend_compiler_options(compiler_options)
         if populate_scops and translator:
-            self.translator = translator.set_source(source, compiler_options)
+            self.translator = translator.set_source(source, amended_options)
         else:
             self.translator = None
         self.user_compiler_options = compiler_options
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
+
+    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
+        if compiler_options is None:
+            compiler_options = []
+        return compiler_options
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
@@ -132,12 +136,16 @@ class App(abc.ABC):
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self._make_new_filename()
-        self.translator.generate_code(str(self.source), str(new_file))
+        options = self._amend_compiler_options(self.user_compiler_options)
+        self.translator.generate_code(str(self.source), str(new_file), options)
         translator = copy.copy(self.translator) if populate_scops else None
+        compiler_options = None
+        if self.user_compiler_options:
+            compiler_options = self.user_compiler_options[:]
         kwargs = {
             "source": new_file,
             "translator": translator,
-            "compiler_options": self.user_compiler_options,
+            "compiler_options": compiler_options,
             "populate_scops": populate_scops,
         }
         kwargs.update(self._codegen_init_args())
@@ -187,7 +195,7 @@ class App(abc.ABC):
         """Compile the app so it can be measured/executed."""
         cmd = self.compile_cmd
         cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
-        cmd += self.user_compiler_options
+        cmd += self._amend_compiler_options(self.user_compiler_options)
         cmd += extra_compiler_options
         if verbose:
             print(f"{' '.join(cmd)}")
@@ -273,7 +281,6 @@ class Polybench(App):
             source = self.base / self.benchmark / filename
         if compiler_options is None:
             compiler_options = []
-        compiler_options.append(f"-I{self.base / 'utilities'}")
         super().__init__(
             source,
             translator,
@@ -281,6 +288,10 @@ class Polybench(App):
             ephemeral=ephemeral,
             populate_scops=populate_scops,
         )
+
+    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
+        compiler_options = super()._amend_compiler_options(compiler_options)
+        return compiler_options + [f"-I{self.base / 'utilities'}"]
 
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
