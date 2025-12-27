@@ -72,9 +72,6 @@ class Translator:
     def generate_code(self, input_path, output_path):
         raise NotImplementedError(ABC_ERROR_MSG)
 
-    def set_include_paths(self, include_paths: list[str]):
-        return self
-
 
 @cython.cclass
 class Pet(Translator):
@@ -87,19 +84,39 @@ class Pet(Translator):
         cls = self.__class__
         return cls(self.autodetect)
 
+    def _set_includes(self, options: list[str]) -> str:
+        """Temporarily extend `C_INCLUDE_PATH` environment variable.
+
+        Args:
+
+            options: compiler options.
+
+        Returns:
+            the original value of `C_INCLUDE_PATH`.
+
+        Code enclosed with `_set_includes` and `_restore_includes`
+        will have the extended `C_INCLUDE_PATH`.
+
+        """
+        llvm_include = str(files("tadashi") / "include")
+        includes = self._get_flags("I", options)
+        old_includes = os.getenv("C_INCLUDE_PATH", "")
+        if old_includes:
+            includes.append(old_includes)
+        os.environ["C_INCLUDE_PATH"] = ":".join(includes + [llvm_include])
+        return old_includes
+
+    def _restore_includes(self, old_includes: str) -> None:
+        """See _set_includes()."""
+        os.environ["C_INCLUDE_PATH"] = old_includes
+
     @cython.ccall
     def _populate_ccscops(self, source: str, options: list[str]):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
         if self.ctx is cython.NULL:
             raise MemoryError()
         # Set includes
-        llvm_include = str(files("tadashi") / "include")
-        include_paths = self._get_flags("I", options) + [llvm_include]
-        includes_str = ":".join([p for p in include_paths])
-        prev_include_path = os.getenv("C_INCLUDE_PATH", "")
-        os.environ["C_INCLUDE_PATH"] = includes_str
-        if prev_include_path:
-            os.environ["C_INCLUDE_PATH"] += f":{prev_include_path}"
+        old_includes = self._set_includes(options)
         # Set defines
         for define in self._get_flags("D", options):
             pet.pet_options_append_defines(self.ctx, define.encode())
@@ -114,6 +131,7 @@ class Pet(Translator):
             self._extract_scops_callback,
             cython.address(self.ccscops),
         )
+        self._restore_includes(old_includes)
         if -1 == rv:
             raise ValueError(
                 f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
@@ -132,12 +150,15 @@ class Pet(Translator):
         return p
 
     @cython.ccall
-    def generate_code(self, input_path: str, output_path: str) -> int:
+    def generate_code(
+        self, input_path: str, output_path: str, options: list[str]
+    ) -> int:
         r: int = 0
         scop_idx: int = 0
         output_file = cython.declare(cython.pointer[FILE])
         output_file = fopen(output_path.encode(), "w")
         scop_ptr = self.ccscops.data()
+        old_includes = self._set_includes(options)
         r = pet.pet_transform_C_source(
             self.ctx,
             input_path.encode(),
@@ -145,6 +166,7 @@ class Pet(Translator):
             self._codegen_callback,
             cython.address(scop_ptr),
         )
+        self._restore_includes(old_includes)
         fclose(output_file)
         return r
 
