@@ -200,3 +200,11 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
+
+
+@cython.cclass
+class Polly(Translator):
+    compiler: str
+
+    def __init__(self, compiler: str = "clang"):
+        self.compiler = compiler
