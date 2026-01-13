@@ -1,5 +1,6 @@
 # distutils: language=c++
 import os
+import subprocess
 from importlib.resources import files
 from pathlib import Path
 
@@ -208,3 +209,64 @@ class Polly(Translator):
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
+
+    @cython.ccall
+    def _populate_ccscops(self, source: str, options: list[str]):
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+
+        compile_cmd = [
+            str(self.compiler),
+            "-S",
+            "-emit-llvm",
+            str(self.source),
+            "-O1",
+            "-o",
+            "-",
+        ]
+        compile_proc = subprocess.Popen(
+            compile_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        opt_cmd = [
+            "opt",
+            "-load",
+            "LLVMPolly.so",
+            "-disable-polly-legality",
+            "-polly-canonicalize",
+            "-polly-export-jscop",
+            "-o",
+            f"{self.source}.ll 2>&1",
+        ]
+        compile_proc.wait()
+        opt_proc = subprocess.Popen(
+            opt_cmd,
+            stdin=compile_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        compile_proc.stdout.close()
+        compile_proc.stderr.close()
+        opt_proc.wait()
+        opt_proc.stdout.close()
+        opt_proc.stderr.close()
+        if compile_proc.returncode:
+            raise ValueError(
+                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+            )
+        stdout, stderr = opt_proc.communicate()
+
+        # Fill self.ccscops
+        # rv = pet.pet_transform_C_source(
+        #     self.ctx,
+        #     source.encode(),
+        #     fopen("/dev/null".encode(), "w"),
+        #     self._extract_scops_callback,
+        #     cython.address(self.ccscops),
+        # )
+        # if -1 == rv:
+        #     raise ValueError(
+        #         f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+        #     )

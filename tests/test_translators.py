@@ -71,12 +71,17 @@ class TestTranslator(unittest.TestCase):
     def test_polly_scop_extraction(self):
         """See same test for pet."""
 
+    def _test_compilation_error(self, translator):
+        with self.assertRaises(ValueError):
+            path = self.tests / "syntax_error.c"
+            self.assertTrue(path.exists())
+            translator.set_source(path, [])
+
 
 class TestPet(TestTranslator):
     def test_non_existing_file(self):
         """Test if Pet errors out when we try to open an non-existing file."""
         with tempfile.TemporaryDirectory() as tmp:
-            print(f"{tmp=} {type(tmp)=}")
             path = Path(tmp) / "does-not-exists.c"
             self.assertFalse(path.exists())
             with self.assertRaises(ValueError):
@@ -84,8 +89,9 @@ class TestPet(TestTranslator):
                 translator.set_source(path, [])
 
     def test_compilation_error(self):
-        with self.assertRaises(ValueError):
-            translator = Pet(autodetect=True)
-            path = self.tests / "syntax_error.c"
-            self.assertTrue(path.exists())
-            translator.set_source(path, [])
+        self._test_compilation_error(Pet(autodetect=True))
+
+
+class TestPolly(TestTranslator):
+    def test_compilation_error(self):
+        self._test_compilation_error(Polly("clang"))

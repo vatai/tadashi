@@ -11,6 +11,7 @@ class ccScop {
 public:
   ccScop();
   ccScop(pet_scop *ps);
+  ccScop(std::string *jsop_path);
 
   virtual ~ccScop();
   ccScop(const ccScop &other);

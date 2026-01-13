@@ -448,6 +448,8 @@ ccScop::ccScop(const ccScop &other)
   this->_copy(other);
 }
 
+ccScop::ccScop(std::string *jsop_path) {}
+
 void
 ccScop::_set_nullptr(ccScop *scop) {
   scop->schedule = nullptr;     // 1.
