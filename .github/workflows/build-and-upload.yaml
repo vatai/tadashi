@@ -25,7 +25,12 @@ jobs:
         # If your project has specific dependencies, install them here
         # pip install -r requirements.txt
     - name: Build wheels
-      run: CIBW_BUILD='cp312*many*' python -m cibuildwheel --output-dir wheelhouse
+      run: |
+        if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.action }}" = "published" ]; then
+          python -m cibuildwheel --output-dir wheelhouse
+        else
+          CIBW_BUILD='cp312*many*' python -m cibuildwheel --output-dir wheelhouse
+        fi
     - uses: actions/upload-artifact@v4
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
