@@ -17,19 +17,6 @@ class TestTranslator(unittest.TestCase):
     examples: Path = Path(__file__).parent.parent / "examples"
     tests: Path = Path(__file__).parent
 
-    def test_pet_autodetect(self):
-        """Test the `translators.Pet`'s `autodetect` parameter."""
-        file = self.examples / "inputs/depnodep.c"
-        cases = [
-            (False, 1),
-            (True, 3),
-        ]
-        for autodetect, num_scops in cases:
-            with self.subTest(autodetect=autodetect):
-                translator = Pet(autodetect=autodetect)
-                translator.set_source(file, [])
-                self.assertEqual(len(translator.scops), num_scops)
-
     def test_double_set(self):
         """Calling set_source() 2x on a translator should raise an error!"""
         translator = Pet()
@@ -87,6 +74,19 @@ class TestPet(TestTranslator):
             with self.assertRaises(ValueError):
                 translator = Pet()
                 translator.set_source(path, [])
+
+    def test_pet_autodetect(self):
+        """Test the `translators.Pet`'s `autodetect` parameter."""
+        file = self.examples / "inputs/depnodep.c"
+        cases = [
+            (False, 1),
+            (True, 3),
+        ]
+        for autodetect, num_scops in cases:
+            with self.subTest(autodetect=autodetect):
+                translator = Pet(autodetect=autodetect)
+                translator.set_source(file, [])
+                self.assertEqual(len(translator.scops), num_scops)
 
     def test_compilation_error(self):
         self._test_compilation_error(Pet(autodetect=True))
