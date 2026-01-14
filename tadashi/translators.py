@@ -1,6 +1,8 @@
 # distutils: language=c++
 import os
+import re
 import subprocess
+import tempfile
 from importlib.resources import files
 from pathlib import Path
 
@@ -212,10 +214,6 @@ class Polly(Translator):
 
     @cython.ccall
     def _populate_ccscops(self, source: str, options: list[str]):
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-
         compile_cmd = [
             str(self.compiler),
             "-S",
@@ -225,11 +223,6 @@ class Polly(Translator):
             "-o",
             "-",
         ]
-        compile_proc = subprocess.Popen(
-            compile_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
         opt_cmd = [
             "opt",
             "-load",
@@ -240,23 +233,41 @@ class Polly(Translator):
             "-o",
             f"{self.source}.ll 2>&1",
         ]
-        compile_proc.wait()
-        opt_proc = subprocess.Popen(
-            opt_cmd,
-            stdin=compile_proc.stdout,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        compile_proc.stdout.close()
-        compile_proc.stderr.close()
-        opt_proc.wait()
-        opt_proc.stdout.close()
-        opt_proc.stderr.close()
+        with tempfile.TemporaryDirectory() as cwd:
+            kwargs = {
+                "stdout": subprocess.PIPE,
+                "stderr": subprocess.PIPE,
+                "cwd": cwd,
+            }
+
+            self.ctx = pet.isl_ctx_alloc()
+            if self.ctx is cython.NULL:
+                raise MemoryError()
+            compile_proc = subprocess.Popen(compile_cmd, **kwargs)
+            compile_proc.wait()
+            opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
+            opt_proc.wait()
         if compile_proc.returncode:
             raise ValueError(
                 f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
             )
         stdout, stderr = opt_proc.communicate()
+        compile_proc.stdout.close()
+        compile_proc.stderr.close()
+        opt_proc.stdout.close()
+        opt_proc.stderr.close()
+        pat = re.compile(r".*to\s+'([^']*)'\.")
+        # lines = [.group(1) for t in ]
+        for t in stderr.decode().split("\n"):
+            match = pat.search(t)
+            if not t:
+                continue
+            if not match:
+                raise ValueError(
+                    "Something is wrong with `opt` output. Please raise an issue and mention this!"
+                )
+            file = match.group(1)
+            print(f"{file=}")
 
         # Fill self.ccscops
         # rv = pet.pet_transform_C_source(

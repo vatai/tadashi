@@ -95,3 +95,7 @@ class TestPet(TestTranslator):
 class TestPolly(TestTranslator):
     def test_compilation_error(self):
         self._test_compilation_error(Polly("clang"))
+
+    def test_wip(self):
+        translator = Polly("clang")
+        translator.set_source(self.examples / "inputs/depnodep.c", [])
