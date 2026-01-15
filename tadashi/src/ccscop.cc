@@ -448,7 +448,22 @@ ccScop::ccScop(const ccScop &other)
   this->_copy(other);
 }
 
-ccScop::ccScop(std::string *jsop_path) {}
+ccScop::ccScop(std::string jsop_path)
+    : schedule(nullptr),     // 1.
+      dep_flow(nullptr),     // 2.
+      domain(nullptr),       // 3.
+      call(nullptr),         // 4.
+      may_writes(nullptr),   // 5.
+      must_writes(nullptr),  // 6.
+      must_kills(nullptr),   // 7.
+      may_reads(nullptr),    // 8.
+      live_out(nullptr),     // 9.
+      current_node(nullptr), // 10.
+      tmp_node(nullptr),     // 11.
+      current_legal(true),   // 12.
+      tmp_legal(true),       // 13.
+      modified(0)            // 14.
+{}
 
 void
 ccScop::_set_nullptr(ccScop *scop) {

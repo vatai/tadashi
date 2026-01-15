@@ -270,6 +270,7 @@ class Polly(Translator):
             file = match.group(1)
             print(f"{file=}")
             self.json_paths.append(file)
+            self.ccscops.emplace_back("foobar")
 
         # Fill self.ccscops
         # rv = pet.pet_transform_C_source(
