@@ -208,6 +208,7 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
+    json_paths: list[str] = []
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
@@ -247,27 +248,28 @@ class Polly(Translator):
             compile_proc.wait()
             opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
             opt_proc.wait()
-        if compile_proc.returncode:
-            raise ValueError(
-                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
-            )
         stdout, stderr = opt_proc.communicate()
         compile_proc.stdout.close()
         compile_proc.stderr.close()
         opt_proc.stdout.close()
         opt_proc.stderr.close()
+        if compile_proc.returncode:
+            raise ValueError(
+                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+            )
         pat = re.compile(r".*to\s+'([^']*)'\.")
         # lines = [.group(1) for t in ]
         for t in stderr.decode().split("\n"):
-            match = pat.search(t)
             if not t:
                 continue
+            match = pat.search(t)
             if not match:
                 raise ValueError(
                     "Something is wrong with `opt` output. Please raise an issue and mention this!"
                 )
             file = match.group(1)
             print(f"{file=}")
+            self.json_paths.append(file)
 
         # Fill self.ccscops
         # rv = pet.pet_transform_C_source(
