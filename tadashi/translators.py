@@ -265,7 +265,7 @@ class Polly(Translator):
             match = pat.search(t)
             if not match:
                 raise ValueError(
-                    "Something is wrong with `opt` output. Please raise an issue and mention this!"
+                    f"Something is wrong with `opt` output. Please raise an issue and mention this!\n{stderr}"
                 )
             file = match.group(1)
             self.json_paths.append(file)
