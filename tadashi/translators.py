@@ -1,10 +1,15 @@
 # distutils: language=c++
+import json
 import os
+import re
+import subprocess
+import tempfile
 from importlib.resources import files
 from pathlib import Path
 
 import cython
 from cython.cimports.libc.stdio import FILE, fclose, fopen
+from cython.cimports.libcpp.string import string
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
@@ -63,7 +68,7 @@ class Translator:
         self.source = str(source)
         self.scops = []
         self.ccscops.clear()
-        self._populate_ccscops(str(source), options)
+        self.populate_ccscops(options)
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
             self.scops.append(Scop.create(ptr))
@@ -111,7 +116,7 @@ class Pet(Translator):
         os.environ["C_INCLUDE_PATH"] = old_includes
 
     @cython.ccall
-    def _populate_ccscops(self, source: str, options: list[str]):
+    def populate_ccscops(self, options: list[str]):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
         if self.ctx is cython.NULL:
             raise MemoryError()
@@ -126,7 +131,7 @@ class Pet(Translator):
         # Fill self.ccscops
         rv = pet.pet_transform_C_source(
             self.ctx,
-            source.encode(),
+            self.source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
             cython.address(self.ccscops),
@@ -134,7 +139,7 @@ class Pet(Translator):
         self._restore_includes(old_includes)
         if -1 == rv:
             raise ValueError(
-                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
             )
 
     @staticmethod
@@ -200,3 +205,101 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
+
+
+@cython.cclass
+class Polly(Translator):
+    compiler: str
+    json_paths: list[bytes] = []
+    cwd: str
+
+    def __init__(self, compiler: str = "clang"):
+        self.compiler = compiler
+
+    def _run_compiler_and_opt(self, options: list[str]) -> str:
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        self.cwd = tempfile.mkdtemp()
+        compile_cmd = [
+            str(self.compiler),
+            "-S",
+            "-emit-llvm",
+            str(self.source),
+            "-O1",
+            "-o",
+            "-",
+        ]
+        opt_cmd = [
+            "opt",
+            "-load",
+            "LLVMPolly.so",
+            "-disable-polly-legality",
+            "-polly-canonicalize",
+            "-polly-export-jscop",
+            "-o",
+            f"{self.source}.ll 2>&1",
+        ]
+        kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
+        compile_proc = subprocess.Popen(compile_cmd, **kwargs)
+        opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
+        compile_proc.wait()
+        opt_proc.wait()
+        stdout, stderr = opt_proc.communicate()
+        compile_proc.stdout.close()
+        compile_proc.stderr.close()
+        opt_proc.stdout.close()
+        opt_proc.stderr.close()
+        if compile_proc.returncode:
+            raise ValueError(
+                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
+            )
+        return stderr.decode()
+
+    @cython.ccall
+    def _fill_json_paths(self, stderr: str):
+        pat = re.compile(r".*to\s+'([^']*)'\.")
+        for t in stderr.split("\n"):
+            if not t:
+                continue
+            match = pat.search(t)
+            if not match:
+                raise ValueError(
+                    f"Something is wrong with `opt` output. Please raise an issue and mention this!\n{stderr}"
+                )
+            file = match.group(1)
+            self.json_paths.append(file)
+
+    @cython.ccall
+    def populate_ccscops(self, options: list[str]):
+        stderr = self._run_compiler_and_opt(options)
+        self._fill_json_paths(stderr)
+        for file in self.json_paths:
+            with open(file) as fp:
+                jscop = json.load(fp)
+            domain = isl.isl_union_set_empty_ctx(self.ctx)
+            sched = isl.isl_union_map_empty_ctx(self.ctx)
+            read = isl.isl_union_map_empty_ctx(self.ctx)
+            write = isl.isl_union_map_empty_ctx(self.ctx)
+            for stmt in jscop["statements"]:
+                accesses = stmt["accesses"]
+                for acc in accesses:
+                    kind = acc["kind"]
+                    tmp = acc["relation"].encode()
+                    rel = isl.isl_union_map_read_from_str(self.ctx, tmp)
+                    if kind == "read":
+                        read = isl.isl_union_map_union(read, rel)
+                    elif kind == "write":
+                        write = isl.isl_union_map_union(write, rel)
+                    else:
+                        raise SystemError(f"Error in JSCOP file ({kind=})")
+                name = stmt["name"]
+                tmp = stmt["domain"].encode()
+                dmn = isl.isl_union_set_read_from_str(self.ctx, tmp)
+                domain = isl.isl_union_set_union(domain, dmn)
+                tmp = stmt["schedule"].encode()
+                sch = isl.isl_union_map_read_from_str(self.ctx, tmp)
+                sched = isl.isl_union_map_union(sched, sch)
+            isl.isl_union_map_free(read)
+            isl.isl_union_map_free(write)
+            self.ccscops.emplace_back(domain, sched)

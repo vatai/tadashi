@@ -11,6 +11,7 @@ class ccScop {
 public:
   ccScop();
   ccScop(pet_scop *ps);
+  ccScop(isl_union_set *domain, isl_union_map *sched);
 
   virtual ~ccScop();
   ccScop(const ccScop &other);
