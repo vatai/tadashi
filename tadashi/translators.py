@@ -1,4 +1,5 @@
 # distutils: language=c++
+import json
 import os
 import re
 import subprocess
@@ -8,6 +9,7 @@ from pathlib import Path
 
 import cython
 from cython.cimports.libc.stdio import FILE, fclose, fopen
+from cython.cimports.libcpp.string import string
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
@@ -66,7 +68,7 @@ class Translator:
         self.source = str(source)
         self.scops = []
         self.ccscops.clear()
-        self._populate_ccscops(str(source), options)
+        self.populate_ccscops(options)
         for idx in range(self.ccscops.size()):
             ptr = cython.address(self.ccscops[idx])
             self.scops.append(Scop.create(ptr))
@@ -114,7 +116,7 @@ class Pet(Translator):
         os.environ["C_INCLUDE_PATH"] = old_includes
 
     @cython.ccall
-    def _populate_ccscops(self, source: str, options: list[str]):
+    def populate_ccscops(self, options: list[str]):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
         if self.ctx is cython.NULL:
             raise MemoryError()
@@ -129,7 +131,7 @@ class Pet(Translator):
         # Fill self.ccscops
         rv = pet.pet_transform_C_source(
             self.ctx,
-            source.encode(),
+            self.source.encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
             cython.address(self.ccscops),
@@ -137,7 +139,7 @@ class Pet(Translator):
         self._restore_includes(old_includes)
         if -1 == rv:
             raise ValueError(
-                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
             )
 
     @staticmethod
@@ -208,13 +210,17 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
-    json_paths: list[str] = []
+    json_paths: list[bytes] = []
+    cwd: str
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
 
-    @cython.ccall
-    def _populate_ccscops(self, source: str, options: list[str]):
+    def _run_compiler_and_opt(self, options: list[str]) -> str:
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        self.cwd = tempfile.mkdtemp()
         compile_cmd = [
             str(self.compiler),
             "-S",
@@ -234,20 +240,11 @@ class Polly(Translator):
             "-o",
             f"{self.source}.ll 2>&1",
         ]
-        with tempfile.TemporaryDirectory() as cwd:
-            kwargs = {
-                "stdout": subprocess.PIPE,
-                "stderr": subprocess.PIPE,
-                "cwd": cwd,
-            }
-
-            self.ctx = pet.isl_ctx_alloc()
-            if self.ctx is cython.NULL:
-                raise MemoryError()
-            compile_proc = subprocess.Popen(compile_cmd, **kwargs)
-            compile_proc.wait()
-            opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
-            opt_proc.wait()
+        kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
+        compile_proc = subprocess.Popen(compile_cmd, **kwargs)
+        opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
+        compile_proc.wait()
+        opt_proc.wait()
         stdout, stderr = opt_proc.communicate()
         compile_proc.stdout.close()
         compile_proc.stderr.close()
@@ -255,11 +252,14 @@ class Polly(Translator):
         opt_proc.stderr.close()
         if compile_proc.returncode:
             raise ValueError(
-                f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
+                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
             )
+        return stderr.decode()
+
+    @cython.ccall
+    def _fill_json_paths(self, stderr: str):
         pat = re.compile(r".*to\s+'([^']*)'\.")
-        # lines = [.group(1) for t in ]
-        for t in stderr.decode().split("\n"):
+        for t in stderr.split("\n"):
             if not t:
                 continue
             match = pat.search(t)
@@ -268,19 +268,23 @@ class Polly(Translator):
                     "Something is wrong with `opt` output. Please raise an issue and mention this!"
                 )
             file = match.group(1)
-            print(f"{file=}")
             self.json_paths.append(file)
-            self.ccscops.emplace_back("foobar")
 
-        # Fill self.ccscops
-        # rv = pet.pet_transform_C_source(
-        #     self.ctx,
-        #     source.encode(),
-        #     fopen("/dev/null".encode(), "w"),
-        #     self._extract_scops_callback,
-        #     cython.address(self.ccscops),
-        # )
-        # if -1 == rv:
-        #     raise ValueError(
-        #         f"Something went wrong while parsing the {source}. Is the file syntactically correct?"
-        #     )
+    @cython.ccall
+    def populate_ccscops(self, options: list[str]):
+        stderr = self._run_compiler_and_opt(options)
+        self._fill_json_paths(stderr)
+        for file in self.json_paths:
+            with open(file) as fp:
+                jscop = json.load(fp)
+            domain = isl.isl_union_set_empty_ctx(self.ctx)
+            sched = isl.isl_union_map_empty_ctx(self.ctx)
+            for stmt in jscop["statements"]:
+                name = stmt["name"]
+                tmp = stmt["domain"].encode()
+                dmn = isl.isl_union_set_read_from_str(self.ctx, tmp)
+                domain = isl.isl_union_set_union(domain, dmn)
+                tmp = stmt["schedule"].encode()
+                sch = isl.isl_union_map_read_from_str(self.ctx, tmp)
+                sched = isl.isl_union_map_union(sched, sch)
+            self.ccscops.emplace_back(domain, sched)
