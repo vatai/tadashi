@@ -16,7 +16,7 @@ jobs:
       run: sudo third_party/install.sh
 
     - name: Install LLVM and clang 🛠️
-      run: sudo apt -y install llvm clang
+      run: sudo apt -y install llvm clang libpolly-18-dev
 
     - name: Set up Python 🐍
       uses: actions/setup-python@v5
