@@ -279,7 +279,20 @@ class Polly(Translator):
                 jscop = json.load(fp)
             domain = isl.isl_union_set_empty_ctx(self.ctx)
             sched = isl.isl_union_map_empty_ctx(self.ctx)
+            read = isl.isl_union_map_empty_ctx(self.ctx)
+            write = isl.isl_union_map_empty_ctx(self.ctx)
             for stmt in jscop["statements"]:
+                accesses = stmt["accesses"]
+                for acc in accesses:
+                    kind = acc["kind"]
+                    tmp = acc["relation"].encode()
+                    rel = isl.isl_union_map_read_from_str(self.ctx, tmp)
+                    if kind == "read":
+                        read = isl.isl_union_map_union(read, rel)
+                    elif kind == "write":
+                        write = isl.isl_union_map_union(write, rel)
+                    else:
+                        raise SystemError(f"Error in JSCOP file ({kind=})")
                 name = stmt["name"]
                 tmp = stmt["domain"].encode()
                 dmn = isl.isl_union_set_read_from_str(self.ctx, tmp)
@@ -287,4 +300,6 @@ class Polly(Translator):
                 tmp = stmt["schedule"].encode()
                 sch = isl.isl_union_map_read_from_str(self.ctx, tmp)
                 sched = isl.isl_union_map_union(sched, sch)
+            isl.isl_union_map_free(read)
+            isl.isl_union_map_free(write)
             self.ccscops.emplace_back(domain, sched)
