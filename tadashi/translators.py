@@ -210,7 +210,7 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
-    json_paths: list[bytes] = []
+    json_paths: list[Path] = []
     cwd: str
 
     def __init__(self, compiler: str = "clang"):
@@ -238,9 +238,7 @@ class Polly(Translator):
             "-o",
             f"{self.source}.ll 2>&1",
         ]
-        final = ["opt"] + optional + required
-        print(f"{final=}")
-        return final
+        return ["opt"] + optional + required
 
     def _run_compiler_and_opt(self, options: list[str]) -> str:
         self.ctx = pet.isl_ctx_alloc()
@@ -275,14 +273,14 @@ class Polly(Translator):
                     f"Something is wrong with `opt` output. Please raise an issue and mention this!\n{stderr}"
                 )
             file = match.group(1)
-            self.json_paths.append(file)
+            self.json_paths.append(Path(file))
 
     @cython.ccall
     def populate_ccscops(self, options: list[str]):
         stderr = self._run_compiler_and_opt(options)
         self._fill_json_paths(stderr)
         for file in self.json_paths:
-            with open(file) as fp:
+            with open(self.cwd / file) as fp:
                 jscop = json.load(fp)
             domain = isl.isl_union_set_empty_ctx(self.ctx)
             sched = isl.isl_union_map_empty_ctx(self.ctx)
