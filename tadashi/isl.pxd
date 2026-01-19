@@ -53,9 +53,24 @@ cdef extern from "isl/union_set.h":
     ctypedef struct isl_union_set: pass
     #
     isl_union_set *isl_union_set_free(isl_union_set *uset)
+    isl_union_set *isl_union_set_empty_ctx(isl_ctx *ctx)
+    isl_union_set *isl_union_set_read_from_str(isl_ctx *ctx, const char* str)
+    isl_union_set *isl_union_set_union(isl_union_set *s1, isl_union_set *s2)
     int isl_union_set_n_set(isl_union_set *uset)
     isl_set_list *isl_union_set_get_set_list(isl_union_set *uset)
 ctypedef isl_union_set* union_set
+
+
+# ---------
+# union_map
+# ---------
+cdef extern from "isl/union_map.h":
+    ctypedef struct isl_union_map: pass
+    #
+    isl_union_map *isl_union_map_free(isl_union_map *umap)
+    isl_union_map *isl_union_map_empty_ctx(isl_ctx *ctx)
+    isl_union_map *isl_union_map_read_from_str(isl_ctx *ctx, const char* str)
+    isl_union_map *isl_union_map_union(isl_union_map *s1, isl_union_map *s2)
 
 # ---
 # aff
