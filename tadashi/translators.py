@@ -231,6 +231,7 @@ class Polly(Translator):
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
         ret = subprocess.run(cmd)
         optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
+        optional = []
         required = [
             "-disable-polly-legality",
             "-polly-canonicalize",
