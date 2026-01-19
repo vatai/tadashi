@@ -231,7 +231,6 @@ class Polly(Translator):
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
         ret = subprocess.run(cmd)
         optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
-        optional = []
         required = [
             "-disable-polly-legality",
             "-polly-canonicalize",
@@ -239,7 +238,9 @@ class Polly(Translator):
             "-o",
             f"{self.source}.ll 2>&1",
         ]
-        return ["opt"] + optional + required
+        final = ["opt"] + optional + required
+        print(f"{final=}")
+        return final
 
     def _run_compiler_and_opt(self, options: list[str]) -> str:
         self.ctx = pet.isl_ctx_alloc()
