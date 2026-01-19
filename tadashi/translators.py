@@ -229,7 +229,7 @@ class Polly(Translator):
 
     def opt_cmd(self):
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        ret = subprocess.run(cmd)
+        ret = subprocess.run(cmd, stderr=subprocess.DEVNULL)
         optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
         required = [
             "-disable-polly-legality",
