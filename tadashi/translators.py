@@ -216,12 +216,8 @@ class Polly(Translator):
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
 
-    def _run_compiler_and_opt(self, options: list[str]) -> str:
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-        self.cwd = tempfile.mkdtemp()
-        compile_cmd = [
+    def compile_cmd(self):
+        return [
             str(self.compiler),
             "-S",
             "-emit-llvm",
@@ -230,19 +226,28 @@ class Polly(Translator):
             "-o",
             "-",
         ]
-        opt_cmd = [
-            "opt",
-            "-load",
-            "LLVMPolly.so",
+
+    def opt_cmd(self):
+        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        ret = subprocess.run(cmd)
+        optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
+        required = [
             "-disable-polly-legality",
             "-polly-canonicalize",
             "-polly-export-jscop",
             "-o",
             f"{self.source}.ll 2>&1",
         ]
+        return ["opt"] + optional + required
+
+    def _run_compiler_and_opt(self, options: list[str]) -> str:
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        self.cwd = tempfile.mkdtemp()
         kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
-        compile_proc = subprocess.Popen(compile_cmd, **kwargs)
-        opt_proc = subprocess.Popen(opt_cmd, stdin=compile_proc.stdout, **kwargs)
+        compile_proc = subprocess.Popen(self.compile_cmd(), **kwargs)
+        opt_proc = subprocess.Popen(self.opt_cmd(), stdin=compile_proc.stdout, **kwargs)
         compile_proc.wait()
         opt_proc.wait()
         stdout, stderr = opt_proc.communicate()
