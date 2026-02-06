@@ -296,9 +296,7 @@ class Polly(Translator):
             domain = isl.isl_union_set_union(domain, dmn)
             sch = isl.isl_union_map_read_from_str(self.ctx, stmt["schedule"].encode())
             sched = isl.isl_union_map_union(sched, sch)
-        isl.isl_union_map_free(read)
-        isl.isl_union_map_free(write)
-        self.ccscops.emplace_back(domain, sched)
+        self.ccscops.emplace_back(domain, sched, read, write)
 
     @cython.ccall
     def populate_ccscops(self, options: list[str]):

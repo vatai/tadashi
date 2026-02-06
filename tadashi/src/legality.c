@@ -11,82 +11,8 @@
 #include <isl/union_set.h>
 #include <isl/val.h>
 
-#include <pet.h>
-
 #include "legality.h"
-
-static isl_bool
-pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
-  return isl_pw_aff_is_cst(pa);
-}
-
-static isl_union_set *
-idx_to_domain(isl_union_set *set, void *user) {
-  isl_union_map *map = (isl_union_map *)user;
-  return isl_union_set_apply(set, isl_union_map_copy(map));
-}
-
-static isl_stat
-add_singleton_to_list(__isl_take isl_point *pnt, void *user) {
-  isl_union_set_list **filters = (isl_union_set_list **)user;
-  isl_union_set *singleton = isl_union_set_from_point(pnt);
-  *filters = isl_union_set_list_add(*filters, singleton);
-  return isl_stat_ok;
-}
-
-static int
-filter_cmp(struct isl_union_set *set1, struct isl_union_set *set2, void *_) {
-  isl_point *p1 = isl_union_set_sample_point(isl_union_set_copy(set1));
-  isl_val *v1 = isl_point_get_coordinate_val(p1, isl_dim_all, 0);
-  isl_point *p2 = isl_union_set_sample_point(isl_union_set_copy(set2));
-  isl_val *v2 = isl_point_get_coordinate_val(p2, isl_dim_all, 0);
-  int result = isl_val_get_num_si(v1) - isl_val_get_num_si(v2);
-  isl_point_free(p1);
-  isl_point_free(p2);
-  isl_val_free(v1);
-  isl_val_free(v2);
-  return result;
-}
-
-static __isl_give isl_schedule *
-_umap_to_schedule_tree(__isl_take isl_union_set *domain,
-                       __isl_take isl_union_map *umap) {
-  isl_multi_union_pw_aff *mupa;
-  isl_schedule *schedule;
-  isl_schedule_node *root;
-  isl_union_map *map;
-  isl_ctx *ctx = isl_union_set_get_ctx(domain);
-  schedule = isl_schedule_from_domain(domain);
-  mupa = isl_multi_union_pw_aff_from_union_map(umap);
-  root = isl_schedule_get_root(schedule);
-  schedule = isl_schedule_free(schedule);
-  root = isl_schedule_node_first_child(root);
-  isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
-  for (int pos = dim - 1; pos >= 0; pos--) {
-    isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
-    if (isl_union_pw_aff_every_pw_aff(upa, pw_aff_is_cst, NULL)) {
-      map = isl_union_map_from_union_pw_aff(upa);
-      map = isl_union_map_reverse(map);
-      isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
-      isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
-      isl_union_set_foreach_point(steps, add_singleton_to_list, &filters);
-      filters = isl_union_set_list_sort(filters, filter_cmp, map);
-      isl_union_set_list_map(filters, idx_to_domain, map);
-      root = isl_schedule_node_insert_sequence(root, filters);
-      isl_union_set_free(steps);
-      isl_union_map_free(map);
-    } else {
-      isl_multi_union_pw_aff *tmp =
-          isl_multi_union_pw_aff_from_union_pw_aff(upa);
-      root = isl_schedule_node_insert_partial_schedule(root, tmp);
-    }
-  }
-
-  isl_multi_union_pw_aff_free(mupa);
-  schedule = isl_schedule_node_get_schedule(root);
-  isl_schedule_node_free(root);
-  return schedule;
-}
+#include <pet.h>
 
 struct tadashi_scop *
 allocate_tadashi_scop_from_json(isl_union_set *domain,
