@@ -1,4 +1,5 @@
 # distutils: language=c++
+import datetime
 import json
 import os
 import re
@@ -244,7 +245,8 @@ class Polly(Translator):
         self.ctx = pet.isl_ctx_alloc()
         if self.ctx is cython.NULL:
             raise MemoryError()
-        self.cwd = tempfile.mkdtemp()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
         kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
         compile_proc = subprocess.Popen(self.compile_cmd(), **kwargs)
         opt_proc = subprocess.Popen(self.opt_cmd(), stdin=compile_proc.stdout, **kwargs)
@@ -275,6 +277,29 @@ class Polly(Translator):
             file = match.group(1)
             self.json_paths.append(Path(file))
 
+    def _proc_jscop(self, jscop):
+        domain = isl.isl_union_set_empty_ctx(self.ctx)
+        sched = isl.isl_union_map_empty_ctx(self.ctx)
+        read = isl.isl_union_map_empty_ctx(self.ctx)
+        write = isl.isl_union_map_empty_ctx(self.ctx)
+        for stmt in jscop["statements"]:
+            for acc in stmt["accesses"]:
+                tmp = acc["relation"].encode()
+                rel = isl.isl_union_map_read_from_str(self.ctx, tmp)
+                if acc["kind"] == "read":
+                    read = isl.isl_union_map_union(read, rel)
+                elif acc["kind"] == "write":
+                    write = isl.isl_union_map_union(write, rel)
+                else:
+                    raise SystemError(f"Error in JSCOP file ({acc["kind"]=})")
+            dmn = isl.isl_union_set_read_from_str(self.ctx, stmt["domain"].encode())
+            domain = isl.isl_union_set_union(domain, dmn)
+            sch = isl.isl_union_map_read_from_str(self.ctx, stmt["schedule"].encode())
+            sched = isl.isl_union_map_union(sched, sch)
+        isl.isl_union_map_free(read)
+        isl.isl_union_map_free(write)
+        self.ccscops.emplace_back(domain, sched)
+
     @cython.ccall
     def populate_ccscops(self, options: list[str]):
         stderr = self._run_compiler_and_opt(options)
@@ -282,29 +307,4 @@ class Polly(Translator):
         for file in self.json_paths:
             with open(self.cwd / file) as fp:
                 jscop = json.load(fp)
-            domain = isl.isl_union_set_empty_ctx(self.ctx)
-            sched = isl.isl_union_map_empty_ctx(self.ctx)
-            read = isl.isl_union_map_empty_ctx(self.ctx)
-            write = isl.isl_union_map_empty_ctx(self.ctx)
-            for stmt in jscop["statements"]:
-                accesses = stmt["accesses"]
-                for acc in accesses:
-                    kind = acc["kind"]
-                    tmp = acc["relation"].encode()
-                    rel = isl.isl_union_map_read_from_str(self.ctx, tmp)
-                    if kind == "read":
-                        read = isl.isl_union_map_union(read, rel)
-                    elif kind == "write":
-                        write = isl.isl_union_map_union(write, rel)
-                    else:
-                        raise SystemError(f"Error in JSCOP file ({kind=})")
-                name = stmt["name"]
-                tmp = stmt["domain"].encode()
-                dmn = isl.isl_union_set_read_from_str(self.ctx, tmp)
-                domain = isl.isl_union_set_union(domain, dmn)
-                tmp = stmt["schedule"].encode()
-                sch = isl.isl_union_map_read_from_str(self.ctx, tmp)
-                sched = isl.isl_union_map_union(sched, sch)
-            isl.isl_union_map_free(read)
-            isl.isl_union_map_free(write)
-            self.ccscops.emplace_back(domain, sched)
+            self._proc_jscop(jscop)
