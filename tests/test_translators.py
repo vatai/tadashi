@@ -17,20 +17,28 @@ class TestTranslator(unittest.TestCase):
     examples: Path = Path(__file__).parent.parent / "examples"
     tests: Path = Path(__file__).parent
 
-    def test_double_set(self):
+    @unittest.skip("todo")
+    def _test_scop_extraction(self):
+        """Test the things done in the constructor: does it populate
+        ccscops and scops correctly."""
+
+    @unittest.skip("todo")
+    def _test_codegen(self):
+        """Test codegen"""
+
+    def _test_double_set(self, translator):
         """Calling set_source() 2x on a translator should raise an error!"""
-        translator = Pet()
         file = self.examples / "inputs/depnodep.c"
         translator.set_source(file, [])
         with self.assertRaises(RuntimeError):
             translator.set_source(file, [])
 
-    def test_deleted_translator(self):
+    def _test_deleted_translator(self, translator_cls):
         """This test should simply not crash."""
 
         def _get_schedule_tree():
             file = self.examples / "inputs/depnodep.c"
-            translator = Pet()
+            translator = translator_cls()
             translator.set_source(file, [])
             scop = translator.scops[0]
             # `translator` is freed after the next line.
@@ -40,23 +48,6 @@ class TestTranslator(unittest.TestCase):
             node = _get_schedule_tree()[1]
             # The translator is qeried when in the next line!
             print(node.yaml_str)
-
-    @unittest.skip("todo")
-    def test_pet_scop_extraction(self):
-        """Test the things done in the constructor: does it populate
-        ccscops and scops correctly."""
-
-    @unittest.skip("todo")
-    def test_pet_codegen(self):
-        """Test codegen"""
-
-    @unittest.skip("todo")
-    def test_polly_codegen(self):
-        """See same test for pet."""
-
-    @unittest.skip("todo")
-    def test_polly_scop_extraction(self):
-        """See same test for pet."""
 
     def _test_compilation_error(self, translator):
         with self.assertRaises(ValueError):
@@ -87,6 +78,12 @@ class TestPet(TestTranslator):
                 translator = Pet(autodetect=autodetect)
                 translator.set_source(file, [])
                 self.assertEqual(len(translator.scops), num_scops)
+
+    def test_double_set(self):
+        self._test_double_set(Pet())
+
+    def test_deleted_translator(self):
+        self._test_deleted_translator(Pet)
 
     def test_compilation_error(self):
         self._test_compilation_error(Pet(autodetect=True))
