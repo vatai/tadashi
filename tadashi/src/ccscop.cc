@@ -390,6 +390,7 @@ _umap_to_schedule_tree(__isl_take isl_union_set *domain,
   mupa = isl_multi_union_pw_aff_from_union_map(umap);
   root = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
+
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   for (int pos = dim - 1; pos >= 0; pos--) {
@@ -420,25 +421,21 @@ _umap_to_schedule_tree(__isl_take isl_union_set *domain,
 
 ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
                isl_union_map *write)
-    : schedule(nullptr),     // 1.
-      dep_flow(nullptr),     // 2.
-      domain(domain),        // 3.
-      call(nullptr),         // 4.
-      may_writes(write),     // 5.
-      must_writes(nullptr),  // 6.
-      must_kills(nullptr),   // 7.
-      may_reads(read),       // 8.
-      live_out(nullptr),     // 9.
+    : schedule(_umap_to_schedule_tree(isl_union_set_copy(domain), sched)), // 1.
+      dep_flow(nullptr),                                                   // 2.
+      domain(domain),                                                      // 3.
+      call(nullptr),                                                       // 4.
+      may_writes(write),                                                   // 5.
+      must_writes(nullptr),                                                // 6.
+      must_kills(nullptr),                                                 // 7.
+      may_reads(read),                                                     // 8.
+      live_out(nullptr),                                                   // 9.
       current_node(nullptr), // 10.
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
       modified(0)            // 14.
-{
-  // std::cout << isl_union_set_to_str(this->domain) << std::endl;
-  // std::cout << isl_union_map_to_str(sched) << std::endl;
-  isl_union_map_free(sched);
-}
+{}
 
 void
 ccScop::_dealloc() {
