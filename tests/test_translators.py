@@ -17,10 +17,13 @@ class TestTranslator(unittest.TestCase):
     examples: Path = Path(__file__).parent.parent / "examples"
     tests: Path = Path(__file__).parent
 
-    @unittest.skip("todo")
-    def _test_scop_extraction(self):
+    def _test_scop_extraction(self, translator: Translator):
         """Test the things done in the constructor: does it populate
         ccscops and scops correctly."""
+        translator.set_source(self.examples / "inputs/depnodep.c", [])
+        for s in translator.scops:
+            for n in s.schedule_tree:
+                print(n)
 
     @unittest.skip("todo")
     def _test_codegen(self):
@@ -79,6 +82,11 @@ class TestPet(TestTranslator):
                 translator.set_source(file, [])
                 self.assertEqual(len(translator.scops), num_scops)
 
+    def test_scop_extraction(self):
+        """Test the things done in the constructor: does it populate
+        ccscops and scops correctly."""
+        self._test_scop_extraction(Pet())
+
     def test_double_set(self):
         self._test_double_set(Pet())
 
@@ -96,3 +104,6 @@ class TestPolly(TestTranslator):
     def test_wip(self):
         translator = Polly("clang")
         translator.set_source(self.examples / "inputs/depnodep.c", [])
+        for s in translator.scops:
+            for n in s.schedule_tree:
+                print(n)
