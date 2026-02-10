@@ -9,7 +9,10 @@
                 ;; :gopls (:usePlaceholders t)
          ))
      (projectile-project-compilation-cmd
-      . "./setup.py build_ext -i")))
+      . "./setup.py build_ext -i")
+     (corfu-auto
+      . t))
+  )
  ;; (python-base-mode . ((indent-tabs-mode . nil)))
  ;; (go-mode          . ((indent-tabs-mode . t)))
  (python-mode . ((eval . (progn
