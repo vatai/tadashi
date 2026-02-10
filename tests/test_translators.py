@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tadashi.scop import Scop
+from tadashi.scop import Scop, TrEnum
 from tadashi.translators import *
 
 
@@ -103,7 +103,13 @@ class TestPolly(TestTranslator):
 
     def test_wip(self):
         translator = Polly("clang")
+        print("Setting sources... ", end="")
         translator.set_source(self.examples / "inputs/depnodep.c", [])
-        for s in translator.scops:
-            for n in s.schedule_tree:
-                print(n)
+        print("DONE!")
+        scop = translator.scops[1]
+        node = scop.schedule_tree[2]
+        print(node.yaml_str)
+        node.transform(TrEnum.INTERCHANGE)
+        scop = translator.scops[1]
+        node = scop.schedule_tree[2]
+        print(node.yaml_str)
