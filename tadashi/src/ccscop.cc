@@ -304,7 +304,7 @@ ccScop::ccScop()
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Default()" << std::endl;
+  std::cout << ">>> [c]Default()... DONE!" << std::endl;
 #endif // NDEBUG
 }
 
@@ -325,7 +325,7 @@ ccScop::ccScop(pet_scop *ps)
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]PetPtr()" << std::endl;
+  std::cout << ">>> [c]PetPtr()... ";
 #endif // NDEBUG
   this->schedule = pet_scop_get_schedule(ps);
   this->dep_flow = get_dependencies(ps);
@@ -343,6 +343,9 @@ ccScop::ccScop(pet_scop *ps)
   this->current_node = isl_schedule_get_root(this->schedule);
   if (ps != nullptr)
     pet_scop_free(ps);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 static isl_bool
@@ -435,7 +438,15 @@ ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
       modified(0)            // 14.
-{}
+{
+#ifndef NDEBUG
+  std::cout << ">>> [c]Polly()... ";
+#endif // NDEBUG
+  this->current_node = isl_schedule_get_root(this->schedule);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
+}
 
 void
 ccScop::_dealloc() {
@@ -488,9 +499,12 @@ ccScop::_dealloc() {
 
 ccScop::~ccScop() {
 #ifndef NDEBUG
-  std::cout << "<<< [~]***destructor***()" << std::endl;
+  std::cout << "<<< [~]***destructor***()... ";
 #endif // NDEBUG
   this->_dealloc();
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 void
@@ -540,9 +554,12 @@ ccScop::ccScop(const ccScop &other)
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Copy()" << std::endl;
+  std::cout << ">>> [c]Copy()... ";
 #endif // NDEBUG
   this->_copy(other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 void
@@ -580,26 +597,32 @@ ccScop::ccScop(ccScop &&other) noexcept
       modified(other.modified)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Move()" << std::endl;
+  std::cout << ">>> [c]Move()... ";
 #endif // NDEBUG
   _set_nullptr(&other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 ccScop &
 ccScop::operator=(const ccScop &other) {
 #ifndef NDEBUG
-  std::cout << ">>> [op=]Copy()" << std::endl;
+  std::cout << ">>> [op=]Copy()... ";
 #endif // NDEBUG
   if (this == &other)
     return *this;
   this->_copy(other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
   return *this;
 }
 
 ccScop &
 ccScop::operator=(ccScop &&other) noexcept {
 #ifndef NDEBUG
-  std::cout << ">>> [op=]Move()" << std::endl;
+  std::cout << ">>> [op=]Move()... ";
 #endif // NDEBUG
   if (this == &other)
     return *this;
@@ -620,6 +643,9 @@ ccScop::operator=(ccScop &&other) noexcept {
   this->modified = other.modified;           // 14.
   //
   _set_nullptr(&other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
   return *this;
 }
 
