@@ -7,7 +7,9 @@
            :pylint
            (:enabled :json-false)))
                 ;; :gopls (:usePlaceholders t)
-                ))))
+         ))
+     (projectile-project-compilation-cmd
+      . "./setup.py build_ext -i")))
  ;; (python-base-mode . ((indent-tabs-mode . nil)))
  ;; (go-mode          . ((indent-tabs-mode . t)))
  (python-mode . ((eval . (progn
