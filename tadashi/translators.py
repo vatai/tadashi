@@ -229,14 +229,14 @@ class Polly(Translator):
             "-",
         ]
 
-    def _opt_cmd(self):
+    def _opt_cmd(self, port: str):
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
         ret = subprocess.run(cmd, stderr=subprocess.DEVNULL)
         optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
         required = [
             "-disable-polly-legality",
             "-polly-canonicalize",
-            "-polly-export-jscop",
+            f"-polly-{port}-jscop",
             "-o",
             f"{self.source}.ll 2>&1",
         ]
@@ -251,7 +251,7 @@ class Polly(Translator):
         kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
         compile_proc = subprocess.Popen(self._compile_cmd(), **kwargs)
         opt_proc = subprocess.Popen(
-            self._opt_cmd(), stdin=compile_proc.stdout, **kwargs
+            self._opt_cmd("export"), stdin=compile_proc.stdout, **kwargs
         )
         compile_proc.wait()
         opt_proc.wait()
