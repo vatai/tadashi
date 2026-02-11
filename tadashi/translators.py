@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from importlib.resources import files
@@ -313,8 +314,46 @@ class Polly(Translator):
     def generate_code(
         self, input_path: str, output_path: str, options: list[str]
     ) -> int:
-        for scop_idx, jscop_path in enumerate(self.jscop_paths):
+        for scop_idx, jscop_path in enumerate(self.json_paths):
+            jscop_path = self.cwd / jscop_path
             ccscop = self.ccscops[scop_idx]
             sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
-            map = isl.isl_schedule_get_map(sched)
+            umap = isl.isl_schedule_get_map(sched)
             isl.isl_schedule_free(sched)
+            sched_str = isl.isl_union_map_to_str(umap).decode()
+
+            backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
+            shutil.copy2(jscop_path, backup_path)
+
+            with jscop_path.open("r", encoding="utf-8") as f:
+                jscop = json.load(f)
+
+            for stmt in jscop["statements"]:
+                name = stmt["name"]
+                uset = isl.isl_union_set_read_from_str(
+                    self.ctx, stmt["domain"].encode()
+                )
+                stmt_map = isl.isl_union_map_intersect_domain_union_set(umap, uset)
+                stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
+                isl.isl_union_map_free(stmt_map)
+
+            with jscop_path.open("w", encoding="utf-8") as f:
+                json.dump(jscop, f, indent=2)
+        return 0  # todo!
+        cmd = [
+            self.compiler,
+            input_path,
+            "-o",
+            output_path,
+            "-mllvm",
+            "-polly",
+            "-mllvm",
+            "-polly-import-jscop",
+        ]
+
+        if options:
+            cmd.extend(options)
+
+        result = subprocess.run(cmd)
+        print(f"{result=}")
+        return result.returncode

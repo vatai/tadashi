@@ -104,7 +104,8 @@ class TestPolly(TestTranslator):
     def test_wip(self):
         translator = Polly("clang")
         print("Setting sources... ", end="")
-        translator.set_source(self.examples / "inputs/depnodep.c", [])
+        input_path = self.examples / "inputs/depnodep.c"
+        translator.set_source(input_path, [])
         print("DONE!")
         scop = translator.scops[1]
         node = scop.schedule_tree[2]
@@ -113,3 +114,4 @@ class TestPolly(TestTranslator):
         scop = translator.scops[1]
         node = scop.schedule_tree[2]
         print(node.yaml_str)
+        translator.generate_code(str(input_path), "/tmp/output.ll", [])
