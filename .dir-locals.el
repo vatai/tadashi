@@ -10,6 +10,8 @@
          ))
      (projectile-project-compilation-cmd
       . "./setup.py build_ext -i")
+     (projectile-project-test-cmd
+      . "python -m unittest tests.test_translators.TestPolly.test_wip")
      (corfu-auto
       . t))
   )
