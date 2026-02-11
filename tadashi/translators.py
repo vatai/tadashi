@@ -217,7 +217,7 @@ class Polly(Translator):
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
 
-    def compile_cmd(self):
+    def _compile_cmd(self):
         return [
             str(self.compiler),
             "-S",
@@ -228,7 +228,7 @@ class Polly(Translator):
             "-",
         ]
 
-    def opt_cmd(self):
+    def _opt_cmd(self):
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
         ret = subprocess.run(cmd, stderr=subprocess.DEVNULL)
         optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
@@ -248,8 +248,10 @@ class Polly(Translator):
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
         kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
-        compile_proc = subprocess.Popen(self.compile_cmd(), **kwargs)
-        opt_proc = subprocess.Popen(self.opt_cmd(), stdin=compile_proc.stdout, **kwargs)
+        compile_proc = subprocess.Popen(self._compile_cmd(), **kwargs)
+        opt_proc = subprocess.Popen(
+            self._opt_cmd(), stdin=compile_proc.stdout, **kwargs
+        )
         compile_proc.wait()
         opt_proc.wait()
         stdout, stderr = opt_proc.communicate()
@@ -306,3 +308,13 @@ class Polly(Translator):
             with open(self.cwd / file) as fp:
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
+
+    @cython.ccall
+    def generate_code(
+        self, input_path: str, output_path: str, options: list[str]
+    ) -> int:
+        for scop_idx, jscop_path in enumerate(self.jscop_paths):
+            ccscop = self.ccscops[scop_idx]
+            sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
+            map = isl.isl_schedule_get_map(sched)
+            isl.isl_schedule_free(sched)

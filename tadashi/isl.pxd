@@ -27,6 +27,7 @@ cdef extern from "isl/schedule.h":
     #
     isl_schedule *isl_schedule_free(isl_schedule *sched)
     isl_schedule_node *isl_schedule_get_root(isl_schedule *sched)
+    isl_union_map *isl_schedule_get_map(isl_schedule *sched)
     const char *isl_schedule_to_str(isl_schedule *sched)
 ctypedef isl_schedule* schedule
 
