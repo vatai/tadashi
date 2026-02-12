@@ -4,7 +4,7 @@ import json
 import os
 import re
 import shutil
-import subprocess
+import subprocess as subp
 import tempfile
 from importlib.resources import files
 from pathlib import Path
@@ -29,7 +29,7 @@ class Translator:
     ccscops = cython.declare(vector[ccScop])
     scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
-    source: str
+    source: Path
 
     def __dealloc__(self):
         self.ccscops.clear()
@@ -67,7 +67,7 @@ class Translator:
         self._check_missing_file(source)
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
-        self.source = str(source)
+        self.source = Path(source)
         self.scops = []
         self.ccscops.clear()
         self.populate_ccscops(options)
@@ -133,7 +133,7 @@ class Pet(Translator):
         # Fill self.ccscops
         rv = pet.pet_transform_C_source(
             self.ctx,
-            self.source.encode(),
+            str(self.source).encode(),
             fopen("/dev/null".encode(), "w"),
             self._extract_scops_callback,
             cython.address(self.ccscops),
@@ -141,7 +141,7 @@ class Pet(Translator):
         self._restore_includes(old_includes)
         if -1 == rv:
             raise ValueError(
-                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
+                f"Something went wrong while parsing the {str(self.source)}. Is the file syntactically correct?"
             )
 
     @staticmethod
@@ -218,53 +218,52 @@ class Polly(Translator):
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
 
-    def _compile_cmd(self):
-        return [
+    def _get_O1_bitcode(self) -> Path:
+        output = Path(self.cwd) / self.source.with_suffix(".O1.bc").name
+        if output.exists():
+            return output
+        cmd = [
             str(self.compiler),
-            "-S",
+            "-c",
             "-emit-llvm",
             str(self.source),
             "-O1",
             "-o",
-            "-",
+            str(output),
         ]
-
-    def _opt_cmd(self, port: str):
-        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        ret = subprocess.run(cmd, stderr=subprocess.DEVNULL)
-        optional = ["-load=LLVMPolly.so"] if ret.returncode == 0 else []
-        required = [
-            "-disable-polly-legality",
-            "-polly-canonicalize",
-            f"-polly-{port}-jscop",
-            "-o",
-            f"{self.source}.ll 2>&1",
-        ]
-        return ["opt"] + optional + required
-
-    def _run_compiler_and_opt(self, options: list[str]) -> str:
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
-        kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "cwd": self.cwd}
-        compile_proc = subprocess.Popen(self._compile_cmd(), **kwargs)
-        opt_proc = subprocess.Popen(
-            self._opt_cmd("export"), stdin=compile_proc.stdout, **kwargs
-        )
-        compile_proc.wait()
-        opt_proc.wait()
-        stdout, stderr = opt_proc.communicate()
-        compile_proc.stdout.close()
-        compile_proc.stderr.close()
-        opt_proc.stdout.close()
-        opt_proc.stderr.close()
-        if compile_proc.returncode:
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        if proc.returncode:
             raise ValueError(
-                f"Something went wrong while parsing the {self.source}. Is the file syntactically correct?"
+                f"Something went wrong while parsing the {self.source}. "
+                + "Is the file syntactically correct?"
             )
-        return stderr.decode()
+        return output
+
+    @staticmethod
+    def _polly():
+        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        ret = subp.run(cmd, stderr=subp.DEVNULL)
+        final = ["opt"]
+        if ret.returncode == 0:
+            final.append("-load=LLVMPolly.so")
+        final.append("-polly-canonicalize")
+        return final
+
+    def _export_jscops(self) -> str:
+        cmd = self._polly()
+        cmd.append(str(self._get_O1_bitcode()))
+        cmd.append("-polly-export-jscop")
+        cmd.append("-o=/dev/null")
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        return proc.stderr.decode()
+
+    def _import_jscops(self):
+        output = self.source.with_suffix(".ll").name
+        cmd = self._polly()
+        cmd.append(str(self._get_O1_bitcode()))
+        cmd.append("-polly-export-jscop")
+        cmd.append(f"-o={output}")
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str):
@@ -275,7 +274,8 @@ class Polly(Translator):
             match = pat.search(t)
             if not match:
                 raise ValueError(
-                    f"Something is wrong with `opt` output. Please raise an issue and mention this!\n{stderr}"
+                    f"Something is wrong with `opt` output. "
+                    + "Please raise an issue and mention this!\n{stderr}"
                 )
             file = match.group(1)
             self.json_paths.append(Path(file))
@@ -303,7 +303,14 @@ class Polly(Translator):
 
     @cython.ccall
     def populate_ccscops(self, options: list[str]):
-        stderr = self._run_compiler_and_opt(options)
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
+        print(f"{self.cwd=}")
+        self._get_O1_bitcode()
+        stderr = self._export_jscops()
         self._fill_json_paths(stderr)
         for file in self.json_paths:
             with open(self.cwd / file) as fp:
@@ -339,21 +346,5 @@ class Polly(Translator):
 
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
-        return 0  # todo!
-        cmd = [
-            self.compiler,
-            input_path,
-            "-o",
-            output_path,
-            "-mllvm",
-            "-polly",
-            "-mllvm",
-            "-polly-import-jscop",
-        ]
-
-        if options:
-            cmd.extend(options)
-
-        result = subprocess.run(cmd)
-        print(f"{result=}")
-        return result.returncode
+        self._import_jscops()
+        return 42
