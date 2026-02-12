@@ -257,13 +257,25 @@ class Polly(Translator):
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         return proc.stderr.decode()
 
-    def _import_jscops(self):
-        output = self.source.with_suffix(".ll").name
+    def _import_jscops(self) -> Path:
+        output = Path(self.cwd) / self.source.with_suffix(".bc").name
+        if output.exists():
+            return output
         cmd = self._polly()
         cmd.append(str(self._get_O1_bitcode()))
         cmd.append("-polly-export-jscop")
         cmd.append(f"-o={output}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        return output
+
+    def _generate_binary(self, output: str | Path, options: list[str]) -> int:
+        cmd = ["clang"] + options
+        input_path = str(self._import_jscops())
+        cmd.append(input_path)
+        cmd.append(f"-o{str(output)}")
+        print(f"{cmd=}")
+        proc = subp.run(cmd)
+        return proc.returncode
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str):
@@ -308,7 +320,6 @@ class Polly(Translator):
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
-        print(f"{self.cwd=}")
         self._get_O1_bitcode()
         stderr = self._export_jscops()
         self._fill_json_paths(stderr)
@@ -346,5 +357,4 @@ class Polly(Translator):
 
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
-        self._import_jscops()
-        return 42
+        return self._generate_binary(output_path, options)
