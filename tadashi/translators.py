@@ -270,7 +270,7 @@ class Polly(Translator):
         return output
 
     def _generate_binary(self, output: str | Path, options: list[str]) -> int:
-        cmd = ["clang"] + options
+        cmd = [self.compiler] + options
         input_path = str(self._import_jscops())
         cmd.append(input_path)
         cmd.append(f"-o{str(output)}")
