@@ -264,7 +264,7 @@ class Polly(Translator):
             return output
         cmd = self._polly()
         cmd.append(str(self._get_O1_bitcode()))
-        cmd.append("-polly-export-jscop")
+        cmd.append("-polly-import-jscop")
         cmd.append(f"-o={output}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         return output
