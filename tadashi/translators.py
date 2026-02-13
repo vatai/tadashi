@@ -233,10 +233,11 @@ class Polly(Translator):
         ]
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         if proc.returncode:
-            raise ValueError(
-                f"Something went wrong while parsing the {self.source}. "
-                + "Is the file syntactically correct?"
-            )
+            msg = [
+                f"{proc.stderr.decode()}",
+                f"Something went wrong while parsing the {self.source}. ",
+            ]
+            raise ValueError(msg)
         return output
 
     @staticmethod
