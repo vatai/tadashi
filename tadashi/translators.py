@@ -273,7 +273,6 @@ class Polly(Translator):
         input_path = str(self._import_jscops())
         cmd.append(input_path)
         cmd.append(f"-o{str(output)}")
-        print(f"{cmd=}")
         proc = subp.run(cmd)
         return proc.returncode
 
