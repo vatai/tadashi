@@ -91,32 +91,6 @@ class Pet(Translator):
         cls = self.__class__
         return cls(self.autodetect)
 
-    def _set_includes(self, options: list[str]) -> str:
-        """Temporarily extend `C_INCLUDE_PATH` environment variable.
-
-        Args:
-
-            options: compiler options.
-
-        Returns:
-            the original value of `C_INCLUDE_PATH`.
-
-        Code enclosed with `_set_includes` and `_restore_includes`
-        will have the extended `C_INCLUDE_PATH`.
-
-        """
-        llvm_include = str(files("tadashi") / "include")
-        includes = self._get_flags("I", options)
-        old_includes = os.getenv("C_INCLUDE_PATH", "")
-        if old_includes:
-            includes.append(old_includes)
-        os.environ["C_INCLUDE_PATH"] = ":".join(includes + [llvm_include])
-        return old_includes
-
-    def _restore_includes(self, old_includes: str) -> None:
-        """See _set_includes()."""
-        os.environ["C_INCLUDE_PATH"] = old_includes
-
     @cython.ccall
     def populate_ccscops(self, options: list[str]):
         self.ctx = pet.isl_ctx_alloc_with_pet_options()
@@ -144,8 +118,31 @@ class Pet(Translator):
                 f"Something went wrong while parsing the {str(self.source)}. Is the file syntactically correct?"
             )
 
-    def legal(self):
-        return all([bool(cc.current_legal) for cc in self.ccscops])
+    def _set_includes(self, options: list[str]) -> str:
+        """Temporarily extend `C_INCLUDE_PATH` environment variable.
+
+        Args:
+
+            options: compiler options.
+
+        Returns:
+            the original value of `C_INCLUDE_PATH`.
+
+        Code enclosed with `_set_includes` and `_restore_includes`
+        will have the extended `C_INCLUDE_PATH`.
+
+        """
+        llvm_include = str(files("tadashi") / "include")
+        includes = self._get_flags("I", options)
+        old_includes = os.getenv("C_INCLUDE_PATH", "")
+        if old_includes:
+            includes.append(old_includes)
+        os.environ["C_INCLUDE_PATH"] = ":".join(includes + [llvm_include])
+        return old_includes
+
+    def _restore_includes(self, old_includes: str) -> None:
+        """See _set_includes()."""
+        os.environ["C_INCLUDE_PATH"] = old_includes
 
     @staticmethod
     @cython.cfunc
@@ -158,6 +155,9 @@ class Pet(Translator):
         vec = cython.cast(cython.pointer[vector[ccScop]], user)
         vec.emplace_back(scop)
         return p
+
+    def legal(self):
+        return all([bool(cc.current_legal) for cc in self.ccscops])
 
     @cython.ccall
     def generate_code(
@@ -221,6 +221,21 @@ class Polly(Translator):
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
 
+    @cython.ccall
+    def populate_ccscops(self, options: list[str]):
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
+        self._get_O1_bitcode()
+        stderr = self._export_jscops()
+        self._fill_json_paths(stderr)
+        for file in self.json_paths:
+            with open(self.cwd / file) as fp:
+                jscop = json.load(fp)
+            self._proc_jscop(jscop)
+
     def _get_O1_bitcode(self) -> Path:
         output = Path(self.cwd) / self.source.with_suffix(".O1.bc").name
         if output.exists():
@@ -243,6 +258,14 @@ class Polly(Translator):
             raise ValueError(msg)
         return output
 
+    def _export_jscops(self) -> str:
+        cmd = self._polly()
+        cmd.append(str(self._get_O1_bitcode()))
+        cmd.append("-polly-export-jscop")
+        cmd.append("-o=/dev/null")
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        return proc.stderr.decode()
+
     @staticmethod
     def _polly():
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
@@ -252,33 +275,6 @@ class Polly(Translator):
             final.append("-load=LLVMPolly.so")
         final.append("-polly-canonicalize")
         return final
-
-    def _export_jscops(self) -> str:
-        cmd = self._polly()
-        cmd.append(str(self._get_O1_bitcode()))
-        cmd.append("-polly-export-jscop")
-        cmd.append("-o=/dev/null")
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        return proc.stderr.decode()
-
-    def _import_jscops(self) -> Path:
-        output = Path(self.cwd) / self.source.with_suffix(".bc").name
-        if output.exists():
-            return output
-        cmd = self._polly()
-        cmd.append(str(self._get_O1_bitcode()))
-        cmd.append("-polly-import-jscop")
-        cmd.append(f"-o={output}")
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        return output
-
-    def _generate_binary(self, output: str | Path, options: list[str]) -> int:
-        cmd = [self.compiler] + options
-        input_path = str(self._import_jscops())
-        cmd.append(input_path)
-        cmd.append(f"-o{str(output)}")
-        proc = subp.run(cmd)
-        return proc.returncode
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str):
@@ -316,20 +312,8 @@ class Polly(Translator):
             sched = isl.isl_union_map_union(sched, sch)
         self.ccscops.emplace_back(domain, sched, read, write)
 
-    @cython.ccall
-    def populate_ccscops(self, options: list[str]):
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
-        self._get_O1_bitcode()
-        stderr = self._export_jscops()
-        self._fill_json_paths(stderr)
-        for file in self.json_paths:
-            with open(self.cwd / file) as fp:
-                jscop = json.load(fp)
-            self._proc_jscop(jscop)
+    def legal(self):
+        pass  # TODO NEXT
 
     @cython.ccall
     def generate_code(
@@ -361,3 +345,22 @@ class Polly(Translator):
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
         return self._generate_binary(output_path, options)
+
+    def _import_jscops(self) -> Path:
+        output = Path(self.cwd) / self.source.with_suffix(".bc").name
+        if output.exists():
+            return output
+        cmd = self._polly()
+        cmd.append(str(self._get_O1_bitcode()))
+        cmd.append("-polly-import-jscop")
+        cmd.append(f"-o={output}")
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        return output
+
+    def _generate_binary(self, output: str | Path, options: list[str]) -> int:
+        cmd = [self.compiler] + options
+        input_path = str(self._import_jscops())
+        cmd.append(input_path)
+        cmd.append(f"-o{str(output)}")
+        proc = subp.run(cmd)
+        return proc.returncode
