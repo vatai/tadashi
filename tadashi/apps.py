@@ -98,7 +98,7 @@ class App(abc.ABC):
 
     @property
     def legal(self) -> bool:
-        return all(s.legal for s in self.scops)
+        return self.translator.legal()
 
     def transform_list(self, transformation_list: list) -> Result:
         for si, ni, *tr in transformation_list:
@@ -126,7 +126,7 @@ class App(abc.ABC):
     ):
         """Create a transformed copy of the app object."""
         if ensure_legality:
-            if not all(s.legal for s in self.scops):
+            if not self.translator.legal():
                 raise ValueError("The App is not in a legal state")
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)

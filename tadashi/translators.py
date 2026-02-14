@@ -144,6 +144,9 @@ class Pet(Translator):
                 f"Something went wrong while parsing the {str(self.source)}. Is the file syntactically correct?"
             )
 
+    def legal(self):
+        return all([bool(cc.current_legal) for cc in self.ccscops])
+
     @staticmethod
     @cython.cfunc
     @cython.exceptval(check=False)
