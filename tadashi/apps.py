@@ -126,10 +126,6 @@ class App(abc.ABC):
     ):
         """Create a transformed copy of the app object."""
         if ensure_legality:
-            if not self.scops:
-                raise ValueError(
-                    "The App was created without scops, cannot check legality"
-                )
             if not all(s.legal for s in self.scops):
                 raise ValueError("The App is not in a legal state")
         if alt_infix:
