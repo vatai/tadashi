@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tadashi import apps
 from tadashi.scop import TrEnum
-from tadashi.translators import Pet
+from tadashi.translators import Pet, Polly
 
 
 class TestApp(unittest.TestCase):
@@ -118,3 +118,6 @@ class TestPolybench(TestApp):
         tapp = app.generate_code()
         tarrays = tapp.dump_arrays()
         tapp.measure()
+
+    def test_end2end_polly(self):
+        app = apps.Polybench("gemm", translator=Polly())
