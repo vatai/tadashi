@@ -228,7 +228,7 @@ class Polly(Translator):
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
-        self._get_O1_bitcode()
+        self._get_preopt_bitcode()
         stderr = self._export_jscops()
         self._fill_json_paths(stderr)
         for file in self.json_paths:
@@ -236,7 +236,7 @@ class Polly(Translator):
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
 
-    def _get_O1_bitcode(self) -> Path:
+    def _get_preopt_bitcode(self) -> Path:
         output = Path(self.cwd) / self.source.with_suffix(".O1.bc").name
         if output.exists():
             return output
@@ -262,7 +262,7 @@ class Polly(Translator):
 
     def _export_jscops(self) -> str:
         cmd = self._polly()
-        cmd.append(str(self._get_O1_bitcode()))
+        cmd.append(str(self._get_preopt_bitcode()))
         cmd.append("-polly-export-jscop")
         cmd.append("-o=/dev/null")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
@@ -353,7 +353,7 @@ class Polly(Translator):
         if output.exists():
             return output
         cmd = self._polly() + [
-            str(self._get_O1_bitcode()),
+            str(self._get_preopt_bitcode()),
             "-polly-import-jscop",
             "-polly-codegen",
             f"-o={output}",
