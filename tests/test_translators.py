@@ -106,9 +106,9 @@ class TestPolly(TestTranslator):
         translator = Polly("clang")
         input_path = self.examples / "inputs/depnodep.c"
         translator.set_source(input_path, [])
-        scop = translator.scops[1]
-        node = scop.schedule_tree[2]
+        scop = translator.scops[0]
+        node = scop.schedule_tree[1]
         print(node.yaml_str)
-        node.transform(TrEnum.INTERCHANGE)
+        # node.transform(TrEnum.INTERCHANGE)
         print(node.yaml_str)
         translator.generate_code(str(input_path), "/tmp/output.ll", [])

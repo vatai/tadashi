@@ -245,7 +245,9 @@ class Polly(Translator):
             "-c",
             "-emit-llvm",
             str(self.source),
-            "-O1",
+            "-O0",
+            "-Xclang",
+            "-disable-O0-optnone",
             "-o",
             str(output),
         ]
@@ -350,10 +352,12 @@ class Polly(Translator):
         output = Path(self.cwd) / self.source.with_suffix(".bc").name
         if output.exists():
             return output
-        cmd = self._polly()
-        cmd.append(str(self._get_O1_bitcode()))
-        cmd.append("-polly-import-jscop")
-        cmd.append(f"-o={output}")
+        cmd = self._polly() + [
+            str(self._get_O1_bitcode()),
+            "-polly-import-jscop",
+            "-polly-codegen",
+            f"-o={output}",
+        ]
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         return output
 
