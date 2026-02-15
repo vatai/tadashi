@@ -257,7 +257,7 @@ class Polly(Translator):
                 f"{proc.stderr.decode()}",
                 f"Something went wrong while parsing the {self.source}. ",
             ]
-            raise ValueError(msg)
+            raise ValueError("\n".join(msg))
         return output
 
     def _export_jscops(self) -> str:
