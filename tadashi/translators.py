@@ -228,20 +228,21 @@ class Polly(Translator):
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
-        self._get_preopt_bitcode()
-        stderr = self._export_jscops()
+        self._get_preopt_bitcode(options)
+        stderr = self._export_jscops(options)
         self._fill_json_paths(stderr)
         for file in self.json_paths:
             with open(self.cwd / file) as fp:
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
 
-    def _get_preopt_bitcode(self) -> Path:
+    def _get_preopt_bitcode(self, options: list[str]) -> Path:
         output = Path(self.cwd) / self.source.with_suffix(".O1.bc").name
         if output.exists():
             return output
         cmd = [
             str(self.compiler),
+            *options,
             "-c",
             "-emit-llvm",
             str(self.source),
@@ -251,6 +252,7 @@ class Polly(Translator):
             "-o",
             str(output),
         ]
+        print(f"PREOPT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         if proc.returncode:
             msg = [
@@ -260,11 +262,13 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return output
 
-    def _export_jscops(self) -> str:
-        cmd = self._polly()
-        cmd.append(str(self._get_preopt_bitcode()))
-        cmd.append("-polly-export-jscop")
-        cmd.append("-o=/dev/null")
+    def _export_jscops(self, options: list[str]) -> str:
+        cmd = self._polly() + [
+            str(self._get_preopt_bitcode(options)),
+            "-polly-export-jscop",
+            "-o=/dev/null",
+        ]
+        print(f"EXPORT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
         return proc.stderr.decode()
 
