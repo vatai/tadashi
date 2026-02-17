@@ -61,28 +61,11 @@ build_schedule_from_umap(isl_union_set *domain, isl_union_map *umap) {
 
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
     if (isl_union_pw_aff_every_pw_aff(upa, pw_aff_is_cst, NULL)) {
-      // isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
-      // isl_union_pw_aff_foreach_pw_aff(upa, add_filter, &filters);
-      // root = isl_schedule_node_insert_sequence(root, filters);
-      ///////////////////
-      // isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
-      // isl_map_list *maplist = isl_union_map_get_map_list(umap);
-      // std::cout << "ML: " << isl_map_list_to_str(maplist) << std::endl;
-      //////////////////
-      // isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
-      // isl_pw_aff *pa = isl_pw_aff_list_min(pa_list);
-      // std::cout << isl_pw_aff_to_str(pa) << std::endl;
-      /////////////////
-      isl_pw_aff_list *pa_list;
-      isl_set_list *set_list;
-      pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
-      std::cout << isl_pw_aff_list_to_str(pa_list) << std::endl;
-      set_list = isl_set_list_alloc(ctx, isl_pw_aff_list_n_pw_aff(pa_list));
+      isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+      isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
+      isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
       isl_pw_aff_list_foreach(pa_list, add_pa_range, &set_list);
-      std::cout << isl_set_list_to_str(set_list) << std::endl;
       isl_set_list_sort(set_list, cmp, nullptr);
-      std::cout << isl_set_list_to_str(set_list) << std::endl;
-      ////////////////
     } else {
       root = isl_schedule_node_insert_partial_schedule(
           root, isl_multi_union_pw_aff_from_union_pw_aff(upa));
