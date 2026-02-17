@@ -252,10 +252,7 @@ class Polly(Translator):
             "-o",
             str(output),
         ]
-        print(f"PREOPT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        print(f"{proc.stdout=}")
-        print(f"{proc.stderr=}")
         if proc.returncode:
             msg = [
                 f"{proc.stderr.decode()}",
@@ -270,10 +267,7 @@ class Polly(Translator):
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
-        print(f"EXPORT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        print(f"{proc.stdout=}")
-        print(f"{proc.stderr=}")
         return proc.stderr.decode()
 
     @staticmethod
@@ -368,10 +362,7 @@ class Polly(Translator):
             "-polly-codegen",
             f"-o={output}",
         ]
-        print(f"IMPORT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        print(f"{proc.stdout=}")
-        print(f"{proc.stderr=}")
         return output
 
     def _generate_binary(self, output: str | Path, options: list[str]) -> int:
@@ -382,8 +373,5 @@ class Polly(Translator):
             input_path,
             f"-o{str(output)}",
         ]
-        print(f"GENBIN cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True)
-        print(f"{proc.stdout=}")
-        print(f"{proc.stderr=}")
         return proc.returncode
