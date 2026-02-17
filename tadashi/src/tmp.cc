@@ -16,12 +16,12 @@
 #include <ostream>
 
 static isl_bool
-pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
+_pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
   return isl_pw_aff_is_cst(pa);
 }
 
 isl_stat
-add_pa_range(isl_pw_aff *pa, void *user) {
+_add_pa_range(isl_pw_aff *pa, void *user) {
   isl_set_list **set_list = (isl_set_list **)user;
   isl_map *map = isl_pw_aff_as_map(pa);
   *set_list = isl_set_list_add(*set_list, isl_map_range(map));
@@ -29,11 +29,13 @@ add_pa_range(isl_pw_aff *pa, void *user) {
 }
 
 int
-cmp(struct isl_set *a, struct isl_set *b, void *user) {
+_cmp(struct isl_set *a, struct isl_set *b, void *user) {
   isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
   isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
   isl_val *diff = isl_val_sub(va, vb);
-  return isl_val_sgn(diff);
+  int rv = isl_val_sgn(diff);
+  isl_val_free(diff);
+  return rv;
 }
 
 isl_schedule *
@@ -51,14 +53,13 @@ build_schedule_from_umap(__isl_take isl_union_set *domain,
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   for (int pos = dim - 1; pos >= 0; pos--) {
-
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
-    if (isl_union_pw_aff_every_pw_aff(upa, pw_aff_is_cst, NULL)) {
+    if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, NULL)) {
       isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
       isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
       isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
-      isl_pw_aff_list_foreach(pa_list, add_pa_range, &set_list);
-      isl_set_list_sort(set_list, cmp, nullptr);
+      isl_pw_aff_list_foreach(pa_list, _add_pa_range, &set_list);
+      isl_set_list_sort(set_list, _cmp, nullptr);
       isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_pa);
       isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
       for (isl_size i = 0; i < n_pa; i++) {
@@ -66,15 +67,13 @@ build_schedule_from_umap(__isl_take isl_union_set *domain,
         isl_pw_multi_aff *pma = isl_pw_multi_aff_from_set(set);
         isl_union_map *preimage = isl_union_map_preimage_range_pw_multi_aff(
             isl_union_map_copy(umap), pma);
-        std::cout << "PREIMAGE: " << isl_union_map_to_str(preimage)
-                  << std::endl;
         isl_union_set *dmn = isl_union_map_domain(preimage);
-        std::cout << "DMN: " << isl_union_set_to_str(dmn) << std::endl;
         filters = isl_union_set_list_add(filters, dmn);
-        std::cout << "LIST: " << isl_union_set_list_to_str(filters)
-                  << std::endl;
       };
       root = isl_schedule_node_insert_sequence(root, filters);
+      isl_union_map_free(umap);
+      isl_set_list_free(set_list);
+      isl_pw_aff_list_free(pa_list);
     } else {
       root = isl_schedule_node_insert_partial_schedule(
           root, isl_multi_union_pw_aff_from_union_pw_aff(upa));
@@ -105,5 +104,8 @@ main() {
   std::cout << "========================================" << std::endl;
   std::cout << "ROOT BEFORE: " << isl_schedule_node_to_str(root) << std::endl;
   std::cout << "DONxE!" << std::endl;
+  isl_schedule_free(schedule);
+  isl_schedule_node_free(root);
+  isl_ctx_free(ctx);
   return 0;
 }

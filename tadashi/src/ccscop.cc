@@ -366,7 +366,9 @@ _cmp(struct isl_set *a, struct isl_set *b, void *user) {
   isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
   isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
   isl_val *diff = isl_val_sub(va, vb);
-  return isl_val_sgn(diff);
+  int rv = isl_val_sgn(diff);
+  isl_val_free(diff);
+  return rv;
 }
 
 static isl_schedule *
@@ -376,6 +378,7 @@ _build_schedule_from_umap(__isl_take isl_union_set *domain,
   isl_schedule *schedule;
   isl_schedule_node *root;
   isl_ctx *ctx = isl_union_set_get_ctx(domain);
+
   schedule = isl_schedule_from_domain(domain);
   mupa = isl_multi_union_pw_aff_from_union_map(umap);
   root = isl_schedule_get_root(schedule);
@@ -384,7 +387,6 @@ _build_schedule_from_umap(__isl_take isl_union_set *domain,
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   for (int pos = dim - 1; pos >= 0; pos--) {
-
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
     if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, NULL)) {
       isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
@@ -403,6 +405,9 @@ _build_schedule_from_umap(__isl_take isl_union_set *domain,
         filters = isl_union_set_list_add(filters, dmn);
       };
       root = isl_schedule_node_insert_sequence(root, filters);
+      isl_union_map_free(umap);
+      isl_set_list_free(set_list);
+      isl_pw_aff_list_free(pa_list);
     } else {
       root = isl_schedule_node_insert_partial_schedule(
           root, isl_multi_union_pw_aff_from_union_pw_aff(upa));
