@@ -21,14 +21,6 @@ pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
 }
 
 isl_stat
-add_filter(isl_pw_aff *pa, void *user) {
-  isl_union_set_list **list = (isl_union_set_list **)user;
-  isl_set *set = isl_pw_aff_domain(pa);
-  *list = isl_union_set_list_add(*list, isl_union_set_from_set(set));
-  return isl_stat_ok;
-}
-
-isl_stat
 add_pa_range(isl_pw_aff *pa, void *user) {
   isl_set_list **set_list = (isl_set_list **)user;
   isl_map *map = isl_pw_aff_as_map(pa);
@@ -45,7 +37,8 @@ cmp(struct isl_set *a, struct isl_set *b, void *user) {
 }
 
 isl_schedule *
-build_schedule_from_umap(isl_union_set *domain, isl_union_map *umap) {
+build_schedule_from_umap(__isl_take isl_union_set *domain,
+                         __isl_take isl_union_map *umap) {
   isl_multi_union_pw_aff *mupa;
   isl_schedule *schedule;
   isl_schedule_node *root;
