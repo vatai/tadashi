@@ -349,45 +349,32 @@ ccScop::ccScop(pet_scop *ps)
 }
 
 static isl_bool
-pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
+_pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *_) {
   return isl_pw_aff_is_cst(pa);
 }
 
 static isl_stat
-add_singleton_to_list(__isl_take isl_point *pnt, void *user) {
-  isl_union_set_list **filters = (isl_union_set_list **)user;
-  isl_union_set *singleton = isl_union_set_from_point(pnt);
-  *filters = isl_union_set_list_add(*filters, singleton);
+_add_pa_range(isl_pw_aff *pa, void *user) {
+  isl_set_list **set_list = (isl_set_list **)user;
+  isl_map *map = isl_pw_aff_as_map(pa);
+  *set_list = isl_set_list_add(*set_list, isl_map_range(map));
   return isl_stat_ok;
 }
 
 static int
-filter_cmp(struct isl_union_set *set1, struct isl_union_set *set2, void *_) {
-  isl_point *p1 = isl_union_set_sample_point(isl_union_set_copy(set1));
-  isl_val *v1 = isl_point_get_coordinate_val(p1, isl_dim_all, 0);
-  isl_point *p2 = isl_union_set_sample_point(isl_union_set_copy(set2));
-  isl_val *v2 = isl_point_get_coordinate_val(p2, isl_dim_all, 0);
-  int result = isl_val_get_num_si(v1) - isl_val_get_num_si(v2);
-  isl_point_free(p1);
-  isl_point_free(p2);
-  isl_val_free(v1);
-  isl_val_free(v2);
-  return result;
+_cmp(struct isl_set *a, struct isl_set *b, void *user) {
+  isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
+  isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
+  isl_val *diff = isl_val_sub(va, vb);
+  return isl_val_sgn(diff);
 }
 
-static isl_union_set *
-idx_to_domain(isl_union_set *set, void *user) {
-  isl_union_map *map = (isl_union_map *)user;
-  return isl_union_set_apply(set, isl_union_map_copy(map));
-}
-
-static __isl_give isl_schedule *
-_umap_to_schedule_tree(__isl_take isl_union_set *domain,
-                       __isl_take isl_union_map *umap) {
+static isl_schedule *
+_build_schedule_from_umap(__isl_take isl_union_set *domain,
+                          __isl_take isl_union_map *umap) {
   isl_multi_union_pw_aff *mupa;
   isl_schedule *schedule;
   isl_schedule_node *root;
-  isl_union_map *map;
   isl_ctx *ctx = isl_union_set_get_ctx(domain);
   schedule = isl_schedule_from_domain(domain);
   mupa = isl_multi_union_pw_aff_from_union_map(umap);
@@ -397,22 +384,28 @@ _umap_to_schedule_tree(__isl_take isl_union_set *domain,
   root = isl_schedule_node_first_child(root);
   isl_size dim = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
   for (int pos = dim - 1; pos >= 0; pos--) {
+
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
-    if (isl_union_pw_aff_every_pw_aff(upa, pw_aff_is_cst, NULL)) {
-      map = isl_union_map_from_union_pw_aff(upa);
-      map = isl_union_map_reverse(map);
-      isl_union_set *steps = isl_union_map_domain(isl_union_map_copy(map));
-      isl_union_set_list *filters = isl_union_set_list_alloc(ctx, 1);
-      isl_union_set_foreach_point(steps, add_singleton_to_list, &filters);
-      filters = isl_union_set_list_sort(filters, filter_cmp, map);
-      isl_union_set_list_map(filters, idx_to_domain, map);
+    if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, NULL)) {
+      isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+      isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
+      isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
+      isl_pw_aff_list_foreach(pa_list, _add_pa_range, &set_list);
+      isl_set_list_sort(set_list, _cmp, nullptr);
+      isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_pa);
+      isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
+      for (isl_size i = 0; i < n_pa; i++) {
+        isl_set *set = isl_set_list_get_at(set_list, i);
+        isl_pw_multi_aff *pma = isl_pw_multi_aff_from_set(set);
+        isl_union_map *preimage = isl_union_map_preimage_range_pw_multi_aff(
+            isl_union_map_copy(umap), pma);
+        isl_union_set *dmn = isl_union_map_domain(preimage);
+        filters = isl_union_set_list_add(filters, dmn);
+      };
       root = isl_schedule_node_insert_sequence(root, filters);
-      isl_union_set_free(steps);
-      isl_union_map_free(map);
     } else {
-      isl_multi_union_pw_aff *tmp =
-          isl_multi_union_pw_aff_from_union_pw_aff(upa);
-      root = isl_schedule_node_insert_partial_schedule(root, tmp);
+      root = isl_schedule_node_insert_partial_schedule(
+          root, isl_multi_union_pw_aff_from_union_pw_aff(upa));
     }
   }
 
@@ -424,20 +417,21 @@ _umap_to_schedule_tree(__isl_take isl_union_set *domain,
 
 ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
                isl_union_map *write)
-    : schedule(_umap_to_schedule_tree(isl_union_set_copy(domain), sched)), // 1.
-      dep_flow(nullptr),                                                   // 2.
-      domain(domain),                                                      // 3.
-      call(nullptr),                                                       // 4.
-      may_writes(write),                                                   // 5.
-      must_writes(nullptr),                                                // 6.
-      must_kills(nullptr),                                                 // 7.
-      may_reads(read),                                                     // 8.
-      live_out(nullptr),                                                   // 9.
-      current_node(nullptr), // 10.
-      tmp_node(nullptr),     // 11.
-      current_legal(true),   // 12.
-      tmp_legal(true),       // 13.
-      modified(0)            // 14.
+    : schedule(
+          _build_schedule_from_umap(isl_union_set_copy(domain), sched)), // 1.
+      dep_flow(nullptr),                                                 // 2.
+      domain(domain),                                                    // 3.
+      call(nullptr),                                                     // 4.
+      may_writes(write),                                                 // 5.
+      must_writes(nullptr),                                              // 6.
+      must_kills(nullptr),                                               // 7.
+      may_reads(read),                                                   // 8.
+      live_out(nullptr),                                                 // 9.
+      current_node(nullptr),                                             // 10.
+      tmp_node(nullptr),                                                 // 11.
+      current_legal(true),                                               // 12.
+      tmp_legal(true),                                                   // 13.
+      modified(0)                                                        // 14.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Polly()... ";
