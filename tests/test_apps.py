@@ -120,4 +120,9 @@ class TestPolybench(TestApp):
         tapp.measure()
 
     def test_end2end_polly(self):
+        app = apps.Polybench("gemm", translator=Pet())
+        node = app.scops[0].schedule_tree[0]
+        print(node.yaml_str)
         app = apps.Polybench("gemm", translator=Polly())
+        node = app.scops[1].schedule_tree[0]
+        print(node.yaml_str)
