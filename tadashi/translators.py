@@ -254,6 +254,8 @@ class Polly(Translator):
         ]
         print(f"PREOPT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        print(f"{proc.stdout=}")
+        print(f"{proc.stderr=}")
         if proc.returncode:
             msg = [
                 f"{proc.stderr.decode()}",
@@ -270,14 +272,16 @@ class Polly(Translator):
         ]
         print(f"EXPORT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        print(f"{proc.stdout=}")
+        print(f"{proc.stderr=}")
         return proc.stderr.decode()
 
     @staticmethod
     def _polly():
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        ret = subp.run(cmd, stderr=subp.DEVNULL)
+        proc = subp.run(cmd, stderr=subp.DEVNULL)
         final = ["opt"]
-        if ret.returncode == 0:
+        if proc.returncode == 0:
             final.append("-load=LLVMPolly.so")
         final.append("-polly-canonicalize")
         return final
@@ -362,13 +366,22 @@ class Polly(Translator):
             "-polly-codegen",
             f"-o={output}",
         ]
+        print(f"IMPORT cmd={' '.join(cmd)}")
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        print(f"{proc.stdout=}")
+        print(f"{proc.stderr=}")
         return output
 
     def _generate_binary(self, output: str | Path, options: list[str]) -> int:
-        cmd = [self.compiler] + options
         input_path = str(self._import_jscops(options))
-        cmd.append(input_path)
-        cmd.append(f"-o{str(output)}")
-        proc = subp.run(cmd)
+        cmd = [
+            self.compiler,
+            *options,
+            input_path,
+            f"-o{str(output)}",
+        ]
+        print(f"GENBIN cmd={' '.join(cmd)}")
+        proc = subp.run(cmd, capture_output=True)
+        print(f"{proc.stdout=}")
+        print(f"{proc.stderr=}")
         return proc.returncode
