@@ -215,7 +215,7 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
-    json_paths: list[Path] = []
+    json_paths: list[Path]
     cwd: str
 
     def __init__(self, compiler: str = "clang"):
@@ -230,7 +230,7 @@ class Polly(Translator):
         self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
         self._get_preopt_bitcode(options)
         stderr = self._export_jscops(options)
-        self._fill_json_paths(stderr)
+        self.json_paths = self._fill_json_paths(stderr)
         for file in self.json_paths:
             with open(self.cwd / file) as fp:
                 jscop = json.load(fp)
@@ -287,7 +287,8 @@ class Polly(Translator):
         return final
 
     @cython.ccall
-    def _fill_json_paths(self, stderr: str):
+    def _fill_json_paths(self, stderr: str) -> list[Path]:
+        json_paths = []
         pat = re.compile(r".*to\s+'([^']*)'\.")
         for t in stderr.split("\n"):
             if not t:
@@ -299,7 +300,8 @@ class Polly(Translator):
                     + "Please raise an issue and mention this!\n{stderr}"
                 )
             file = match.group(1)
-            self.json_paths.append(Path(file))
+            json_paths.append(Path(file))
+        return json_paths
 
     def _proc_jscop(self, jscop):
         domain = isl.isl_union_set_empty_ctx(self.ctx)
