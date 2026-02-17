@@ -352,12 +352,12 @@ class Polly(Translator):
                 json.dump(jscop, f, indent=2)
         return self._generate_binary(output_path, options)
 
-    def _import_jscops(self) -> Path:
+    def _import_jscops(self, options: list[str]) -> Path:
         output = Path(self.cwd) / self.source.with_suffix(".bc").name
         if output.exists():
             return output
         cmd = self._polly() + [
-            str(self._get_preopt_bitcode()),
+            str(self._get_preopt_bitcode(options)),
             "-polly-import-jscop",
             "-polly-codegen",
             f"-o={output}",
@@ -367,7 +367,7 @@ class Polly(Translator):
 
     def _generate_binary(self, output: str | Path, options: list[str]) -> int:
         cmd = [self.compiler] + options
-        input_path = str(self._import_jscops())
+        input_path = str(self._import_jscops(options))
         cmd.append(input_path)
         cmd.append(f"-o{str(output)}")
         proc = subp.run(cmd)
