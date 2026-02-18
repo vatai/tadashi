@@ -33,8 +33,8 @@ main() {
 
   std::cout << "========================================" << std::endl;
   std::cout << "========================================" << std::endl;
-  std::cout << "ROOT BEFORE: " << isl_schedule_node_to_str(root) << std::endl;
-  std::cout << "DONxE!" << std::endl;
+  std::cout << "RESULS: " << isl_schedule_node_to_str(root) << std::endl;
+  std::cout << "DONE!" << std::endl;
   isl_schedule_free(schedule);
   isl_schedule_node_free(root);
   isl_ctx_free(ctx);

@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <isl/aff.h>
+#include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/schedule.h>
@@ -348,6 +349,11 @@ ccScop::ccScop(pet_scop *ps)
 #endif // NDEBUG
 }
 
+__isl_give isl_schedule_node *
+_build_schedule(__isl_take isl_schedule_node *node,
+                __isl_keep isl_multi_union_pw_aff *mupa, int pos,
+                unsigned int num_dims);
+
 static isl_bool
 _pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *user) {
   isl_bool target = (isl_bool)(user != 0);
@@ -396,6 +402,32 @@ _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   return filters;
 }
 
+static __isl_give isl_schedule_node *
+_insert_sequence(__isl_take isl_schedule_node *node,
+                 __isl_take isl_union_pw_aff *upa,
+                 __isl_keep isl_multi_union_pw_aff *mupa, int pos,
+                 unsigned int num_dims) {
+  isl_union_set_list *filters = _filters_from_cst_upa(upa);
+  isl_size num_filters = isl_union_set_list_n_union_set(filters);
+  assert(num_filters > 0);
+  if (num_filters == 1) {
+    isl_union_set_list_free(filters);
+    return node;
+  }
+  node = isl_schedule_node_insert_sequence(node, filters);
+  isl_size num_children = isl_schedule_node_n_children(node);
+  for (isl_size i = 0; i < num_children; ++i) {
+    node = isl_schedule_node_child(node, i);
+    isl_multi_union_pw_aff *branch = isl_multi_union_pw_aff_intersect_domain(
+        isl_multi_union_pw_aff_copy(mupa),
+        isl_schedule_node_filter_get_filter(node));
+    node = _build_schedule(node, branch, pos + 1, num_dims);
+    isl_multi_union_pw_aff_free(branch);
+    node = isl_schedule_node_parent(node);
+  }
+  return node;
+}
+
 __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
                 __isl_keep isl_multi_union_pw_aff *mupa, int pos,
@@ -404,27 +436,10 @@ _build_schedule(__isl_take isl_schedule_node *node,
     return node;
   isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
   isl_size num_pa = isl_union_pw_aff_n_pw_aff(upa);
-  if (num_pa == 1) {
-    isl_union_pw_aff_free(upa);
-    return node;
-  }
 
   node = isl_schedule_node_first_child(node);
   if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
-    isl_union_set_list *filters = _filters_from_cst_upa(upa);
-    isl_size num_filters = isl_union_set_list_n_union_set(filters);
-    assert(num_filters > 0);
-    node = isl_schedule_node_insert_sequence(node, filters);
-    isl_size num_children = isl_schedule_node_n_children(node);
-    for (isl_size i = 0; i < num_children; ++i) {
-      node = isl_schedule_node_child(node, i);
-      isl_multi_union_pw_aff *branch = isl_multi_union_pw_aff_intersect_domain(
-          isl_multi_union_pw_aff_copy(mupa),
-          isl_schedule_node_filter_get_filter(node));
-      node = _build_schedule(node, branch, pos + 1, num_dims);
-      isl_multi_union_pw_aff_free(branch);
-      node = isl_schedule_node_parent(node);
-    }
+    node = _insert_sequence(node, upa, mupa, pos, num_dims);
   } else {
     node = isl_schedule_node_insert_partial_schedule(
         node, isl_multi_union_pw_aff_from_union_pw_aff(upa));
