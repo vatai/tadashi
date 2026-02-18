@@ -349,9 +349,9 @@ ccScop::ccScop(pet_scop *ps)
 #endif // NDEBUG
 }
 
-__isl_give isl_schedule_node *
+static __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
-                __isl_keep isl_multi_union_pw_aff *mupa, int pos,
+                __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
                 unsigned int num_dims);
 
 static isl_bool
@@ -407,13 +407,11 @@ _insert_sequence(__isl_take isl_schedule_node *node,
                  __isl_take isl_union_pw_aff *upa,
                  __isl_keep isl_multi_union_pw_aff *mupa, int pos,
                  unsigned int num_dims) {
-  isl_union_set_list *filters = _filters_from_cst_upa(upa);
-  isl_size num_filters = isl_union_set_list_n_union_set(filters);
-  assert(num_filters > 0);
-  if (num_filters == 1) {
-    isl_union_set_list_free(filters);
+  if (isl_union_pw_aff_n_pw_aff(upa) == 1) {
+    isl_union_pw_aff_free(upa);
     return node;
   }
+  isl_union_set_list *filters = _filters_from_cst_upa(upa);
   node = isl_schedule_node_insert_sequence(node, filters);
   isl_size num_children = isl_schedule_node_n_children(node);
   for (isl_size i = 0; i < num_children; ++i) {
@@ -428,15 +426,13 @@ _insert_sequence(__isl_take isl_schedule_node *node,
   return node;
 }
 
-__isl_give isl_schedule_node *
+static __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
-                __isl_keep isl_multi_union_pw_aff *mupa, int pos,
+                __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
                 unsigned int num_dims) {
   if (pos >= num_dims)
     return node;
   isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
-  isl_size num_pa = isl_union_pw_aff_n_pw_aff(upa);
-
   node = isl_schedule_node_first_child(node);
   if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
     node = _insert_sequence(node, upa, mupa, pos, num_dims);
@@ -454,7 +450,6 @@ _build_schedule(__isl_take isl_schedule_node *node,
 isl_schedule *
 build_schedule_from_umap(__isl_take isl_union_set *domain,
                          __isl_take isl_union_map *map) {
-  isl_ctx *ctx = isl_union_set_get_ctx(domain);
   isl_schedule *schedule = isl_schedule_from_domain(domain);
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
