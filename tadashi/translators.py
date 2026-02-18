@@ -4,7 +4,7 @@ import json
 import os
 import re
 import shutil
-import subprocess as subp
+import subprocess
 import tempfile
 from importlib.resources import files
 from pathlib import Path
@@ -252,7 +252,7 @@ class Polly(Translator):
             "-o",
             str(output),
         ]
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
         if proc.returncode:
             msg = [
                 f"{proc.stderr.decode()}",
@@ -267,13 +267,13 @@ class Polly(Translator):
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
         return proc.stderr.decode()
 
     @staticmethod
     def _polly():
         cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subp.run(cmd, stderr=subp.DEVNULL)
+        proc = subprocess.run(cmd, stderr=subprocess.DEVNULL)
         final = ["opt"]
         if proc.returncode == 0:
             final.append("-load=LLVMPolly.so")
@@ -318,23 +318,25 @@ class Polly(Translator):
             sched = isl.isl_union_map_union(sched, sch)
         self.ccscops.emplace_back(domain, sched, read, write)
 
-    def legal(self):
-        pass  # TODO NEXT
-        return True
+    def legal(self) -> bool:
+        input_path = str(self._get_preopt_bitcode([]))
+        cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
+        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
+        return proc.returncode == 0
 
     def _import_jscops(self, options: list[str]) -> Path:
+        input_path = str(self._get_preopt_bitcode(options))
         output = Path(self.cwd) / self.source.with_suffix(".bc").name
-        if output.exists():
-            return output
         cmd = self._polly() + [
-            str(self._get_preopt_bitcode(options)),
+            input_path,
             "-polly-import-jscop",
             "-polly-codegen",
-            f"-o={output}",
-            "-disable-polly-legality",  # TODO NEXT
+            f"-o={str(output)}",
+            "-disable-polly-legality",
         ]
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        print(f"{proc.returncode} {proc.stdout} {proc.stderr}")
+        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
+        if proc.returncode != 0:
+            raise f"Something went wrong. Polly stdout:\n{proc.stdout}\nPolly stderr: {proc.stderr}"
         return output
 
     @cython.ccall
@@ -375,5 +377,5 @@ class Polly(Translator):
             input_path,
             f"-o{str(output)}",
         ]
-        proc = subp.run(cmd, capture_output=True)
+        proc = subprocess.run(cmd, capture_output=True)
         return proc.returncode

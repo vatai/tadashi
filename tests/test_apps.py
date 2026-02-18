@@ -146,3 +146,11 @@ class TestPolybench(TestApp):
         # node.transform(TrEnum.TILE_2D, 32, 32)
         # print(node.yaml_str)
         tapp = app.generate_code()
+
+        app = apps.Simple(self.examples / "inputs/depnodep.c")
+        node = app.scops[0].schedule_tree[1]
+        node.transform(TrEnum.INTERCHANGE)
+        print(node.yaml_str)
+        tapp = app.generate_code()
+        print(f"{tapp.measure()=}")
+        print(f"{app.measure()=}")
