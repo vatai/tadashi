@@ -400,20 +400,20 @@ __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
                 __isl_keep isl_multi_union_pw_aff *mupa, int pos,
                 unsigned int num_dims) {
-  std::cout << "pos/num_dims: " << pos << "/" << num_dims << std::endl;
   if (pos >= num_dims)
     return node;
   isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
-  std::cout << "UPA: " << isl_union_pw_aff_to_str(upa) << std::endl;
+  isl_size num_pa = isl_union_pw_aff_n_pw_aff(upa);
+  if (num_pa == 1) {
+    isl_union_pw_aff_free(upa);
+    return node;
+  }
 
+  node = isl_schedule_node_first_child(node);
   if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
     isl_union_set_list *filters = _filters_from_cst_upa(upa);
     isl_size num_filters = isl_union_set_list_n_union_set(filters);
     assert(num_filters > 0);
-    if (num_filters == 1) {
-      isl_union_set_list_free(filters);
-      return node;
-    }
     node = isl_schedule_node_insert_sequence(node, filters);
     isl_size num_children = isl_schedule_node_n_children(node);
     for (isl_size i = 0; i < num_children; ++i) {
@@ -421,21 +421,18 @@ _build_schedule(__isl_take isl_schedule_node *node,
       isl_multi_union_pw_aff *branch = isl_multi_union_pw_aff_intersect_domain(
           isl_multi_union_pw_aff_copy(mupa),
           isl_schedule_node_filter_get_filter(node));
-      node = isl_schedule_node_first_child(node);
       node = _build_schedule(node, branch, pos + 1, num_dims);
-      node = isl_schedule_node_parent(node);
       isl_multi_union_pw_aff_free(branch);
       node = isl_schedule_node_parent(node);
     }
   } else {
     node = isl_schedule_node_insert_partial_schedule(
         node, isl_multi_union_pw_aff_from_union_pw_aff(upa));
-    node = isl_schedule_node_first_child(node);
     node = _build_schedule(node, mupa, pos + 1, num_dims);
-    node = isl_schedule_node_parent(node);
   }
 
-  // std::cout << "NODE: " << isl_schedule_node_to_str(node) << std::endl;
+  node = isl_schedule_node_parent(node);
+  // std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
   return node;
 }
 
@@ -449,10 +446,7 @@ build_schedule_from_umap(__isl_take isl_union_set *domain,
 
   isl_multi_union_pw_aff *mupa = isl_multi_union_pw_aff_from_union_map(map);
   isl_size num_dims = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
-  std::cout << "BEFORE ROOT: " << isl_schedule_node_to_str(root) << std::endl;
-  root = isl_schedule_node_first_child(root);
   root = _build_schedule(root, mupa, 0, num_dims);
-  std::cout << "AFTER ROOT: " << isl_schedule_node_to_str(root) << std::endl;
   isl_multi_union_pw_aff_free(mupa);
 
   schedule = isl_schedule_node_get_schedule(root);

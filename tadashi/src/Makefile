@@ -2,10 +2,10 @@
 # executable aimed at fast prototyping.
 
 PREFIX=${PWD}/../../third_party/opt
-CXXFLAGS=-I${PREFIX}/include
-CFLAGS=-I${PREFIX}/include
-LDLIBS=-L${PREFIX}/lib -lpet -lisl -lstdc++
+CFLAGS=-g -I${PREFIX}/include
+CXXFLAGS=$(CFLAGS)
+LDLIBS=-g -L${PREFIX}/lib -lpet -lisl -lstdc++ -Wl,-rpath,${PREFIX}/lib
 prototype: prototype.o ccscop.o
 
 run: prototype
-	LD_LIBRARY_PATH=${PREFIX}/lib ./prototype
+	./prototype
