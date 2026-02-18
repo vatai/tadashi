@@ -133,7 +133,7 @@ class App(abc.ABC):
         else:
             new_file = self._make_new_filename()
         options = self._amend_compiler_options(self.user_compiler_options)
-        self.translator.generate_code(str(self.source), str(new_file), options)
+        new_file = self.translator.generate_code(str(self.source), new_file, options)
         translator = copy.copy(self.translator) if populate_scops else None
         compiler_options = None
         if self.user_compiler_options:

@@ -76,7 +76,9 @@ class Translator:
             self.scops.append(Scop.create(ptr))
         return self
 
-    def generate_code(self, input_path, output_path):
+    def generate_code(
+        self, input_path: str, output_path: Path, options: list[str]
+    ) -> Path:
         raise NotImplementedError(ABC_ERROR_MSG)
 
 
@@ -161,12 +163,12 @@ class Pet(Translator):
 
     @cython.ccall
     def generate_code(
-        self, input_path: str, output_path: str, options: list[str]
-    ) -> int:
+        self, input_path: str, output_path: Path, options: list[str]
+    ) -> Path:
         r: int = 0
         scop_idx: int = 0
         output_file = cython.declare(cython.pointer[FILE])
-        output_file = fopen(output_path.encode(), "w")
+        output_file = fopen(str(output_path).encode(), "w")
         scop_ptr = self.ccscops.data()
         old_includes = self._set_includes(options)
         r = pet.pet_transform_C_source(
@@ -178,7 +180,7 @@ class Pet(Translator):
         )
         self._restore_includes(old_includes)
         fclose(output_file)
-        return r
+        return output_path
 
     @staticmethod
     @cython.cfunc
@@ -341,8 +343,8 @@ class Polly(Translator):
 
     @cython.ccall
     def generate_code(
-        self, input_path: str, output_path: str, options: list[str]
-    ) -> int:
+        self, input_path: str, output_path: Path, options: list[str]
+    ) -> Path:
         for scop_idx, jscop_path in enumerate(self.json_paths):
             jscop_path = self.cwd / jscop_path
             ccscop = self.ccscops[scop_idx]
@@ -367,15 +369,21 @@ class Polly(Translator):
             isl.isl_union_map_free(umap)
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
-        return self._generate_binary(output_path, options)
+        output_path = Path(output_path).with_suffix(".ll")
+        self._generate_binary(output_path, options)
+        return output_path
 
-    def _generate_binary(self, output: str | Path, options: list[str]) -> int:
+    def _generate_binary(self, output: Path, options: list[str]):
         input_path = str(self._import_jscops(options))
         cmd = [
-            self.compiler,
+            "llc",
             *options,
             input_path,
             f"-o{str(output)}",
         ]
+        print(cmd)
         proc = subprocess.run(cmd, capture_output=True)
-        return proc.returncode
+        if proc.returncode != 0:
+            raise ValueError(
+                f"Something went wrong generating the code\n{proc.stdout}\n{proc.stderr}"
+            )
