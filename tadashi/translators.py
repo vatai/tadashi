@@ -320,6 +320,21 @@ class Polly(Translator):
 
     def legal(self):
         pass  # TODO NEXT
+        return True
+
+    def _import_jscops(self, options: list[str]) -> Path:
+        output = Path(self.cwd) / self.source.with_suffix(".bc").name
+        if output.exists():
+            return output
+        cmd = self._polly() + [
+            str(self._get_preopt_bitcode(options)),
+            "-polly-import-jscop",
+            "-polly-codegen",
+            f"-o={output}",
+            # "-disable-polly-legality",
+        ]
+        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        return output
 
     @cython.ccall
     def generate_code(
@@ -351,19 +366,6 @@ class Polly(Translator):
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
         return self._generate_binary(output_path, options)
-
-    def _import_jscops(self, options: list[str]) -> Path:
-        output = Path(self.cwd) / self.source.with_suffix(".bc").name
-        if output.exists():
-            return output
-        cmd = self._polly() + [
-            str(self._get_preopt_bitcode(options)),
-            "-polly-import-jscop",
-            "-polly-codegen",
-            f"-o={output}",
-        ]
-        proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
-        return output
 
     def _generate_binary(self, output: str | Path, options: list[str]) -> int:
         input_path = str(self._import_jscops(options))
