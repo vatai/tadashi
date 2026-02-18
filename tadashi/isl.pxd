@@ -69,6 +69,7 @@ cdef extern from "isl/union_map.h":
     ctypedef struct isl_union_map: pass
     #
     isl_union_map *isl_union_map_free(isl_union_map *umap)
+    isl_union_map *isl_union_map_copy(isl_union_map *umap)
     isl_union_map *isl_union_map_empty_ctx(isl_ctx *ctx)
     isl_union_map *isl_union_map_read_from_str(isl_ctx *ctx, const char* str)
     isl_union_map *isl_union_map_union(isl_union_map *m1, isl_union_map *m2)

@@ -331,9 +331,10 @@ class Polly(Translator):
             "-polly-import-jscop",
             "-polly-codegen",
             f"-o={output}",
-            # "-disable-polly-legality",
+            "-disable-polly-legality",  # TODO NEXT
         ]
         proc = subp.run(cmd, capture_output=True, cwd=self.cwd)
+        print(f"{proc.returncode} {proc.stdout} {proc.stderr}")
         return output
 
     @cython.ccall
@@ -347,22 +348,21 @@ class Polly(Translator):
             umap = isl.isl_schedule_get_map(sched)
             isl.isl_schedule_free(sched)
             sched_str = isl.isl_union_map_to_str(umap).decode()
-
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
-
             with jscop_path.open("r", encoding="utf-8") as f:
                 jscop = json.load(f)
-
             for stmt in jscop["statements"]:
                 name = stmt["name"]
                 uset = isl.isl_union_set_read_from_str(
                     self.ctx, stmt["domain"].encode()
                 )
-                stmt_map = isl.isl_union_map_intersect_domain_union_set(umap, uset)
+                stmt_map = isl.isl_union_map_intersect_domain_union_set(
+                    isl.isl_union_map_copy(umap), uset
+                )
                 stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
                 isl.isl_union_map_free(stmt_map)
-
+            isl.isl_union_map_free(umap)
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
         return self._generate_binary(output_path, options)
