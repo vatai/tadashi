@@ -73,6 +73,15 @@ class TestSimple(TestApp):
         app = apps.Simple(file, Pet(autodetect=True))
         self.compare_members(app)
 
+    def test_end2end_polly(self):
+        app = apps.Simple(self.examples / "inputs/depnodep.c", translator=Polly())
+        node = app.scops[0].schedule_tree[1]
+        node.transform(TrEnum.INTERCHANGE)
+        tapp = app.generate_code()
+        print(f"{app.output_binary=}, {tapp.output_binary=}")
+        print(f"{app.measure()=}")
+        print(f"{tapp.measure()=}")
+
 
 class TestPolybench(TestApp):
     base: Path = TestApp.examples / "polybench"
@@ -120,37 +129,7 @@ class TestPolybench(TestApp):
         tapp.measure()
 
     def test_end2end_polly(self):
-        # app = apps.Polybench("gemm", translator=Pet())
-        # node = app.scops[0].schedule_tree[0]
-        # print(node.yaml_str)
-
-        # app = apps.Simple(self.examples / "inputs/depnodep.c")
-        # node = app.scops[0].schedule_tree[1]
-        # node.transform(TrEnum.INTERCHANGE)
-        # print(node.yaml_str)
-
-        if 0:
-            scop_idx = 0
-            translator = Pet()
-        else:
-            scop_idx = 1
-            translator = Polly()
-
-        app = apps.Polybench("gemm", translator=translator)
-        node = app.scops[scop_idx].schedule_tree[2]
-        print(node.yaml_str)
+        app = apps.Polybench("gemm", translator=Polly())
+        node = app.scops[1].schedule_tree[2]
         legal = node.transform(TrEnum.FULL_FUSE)
-        print(node.yaml_str)
-        print(f"{app.legal=}")
-        # node = app.scops[scop_idx].schedule_tree[1]
-        # node.transform(TrEnum.TILE_2D, 32, 32)
-        # print(node.yaml_str)
         tapp = app.generate_code()
-
-        app = apps.Simple(self.examples / "inputs/depnodep.c")
-        node = app.scops[0].schedule_tree[1]
-        node.transform(TrEnum.INTERCHANGE)
-        print(node.yaml_str)
-        tapp = app.generate_code()
-        print(f"{tapp.measure()=}")
-        print(f"{app.measure()=}")

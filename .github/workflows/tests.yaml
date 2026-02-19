@@ -35,4 +35,4 @@ jobs:
     #   run: python examples/end2end.py
 
     - name: Run unittests
-      run: python -m unittest
+      run: python -m unittest -v

@@ -395,6 +395,7 @@ class Polly(Translator):
         input_path = str(self._import_jscops(options))
         cmd = [
             "llc",
+            "-relocation-model=pic",
             # *options,
             input_path,
             f"-o={str(output)}",
