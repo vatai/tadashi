@@ -1,5 +1,6 @@
 #!/bin/env python
 
+import os
 import unittest
 from pathlib import Path
 
@@ -82,6 +83,7 @@ class TestSimple(TestApp):
         print(f"{app.measure()=}")
         print(f"{tapp.measure()=}")
 
+    @unittest.skipIf(os.getenv("GITHUB_ACTIONS") == "true", "Skipped on GitHub Actions")
     def test_end2end_polly_flang(self):
         input_path = self.examples / "inputs/fdepnodep.f90"
         app = apps.Simple(
