@@ -218,10 +218,27 @@ class Pet(Translator):
 class Polly(Translator):
     compiler: str
     json_paths: list[Path]
-    cwd: str
+    cwd: Path
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = compiler
+
+    def _run(self, cmd: list[str], description: str, cwd: str = None):
+        """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
+        if cwd is None:
+            cwd = str(self.cwd)
+        proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
+        if proc.returncode != 0:
+            msg = [
+                f"Something went wrong while [{description}]",
+                "cmd: " + " ".join(cmd),
+                "stdout:",
+                f"{proc.stdout.decode()}",
+                "stderr",
+                f"{proc.stderr.decode()}",
+            ]
+            raise ValueError("\n".join(msg))
+        return proc
 
     @cython.ccall
     def populate_ccscops(self, options: list[str]):
@@ -229,7 +246,7 @@ class Polly(Translator):
         if self.ctx is cython.NULL:
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-")
+        self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
         self._get_preopt_bitcode(options)
         stderr = self._export_jscops(options)
         self.json_paths = self._fill_json_paths(stderr)
@@ -239,7 +256,7 @@ class Polly(Translator):
             self._proc_jscop(jscop)
 
     def _get_preopt_bitcode(self, options: list[str]) -> Path:
-        output = Path(self.cwd) / self.source.with_suffix(".O1.bc").name
+        output = self.cwd / self.source.with_suffix(".O1.bc").name
         if output.exists():
             return output
         cmd = [
@@ -254,13 +271,7 @@ class Polly(Translator):
             "-o",
             str(output),
         ]
-        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
-        if proc.returncode:
-            msg = [
-                f"{proc.stderr.decode()}",
-                f"Something went wrong while parsing the {self.source}. ",
-            ]
-            raise ValueError("\n".join(msg))
+        self._run(cmd, "parsing")
         return output
 
     def _export_jscops(self, options: list[str]) -> str:
@@ -269,7 +280,7 @@ class Polly(Translator):
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
-        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
+        proc = self._run(cmd, "exporting jscops")
         return proc.stderr.decode()
 
     @staticmethod
@@ -323,12 +334,12 @@ class Polly(Translator):
     def legal(self) -> bool:
         input_path = str(self._get_preopt_bitcode([]))
         cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
-        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
+        proc = self._run(cmd, "checking legality")
         return proc.returncode == 0
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_preopt_bitcode(options))
-        output = Path(self.cwd) / self.source.with_suffix(".bc").name
+        output = self.cwd / self.source.with_suffix(".bc").name
         cmd = self._polly() + [
             input_path,
             "-polly-import-jscop",
@@ -336,9 +347,7 @@ class Polly(Translator):
             f"-o={str(output)}",
             "-disable-polly-legality",
         ]
-        proc = subprocess.run(cmd, capture_output=True, cwd=self.cwd)
-        if proc.returncode != 0:
-            raise f"Something went wrong. Polly stdout:\n{proc.stdout}\nPolly stderr: {proc.stderr}"
+        self._run(cmd, "imnporting jscops")
         return output
 
     @cython.ccall
@@ -369,21 +378,16 @@ class Polly(Translator):
             isl.isl_union_map_free(umap)
             with jscop_path.open("w", encoding="utf-8") as f:
                 json.dump(jscop, f, indent=2)
-        output_path = Path(output_path).with_suffix(".ll")
-        self._generate_binary(output_path, options)
+        output_path = Path(output_path).with_suffix(".s")
+        self._generate_assembly(output_path, options)
         return output_path
 
-    def _generate_binary(self, output: Path, options: list[str]):
+    def _generate_assembly(self, output: Path, options: list[str]):
         input_path = str(self._import_jscops(options))
         cmd = [
             "llc",
-            *options,
+            # *options,
             input_path,
-            f"-o{str(output)}",
+            f"-o={str(output)}",
         ]
-        print(cmd)
-        proc = subprocess.run(cmd, capture_output=True)
-        if proc.returncode != 0:
-            raise ValueError(
-                f"Something went wrong generating the code\n{proc.stdout}\n{proc.stderr}"
-            )
+        self._run(cmd, "generating assembly")
