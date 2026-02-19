@@ -84,10 +84,18 @@ class TestSimple(TestApp):
 
     def test_end2end_polly_flang(self):
         input_path = self.examples / "inputs/fdepnodep.f90"
-        app = apps.Simple(input_path, translator=Polly("flang"))
+        app = apps.Simple(
+            input_path,
+            translator=Polly("flang"),
+            compiler_options=[
+                "-L/usr/lib/clang/21/lib/linux",
+                "-lflang_rt.runtime",
+                "-lm",
+            ],
+            runtime_prefix=" WALLTIME: ",
+        )
         node = app.scops[0].schedule_tree[1]
-        print(node.yaml_str)
-        tapp = app.generate_code()
+        tapp = app.generate_code(ephemeral=False)
         print(f"{app.output_binary=}, {tapp.output_binary=}")
         print(f"{app.measure()=}")
         print(f"{tapp.measure()=}")

@@ -242,14 +242,12 @@ class Simple(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
+        cmd = [
             *self.compiler(),
             str(self.source),
             "-fopenmp",
-            "-L/usr/lib/clang/21/lib/linux",
-            "-lflang_rt.runtime",
-            "-lm",
         ]
+        return cmd
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -324,17 +322,16 @@ class Polybench(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
+        cmd = [
             *self.compiler(),
             str(self.source),
             str(self.base / "utilities/polybench.c"),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
-            "-L/usr/lib/clang/21/lib/linux",
-            "-lflang_rt.runtime",
             "-lm",
             "-fopenmp",
         ]
+        return cmd
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0
