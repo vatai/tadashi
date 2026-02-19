@@ -228,19 +228,20 @@ class Polly(Translator):
         if cwd is None:
             cwd = str(self.cwd)
         proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
-        msg = [
-            f"Something went wrong while [{description}]",
-            "cmd: " + " ".join(cmd),
-            "stdout:",
-            f"{proc.stdout.decode()}",
-            "stderr",
-            f"{proc.stderr.decode()}",
-        ]
+        # msg = [
+        #     f"Something went wrong while [{description}]",
+        #     "cmd: " + " ".join(cmd),
+        #     "stdout:",
+        #     f"{proc.stdout.decode()}",
+        #     "stderr",
+        #     f"{proc.stderr.decode()}",
+        # ]
         print("\n".join(msg))
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
                 "cmd: " + " ".join(cmd),
+                f"returncode: {proc.returncode}",
                 "stdout:",
                 f"{proc.stdout.decode()}",
                 "stderr",
