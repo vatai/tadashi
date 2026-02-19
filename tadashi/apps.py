@@ -144,7 +144,7 @@ class App(abc.ABC):
             "compiler_options": compiler_options,
             "populate_scops": populate_scops,
         }
-        kwargs.update(self._codegen_init_args())
+        kwargs.update(self.codegen_init_args())
         app = self.__class__(**kwargs)
         app.ephemeral = ephemeral
         return app
@@ -175,7 +175,7 @@ class App(abc.ABC):
         """Command executed for compilation (list of strings)."""
         pass
 
-    def _codegen_init_args(self) -> dict:
+    def codegen_init_args(self) -> dict:
         return {}
 
     @staticmethod
@@ -249,6 +249,9 @@ class Simple(App):
         ]
         return cmd
 
+    def codegen_init_args(self):
+        return {"runtime_prefix": self.runtime_prefix}
+
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
             if line.startswith(self.runtime_prefix):
@@ -304,7 +307,7 @@ class Polybench(App):
                 return str(c_file.relative_to(self.base).parent)
         raise ValueError(f"Not a polybench {benchmark=}")
 
-    def _codegen_init_args(self):
+    def codegen_init_args(self):
         return {
             "benchmark": self.benchmark,
             "base": self.base,
