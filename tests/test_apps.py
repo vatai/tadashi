@@ -97,7 +97,7 @@ class TestSimple(TestApp):
             runtime_prefix=" WALLTIME: ",
         )
         node = app.scops[0].schedule_tree[1]
-        tapp = app.generate_code(ephemeral=False)
+        tapp = app.generate_code()
         print(f"{app.output_binary=}, {tapp.output_binary=}")
         print(f"{app.measure()=}")
         print(f"{tapp.measure()=}")
