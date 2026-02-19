@@ -12,7 +12,7 @@
       . "./setup.py build_ext -i")
      (projectile-project-test-cmd
       ;; . "python -m unittest tests.test_translators.TestPolly.test_wip")
-      . "python -m unittest tests.test_apps.TestPolybench.test_end2end_polly")
+      . "python -m unittest tests.test_apps.TestSimple.test_end2end_polly_flang")
      (corfu-auto
       . t))
   )
