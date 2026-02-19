@@ -221,13 +221,14 @@ class Polly(Translator):
     cwd: Path
 
     def __init__(self, compiler: str = "clang"):
-        self.compiler = compiler
+        self.compiler = str(compiler)
 
     def _run(self, cmd: list[str], description: str, cwd: str = None):
         """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
         if cwd is None:
             cwd = str(self.cwd)
         proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
+        ##########
         # msg = [
         #     f"Something went wrong while [{description}]",
         #     "cmd: " + " ".join(cmd),
@@ -237,6 +238,7 @@ class Polly(Translator):
         #     f"{proc.stderr.decode()}",
         # ]
         # print("\n".join(msg))
+        ##########
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
@@ -269,15 +271,22 @@ class Polly(Translator):
         output = self.cwd / self.source.with_suffix(".O1.bc").name
         if output.exists():
             return output
+
+        compiler_opts = {
+            "clang": [
+                "-O0",
+                "-Xclang",
+                "-disable-O0-optnone",
+            ],
+            "flang": ["-O1"],
+        }
         cmd = [
-            str(self.compiler),
+            self.compiler,
             *options,
             "-c",
             "-emit-llvm",
             str(self.source),
-            "-O0",
-            "-Xclang",
-            "-disable-O0-optnone",
+            *compiler_opts[self.compiler[:5]],
             "-o",
             str(output),
         ]

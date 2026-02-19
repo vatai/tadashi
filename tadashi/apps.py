@@ -180,7 +180,8 @@ class App(abc.ABC):
 
     @staticmethod
     def compiler():
-        return os.getenv("CC", "gcc")
+        return ["gcc"]
+        return [os.getenv("CC", "gcc")]
 
     def compile(
         self,
@@ -241,7 +242,14 @@ class Simple(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [self.compiler(), str(self.source), "-fopenmp"]
+        return [
+            *self.compiler(),
+            str(self.source),
+            "-fopenmp",
+            "-L/usr/lib/clang/21/lib/linux",
+            "-lflang_rt.runtime",
+            "-lm",
+        ]
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -317,11 +325,13 @@ class Polybench(App):
     @property
     def compile_cmd(self) -> list[str]:
         return [
-            self.compiler(),
+            *self.compiler(),
             str(self.source),
             str(self.base / "utilities/polybench.c"),
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
+            "-L/usr/lib/clang/21/lib/linux",
+            "-lflang_rt.runtime",
             "-lm",
             "-fopenmp",
         ]
