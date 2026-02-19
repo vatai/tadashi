@@ -180,7 +180,6 @@ class App(abc.ABC):
 
     @staticmethod
     def compiler():
-        return ["gcc"]
         return [os.getenv("CC", "gcc")]
 
     def compile(
