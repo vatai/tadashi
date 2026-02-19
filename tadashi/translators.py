@@ -236,7 +236,7 @@ class Polly(Translator):
         #     "stderr",
         #     f"{proc.stderr.decode()}",
         # ]
-        print("\n".join(msg))
+        # print("\n".join(msg))
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
