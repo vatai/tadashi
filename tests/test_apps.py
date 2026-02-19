@@ -83,10 +83,14 @@ class TestSimple(TestApp):
         print(f"{tapp.measure()=}")
 
     def test_end2end_polly_flang(self):
-        app = apps.Simple(
-            self.examples / "inputs/depnodep.c", translator=Polly("flang")
-        )
+        input_path = self.examples / "inputs/fdepnodep.f90"
+        app = apps.Simple(input_path, translator=Polly("flang"))
         node = app.scops[0].schedule_tree[1]
+        print(node.yaml_str)
+        tapp = app.generate_code()
+        print(f"{app.output_binary=}, {tapp.output_binary=}")
+        print(f"{app.measure()=}")
+        print(f"{tapp.measure()=}")
 
 
 class TestPolybench(TestApp):
