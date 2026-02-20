@@ -2,11 +2,17 @@
 #include <cstring>
 #include <iostream>
 
+#include <isl/aff.h>
+#include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
 #include <isl/schedule_type.h>
+#include <isl/union_map.h>
+#include <isl/union_set.h>
+#include <isl/val.h>
+#include <iterator>
 #include <ostream>
 
 #include "ccscop.h"
@@ -299,7 +305,7 @@ ccScop::ccScop()
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Default()" << std::endl;
+  std::cout << ">>> [c]Default()... DONE!" << std::endl;
 #endif // NDEBUG
 }
 
@@ -320,7 +326,7 @@ ccScop::ccScop(pet_scop *ps)
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]PetPtr()" << std::endl;
+  std::cout << ">>> [c]PetPtr()... ";
 #endif // NDEBUG
   this->schedule = pet_scop_get_schedule(ps);
   this->dep_flow = get_dependencies(ps);
@@ -338,6 +344,151 @@ ccScop::ccScop(pet_scop *ps)
   this->current_node = isl_schedule_get_root(this->schedule);
   if (ps != nullptr)
     pet_scop_free(ps);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
+}
+
+static __isl_give isl_schedule_node *
+_build_schedule(__isl_take isl_schedule_node *node,
+                __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
+                unsigned int num_dims);
+
+static isl_bool
+_pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *user) {
+  isl_bool target = (isl_bool)(user != 0);
+  return (isl_bool)(isl_pw_aff_is_cst(pa) == target);
+}
+
+static isl_stat
+_add_pa_range(isl_pw_aff *pa, void *user) {
+  isl_set_list **set_list = (isl_set_list **)user;
+  isl_map *map = isl_pw_aff_as_map(pa);
+  *set_list = isl_set_list_add(*set_list, isl_map_range(map));
+  return isl_stat_ok;
+}
+
+int
+_cmp(struct isl_set *a, struct isl_set *b, void *user) {
+  isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
+  isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
+  isl_val *diff = isl_val_sub(va, vb);
+  int rv = isl_val_sgn(diff);
+  isl_val_free(diff);
+  return rv;
+}
+
+static __isl_give isl_union_set_list *
+_filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
+  isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
+  isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
+  isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
+  isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
+  isl_pw_aff_list_foreach(pa_list, _add_pa_range, &set_list);
+  isl_set_list_sort(set_list, _cmp, nullptr);
+  isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_pa);
+  isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
+  for (isl_size i = 0; i < n_pa; i++) {
+    isl_set *set = isl_set_list_get_at(set_list, i);
+    isl_pw_multi_aff *pma = isl_pw_multi_aff_from_set(set);
+    isl_union_map *preimage = isl_union_map_preimage_range_pw_multi_aff(
+        isl_union_map_copy(umap), pma);
+    isl_union_set *dmn = isl_union_map_domain(preimage);
+    filters = isl_union_set_list_add(filters, dmn);
+  };
+  isl_union_map_free(umap);
+  isl_set_list_free(set_list);
+  isl_pw_aff_list_free(pa_list);
+  return filters;
+}
+
+static __isl_give isl_schedule_node *
+_insert_sequence(__isl_take isl_schedule_node *node,
+                 __isl_take isl_union_pw_aff *upa,
+                 __isl_keep isl_multi_union_pw_aff *mupa, int pos,
+                 unsigned int num_dims) {
+  if (isl_union_pw_aff_n_pw_aff(upa) == 1) {
+    isl_union_pw_aff_free(upa);
+    return node;
+  }
+  isl_union_set_list *filters = _filters_from_cst_upa(upa);
+  node = isl_schedule_node_insert_sequence(node, filters);
+  isl_size num_children = isl_schedule_node_n_children(node);
+  for (isl_size i = 0; i < num_children; ++i) {
+    node = isl_schedule_node_child(node, i);
+    isl_multi_union_pw_aff *branch = isl_multi_union_pw_aff_intersect_domain(
+        isl_multi_union_pw_aff_copy(mupa),
+        isl_schedule_node_filter_get_filter(node));
+    node = _build_schedule(node, branch, pos + 1, num_dims);
+    isl_multi_union_pw_aff_free(branch);
+    node = isl_schedule_node_parent(node);
+  }
+  return node;
+}
+
+static __isl_give isl_schedule_node *
+_build_schedule(__isl_take isl_schedule_node *node,
+                __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
+                unsigned int num_dims) {
+  if (pos >= num_dims)
+    return node;
+  isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
+  node = isl_schedule_node_first_child(node);
+  if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
+    node = _insert_sequence(node, upa, mupa, pos, num_dims);
+  } else {
+    node = isl_schedule_node_insert_partial_schedule(
+        node, isl_multi_union_pw_aff_from_union_pw_aff(upa));
+    node = _build_schedule(node, mupa, pos + 1, num_dims);
+  }
+
+  node = isl_schedule_node_parent(node);
+  // std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
+  return node;
+}
+
+isl_schedule *
+build_schedule_from_umap(__isl_take isl_union_set *domain,
+                         __isl_take isl_union_map *map) {
+  isl_schedule *schedule = isl_schedule_from_domain(domain);
+  isl_schedule_node *root = isl_schedule_get_root(schedule);
+  schedule = isl_schedule_free(schedule);
+
+  isl_multi_union_pw_aff *mupa = isl_multi_union_pw_aff_from_union_map(map);
+  isl_size num_dims = isl_multi_union_pw_aff_dim(mupa, isl_dim_out);
+  root = _build_schedule(root, mupa, 0, num_dims);
+  isl_multi_union_pw_aff_free(mupa);
+
+  schedule = isl_schedule_node_get_schedule(root);
+  isl_schedule_node_free(root);
+  return schedule;
+}
+
+ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
+               isl_union_map *write)
+    : schedule(
+          build_schedule_from_umap(isl_union_set_copy(domain), sched)), // 1.
+      dep_flow(nullptr),                                                // 2.
+      domain(domain),                                                   // 3.
+      call(nullptr),                                                    // 4.
+      may_writes(write),                                                // 5.
+      must_writes(nullptr),                                             // 6.
+      must_kills(nullptr),                                              // 7.
+      may_reads(read),                                                  // 8.
+      live_out(nullptr),                                                // 9.
+      current_node(nullptr),                                            // 10.
+      tmp_node(nullptr),                                                // 11.
+      current_legal(true),                                              // 12.
+      tmp_legal(true),                                                  // 13.
+      modified(0)                                                       // 14.
+{
+#ifndef NDEBUG
+  std::cout << ">>> [c]Polly()... ";
+#endif // NDEBUG
+  this->current_node = isl_schedule_get_root(this->schedule);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 void
@@ -391,9 +542,12 @@ ccScop::_dealloc() {
 
 ccScop::~ccScop() {
 #ifndef NDEBUG
-  std::cout << "<<< [~]***destructor***()" << std::endl;
+  std::cout << "<<< [~]***destructor***()... ";
 #endif // NDEBUG
   this->_dealloc();
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 void
@@ -443,9 +597,12 @@ ccScop::ccScop(const ccScop &other)
       modified(0)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Copy()" << std::endl;
+  std::cout << ">>> [c]Copy()... ";
 #endif // NDEBUG
   this->_copy(other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 void
@@ -483,26 +640,32 @@ ccScop::ccScop(ccScop &&other) noexcept
       modified(other.modified)            // 14.
 {
 #ifndef NDEBUG
-  std::cout << ">>> [c]Move()" << std::endl;
+  std::cout << ">>> [c]Move()... ";
 #endif // NDEBUG
   _set_nullptr(&other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
 }
 
 ccScop &
 ccScop::operator=(const ccScop &other) {
 #ifndef NDEBUG
-  std::cout << ">>> [op=]Copy()" << std::endl;
+  std::cout << ">>> [op=]Copy()... ";
 #endif // NDEBUG
   if (this == &other)
     return *this;
   this->_copy(other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
   return *this;
 }
 
 ccScop &
 ccScop::operator=(ccScop &&other) noexcept {
 #ifndef NDEBUG
-  std::cout << ">>> [op=]Move()" << std::endl;
+  std::cout << ">>> [op=]Move()... ";
 #endif // NDEBUG
   if (this == &other)
     return *this;
@@ -523,6 +686,9 @@ ccScop::operator=(ccScop &&other) noexcept {
   this->modified = other.modified;           // 14.
   //
   _set_nullptr(&other);
+#ifndef NDEBUG
+  std::cout << "DONE!" << std::endl;
+#endif // NDEBUG
   return *this;
 }
 

@@ -27,6 +27,7 @@ cdef extern from "isl/schedule.h":
     #
     isl_schedule *isl_schedule_free(isl_schedule *sched)
     isl_schedule_node *isl_schedule_get_root(isl_schedule *sched)
+    isl_union_map *isl_schedule_get_map(isl_schedule *sched)
     const char *isl_schedule_to_str(isl_schedule *sched)
 ctypedef isl_schedule* schedule
 
@@ -53,9 +54,28 @@ cdef extern from "isl/union_set.h":
     ctypedef struct isl_union_set: pass
     #
     isl_union_set *isl_union_set_free(isl_union_set *uset)
+    isl_union_set *isl_union_set_empty_ctx(isl_ctx *ctx)
+    isl_union_set *isl_union_set_read_from_str(isl_ctx *ctx, const char* str)
+    isl_union_set *isl_union_set_union(isl_union_set *s1, isl_union_set *s2)
     int isl_union_set_n_set(isl_union_set *uset)
     isl_set_list *isl_union_set_get_set_list(isl_union_set *uset)
 ctypedef isl_union_set* union_set
+
+
+# ---------
+# union_map
+# ---------
+cdef extern from "isl/union_map.h":
+    ctypedef struct isl_union_map: pass
+    #
+    isl_union_map *isl_union_map_free(isl_union_map *umap)
+    isl_union_map *isl_union_map_copy(isl_union_map *umap)
+    isl_union_map *isl_union_map_empty_ctx(isl_ctx *ctx)
+    isl_union_map *isl_union_map_read_from_str(isl_ctx *ctx, const char* str)
+    isl_union_map *isl_union_map_union(isl_union_map *m1, isl_union_map *m2)
+    isl_union_map *isl_union_map_intersect_domain(isl_union_map *m1, isl_union_map *m2)
+    isl_union_map *isl_union_map_intersect_domain_union_set(isl_union_map *map, isl_union_set *set)
+    const char *isl_union_map_to_str(isl_union_map *map)
 
 # ---
 # aff

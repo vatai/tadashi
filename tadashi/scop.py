@@ -664,6 +664,9 @@ class Scop:
         mupa = isl.isl_schedule_node_band_get_partial_schedule(self._cur())
         label = isl.isl_multi_union_pw_aff_get_tuple_name(mupa, isl.isl_dim_out)
         mupa = isl.isl_multi_union_pw_aff_free(mupa)
+        # todo: generate labels during polly -> tadashi conversion
+        if label == cython.NULL:
+            return ""
         return label.decode()
 
     def _get_loop_signature(self) -> str:

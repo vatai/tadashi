@@ -98,7 +98,7 @@ class App(abc.ABC):
 
     @property
     def legal(self) -> bool:
-        return all(s.legal for s in self.scops)
+        return self.translator.legal()
 
     def transform_list(self, transformation_list: list) -> Result:
         for si, ni, *tr in transformation_list:
@@ -126,18 +126,14 @@ class App(abc.ABC):
     ):
         """Create a transformed copy of the app object."""
         if ensure_legality:
-            if not self.scops:
-                raise ValueError(
-                    "The App was created without scops, cannot check legality"
-                )
-            if not all(s.legal for s in self.scops):
+            if not self.translator.legal():
                 raise ValueError("The App is not in a legal state")
         if alt_infix:
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self._make_new_filename()
         options = self._amend_compiler_options(self.user_compiler_options)
-        self.translator.generate_code(str(self.source), str(new_file), options)
+        new_file = self.translator.generate_code(str(self.source), new_file, options)
         translator = copy.copy(self.translator) if populate_scops else None
         compiler_options = None
         if self.user_compiler_options:
@@ -148,7 +144,7 @@ class App(abc.ABC):
             "compiler_options": compiler_options,
             "populate_scops": populate_scops,
         }
-        kwargs.update(self._codegen_init_args())
+        kwargs.update(self.codegen_init_args())
         app = self.__class__(**kwargs)
         app.ephemeral = ephemeral
         return app
@@ -179,12 +175,12 @@ class App(abc.ABC):
         """Command executed for compilation (list of strings)."""
         pass
 
-    def _codegen_init_args(self) -> dict:
+    def codegen_init_args(self) -> dict:
         return {}
 
     @staticmethod
     def compiler():
-        return os.getenv("CC", "gcc")
+        return [os.getenv("CC", "gcc")]
 
     def compile(
         self,
@@ -245,7 +241,15 @@ class Simple(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [self.compiler(), str(self.source), "-fopenmp"]
+        cmd = [
+            *self.compiler(),
+            str(self.source),
+            "-fopenmp",
+        ]
+        return cmd
+
+    def codegen_init_args(self):
+        return {"runtime_prefix": self.runtime_prefix}
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -302,7 +306,7 @@ class Polybench(App):
                 return str(c_file.relative_to(self.base).parent)
         raise ValueError(f"Not a polybench {benchmark=}")
 
-    def _codegen_init_args(self):
+    def codegen_init_args(self):
         return {
             "benchmark": self.benchmark,
             "base": self.base,
@@ -320,8 +324,8 @@ class Polybench(App):
 
     @property
     def compile_cmd(self) -> list[str]:
-        return [
-            self.compiler(),
+        cmd = [
+            *self.compiler(),
             str(self.source),
             str(self.base / "utilities/polybench.c"),
             "-DPOLYBENCH_TIME",
@@ -329,6 +333,7 @@ class Polybench(App):
             "-lm",
             "-fopenmp",
         ]
+        return cmd
 
     def extract_runtime(self, stdout) -> float:
         result = 0.0

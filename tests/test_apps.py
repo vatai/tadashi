@@ -1,11 +1,12 @@
 #!/bin/env python
 
+import os
 import unittest
 from pathlib import Path
 
 from tadashi import apps
 from tadashi.scop import TrEnum
-from tadashi.translators import Pet
+from tadashi.translators import Pet, Polly
 
 
 class TestApp(unittest.TestCase):
@@ -73,6 +74,34 @@ class TestSimple(TestApp):
         app = apps.Simple(file, Pet(autodetect=True))
         self.compare_members(app)
 
+    def test_end2end_polly(self):
+        app = apps.Simple(self.examples / "inputs/depnodep.c", translator=Polly())
+        node = app.scops[0].schedule_tree[1]
+        node.transform(TrEnum.INTERCHANGE)
+        tapp = app.generate_code()
+        print(f"{app.output_binary=}, {tapp.output_binary=}")
+        print(f"{app.measure()=}")
+        print(f"{tapp.measure()=}")
+
+    @unittest.skipIf(os.getenv("GITHUB_ACTIONS") == "true", "Skipped on GitHub Actions")
+    def test_end2end_polly_flang(self):
+        input_path = self.examples / "inputs/fdepnodep.f90"
+        app = apps.Simple(
+            input_path,
+            translator=Polly("flang"),
+            compiler_options=[
+                "-L/usr/lib/clang/21/lib/linux",
+                "-lflang_rt.runtime",
+                "-lm",
+            ],
+            runtime_prefix=" WALLTIME: ",
+        )
+        node = app.scops[0].schedule_tree[1]
+        tapp = app.generate_code()
+        print(f"{app.output_binary=}, {tapp.output_binary=}")
+        print(f"{app.measure()=}")
+        print(f"{tapp.measure()=}")
+
 
 class TestPolybench(TestApp):
     base: Path = TestApp.examples / "polybench"
@@ -118,3 +147,9 @@ class TestPolybench(TestApp):
         tapp = app.generate_code()
         tarrays = tapp.dump_arrays()
         tapp.measure()
+
+    def test_end2end_polly(self):
+        app = apps.Polybench("gemm", translator=Polly())
+        node = app.scops[-1].schedule_tree[2]
+        legal = node.transform(TrEnum.FULL_FUSE)
+        tapp = app.generate_code()

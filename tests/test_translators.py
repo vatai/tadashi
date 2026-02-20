@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tadashi.scop import Scop
+from tadashi.scop import Scop, TrEnum
 from tadashi.translators import *
 
 
@@ -16,6 +16,59 @@ class TestTranslator(unittest.TestCase):
 
     examples: Path = Path(__file__).parent.parent / "examples"
     tests: Path = Path(__file__).parent
+
+    # TODO
+    def _test_scop_extraction(self, translator: Translator):
+        """Test the things done in the constructor: does it populate
+        ccscops and scops correctly."""
+        translator.set_source(self.examples / "inputs/depnodep.c", [])
+        for s in translator.scops:
+            for n in s.schedule_tree:
+                self.assertTrue(str(n))
+
+    @unittest.skip("todo")
+    def _test_codegen(self):
+        """Test codegen"""
+
+    def _test_double_set(self, translator):
+        """Calling set_source() 2x on a translator should raise an error!"""
+        file = self.examples / "inputs/depnodep.c"
+        translator.set_source(file, [])
+        with self.assertRaises(RuntimeError):
+            translator.set_source(file, [])
+
+    def _test_deleted_translator(self, translator_cls):
+        """This test should simply not crash."""
+
+        def _get_schedule_tree():
+            file = self.examples / "inputs/depnodep.c"
+            translator = translator_cls()
+            translator.set_source(file, [])
+            scop = translator.scops[0]
+            # `translator` is freed after the next line.
+            return scop.schedule_tree
+
+        with self.assertRaises(RuntimeError):
+            node = _get_schedule_tree()[1]
+            # The translator is qeried when in the next line!
+            print(node.yaml_str)
+
+    def _test_compilation_error(self, translator):
+        with self.assertRaises(ValueError):
+            path = self.tests / "syntax_error.c"
+            self.assertTrue(path.exists())
+            translator.set_source(path, [])
+
+
+class TestPet(TestTranslator):
+    def test_non_existing_file(self):
+        """Test if Pet errors out when we try to open an non-existing file."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "does-not-exists.c"
+            self.assertFalse(path.exists())
+            with self.assertRaises(ValueError):
+                translator = Pet()
+                translator.set_source(path, [])
 
     def test_pet_autodetect(self):
         """Test the `translators.Pet`'s `autodetect` parameter."""
@@ -30,62 +83,32 @@ class TestTranslator(unittest.TestCase):
                 translator.set_source(file, [])
                 self.assertEqual(len(translator.scops), num_scops)
 
-    def test_double_set(self):
-        """Calling set_source() 2x on a translator should raise an error!"""
-        translator = Pet()
-        file = self.examples / "inputs/depnodep.c"
-        translator.set_source(file, [])
-        with self.assertRaises(RuntimeError):
-            translator.set_source(file, [])
-
-    def test_deleted_translator(self):
-        """This test should simply not crash."""
-
-        def _get_schedule_tree():
-            file = self.examples / "inputs/depnodep.c"
-            translator = Pet()
-            translator.set_source(file, [])
-            scop = translator.scops[0]
-            # `translator` is freed after the next line.
-            return scop.schedule_tree
-
-        with self.assertRaises(RuntimeError):
-            node = _get_schedule_tree()[1]
-            # The translator is qeried when in the next line!
-            print(node.yaml_str)
-
-    @unittest.skip("todo")
-    def test_pet_scop_extraction(self):
+    def test_scop_extraction(self):
         """Test the things done in the constructor: does it populate
         ccscops and scops correctly."""
+        self._test_scop_extraction(Pet())
 
-    @unittest.skip("todo")
-    def test_pet_codegen(self):
-        """Test codegen"""
+    def test_double_set(self):
+        self._test_double_set(Pet())
 
-    @unittest.skip("todo")
-    def test_polly_codegen(self):
-        """See same test for pet."""
-
-    @unittest.skip("todo")
-    def test_polly_scop_extraction(self):
-        """See same test for pet."""
-
-
-class TestPet(TestTranslator):
-    def test_non_existing_file(self):
-        """Test if Pet errors out when we try to open an non-existing file."""
-        with tempfile.TemporaryDirectory() as tmp:
-            print(f"{tmp=} {type(tmp)=}")
-            path = Path(tmp) / "does-not-exists.c"
-            self.assertFalse(path.exists())
-            with self.assertRaises(ValueError):
-                translator = Pet()
-                translator.set_source(path, [])
+    def test_deleted_translator(self):
+        self._test_deleted_translator(Pet)
 
     def test_compilation_error(self):
-        with self.assertRaises(ValueError):
-            translator = Pet(autodetect=True)
-            path = self.tests / "syntax_error.c"
-            self.assertTrue(path.exists())
-            translator.set_source(path, [])
+        self._test_compilation_error(Pet(autodetect=True))
+
+
+class TestPolly(TestTranslator):
+    def test_compilation_error(self):
+        self._test_compilation_error(Polly("clang"))
+
+    def test_wip(self):
+        translator = Polly("clang")
+        input_path = self.examples / "inputs/depnodep.c"
+        translator.set_source(input_path, [])
+        scop = translator.scops[0]
+        node = scop.schedule_tree[1]
+        # print(node.yaml_str)
+        # node.transform(TrEnum.INTERCHANGE)
+        # print(node.yaml_str)
+        translator.generate_code(str(input_path), "/tmp/output.ll", [])

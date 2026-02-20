@@ -15,6 +15,9 @@ jobs:
     - name: Build deps 🛠️
       run: sudo third_party/install.sh
 
+    - name: Install LLVM and clang 🛠️
+      run: sudo apt -y install llvm clang # libpolly-18-dev
+
     - name: Set up Python 🐍
       uses: actions/setup-python@v5
       with:
@@ -32,4 +35,4 @@ jobs:
     #   run: python examples/end2end.py
 
     - name: Run unittests
-      run: python -m unittest
+      run: python -m unittest -v
