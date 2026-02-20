@@ -1,7 +1,9 @@
 name: Build and Upload Python Package
 
 on:
-  push
+  push:
+  release:
+    types: [published]
 
 jobs:
   build_wheels:
