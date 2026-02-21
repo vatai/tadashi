@@ -61,7 +61,7 @@ class Translator:
         """Do the bookkeeping of the init.
 
         This method should be called from the derived class as
-        super().set_source() after populatin the `ccScop`s.
+        `super().set_source()` after populating the `ccScop` objects.
 
         """
         self._check_missing_file(source)

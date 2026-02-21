@@ -46,6 +46,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
 autodoc_member_order = "bysource"
+default_role = "py:obj"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
