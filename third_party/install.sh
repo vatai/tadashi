@@ -32,6 +32,3 @@ cd "$THIRD_PARTY/pet"
 ./autogen.sh
 ./configure --prefix="$PREFIX" "$CLANG_OPTION"
 make -j install
-
-cd ../..
-git status --porcelain
