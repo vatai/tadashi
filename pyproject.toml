@@ -23,6 +23,9 @@ Homepage = "https://vatai.github.io/projects/tadashi/"
 Documentation = "https://tadashi.readthedocs.io/en/latest/"
 Source = "https://github.com/vatai/tadashi/"
 
+[project.scripts]
+scop-detector = "tadashi.scop_detector:main"
+
 [tool.setuptools]
 packages = ["tadashi"]
 
