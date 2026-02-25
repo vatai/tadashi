@@ -3,54 +3,37 @@ import argparse
 import re
 from pathlib import Path
 
-import tadashi.translators
-from tadashi import apps
+from tadashi.apps import Simple
+from tadashi.translators import Pet, Polly
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("files")
-    parser.add_argument("extension")
+    parser.add_argument("path", help="Path to the source files")
+    parser.add_argument("extension", help="File extension 'c' or 'f'")
     parser.add_argument("-i", "--pet", action="store_true")
     parser.add_argument("-a", "--args", action="append")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.args:
+        args.args = ["flang"]
+    assert args.extension in "cf"
+    return args
 
 
-def make_translator(args):
-    if args.pet:
-        translator = tadashi.translators.Pet(*args.translator_arg)
-    else:
-        polly_args = args.translator_arg
-        if not polly_args:
-            polly_args = ["flang"]
-        print(f"{polly_args=}")
-        translator = tadashi.translators.Polly(*polly_args)
-    return translator
+def print_app(app):
+    pass
 
 
 def main():
     args = get_args()
-    print(args)
-    files = [
-        "foobar1.c",
-        "foobar2.cc",
-        "foobar3.cpp",
-        "foobar4.c++",
-        "foobar5.c.f",
-        "foobar6.f90",
-        "foobarU1.C",
-        "foobarU2.cC",
-        "foobarU3.CPp",
-        "foobarU4.C++",
-        "foobarU5.c.F",
-        "foobarU6.F90",
-    ]
-
-    pat = r".*\.f|f90" if 1 else r".*\.c[^.]*$"
-    pattern = re.compile(pat, re.IGNORECASE)
-    for file in files:
-        if pattern.match(file):
-            print(file)
+    patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
+    pattern = re.compile(patterns[args.extension], re.IGNORECASE)
+    for file in Path(args.path).rglob("*"):
+        if pattern.match(file.suffix):
+            cls = Pet if args.pet else Polly
+            translator = cls(*args.args)
+            app = Simple(file, translator=translator)
+            print_app(app)
     print("DONE")
 
 
