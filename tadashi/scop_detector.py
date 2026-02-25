@@ -21,7 +21,11 @@ def get_args():
 
 
 def print_app(app):
-    pass
+    for scop_idx, scop in enumerate(app.scops):
+        num_nodes = len(scop.schedule_tree)
+        node_depts = [len(n.location) for n in scop.schedule_tree]
+        max_depth = max(node_depts)
+        print(f"scop: {scop_idx} - {num_nodes=} - {max_depth=}")
 
 
 def main():
