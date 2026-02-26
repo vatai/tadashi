@@ -24,7 +24,8 @@ Documentation = "https://tadashi.readthedocs.io/en/latest/"
 Source = "https://github.com/vatai/tadashi/"
 
 [project.scripts]
-scop-detector = "tadashi.scop_detector:main"
+scop-detector = "tadashi._scripts:scop_detector"
+scop-print = "tadashi._scripts:scop_printer"
 
 [tool.setuptools]
 packages = ["tadashi"]

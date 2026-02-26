@@ -10,7 +10,9 @@ from tadashi.translators import Pet, Polly
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Path to the source files")
-    parser.add_argument("extension", help="File extension 'c' or 'f'")
+    parser.add_argument(
+        "-e", "--extension", help="File extension 'c' or 'f'", default="f"
+    )
     parser.add_argument("-i", "--pet", action="store_true")
     parser.add_argument("-a", "--args", action="append")
     args = parser.parse_args()
@@ -28,7 +30,7 @@ def print_app(app):
         print(f"scop: {scop_idx} - {num_nodes=} - {max_depth=}")
 
 
-def main():
+def scop_detector():
     args = get_args()
     patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
     pattern = re.compile(patterns[args.extension], re.IGNORECASE)
@@ -38,8 +40,22 @@ def main():
             translator = cls(*args.args)
             app = Simple(file, translator=translator)
             print_app(app)
-    print("DONE")
+    print("DONE detecting")
+
+
+def scop_printer():
+    args = get_args()
+    patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
+    pattern = re.compile(patterns[args.extension], re.IGNORECASE)
+    path = Path(args.path)
+    cls = Pet if args.pet else Polly
+    translator = cls(*args.args)
+    app = Simple(str(path), translator=translator)
+    for idx, scop in enumerate(app.scops):
+        print(f"SCOP[{idx}]")
+        print(scop.schedule_tree[0].yaml_str)
+    print("DONE printing")
 
 
 if __name__ == "__main__":
-    main()
+    pass
