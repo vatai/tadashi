@@ -28,20 +28,34 @@ export CXX_FOR_BUILD="$CXX"
 
 set -x
 ROOT="$(git rev-parse --show-toplevel)"
-set_env "$ROOT/deps/opt"
 THIRD_PARTY="$ROOT/third_party"
 PREFIX="$THIRD_PARTY/opt"
+set_env "$PREFIX"
 
 # cp -r "$(clang-19 -print-resource-dir)/include" "$ROOT/tadashi"
 CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config)")")")"
 CLANG_OPTION=${CLANG_PREFIX:+--with-clang-prefix=$CLANG_PREFIX}
 
-cd "$THIRD_PARTY"
-git clone git://repo.or.cz/pet.git
+mkdir -p "/tmp/$(whoami)"
+BUILD_DIR="$(mktemp -d -p "/tmp/$(whoami)")"
+pushd "$BUILD_DIR" || exit
 
-cd "$THIRD_PARTY/pet"
+# build GMP
+wget -c https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+tar xvf gmp-6.3.0.tar.xz
+pushd gmp-6.3.0 || exit
+./configure --prefix="$PREFIX"
+make -j
+make install
+popd || exit
+
+# build PET
+git clone git://repo.or.cz/pet.git
+pushd pet || exit
 ./get_submodules.sh
 ./autogen.sh
 ./configure --prefix="$PREFIX" "$CLANG_OPTION"
 make -j install
+popd || exit
 
+popd || exit
