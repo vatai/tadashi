@@ -23,13 +23,10 @@ def parse(begin, end, instr):
     cur = begin
     results = []
     while cur < end:
-        c = instr[cur]
-        if c in ",":
+        if instr[cur] in ",":
             results.append(instr[begin:cur])
-            cur += 1
-            begin = cur
-            continue
-        elif c == "(":
+            begin = cur + 1
+        elif instr[cur] == "(":
             key = instr[begin:cur]
             begin = cur + 1
             cur = _find_closing_paren(cur, instr)
