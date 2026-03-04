@@ -59,6 +59,12 @@ class PassParser:
         else:
             raise ValueError("This shouldn't happen")
 
+    def find(prefix: str):
+        pass
+
+    def _find(prefix: str, subtree: list | tuple):
+        pass
+
     def cut():
         pass
 
@@ -71,6 +77,9 @@ def main():
 
     # print(d.compare(pp.passes_str, reassembled))
     pprint(full)
+    # pp.find("loop-rotate")
+    # pp.split([22, 3, 0])
+
     rv = full[22][1][3][1][0]
     print(rv)
 
