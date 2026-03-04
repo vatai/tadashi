@@ -63,14 +63,17 @@ class PassParser:
         return self._find(prefix, self.pass_tree())
 
     def _find(self, prefix: str, subtree: list):
+        locs = []
         for i, node in enumerate(subtree):
             if isinstance(node, tuple):
                 rest = self._find(prefix, node[1])
                 if rest:
-                    return [i] + rest
+                    for r in rest:
+                        locs.append([i] + r)
             else:
                 if node.startswith(prefix):
-                    return [i]
+                    locs.append([i])
+        return locs
 
     def cut():
         pass
