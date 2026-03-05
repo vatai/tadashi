@@ -5,12 +5,12 @@ from typing import Optional
 
 
 class PassParser:
-    _pass_tree: Optional[list]
+    _pass_tree: Optional[list[str | tuple]]
 
     def __init__(self):
         cmd = ["opt", "-O3", "--print-pipeline-passes", "/dev/null", "-o", "/dev/null"]
-        proc = subprocess.run(cmd, capture_output=True)
-        self.passes_str = proc.stdout.decode()[:-1]
+        proc = subprocess.run(cmd, capture_output=True, check=True)
+        self.passes_str = proc.stdout.decode().strip()
         self._pass_tree = None
 
     def pass_tree(self) -> list:
@@ -22,7 +22,7 @@ class PassParser:
         cur = begin
         results = []
         while cur < end:
-            if self.passes_str[cur] in ",":
+            if self.passes_str[cur] == ",":
                 results.append(self.passes_str[begin:cur])
                 begin = cur + 1
             elif self.passes_str[cur] == "(":
@@ -34,7 +34,7 @@ class PassParser:
                 results.append((key, subtree))
                 begin = cur + 1
             cur += 1
-        if begin < cur - 1:
+        if begin < cur:
             results.append(self.passes_str[begin:cur])
         return results
 
@@ -83,11 +83,11 @@ class PassParser:
         return self._split(locs, self.pass_tree())
 
     @staticmethod
-    def _split(locs: list[int], subtree: list[str | tuple]):
+    def _split(locs: list[int], subtree: list[tuple]):
         head, *tail = locs
-        k, v = subtree[head]
         l, r = [], []
         if any(tail):
+            k, v = subtree[head]
             l, r = PassParser._split(tail, v)
             left = subtree[0:head] + [(k, l)]
             right = [(k, r)] + subtree[head + 1 :]
@@ -104,6 +104,7 @@ def main():
     assert pp.passes_str == reassembled
 
     locs = pp.find("loop-rotate")
+    print(reassembled)
     print(locs)
     l, r = pp.split(locs[1])
     print(pp.reassemble(full))
