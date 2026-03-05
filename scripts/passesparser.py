@@ -49,24 +49,28 @@ class PassParser:
             cur += 1
         return cur
 
-    def reassemble(self, passes: list | tuple):
+    @staticmethod
+    def reassemble(passes: list | tuple):
         if isinstance(passes, list):
-            flat = [p if isinstance(p, str) else self.reassemble(p) for p in passes]
+            flat = [
+                p if isinstance(p, str) else PassParser.reassemble(p) for p in passes
+            ]
             return ",".join(flat)
         elif isinstance(passes, tuple):
             fn, subtree = passes
-            return f"{fn}({self.reassemble(subtree)})"
+            return f"{fn}({PassParser.reassemble(subtree)})"
         else:
             raise ValueError("This shouldn't happen")
 
     def find(self, prefix: str):
         return self._find(prefix, self.pass_tree())
 
-    def _find(self, prefix: str, subtree: list):
+    @staticmethod
+    def _find(prefix: str, subtree: list[str | tuple]):
         locs = []
         for i, node in enumerate(subtree):
             if isinstance(node, tuple):
-                rest = self._find(prefix, node[1])
+                rest = PassParser._find(prefix, node[1])
                 if rest:
                     for r in rest:
                         locs.append([i] + r)
@@ -75,8 +79,22 @@ class PassParser:
                     locs.append([i])
         return locs
 
-    def cut():
-        pass
+    def split(self, locs: list[int]):
+        return self._split(locs, self.pass_tree())
+
+    @staticmethod
+    def _split(locs: list[int], subtree: list[str | tuple]):
+        head, *tail = locs
+        k, v = subtree[head]
+        l, r = [], []
+        if any(tail):
+            l, r = PassParser._split(tail, v)
+            left = subtree[0:head] + [(k, l)]
+            right = [(k, r)] + subtree[head + 1 :]
+        else:
+            left = subtree[0:head]
+            right = subtree[head:]
+        return left, right
 
 
 def main():
@@ -85,14 +103,14 @@ def main():
     reassembled = pp.reassemble(full)
     assert pp.passes_str == reassembled
 
-    # print(d.compare(pp.passes_str, reassembled))
-    pprint(full)
-    loc = pp.find("loop-rotate")
-    print(loc)
-    # pp.split([22, 3, 0])
-
-    rv = full[22][1][3][1][0]
-    print(rv)
+    locs = pp.find("loop-rotate")
+    print(locs)
+    l, r = pp.split(locs[1])
+    print(pp.reassemble(full))
+    print("----------")
+    print(pp.reassemble(l))
+    print("----------")
+    print(pp.reassemble(r))
 
 
 if __name__ == "__main__":
