@@ -359,15 +359,21 @@ class Polly(Translator):
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_pre_polly_bc(options))
-        output = self.cwd / self.source.with_suffix(".bc").name
-        cmd = self._polly() + [
-            input_path,
-            "-polly-import-jscop",
+        post_polly_bc = self.cwd / self.source.with_suffix(".post_opt.bc").name
+
+        polly_cmd = self._polly() + [input_path, "-polly-import-jscop"]
+        polly_cmd += [
             "-polly-codegen",
-            f"-o={str(output)}",
+            f"-o={str(post_polly_bc)}",
             "-disable-polly-legality",
         ]
-        self._run(cmd, "imnporting jscops")
+        self._run(polly_cmd, "importing jscops")
+
+        output = self.cwd / self.source.with_suffix(".bc").name
+
+        opt_cmd = ["opt", f"-passes={self.after_polly_passes}"]
+        opt_cmd += [str(post_polly_bc), f"-o={str(output)}"]
+        opt_proc = self._run(opt_cmd, "running opt after jscops import")
         return output
 
     @cython.ccall
