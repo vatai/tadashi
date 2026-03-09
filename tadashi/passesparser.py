@@ -8,7 +8,15 @@ class PassParser:
     _pass_tree: Optional[list[str | tuple]]
 
     def __init__(self):
-        cmd = ["opt", "-O3", "--print-pipeline-passes", "/dev/null", "-o", "/dev/null"]
+        cmd = [
+            "opt",
+            "-S",
+            "-O3",
+            "--print-pipeline-passes",
+            "/dev/null",
+            "-o",
+            "/dev/null",
+        ]
         proc = subprocess.run(cmd, capture_output=True, check=True)
         self.passes_str = proc.stdout.decode().strip()
         self._pass_tree = None
