@@ -76,6 +76,7 @@ cdef extern from "isl/union_map.h":
     isl_union_map *isl_union_map_intersect_domain(isl_union_map *m1, isl_union_map *m2)
     isl_union_map *isl_union_map_intersect_domain_union_set(isl_union_map *map, isl_union_set *set)
     const char *isl_union_map_to_str(isl_union_map *map)
+ctypedef isl_union_map* union_map
 
 # ---
 # aff

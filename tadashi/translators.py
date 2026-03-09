@@ -375,31 +375,30 @@ class Polly(Translator):
     ) -> Path:
         for scop_idx, jscop_path in enumerate(self.json_paths):
             jscop_path = self.cwd / jscop_path
-            ccscop = self.ccscops[scop_idx]
-            sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
-            umap = isl.isl_schedule_get_map(sched)
-            isl.isl_schedule_free(sched)
-            sched_str = isl.isl_union_map_to_str(umap).decode()
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
-            with jscop_path.open("r", encoding="utf-8") as f:
-                jscop = json.load(f)
-            for stmt in jscop["statements"]:
-                name = stmt["name"]
-                uset = isl.isl_union_set_read_from_str(
-                    self.ctx, stmt["domain"].encode()
-                )
-                stmt_map = isl.isl_union_map_intersect_domain_union_set(
-                    isl.isl_union_map_copy(umap), uset
-                )
-                stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
-                isl.isl_union_map_free(stmt_map)
-            isl.isl_union_map_free(umap)
-            with jscop_path.open("w", encoding="utf-8") as f:
-                json.dump(jscop, f, indent=2)
+            self._update_jscop(jscop_path, scop_idx)
         output_path = Path(output_path).with_suffix(".s")
         self._generate_assembly(output_path, options)
         return output_path
+
+    @cython.cfunc
+    def _update_jscop(self, jscop_path: Path, scop_idx: int):
+        ccscop = self.ccscops[scop_idx]
+        sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
+        isl.isl_schedule_free(sched)
+        umap = isl.isl_schedule_get_map(sched)
+        with jscop_path.open("r", encoding="utf-8") as f:
+            jscop = json.load(f)
+        for stmt in jscop["statements"]:
+            uset = isl.isl_union_set_read_from_str(self.ctx, stmt["domain"].encode())
+            tmp = isl.isl_union_map_copy(umap)
+            stmt_map = isl.isl_union_map_intersect_domain_union_set(tmp, uset)
+            stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
+            isl.isl_union_map_free(stmt_map)
+        with jscop_path.open("w", encoding="utf-8") as f:
+            json.dump(jscop, f, indent=2)
+        isl.isl_union_map_free(umap)
 
     def _generate_assembly(self, output: Path, options: list[str]):
         input_path = str(self._import_jscops(options))
