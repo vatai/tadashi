@@ -385,9 +385,7 @@ class Polly(Translator):
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
             self._update_jscop(jscop_path, scop_idx)
-        output_path = Path(output_path).with_suffix(".s")
-        self._generate_assembly(output_path, options)
-        return output_path
+        return self._compile_to_obj(output_path, options)
 
     @cython.cfunc
     def _update_jscop(self, jscop_path: Path, scop_idx: int):
@@ -407,13 +405,10 @@ class Polly(Translator):
             json.dump(jscop, f, indent=2)
         isl.isl_union_map_free(umap)
 
-    def _generate_assembly(self, output: Path, options: list[str]):
+    def _compile_to_obj(self, output: Path, options: list[str]):
+        output_path = Path(output).with_suffix(".o")
         input_path = str(self._import_jscops(options))
-        cmd = [
-            "llc",
-            "-relocation-model=pic",
-            # *options,
-            input_path,
-            f"-o={str(output)}",
-        ]
+        cmd = ["llc", "-relocation-model=pic", "--filetype=obj"]
+        cmd += [input_path, f"-o={str(output_path)}"]
         self._run(cmd, "generating assembly")
+        return output_path
