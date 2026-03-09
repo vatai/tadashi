@@ -18,6 +18,8 @@ from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
+from .passesparser import PassParser
+
 ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
@@ -219,9 +221,16 @@ class Polly(Translator):
     compiler: str
     json_paths: list[Path]
     cwd: Path
+    before_polly_passes: str
+    after_polly_passes: str
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = str(compiler)
+        pp = PassParser()
+        locs = pp.find("loop-rotate")
+        before, after = pp.split(locs[1])
+        self.before_polly_passes = pp.reassemble(before)
+        self.after_polly_passes = pp.reassemble(after)
 
     def _run(self, cmd: list[str], description: str, cwd: str = None):
         """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
@@ -259,7 +268,7 @@ class Polly(Translator):
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
-        self._get_preopt_bitcode(options)
+        self._get_pre_polly_bc(options)
         stderr = self._export_jscops(options)
         self.json_paths = self._fill_json_paths(stderr)
         for file in self.json_paths:
@@ -267,35 +276,27 @@ class Polly(Translator):
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
 
-    def _get_preopt_bitcode(self, options: list[str]) -> Path:
-        output = self.cwd / self.source.with_suffix(".O1.bc").name
-        if output.exists():
-            return output
+    def _get_pre_polly_bc(self, options: list[str]) -> Path:
+        compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        if pre_polly_bc.exists():
+            return pre_polly_bc
 
         compiler_opts = {
-            "clang": [
-                "-O0",
-                "-Xclang",
-                "-disable-O0-optnone",
-            ],
-            "flang": ["-O1"],
+            "clang": ["-O0", "-Xclang", "-disable-O0-optnone"],
+            "flang": ["-O0"],
         }
-        cmd = [
-            self.compiler,
-            *options,
-            "-c",
-            "-emit-llvm",
-            str(self.source),
-            *compiler_opts[self.compiler[:5]],
-            "-o",
-            str(output),
-        ]
-        self._run(cmd, "parsing")
-        return output
+        compile_cmd = [self.compiler, *options, "-c", "-emit-llvm", str(self.source)]
+        compile_cmd += [*compiler_opts[self.compiler[:5]], "-o", str(compile_O0_bc)]
+        self._run(compile_cmd, "compiling with O0")
+        opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
+        opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
+        self._run(opt_cmd, "running pre polly opt passes")
+        return pre_polly_bc
 
     def _export_jscops(self, options: list[str]) -> str:
         cmd = self._polly() + [
-            str(self._get_preopt_bitcode(options)),
+            str(self._get_pre_polly_bc(options)),
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
@@ -351,13 +352,13 @@ class Polly(Translator):
         self.ccscops.emplace_back(domain, sched, read, write)
 
     def legal(self) -> bool:
-        input_path = str(self._get_preopt_bitcode([]))
+        input_path = str(self._get_pre_polly_bc([]))
         cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
         proc = self._run(cmd, "checking legality")
         return proc.returncode == 0
 
     def _import_jscops(self, options: list[str]) -> Path:
-        input_path = str(self._get_preopt_bitcode(options))
+        input_path = str(self._get_pre_polly_bc(options))
         output = self.cwd / self.source.with_suffix(".bc").name
         cmd = self._polly() + [
             input_path,
