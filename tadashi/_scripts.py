@@ -9,12 +9,25 @@ from tadashi.translators import Pet, Polly
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", help="Path to the source files")
+    parser.add_argument("path", help="Path to the source file/dir")
     parser.add_argument(
-        "-e", "--extension", help="File extension 'c' or 'f'", default="f"
+        "-e",
+        "--extension",
+        help="File extension 'c' or 'f'",
+        default="f",
     )
-    parser.add_argument("-i", "--pet", action="store_true")
-    parser.add_argument("-a", "--args", action="append")
+    parser.add_argument(
+        "-i",
+        "--pet",
+        action="store_true",
+        help="Use PET instead of polly",
+    )
+    parser.add_argument(
+        "-a",
+        "--args",
+        action="append",
+        help="Args passed to the Polly/PET translator (can be used multiple times)",
+    )
     args = parser.parse_args()
     if not args.args:
         args.args = ["flang"]
