@@ -1,6 +1,6 @@
 program main
   implicit none
-  integer, parameter :: N = 1000
+  integer, parameter :: N = 3000
   real(8) :: A(N, N)
   integer :: i, count_rate, count_start, count_end
   real(8) :: walltime

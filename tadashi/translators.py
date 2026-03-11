@@ -18,6 +18,8 @@ from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
+from .passesparser import PassParser
+
 ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
@@ -219,9 +221,16 @@ class Polly(Translator):
     compiler: str
     json_paths: list[Path]
     cwd: Path
+    before_polly_passes: str
+    after_polly_passes: str
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = str(compiler)
+        pp = PassParser()
+        locs = pp.find("loop-rotate")
+        before, after = pp.split(locs[1])
+        self.before_polly_passes = pp.reassemble(before)
+        self.after_polly_passes = pp.reassemble(after)
 
     def _run(self, cmd: list[str], description: str, cwd: str = None):
         """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
@@ -259,7 +268,7 @@ class Polly(Translator):
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
-        self._get_preopt_bitcode(options)
+        self._get_pre_polly_bc(options)
         stderr = self._export_jscops(options)
         self.json_paths = self._fill_json_paths(stderr)
         for file in self.json_paths:
@@ -267,35 +276,27 @@ class Polly(Translator):
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
 
-    def _get_preopt_bitcode(self, options: list[str]) -> Path:
-        output = self.cwd / self.source.with_suffix(".O1.bc").name
-        if output.exists():
-            return output
+    def _get_pre_polly_bc(self, options: list[str]) -> Path:
+        compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        if pre_polly_bc.exists():
+            return pre_polly_bc
 
         compiler_opts = {
-            "clang": [
-                "-O0",
-                "-Xclang",
-                "-disable-O0-optnone",
-            ],
-            "flang": ["-O1"],
+            "clang": ["-O0", "-Xclang", "-disable-O0-optnone"],
+            "flang": ["-O0"],
         }
-        cmd = [
-            self.compiler,
-            *options,
-            "-c",
-            "-emit-llvm",
-            str(self.source),
-            *compiler_opts[self.compiler[:5]],
-            "-o",
-            str(output),
-        ]
-        self._run(cmd, "parsing")
-        return output
+        compile_cmd = [self.compiler, *options, "-c", "-emit-llvm", str(self.source)]
+        compile_cmd += [*compiler_opts[self.compiler[:5]], "-o", str(compile_O0_bc)]
+        self._run(compile_cmd, "compiling with O0")
+        opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
+        opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
+        self._run(opt_cmd, "running pre polly opt passes")
+        return pre_polly_bc
 
     def _export_jscops(self, options: list[str]) -> str:
         cmd = self._polly() + [
-            str(self._get_preopt_bitcode(options)),
+            str(self._get_pre_polly_bc(options)),
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
@@ -351,22 +352,28 @@ class Polly(Translator):
         self.ccscops.emplace_back(domain, sched, read, write)
 
     def legal(self) -> bool:
-        input_path = str(self._get_preopt_bitcode([]))
+        input_path = str(self._get_pre_polly_bc([]))
         cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
         proc = self._run(cmd, "checking legality")
         return proc.returncode == 0
 
     def _import_jscops(self, options: list[str]) -> Path:
-        input_path = str(self._get_preopt_bitcode(options))
-        output = self.cwd / self.source.with_suffix(".bc").name
-        cmd = self._polly() + [
-            input_path,
-            "-polly-import-jscop",
+        input_path = str(self._get_pre_polly_bc(options))
+        post_polly_bc = self.cwd / self.source.with_suffix(".post_opt.bc").name
+
+        polly_cmd = self._polly() + [input_path, "-polly-import-jscop"]
+        polly_cmd += [
             "-polly-codegen",
-            f"-o={str(output)}",
+            f"-o={str(post_polly_bc)}",
             "-disable-polly-legality",
         ]
-        self._run(cmd, "imnporting jscops")
+        self._run(polly_cmd, "importing jscops")
+
+        output = self.cwd / self.source.with_suffix(".bc").name
+
+        opt_cmd = ["opt", f"-passes={self.after_polly_passes}"]
+        opt_cmd += [str(post_polly_bc), f"-o={str(output)}"]
+        opt_proc = self._run(opt_cmd, "running opt after jscops import")
         return output
 
     @cython.ccall
@@ -375,39 +382,33 @@ class Polly(Translator):
     ) -> Path:
         for scop_idx, jscop_path in enumerate(self.json_paths):
             jscop_path = self.cwd / jscop_path
-            ccscop = self.ccscops[scop_idx]
-            sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
-            umap = isl.isl_schedule_get_map(sched)
-            isl.isl_schedule_free(sched)
-            sched_str = isl.isl_union_map_to_str(umap).decode()
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
-            with jscop_path.open("r", encoding="utf-8") as f:
-                jscop = json.load(f)
-            for stmt in jscop["statements"]:
-                name = stmt["name"]
-                uset = isl.isl_union_set_read_from_str(
-                    self.ctx, stmt["domain"].encode()
-                )
-                stmt_map = isl.isl_union_map_intersect_domain_union_set(
-                    isl.isl_union_map_copy(umap), uset
-                )
-                stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
-                isl.isl_union_map_free(stmt_map)
-            isl.isl_union_map_free(umap)
-            with jscop_path.open("w", encoding="utf-8") as f:
-                json.dump(jscop, f, indent=2)
-        output_path = Path(output_path).with_suffix(".s")
-        self._generate_assembly(output_path, options)
-        return output_path
+            self._update_jscop(jscop_path, scop_idx)
+        return self._compile_to_obj(output_path, options)
 
-    def _generate_assembly(self, output: Path, options: list[str]):
+    @cython.cfunc
+    def _update_jscop(self, jscop_path: Path, scop_idx: int):
+        ccscop = self.ccscops[scop_idx]
+        sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
+        isl.isl_schedule_free(sched)
+        umap = isl.isl_schedule_get_map(sched)
+        with jscop_path.open("r", encoding="utf-8") as f:
+            jscop = json.load(f)
+        for stmt in jscop["statements"]:
+            uset = isl.isl_union_set_read_from_str(self.ctx, stmt["domain"].encode())
+            tmp = isl.isl_union_map_copy(umap)
+            stmt_map = isl.isl_union_map_intersect_domain_union_set(tmp, uset)
+            stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
+            isl.isl_union_map_free(stmt_map)
+        with jscop_path.open("w", encoding="utf-8") as f:
+            json.dump(jscop, f, indent=2)
+        isl.isl_union_map_free(umap)
+
+    def _compile_to_obj(self, output: Path, options: list[str]):
+        output_path = Path(output).with_suffix(".o")
         input_path = str(self._import_jscops(options))
-        cmd = [
-            "llc",
-            "-relocation-model=pic",
-            # *options,
-            input_path,
-            f"-o={str(output)}",
-        ]
+        cmd = ["llc", "-relocation-model=pic", "--filetype=obj"]
+        cmd += [input_path, f"-o={str(output_path)}"]
         self._run(cmd, "generating assembly")
+        return output_path
