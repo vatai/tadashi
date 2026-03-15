@@ -1,5 +1,6 @@
 #!/bin/env python
 import argparse
+import os
 import re
 from pathlib import Path
 
@@ -51,7 +52,8 @@ def scop_detector():
         if pattern.match(file.suffix):
             cls = Pet if args.pet else Polly
             translator = cls(*args.args)
-            app = Simple(file, translator=translator)
+            cwd = str(Path(".").absolute())
+            app = Simple(file, translator=translator, compiler_options=["-I{cwd}"])
             print_app(app)
     print("DONE detecting")
 
@@ -63,7 +65,8 @@ def scop_printer():
     path = Path(args.path)
     cls = Pet if args.pet else Polly
     translator = cls(*args.args)
-    app = Simple(str(path), translator=translator)
+    cwd = str(Path(".").absolute())
+    app = Simple(str(path), translator=translator, compiler_options=["-I{cwd}"])
     for idx, scop in enumerate(app.scops):
         print(f"SCOP[{idx}]")
         print(scop.schedule_tree[0].yaml_str)
