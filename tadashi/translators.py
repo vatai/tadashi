@@ -236,8 +236,9 @@ class Polly(Translator):
         """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
         if cwd is None:
             cwd = str(self.cwd)
+        print(f"{cmd=}")
         proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
-        ##########
+        # #########
         # msg = [
         #     f"Something went wrong while [{description}]",
         #     "cmd: " + " ".join(cmd),
@@ -247,7 +248,7 @@ class Polly(Translator):
         #     f"{proc.stderr.decode()}",
         # ]
         # print("\n".join(msg))
-        ##########
+        # #########
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
