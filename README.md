@@ -21,7 +21,10 @@ For development, use the provided setup:
 # Build in-place for development
 python setup.py build_ext -i
 
-# Run tests
+# Run all tests
+python -m unittest discover tests
+
+# Or run a specific test
 python -m unittest tests.test_apps.TestSimple.test_end2end_polly_flang
 ```
 
