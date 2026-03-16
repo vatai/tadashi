@@ -37,6 +37,7 @@ def get_args():
 
 
 def print_app(app):
+    print(f"{len(app.scops)=}")
     for scop_idx, scop in enumerate(app.scops):
         num_nodes = len(scop.schedule_tree)
         node_depts = [len(n.location) for n in scop.schedule_tree]
@@ -51,6 +52,7 @@ def scop_detector():
     for file in Path(args.path).rglob("*"):
         if pattern.match(file.suffix):
             cls = Pet if args.pet else Polly
+            print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
             translator = cls(*args.args)
             cwd = str(Path(".").absolute())
             app = Simple(file, translator=translator, compiler_options=["-I{cwd}"])
