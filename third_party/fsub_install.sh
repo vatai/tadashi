@@ -22,7 +22,7 @@ function set_env ()
   export MAN_PATH="$1/man${MAN_PATH:+:${MAN_PATH}}"
   
 }
-source /home/apps/oss/llvm-v19.1.4/init.sh
+source /home/apps/oss/llvm-v15.0.3/init.sh
 export CC_FOR_BUILD="$CC"
 export CXX_FOR_BUILD="$CXX"
 
