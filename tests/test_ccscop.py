@@ -114,12 +114,10 @@ class TestCcScop(unittest.TestCase):
             [3, tadashi.TrEnum.PARTIAL_SHIFT_VAR, 0, 0, -22],
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
-        legals = scop.transform_list(transformations)
+        scop.transform_list(transformations)
+        self.assertFalse(app.legal)
         mod_app = app.generate_code(ensure_legality=False)
         mod_app.compile()
-        for legal in legals[:-1]:
-            self.assertTrue(legal)
-        self.assertFalse(legals[-1])
 
     def test_labels(self):
         app = Polybench(Path("correlation"))
