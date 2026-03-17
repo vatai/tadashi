@@ -290,7 +290,11 @@ class Polybench(App):
 
     def _amend_compiler_options(self, compiler_options: list[str] | None = None):
         compiler_options = super()._amend_compiler_options(compiler_options)
-        return compiler_options + [f"-I{self.base / 'utilities'}"]
+        return compiler_options + [
+            f"-I{self.base / 'utilities'}",
+            "-DPOLYBENCH_TIME",
+            "-DPOLYBENCH_USE_RESTRICT",
+        ]
 
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
@@ -323,8 +327,6 @@ class Polybench(App):
             *self.compiler(),
             str(self.source),
             str(self.base / "utilities/polybench.c"),
-            "-DPOLYBENCH_TIME",
-            "-DPOLYBENCH_USE_RESTRICT",
             "-lm",
             "-fopenmp",
         ]
