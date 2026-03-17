@@ -631,12 +631,10 @@ class Scop:
     def legal(self) -> bool:
         return bool(self.ptr_ccscop.current_legal)
 
-    def transform_list(self, trs: list) -> list[bool]:
-        result = []
+    def transform_list(self, trs: list):
         for node_idx, tr, *args in trs:
             node = self.schedule_tree[node_idx]
-            result.append(node.transform(tr, *args))
-        return result
+            node.transform(tr, *args)
 
     def reset(self):
         self.ptr_ccscop.reset()

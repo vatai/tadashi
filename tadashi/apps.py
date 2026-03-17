@@ -14,8 +14,6 @@ from typing import Optional
 from .scop import Scop
 from .translators import Pet, Translator
 
-Result = namedtuple("Result", ["legal", "walltime"])
-
 
 class App(abc.ABC):
     """The (abstract) base class for app objects."""
@@ -100,13 +98,10 @@ class App(abc.ABC):
     def legal(self) -> bool:
         return self.translator.legal()
 
-    def transform_list(self, transformation_list: list) -> Result:
+    def transform_list(self, transformation_list: list) -> None:
         for si, ni, *tr in transformation_list:
             node = self.scops[si].schedule_tree[ni]
             legal = node.transform(*tr)
-        self.compile()
-        walltime = self.measure()
-        return Result(legal, walltime)
 
     def reset_scops(self):
         for scop in self.scops:
