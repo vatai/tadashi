@@ -31,8 +31,8 @@ class TestApp(unittest.TestCase):
             [0, 2, TrEnum.FULL_SPLIT],
             [0, 7, TrEnum.SET_LOOP_OPT, 0, 3],
         ]
-        result = app.transform_list(trs)
-        self.assertFalse(result.legal)
+        app.transform_list(trs)
+        self.assertFalse(app.scops[0].legal)
 
     def test_app_legal(self):
         app = apps.Polybench("gemm")
