@@ -383,7 +383,7 @@ _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
   isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
   isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
-  isl_unino_set *urange = isl_union_map_range(isl_union_map_copy(umap));
+  isl_union_set *urange = isl_union_map_range(isl_union_map_copy(umap));
   isl_set *range = isl_set_from_union_set(urange);
   isl_set_list *set_list = isl_set_list_alloc(ctx, 1);
   isl_set_foreach_point(range, _add_point, &set_list);
