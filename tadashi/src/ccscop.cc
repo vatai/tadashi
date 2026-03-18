@@ -1,19 +1,20 @@
-#include <assert.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
+#include <isl/point.h>
+#include <ostream>
 
 #include <isl/aff.h>
 #include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
+#include <isl/map.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
+#include <isl/set.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
-#include <iterator>
-#include <ostream>
 
 #include "ccscop.h"
 
@@ -360,15 +361,7 @@ _pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *user) {
   return (isl_bool)(isl_pw_aff_is_cst(pa) == target);
 }
 
-static isl_stat
-_add_pa_range(isl_pw_aff *pa, void *user) {
-  isl_set_list **set_list = (isl_set_list **)user;
-  isl_map *map = isl_pw_aff_as_map(pa);
-  *set_list = isl_set_list_add(*set_list, isl_map_range(map));
-  return isl_stat_ok;
-}
-
-int
+static int
 _cmp(struct isl_set *a, struct isl_set *b, void *user) {
   isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
   isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
@@ -378,17 +371,27 @@ _cmp(struct isl_set *a, struct isl_set *b, void *user) {
   return rv;
 }
 
+static isl_stat
+_add_point(__isl_take isl_point *pnt, void *user) {
+  isl_set_list **set_list = (isl_set_list **)user;
+  *set_list = isl_set_list_add(*set_list, isl_set_from_point(pnt));
+  return isl_stat_ok;
+}
+
 static __isl_give isl_union_set_list *
 _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
   isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
-  isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
-  isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
-  isl_pw_aff_list_foreach(pa_list, _add_pa_range, &set_list);
-  isl_set_list_sort(set_list, _cmp, nullptr);
-  isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_pa);
   isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
-  for (isl_size i = 0; i < n_pa; i++) {
+  isl_unino_set *urange = isl_union_map_range(isl_union_map_copy(umap));
+  isl_set *range = isl_set_from_union_set(urange);
+  isl_set_list *set_list = isl_set_list_alloc(ctx, 1);
+  isl_set_foreach_point(range, _add_point, &set_list);
+  isl_set_free(range);
+  isl_size n_points = isl_set_list_size(set_list);
+  isl_set_list_sort(set_list, _cmp, nullptr);
+  isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_points);
+  for (isl_size i = 0; i < n_points; i++) {
     isl_set *set = isl_set_list_get_at(set_list, i);
     isl_pw_multi_aff *pma = isl_pw_multi_aff_from_set(set);
     isl_union_map *preimage = isl_union_map_preimage_range_pw_multi_aff(
