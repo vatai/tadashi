@@ -101,7 +101,7 @@ class App(abc.ABC):
     def transform_list(self, transformation_list: list) -> None:
         for si, ni, *tr in transformation_list:
             node = self.scops[si].schedule_tree[ni]
-            legal = node.transform(*tr)
+            node.transform(*tr)
 
     def reset_scops(self):
         for scop in self.scops:
