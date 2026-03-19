@@ -24,7 +24,7 @@ ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
 FLANG_COMPILERS = ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]
-CLANG_COMPILERS = ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++"]
+CLANG_COMPILERS = ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]
 
 
 @cython.cclass
