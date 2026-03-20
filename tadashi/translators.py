@@ -23,9 +23,6 @@ from .passesparser import PassParser
 ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
-FLANG_COMPILERS = ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]
-CLANG_COMPILERS = ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]
-
 
 @cython.cclass
 class Translator:
@@ -279,19 +276,23 @@ class Polly(Translator):
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
 
+    def _compiler_options(self):
+        for flang in ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]:
+            if flang in self.compiler:
+                return ["-O0"]
+        for clang in ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]:
+            if clang in self.compiler:
+                return ["-O0", "-Xclang", "-disable-O0-optnone"]
+        raise ValueError(f"Unsupported compiler: {self.compiler}")
+
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
         compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
         pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
-        if self.compiler in FLANG_COMPILERS:
-            compiler_opts = ["-O0"]
-        elif self.compiler in CLANG_COMPILERS:
-            compiler_opts = ["-O0", "-Xclang", "-disable-O0-optnone"]
-        else:
-            raise ValueError(f"Unsupported compiler: {self.compiler}")
-        compile_cmd = [self.compiler, *options, "-c", "-emit-llvm", str(self.source)]
-        compile_cmd += [*compiler_opts, "-o", str(compile_O0_bc)]
+        compiler_opts = self._compiler_options()
+        compile_cmd = [self.compiler, *compiler_opts, *options, "-c", "-emit-llvm"]
+        compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
         opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
         opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
