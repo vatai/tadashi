@@ -20,6 +20,14 @@ tadashi.node\_type module
    :show-inheritance:
    :undoc-members:
 
+tadashi.passesparser module
+---------------------------
+
+.. automodule:: tadashi.passesparser
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 tadashi.scop module
 -------------------
 
