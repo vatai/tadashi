@@ -79,21 +79,21 @@ class App(abc.ABC):
 
         """
         self.source = Path(source)
-        if translator is None and populate_scops:
-            translator = Pet()
-        amended_options = self._amend_compiler_options(compiler_options)
-        if populate_scops and translator:
-            self.translator = translator.set_source(source, amended_options)
-        else:
-            self.translator = None
+        if compiler_options is None:
+            compiler_options = []
         self.user_compiler_options = compiler_options
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
+        if translator is None and populate_scops:
+            translator = Pet()
+        if populate_scops and translator:
+            options = self.app_required_options() + self.user_compiler_options
+            self.translator = translator.set_source(source, options)
+        else:
+            self.translator = None
 
-    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
-        if compiler_options is None:
-            compiler_options = []
-        return compiler_options
+    def app_required_options(self) -> list[str]:
+        return []
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
@@ -143,7 +143,7 @@ class App(abc.ABC):
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self._make_new_filename()
-        options = self._amend_compiler_options(self.user_compiler_options)
+        options = self.app_required_options() + self.user_compiler_options
         new_file = self.translator.generate_code(str(self.source), new_file, options)
         translator = copy.copy(self.translator) if populate_scops else None
         compiler_options = None
@@ -202,7 +202,7 @@ class App(abc.ABC):
         """Compile the app so it can be measured/executed."""
         cmd = self.compile_cmd
         cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
-        cmd += self._amend_compiler_options(self.user_compiler_options)
+        cmd += self.app_required_options() + self.user_compiler_options
         cmd += extra_compiler_options
         if verbose:
             print(f"{' '.join(cmd)}")
@@ -294,8 +294,6 @@ class Polybench(App):
         if source is None:
             filename = Path(self.benchmark).with_suffix(".c").name
             source = self.base / self.benchmark / filename
-        if compiler_options is None:
-            compiler_options = []
         super().__init__(
             source,
             translator,
@@ -304,9 +302,8 @@ class Polybench(App):
             populate_scops=populate_scops,
         )
 
-    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
-        compiler_options = super()._amend_compiler_options(compiler_options)
-        return compiler_options + [
+    def app_required_options(self) -> list[str]:
+        return [
             f"-I{self.base / 'utilities'}",
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
