@@ -17,29 +17,36 @@ class miniAMR(App):
     def __init__(
         self,
         num_ranks: int,
-        source: Path = BASE_PATH / "stencil.c",
         run_args: Optional[list[str]] = None,
-        compiler_options: list = None,
         base: Path = BASE_PATH,
+        *,
+        source: Path = BASE_PATH / "stencil.c",
+        translator: Optional[Translator] = None,
+        compiler_options: list = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
     ):
         self.base = base
         self.num_ranks = num_ranks
         if not run_args:
             run_args = []
         self.run_args = run_args
+        # todo, move this to amend_compiler_options
         include_paths = (
-            self.mpich_includes()
-            + self.gcc_includes("gcc")
-            + self.gcc_includes("mpicc")
+            self._mpich_includes()
+            + self._gcc_includes("gcc")
+            + self._gcc_includes("mpicc")
         )
-        self._finalize_object(
-            source=source,
-            include_paths=include_paths,
+        super().__init__(
+            source,
+            translator,
             compiler_options=compiler_options,
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
         )
 
     @staticmethod
-    def mpich_includes():
+    def _mpich_includes():
         cmd = ["mpicc", "-compile_info"]
         result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
         if result.returncode == 1:
@@ -50,7 +57,7 @@ class miniAMR(App):
         return include_paths
 
     @staticmethod
-    def gcc_includes(compiler):
+    def _gcc_includes(compiler):
         cmd = [compiler, "-xc", "-E", "-v", "/dev/null"]
         result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=False)
         if result.returncode == 1:
@@ -67,21 +74,12 @@ class miniAMR(App):
                 collect = True
         return include_paths
 
-    def generate_code(self, alt_source: str = None, ephemeral=True):
-        if alt_source:
-            assert str(alt_source).endswith(".c")
-            assert Path(alt_source).name == str(alt_source)
-            new_file = self.source.parent / alt_source
-        else:
-            new_file = self.make_new_filename()
-        self.scops.generate_code(self.source, Path(new_file))
-        kwargs = {
-            "source": new_file,
-            "base": self.base,
+    def codegen_init_args(self):
+        return {
             "num_ranks": self.num_ranks,
+            "base": self.base,
             "run_args": self.run_args,
         }
-        return self.make_new_app(ephemeral, **kwargs)
 
     @property
     def compile_cmd(self) -> list[str]:
@@ -96,7 +94,15 @@ class miniAMR(App):
 
     @property
     def run_cmd(self) -> list[str]:
-        cmd = ["mpirun", "-N", str(self.num_ranks), str(self.output_binary), "--stencil", "0", *self.run_args,]
+        cmd = [
+            "mpirun",
+            "-N",
+            str(self.num_ranks),
+            str(self.output_binary),
+            "--stencil",
+            "0",
+            *self.run_args,
+        ]
         return cmd
 
     def extract_runtime(self, stdout: str) -> float:
@@ -125,18 +131,18 @@ def main():
 
     node = app.scops[scop_idx].schedule_tree[16]
     tr = [
-                [16, TrEnum.FULL_SPLIT],
-                [20, TrEnum.INTERCHANGE],
-                [15, TrEnum.FULL_FUSE],
-                [11, TrEnum.FULL_SPLIT],
-                [10, TrEnum.FULL_FUSE],
-                [6, TrEnum.FULL_SPLIT],
-                [17, TrEnum.FULL_SPLIT],
-                # [5, TrEnum.FULL_FUSE],
-            ]
-    legals = app.scops[scop_idx].transform_list(tr)
-    print(f"{legals=}")
-    if not all(legals):
+        [16, TrEnum.FULL_SPLIT],
+        [20, TrEnum.INTERCHANGE],
+        [15, TrEnum.FULL_FUSE],
+        [11, TrEnum.FULL_SPLIT],
+        [10, TrEnum.FULL_FUSE],
+        [6, TrEnum.FULL_SPLIT],
+        [17, TrEnum.FULL_SPLIT],
+        # [5, TrEnum.FULL_FUSE],
+    ]
+    app.scops[scop_idx].transform_list(tr)
+    print(f"{app.legal=}")
+    if not app.legal:
         return
     for i, node in enumerate(app.scops[scop_idx].schedule_tree):
         at = node.available_transformations
@@ -144,11 +150,11 @@ def main():
             print(f"{i} {at}")
     # return
 
-    repeat=10
+    repeat = 10
     app.compile()
     orig_time = app.measure(repeat)
     for ts in [61]:
-        #tr = [
+        # tr = [
         #        [16, TrEnum.FULL_SPLIT],
         #        [20, TrEnum.INTERCHANGE],
         #        [15, TrEnum.FULL_FUSE],
@@ -157,9 +163,9 @@ def main():
         #        [6, TrEnum.FULL_SPLIT],
         #        ]
         app.scops[scop_idx].reset()
-        legals = app.scops[scop_idx].transform_list(tr)
-        print(f"{legals=}")
-        if not all(legals):
+        app.scops[scop_idx].transform_list(tr)
+        print(f"{app.legal=}")
+        if not app.legal:
             continue
         tapp = app.generate_code(f"{ts=}.c", ephemeral=False)
         tapp.compile()
