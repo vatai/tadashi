@@ -60,7 +60,23 @@ class App(abc.ABC):
         Args:
 
           source: The source file.
+
           translator: See `Translator`.
+
+          compiler_options: compiler options used for parsing the
+             source file, code generation and compilation.
+
+          populate_scops: [obsolete] `False` should results in
+            something similar to invoking this constructor with
+            `translator` set to `None`.
+
+        .. todo:: There is much to be done here.
+
+        .. todo:: 1. populate_scops should be obsoleted and then removed.
+
+        .. todo:: 2. order and clarify what should be
+            derived/overridden. Maybe even convert App to a proper ABC.
+
         """
         self.source = Path(source)
         if translator is None and populate_scops:
