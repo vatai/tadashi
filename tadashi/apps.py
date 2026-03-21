@@ -47,54 +47,6 @@ class App(abc.ABC):
             else:
                 print("WARNING: source file missing!")
 
-    def __init__(
-        self,
-        source: str | Path,
-        translator: Optional[Translator] = None,
-        compiler_options: Optional[list[str]] = None,
-        ephemeral: bool = False,
-        populate_scops: bool = True,
-    ):
-        """Construct an app object.
-
-        Args:
-
-          source: The source file.
-
-          translator: See `Translator`.
-
-          compiler_options: compiler options used for parsing the
-             source file, code generation and compilation.
-
-          populate_scops: [obsolete] `False` should results in
-            something similar to invoking this constructor with
-            `translator` set to `None`.
-
-        .. todo:: There is much to be done here.
-
-        .. todo:: 1. populate_scops should be obsoleted and then removed.
-
-        .. todo:: 2. order and clarify what should be
-            derived/overridden. Maybe even convert App to a proper ABC.
-
-        """
-        self.source = Path(source)
-        if compiler_options is None:
-            compiler_options = []
-        self.user_compiler_options = compiler_options
-        self.ephemeral = ephemeral
-        self.populate_scops = populate_scops
-        if translator is None and populate_scops:
-            translator = Pet()
-        if populate_scops and translator:
-            options = self.app_required_options() + self.user_compiler_options
-            self.translator = translator.set_source(source, options)
-        else:
-            self.translator = None
-
-    def app_required_options(self) -> list[str]:
-        return []
-
     def __getstate__(self):
         """This was probably needed for serialisation."""
         state = {}
@@ -180,15 +132,6 @@ class App(abc.ABC):
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    @property
-    @abc.abstractmethod
-    def compile_cmd(self) -> list[str]:
-        """Command executed for compilation (list of strings)."""
-        pass
-
-    def codegen_init_args(self) -> dict:
-        return {}
-
     @staticmethod
     def compiler():
         return [os.getenv("CC", "gcc")]
@@ -223,6 +166,65 @@ class App(abc.ABC):
             results.append(self.extract_runtime(stdout))
         return min(results)
 
+    def __init__(
+        self,
+        source: str | Path,
+        translator: Optional[Translator] = None,
+        compiler_options: Optional[list[str]] = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
+    ):
+        """Construct an app object.
+
+        Args:
+
+          source: The source file.
+
+          translator: See `Translator`.
+
+          compiler_options: compiler options used for parsing the
+             source file, code generation and compilation.
+
+          populate_scops: [obsolete] `False` should results in
+            something similar to invoking this constructor with
+            `translator` set to `None`.
+
+        .. todo:: There is much to be done here.
+
+        .. todo:: 1. populate_scops should be obsoleted and then removed.
+
+        .. todo:: 2. order and clarify what should be
+            derived/overridden. Maybe even convert App to a proper ABC.
+
+        """
+        self.source = Path(source)
+        if compiler_options is None:
+            compiler_options = []
+        self.user_compiler_options = compiler_options
+        self.ephemeral = ephemeral
+        self.populate_scops = populate_scops
+        if translator is None and populate_scops:
+            translator = Pet()
+        if populate_scops and translator:
+            options = self.app_required_options() + self.user_compiler_options
+            self.translator = translator.set_source(source, options)
+        else:
+            self.translator = None
+
+    @abc.abstractmethod
+    def codegen_init_args(self) -> dict:
+        return {}
+
+    def app_required_options(self) -> list[str]:
+        return []
+
+    @property
+    @abc.abstractmethod
+    def compile_cmd(self) -> list[str]:
+        """Command executed for compilation (list of strings)."""
+        pass
+
+    @abc.abstractmethod
     def extract_runtime(self, stdout: str) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
@@ -250,6 +252,9 @@ class Simple(App):
             populate_scops=populate_scops,
         )
 
+    def codegen_init_args(self):
+        return {"runtime_prefix": self.runtime_prefix}
+
     @property
     def compile_cmd(self) -> list[str]:
         cmd = [
@@ -258,9 +263,6 @@ class Simple(App):
             "-fopenmp",
         ]
         return cmd
-
-    def codegen_init_args(self):
-        return {"runtime_prefix": self.runtime_prefix}
 
     def extract_runtime(self, stdout) -> float:
         for line in stdout.split("\n"):
@@ -279,36 +281,6 @@ class Polybench(App):
     benchmark: str  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(
-        self,
-        benchmark: str,
-        source: Optional[Path] = None,
-        translator: Optional[Translator] = None,
-        base: Path = Path(POLYBENCH_BASE),
-        compiler_options: Optional[list[str]] = None,
-        ephemeral: bool = False,
-        populate_scops: bool = True,
-    ):
-        self.base = Path(base)
-        self.benchmark = self._get_benchmark(benchmark)
-        if source is None:
-            filename = Path(self.benchmark).with_suffix(".c").name
-            source = self.base / self.benchmark / filename
-        super().__init__(
-            source,
-            translator,
-            compiler_options=compiler_options,
-            ephemeral=ephemeral,
-            populate_scops=populate_scops,
-        )
-
-    def app_required_options(self) -> list[str]:
-        return [
-            f"-I{self.base / 'utilities'}",
-            "-DPOLYBENCH_TIME",
-            "-DPOLYBENCH_USE_RESTRICT",
-        ]
-
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
         for c_file in self.base.glob("**/*.c"):
@@ -317,12 +289,6 @@ class Polybench(App):
                     break  # go to raise ValueError!
                 return str(c_file.relative_to(self.base).parent)
         raise ValueError(f"Not a polybench {benchmark=}")
-
-    def codegen_init_args(self):
-        return {
-            "benchmark": self.benchmark,
-            "base": self.base,
-        }
 
     @staticmethod
     def get_benchmarks(path: str = POLYBENCH_BASE):
@@ -333,25 +299,6 @@ class Polybench(App):
             if filename == dirname:
                 benchmarks.append(file.parent.relative_to(path))
         return list(sorted(benchmarks))
-
-    @property
-    def compile_cmd(self) -> list[str]:
-        cmd = [
-            *self.compiler(),
-            str(self.source),
-            str(self.base / "utilities/polybench.c"),
-            "-lm",
-            "-fopenmp",
-        ]
-        return cmd
-
-    def extract_runtime(self, stdout) -> float:
-        result = 0.0
-        try:
-            result = float(stdout.split()[0])
-        except IndexError as e:
-            print(f"App probaly crashed: {e}")
-        return result
 
     def dump_arrays(self):
         suffix = ".dump"
@@ -379,3 +326,58 @@ class Polybench(App):
             if "#pragma" in line and "scop" in line:
                 inside_scop = True
         return "\n".join(lines)
+
+    def __init__(
+        self,
+        benchmark: str,
+        source: Optional[Path] = None,
+        translator: Optional[Translator] = None,
+        base: Path = Path(POLYBENCH_BASE),
+        compiler_options: Optional[list[str]] = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
+    ):
+        self.base = Path(base)
+        self.benchmark = self._get_benchmark(benchmark)
+        if source is None:
+            filename = Path(self.benchmark).with_suffix(".c").name
+            source = self.base / self.benchmark / filename
+        super().__init__(
+            source,
+            translator,
+            compiler_options=compiler_options,
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
+        )
+
+    def codegen_init_args(self):
+        return {
+            "benchmark": self.benchmark,
+            "base": self.base,
+        }
+
+    def app_required_options(self) -> list[str]:
+        return [
+            f"-I{self.base / 'utilities'}",
+            "-DPOLYBENCH_TIME",
+            "-DPOLYBENCH_USE_RESTRICT",
+        ]
+
+    @property
+    def compile_cmd(self) -> list[str]:
+        cmd = [
+            *self.compiler(),
+            str(self.source),
+            str(self.base / "utilities/polybench.c"),
+            "-lm",
+            "-fopenmp",
+        ]
+        return cmd
+
+    def extract_runtime(self, stdout) -> float:
+        result = 0.0
+        try:
+            result = float(stdout.split()[0])
+        except IndexError as e:
+            print(f"App probaly crashed: {e}")
+        return result
