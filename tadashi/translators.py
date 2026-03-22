@@ -301,6 +301,7 @@ class Polly(Translator):
         sched = isl.isl_union_map_empty_ctx(self.ctx)
         read = isl.isl_union_map_empty_ctx(self.ctx)
         write = isl.isl_union_map_empty_ctx(self.ctx)
+        self.logger.debug("Initializing: DONE!")
         for stmt in jscop["statements"]:
             for acc in stmt["accesses"]:
                 tmp = acc["relation"].encode()
@@ -311,10 +312,15 @@ class Polly(Translator):
                     write = isl.isl_union_map_union(write, rel)
                 else:
                     raise SystemError(f"Error in JSCOP file ({acc["kind"]=})")
+                self.logger.debug("Reading access: DONE!")
             dmn = isl.isl_union_set_read_from_str(self.ctx, stmt["domain"].encode())
+            self.logger.debug("Reading dmn: DONE!")
             domain = isl.isl_union_set_union(domain, dmn)
+            self.logger.debug("Adding dmn to domain: DONE!")
             sch = isl.isl_union_map_read_from_str(self.ctx, stmt["schedule"].encode())
+            self.logger.debug("Reading sch: DONE!")
             sched = isl.isl_union_map_union(sched, sch)
+            self.logger.debug("Adding sch to sched: DONE!")
         self.ccscops.emplace_back(domain, sched, read, write)
 
     @cython.ccall
