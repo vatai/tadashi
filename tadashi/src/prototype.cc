@@ -21,12 +21,12 @@ int
 main() {
   isl_ctx *ctx = isl_ctx_alloc();
   isl_union_set *domain = isl_union_set_read_from_str(
-      ctx, "{ Stmt2[i0, i1] : 0 <= i0 <= 1999 and 0 <= i1 <= 2599; "
-           "Stmt3[i0, i1, i2] : 0 <= i0 <= 1999 and 0 <= i1 <= 2599 and 0 <= "
-           "i2 <= 2299; }");
+      ctx, "[p_0, p_1, p_2] -> { Stmt2[i0, i1] : i0 < p_1 and i0 <= p_0 and 0 "
+           "<= i1 < i0; Stmt3[i0] : 0 <= i0 < p_1 and i0 <= p_0; Stmt1[i0] : 0 "
+           "< i0 < p_1 and i0 <= p_0 }");
   isl_union_map *umap = isl_union_map_read_from_str(
-      ctx, "{ Stmt2[i0, i1] -> [i0, 1, i1, 0, 0]; Stmt3[i0, i1, i2] -> [i0, 1, "
-           "i1, 1, i2]; Stmt1[i0, i1] -> [i0, 0, i1, 0, 0] }");
+      ctx, "[p_0, p_1, p_2] -> { Stmt3[i0] -> [i0, 2, 0]; Stmt1[i0] -> [i0, 0, "
+           "0]; Stmt2[i0, i1] -> [i0, 1, i1] }");
   isl_schedule *schedule = build_schedule_from_umap(domain, umap);
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
