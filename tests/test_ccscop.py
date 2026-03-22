@@ -62,7 +62,7 @@ class TestCcScop(unittest.TestCase):
         transforms, target_code = self._read_app_comments(app)
 
         # transform
-        logger.info("Start test")
+        logger.debug("Start test")
         legality = []
         for tr in transforms:
             scop = app.scops[tr.scop_idx]  # select_scop()
@@ -71,16 +71,16 @@ class TestCcScop(unittest.TestCase):
             if legal is not None:
                 legality.append(f"legality={legal}")
 
-        logger.info("Transformations done")
+        logger.debug("Transformations done")
         generated_code = self._get_generated_code(app)
-        logger.info("Code generated")
+        logger.debug("Code generated")
         generated_code += legality
         diff = difflib.unified_diff(generated_code, target_code)
         diff_str = "\n".join(diff)
         if diff_str:
             print(f"\n{Path(__file__).parent/self._testMethodName}.c:1:1")
             print(diff_str)
-        logger.info("Test finished")
+        logger.debug("Test finished")
         del app
         self.assertTrue(generated_code == target_code)
 
@@ -176,8 +176,6 @@ class TestCtadashiLLVM(unittest.TestCase):
 
 
 def setup():
-    if "-v" in sys.argv:
-        logging.basicConfig(level=logging.INFO)
     test_dir = Path(__file__).parent
     for app_path in test_dir.glob("test_*.c"):
 

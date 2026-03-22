@@ -1,6 +1,7 @@
 # distutils: language=c++
 import datetime
 import json
+import logging
 import os
 import re
 import shutil
@@ -223,6 +224,7 @@ class Polly(Translator):
     cwd: Path
     before_polly_passes: str
     after_polly_passes: str
+    logger: logging.Logger
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = str(compiler)
@@ -231,23 +233,16 @@ class Polly(Translator):
         before, after = pp.split(locs[1])
         self.before_polly_passes = pp.reassemble(before)
         self.after_polly_passes = pp.reassemble(after)
+        self.logger = logging.getLogger(__name__)
 
     def _run(self, cmd: list[str], description: str, cwd: str = None):
         """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
         if cwd is None:
             cwd = str(self.cwd)
+        self.logger.debug(f"Running: {' '.join(cmd)}")
         proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
-        # #########
-        # msg = [
-        #     f"Something went wrong while [{description}]",
-        #     "cmd: " + " ".join(cmd),
-        #     "stdout:",
-        #     f"{proc.stdout.decode()}",
-        #     "stderr",
-        #     f"{proc.stderr.decode()}",
-        # ]
-        # print("\n".join(msg))
-        # #########
+        self.logger.debug(f"stdout: {proc.stdout.decode()}")
+        self.logger.debug(f"stderr: {proc.stderr.decode()}")
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
