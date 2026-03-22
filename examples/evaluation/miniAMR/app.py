@@ -81,7 +81,6 @@ class miniAMR(App):
             "run_args": self.run_args,
         }
 
-    @property
     def compile_cmd(self) -> list[str]:
         cmd = [
             "make",

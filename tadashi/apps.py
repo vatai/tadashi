@@ -143,7 +143,7 @@ class App(abc.ABC):
         output_binary_suffix="",
     ):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd
+        cmd = self.compile_cmd()
         cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
         cmd += self.app_required_options() + self.user_compiler_options
         cmd += extra_compiler_options
@@ -218,7 +218,6 @@ class App(abc.ABC):
     def app_required_options(self) -> list[str]:
         return []
 
-    @property
     @abc.abstractmethod
     def compile_cmd(self) -> list[str]:
         """Command executed for compilation (list of strings)."""
@@ -255,7 +254,6 @@ class Simple(App):
     def codegen_init_args(self):
         return {"runtime_prefix": self.runtime_prefix}
 
-    @property
     def compile_cmd(self) -> list[str]:
         cmd = [
             *self.compiler(),
@@ -363,7 +361,6 @@ class Polybench(App):
             "-DPOLYBENCH_USE_RESTRICT",
         ]
 
-    @property
     def compile_cmd(self) -> list[str]:
         cmd = [
             *self.compiler(),
