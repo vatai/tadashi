@@ -453,6 +453,8 @@ _build_schedule(__isl_take isl_schedule_node *node,
 isl_schedule *
 build_schedule_from_umap(__isl_take isl_union_set *domain,
                          __isl_take isl_union_map *map) {
+  // std::cout << "[DOMANIN] >>> " << isl_union_set_to_str(domain) << std::endl;
+  // std::cout << "[  MAP  ] >>> " << isl_union_map_to_str(map) << std::endl;
   isl_schedule *schedule = isl_schedule_from_domain(domain);
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
