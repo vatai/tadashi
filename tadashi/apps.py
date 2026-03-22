@@ -159,10 +159,8 @@ class App(abc.ABC):
             self.compile()
         results = []
         for _ in range(repeat):
-            result = subprocess.run(
-                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
-            )
-            stdout = result.stdout.decode()
+            proc = subprocess.run(self.run_cmd(), capture_output=True, *args, **kwargs)
+            stdout = proc.stdout.decode()
             results.append(self.extract_runtime(stdout))
         return min(results)
 
@@ -228,6 +226,17 @@ class App(abc.ABC):
     def extract_runtime(self, stdout: str) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
+
+    # @abc.abstractmethod # default behaviour is often acceptable, ergo not abstract
+    def run_cmd(self):
+        """Construct the command executed in `App.measure`.
+
+        If measuring a benchmark requires running something other then
+        `self.output_binary`, potentially with app specific args this
+        is the method to override.
+
+        """
+        return [str(self.output_binary)]
 
 
 class Simple(App):
