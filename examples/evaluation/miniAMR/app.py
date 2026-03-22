@@ -7,6 +7,7 @@ from typing import Optional
 from colorama import Fore as CF
 from tadashi import TrEnum
 from tadashi.apps import App
+from tadashi.translators import Translator
 
 BASE_PATH = Path(__file__).parent / "miniAMR/ref"
 
