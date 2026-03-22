@@ -3,6 +3,7 @@
 import abc
 import copy
 import datetime
+import logging
 import os
 import re
 import subprocess
@@ -138,7 +139,6 @@ class App(abc.ABC):
 
     def compile(
         self,
-        verbose: bool = False,
         extra_compiler_options: list[str] = [],
         output_binary_suffix="",
     ):
@@ -147,8 +147,7 @@ class App(abc.ABC):
         cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
         cmd += self.app_required_options() + self.user_compiler_options
         cmd += extra_compiler_options
-        if verbose:
-            print(f"{' '.join(cmd)}")
+        self.logger.debug(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd)
         # raise an exception if it didn't compile
         result.check_returncode()
@@ -209,6 +208,7 @@ class App(abc.ABC):
             self.translator = translator.set_source(source, options)
         else:
             self.translator = None
+        self.logger = logging.getLogger(__name__)
 
     @abc.abstractmethod
     def codegen_init_args(self) -> dict:
