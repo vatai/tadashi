@@ -77,11 +77,11 @@ class miniAMR(App):
         }
 
     def app_required_options(self) -> list[str]:
-        return [
+        return (
             self._mpich_includes()
             + self._gcc_includes("gcc")
             + self._gcc_includes("mpicc")
-        ]
+        )
 
     def compile_cmd(self) -> list[str]:
         cmd = [
