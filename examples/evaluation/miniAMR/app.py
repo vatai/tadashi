@@ -83,7 +83,7 @@ class miniAMR(App):
             + self._gcc_includes("mpicc")
         )
 
-    def compile_cmd(self) -> list[str]:
+    def compile_cmd(self, suffix: str) -> list[str]:
         cmd = [
             "make",
             "-j",
