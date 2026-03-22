@@ -32,12 +32,6 @@ class miniAMR(App):
         if not run_args:
             run_args = []
         self.run_args = run_args
-        # todo, move this to amend_compiler_options
-        include_paths = (
-            self._mpich_includes()
-            + self._gcc_includes("gcc")
-            + self._gcc_includes("mpicc")
-        )
         super().__init__(
             source=source,
             translator=translator,
@@ -81,6 +75,13 @@ class miniAMR(App):
             "base": self.base,
             "run_args": self.run_args,
         }
+
+    def app_required_options(self) -> list[str]:
+        return [
+            self._mpich_includes()
+            + self._gcc_includes("gcc")
+            + self._gcc_includes("mpicc")
+        ]
 
     def compile_cmd(self) -> list[str]:
         cmd = [
