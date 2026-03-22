@@ -156,7 +156,9 @@ class App(abc.ABC):
             self.compile()
         results = []
         for _ in range(repeat):
-            proc = subprocess.run(self.run_cmd(), capture_output=True, *args, **kwargs)
+            cmd = self.run_cmd()
+            self.logger.debug(f"Running: {' '.join(cmd)}")
+            proc = subprocess.run(cmd, capture_output=True, *args, **kwargs)
             stdout = proc.stdout.decode()
             results.append(self.extract_runtime(stdout))
         return min(results)
