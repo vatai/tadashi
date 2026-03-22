@@ -48,7 +48,7 @@ class miniAMR(App):
             return []
         stdout = result.stdout.decode()
         opts = stdout.split()
-        include_paths = [inc[2:] for inc in opts if inc.startswith("-I")]
+        include_paths = [inc for inc in opts if inc.startswith("-I")]
         return include_paths
 
     @staticmethod
