@@ -140,11 +140,10 @@ class App(abc.ABC):
     def compile(
         self,
         extra_compiler_options: list[str] = [],
-        output_binary_suffix="",
+        suffix="",
     ):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd()
-        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
+        cmd = self.compile_cmd(suffix)
         cmd += self.app_required_options() + self.user_compiler_options
         cmd += extra_compiler_options
         self.logger.debug(f"Running: {' '.join(cmd)}")
@@ -218,7 +217,7 @@ class App(abc.ABC):
         return []
 
     @abc.abstractmethod
-    def compile_cmd(self) -> list[str]:
+    def compile_cmd(self, suffix: str) -> list[str]:
         """Command executed for compilation (list of strings)."""
         pass
 
@@ -264,11 +263,13 @@ class Simple(App):
     def codegen_init_args(self):
         return {"runtime_prefix": self.runtime_prefix}
 
-    def compile_cmd(self) -> list[str]:
+    def compile_cmd(self, suffix: str) -> list[str]:
         cmd = [
             *self.compiler(),
             str(self.source),
             "-fopenmp",
+            "-o",
+            f"{self.output_binary}{suffix}",
         ]
         return cmd
 
@@ -312,7 +313,7 @@ class Polybench(App):
         suffix = ".dump"
         self.compile(
             extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
-            output_binary_suffix=suffix,
+            suffix=suffix,
         )
         result = subprocess.run(
             f"{self.output_binary}{suffix}",
@@ -371,13 +372,15 @@ class Polybench(App):
             "-DPOLYBENCH_USE_RESTRICT",
         ]
 
-    def compile_cmd(self) -> list[str]:
+    def compile_cmd(self, suffix) -> list[str]:
         cmd = [
             *self.compiler(),
             str(self.source),
             str(self.base / "utilities/polybench.c"),
             "-lm",
             "-fopenmp",
+            "-o",
+            f"{self.output_binary}{suffix}",
         ]
         return cmd
 
