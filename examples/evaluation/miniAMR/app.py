@@ -38,8 +38,8 @@ class miniAMR(App):
             + self._gcc_includes("mpicc")
         )
         super().__init__(
-            source,
-            translator,
+            source=source,
+            translator=translator,
             compiler_options=compiler_options,
             ephemeral=ephemeral,
             populate_scops=populate_scops,
@@ -91,7 +91,6 @@ class miniAMR(App):
         ]
         return cmd
 
-    @property
     def run_cmd(self) -> list[str]:
         cmd = [
             "mpirun",
