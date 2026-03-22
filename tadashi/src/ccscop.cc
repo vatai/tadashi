@@ -380,15 +380,27 @@ _add_point(__isl_take isl_point *pnt, void *user) {
 
 static __isl_give isl_union_set_list *
 _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
+#ifndef NDEBUG
+  std::cout << "--------------------" << std::endl;
+#endif // NDEBUG
   isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
   isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
   isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
   isl_union_set *urange = isl_union_map_range(isl_union_map_copy(umap));
   isl_set *range = isl_set_from_union_set(urange);
   isl_set_list *set_list = isl_set_list_alloc(ctx, 1);
+#ifndef NDEBUG
+  isl_basic_set_list *bsl = isl_set_get_basic_set_list(range);
+  std::cout << "***** bsl: " << isl_basic_set_list_to_str(bsl) << std::endl;
+  std::cout << "range: " << isl_set_to_str(range) << std::endl;
+  std::cout << "bounded: " << isl_set_is_bounded(range) << std::endl;
+#endif // NDEBUG
   isl_set_foreach_point(range, _add_point, &set_list);
   isl_set_free(range);
   isl_size n_points = isl_set_list_size(set_list);
+#ifndef NDEBUG
+  std::cout << "set_list: " << isl_set_list_to_str(set_list) << std::endl;
+#endif // NDEBUG
   isl_set_list_sort(set_list, _cmp, nullptr);
   isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_points);
   for (isl_size i = 0; i < n_points; i++) {
@@ -410,6 +422,9 @@ _insert_sequence(__isl_take isl_schedule_node *node,
                  __isl_take isl_union_pw_aff *upa,
                  __isl_keep isl_multi_union_pw_aff *mupa, int pos,
                  unsigned int num_dims) {
+#ifndef NDEBUG
+  std::cout << "------------------------------" << std::endl;
+#endif // NDEBUG
   if (isl_union_pw_aff_n_pw_aff(upa) == 1) {
     isl_union_pw_aff_free(upa);
     return node;
@@ -433,9 +448,22 @@ static __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
                 __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
                 unsigned int num_dims) {
+#ifndef NDEBUG
+  std::cout << "========================================" << std::endl;
+  std::cout << "_build_sched::BEGIN node" << isl_schedule_node_to_str(node)
+            << std::endl;
+  std::cout << "_build_sched::BEGIN mupa" << isl_multi_union_pw_aff_to_str(mupa)
+            << std::endl;
+  std::cout << "_build_sched::BEGIN pos/num_dims" << pos << "/" << num_dims
+            << std::endl;
+#endif // NDEBUG
   if (pos >= num_dims)
     return node;
   isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
+#ifndef NDEBUG
+  std::cout << "_build_sched::BEGIN upa" << isl_union_pw_aff_to_str(upa)
+            << std::endl;
+#endif // NDEBUG
   node = isl_schedule_node_first_child(node);
   if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
     node = _insert_sequence(node, upa, mupa, pos, num_dims);
@@ -446,15 +474,19 @@ _build_schedule(__isl_take isl_schedule_node *node,
   }
 
   node = isl_schedule_node_parent(node);
-  // std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
+#ifndef NDEBUG
+  std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
+#endif // NDEBUG
   return node;
 }
 
 isl_schedule *
 build_schedule_from_umap(__isl_take isl_union_set *domain,
                          __isl_take isl_union_map *map) {
-  // std::cout << "[DOMANIN] >>> " << isl_union_set_to_str(domain) << std::endl;
-  // std::cout << "[  MAP  ] >>> " << isl_union_map_to_str(map) << std::endl;
+#ifndef NDEBUG
+  std::cout << "[DOMANIN] >>> " << isl_union_set_to_str(domain) << std::endl;
+  std::cout << "[  MAP  ] >>> " << isl_union_map_to_str(map) << std::endl;
+#endif // NDEBUG
   isl_schedule *schedule = isl_schedule_from_domain(domain);
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
