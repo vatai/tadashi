@@ -144,7 +144,6 @@ class App(abc.ABC):
     ):
         """Compile the app so it can be measured/executed."""
         cmd = self.compile_cmd(suffix)
-        cmd += self.app_required_options() + self.user_compiler_options
         cmd += extra_compiler_options
         self.logger.debug(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd)
@@ -381,6 +380,7 @@ class Polybench(App):
             "-fopenmp",
             "-o",
             f"{self.output_binary}{suffix}",
+            *self.app_required_options(),
         ]
         return cmd
 
