@@ -256,30 +256,6 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
-    @cython.ccall
-    def populate_ccscops(self, options: list[str]):
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
-        self._get_pre_polly_bc(options)
-        stderr = self._export_jscops(options)
-        self.json_paths = self._fill_json_paths(stderr)
-        for file in self.json_paths:
-            with open(self.cwd / file) as fp:
-                jscop = json.load(fp)
-            self._proc_jscop(jscop)
-
-    def _compiler_options(self):
-        for flang in ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]:
-            if flang in self.compiler:
-                return ["-O0"]
-        for clang in ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]:
-            if clang in self.compiler:
-                return ["-O0", "-Xclang", "-disable-O0-optnone"]
-        raise ValueError(f"Unsupported compiler: {self.compiler}")
-
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
         compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
         pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
@@ -302,16 +278,6 @@ class Polly(Translator):
         ]
         proc = self._run(cmd, "exporting jscops")
         return proc.stderr.decode()
-
-    @staticmethod
-    def _polly():
-        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subprocess.run(cmd, stderr=subprocess.DEVNULL)
-        final = ["opt"]
-        if proc.returncode == 0:
-            final.append("-load=LLVMPolly.so")
-        final.append("-polly-canonicalize")
-        return final
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str) -> list[Path]:
@@ -350,6 +316,44 @@ class Polly(Translator):
             sch = isl.isl_union_map_read_from_str(self.ctx, stmt["schedule"].encode())
             sched = isl.isl_union_map_union(sched, sch)
         self.ccscops.emplace_back(domain, sched, read, write)
+
+    @cython.ccall
+    def populate_ccscops(self, options: list[str]):
+        self.logger.debug("Start populating scops")
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
+        self._get_pre_polly_bc(options)
+        stderr = self._export_jscops(options)
+        self.json_paths = self._fill_json_paths(stderr)
+        for file in self.json_paths:
+            self.logger.debug(f"Start processing jscop [{file.name}]")
+            with open(self.cwd / file) as fp:
+                jscop = json.load(fp)
+            self._proc_jscop(jscop)
+            self.logger.debug(f"Finish processing jscop [{file.name}]")
+        self.logger.debug("Finish populating scops")
+
+    def _compiler_options(self):
+        for flang in ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]:
+            if flang in self.compiler:
+                return ["-O0"]
+        for clang in ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]:
+            if clang in self.compiler:
+                return ["-O0", "-Xclang", "-disable-O0-optnone"]
+        raise ValueError(f"Unsupported compiler: {self.compiler}")
+
+    @staticmethod
+    def _polly():
+        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        proc = subprocess.run(cmd, stderr=subprocess.DEVNULL)
+        final = ["opt"]
+        if proc.returncode == 0:
+            final.append("-load=LLVMPolly.so")
+        final.append("-polly-canonicalize")
+        return final
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
