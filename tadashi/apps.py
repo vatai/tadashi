@@ -168,11 +168,12 @@ class App(abc.ABC):
 
     def __init__(
         self,
+        *,
         source: str | Path,
-        translator: Optional[Translator] = None,
-        compiler_options: Optional[list[str]] = None,
-        ephemeral: bool = False,
-        populate_scops: bool = True,
+        translator: Optional[Translator],
+        compiler_options: Optional[list[str]],
+        ephemeral: bool,
+        populate_scops: bool,
     ):
         """Construct an app object.
 
@@ -244,8 +245,8 @@ class Simple(App):
     ):
         self.runtime_prefix = runtime_prefix
         super().__init__(
-            source,
-            translator,
+            source=source,
+            translator=translator,
             compiler_options=compiler_options,
             ephemeral=ephemeral,
             populate_scops=populate_scops,
@@ -341,8 +342,8 @@ class Polybench(App):
             filename = Path(self.benchmark).with_suffix(".c").name
             source = self.base / self.benchmark / filename
         super().__init__(
-            source,
-            translator,
+            source=source,
+            translator=translator,
             compiler_options=compiler_options,
             ephemeral=ephemeral,
             populate_scops=populate_scops,
