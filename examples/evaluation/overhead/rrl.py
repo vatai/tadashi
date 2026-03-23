@@ -3,10 +3,9 @@ import argparse
 import difflib
 import json
 import random
-import subprocess
 import time
 from pathlib import Path
-from subprocess import TimeoutExpired
+from subprocess import PIPE, TimeoutExpired, run
 
 from tadashi import Scop
 from tadashi.apps import Polybench, Simple
@@ -72,10 +71,10 @@ class Timer:
 
 
 def get_array(app: Polybench):
-    result = subprocess.run(
+    result = run(
         app.run_cmd(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
         timeout=40,
     )
     output = result.stderr.decode()
