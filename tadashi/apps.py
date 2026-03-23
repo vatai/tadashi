@@ -146,7 +146,7 @@ class App(abc.ABC):
         cmd = self.compile_cmd(suffix)
         cmd += extra_compiler_options
         self.logger.debug(f"Running: {' '.join(cmd)}")
-        result = run(cmd)
+        result = run(cmd, capture_output=True)
         # raise an exception if it didn't compile
         result.check_returncode()
 
