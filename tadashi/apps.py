@@ -146,7 +146,9 @@ class App(abc.ABC):
         cmd = self.compile_cmd(suffix)
         cmd += extra_compiler_options
         self.logger.debug(f"Running: {' '.join(cmd)}")
-        result = run(cmd, capture_output=True)
+        # if log_level is high (e.g. critical) then capture = don't print.
+        capture_output = self.logger.getEffectiveLevel() > logging.DEBUG
+        result = run(cmd, capture_output=capture_output)
         # raise an exception if it didn't compile
         result.check_returncode()
 
@@ -316,11 +318,7 @@ class Polybench(App):
             extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
             suffix=suffix,
         )
-        result = run(
-            f"{self.output_binary}{suffix}",
-            stdout=PIPE,
-            stderr=PIPE,
-        )
+        result = run(f"{self.output_binary}{suffix}", stdout=PIPE, stderr=PIPE)
         return result.stderr.decode()
 
     def dump_scop(self):
