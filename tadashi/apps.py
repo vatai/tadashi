@@ -41,6 +41,7 @@ class App(abc.ABC):
     def __del__(self):
         if self.ephemeral:
             binary = self.output_binary
+            self.logger.debug(f"Deleting {binary=} ({binary.exists()=})")
             if binary.exists():
                 binary.unlink()
             if self.source.exists():
