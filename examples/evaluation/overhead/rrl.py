@@ -73,7 +73,7 @@ class Timer:
 
 def get_array(app: Polybench):
     result = subprocess.run(
-        app.run_cmd,
+        app.run_cmd(),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         timeout=40,

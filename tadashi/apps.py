@@ -6,10 +6,10 @@ import datetime
 import logging
 import os
 import re
-import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
+from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
 from .scop import Scop
@@ -146,7 +146,7 @@ class App(abc.ABC):
         cmd = self.compile_cmd(suffix)
         cmd += extra_compiler_options
         self.logger.debug(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd)
+        result = run(cmd)
         # raise an exception if it didn't compile
         result.check_returncode()
 
@@ -158,9 +158,8 @@ class App(abc.ABC):
         for _ in range(repeat):
             cmd = self.run_cmd()
             self.logger.debug(f"Running: {' '.join(cmd)}")
-            proc = subprocess.run(cmd, capture_output=True, *args, **kwargs)
-            stdout = proc.stdout.decode()
-            results.append(self.extract_runtime(stdout))
+            proc = run(cmd, capture_output=True, *args, **kwargs)
+            results.append(self.extract_runtime(proc))
         return min(results)
 
     def __init__(
@@ -223,7 +222,7 @@ class App(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def extract_runtime(self, stdout: str) -> float:
+    def extract_runtime(self, proc: CompletedProcess) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
 
@@ -274,7 +273,8 @@ class Simple(App):
         ]
         return cmd
 
-    def extract_runtime(self, stdout) -> float:
+    def extract_runtime(self, proc: CompletedProcess) -> float:
+        stdout = proc.stdout.decode()
         for line in stdout.split("\n"):
             if line.startswith(self.runtime_prefix):
                 num = line.split(self.runtime_prefix)[1]
@@ -316,10 +316,10 @@ class Polybench(App):
             extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
             suffix=suffix,
         )
-        result = subprocess.run(
+        result = run(
             f"{self.output_binary}{suffix}",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         return result.stderr.decode()
 
@@ -386,7 +386,8 @@ class Polybench(App):
         ]
         return cmd
 
-    def extract_runtime(self, stdout) -> float:
+    def extract_runtime(self, proc: CompletedProcess) -> float:
+        stdout = proc.stdout.decode()
         result = 0.0
         try:
             result = float(stdout.split()[0])

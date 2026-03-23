@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import re
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, run
+from subprocess import DEVNULL, PIPE, CompletedProcess, run
 from typing import Optional
 
 from colorama import Fore as CF
@@ -105,7 +105,9 @@ class miniAMR(App):
         ]
         return cmd
 
-    def extract_runtime(self, stdout: str) -> float:
+    def extract_runtime(self, proc: CompletedProcess) -> float:
+        print(f"{type(proc)=}")
+        stdout = proc.stdout.decode()
         lines = stdout.split("\n")
         # scop_idx_check = set([])
         for line in lines:
