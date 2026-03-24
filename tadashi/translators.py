@@ -67,10 +67,11 @@ class Translator:
         super().set_source() after populatin the `ccScop`s.
 
         """
-        self._check_missing_file(source)
+        abs_path = Path(source).absolute()
+        self._check_missing_file(abs_path)
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
-        self.source = Path(source).absolute()
+        self.source = abs_path
         self.scops = []
         self.ccscops.clear()
         self.populate_ccscops(options)
