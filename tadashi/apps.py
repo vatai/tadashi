@@ -137,8 +137,9 @@ class App(abc.ABC):
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    @staticmethod
-    def compiler():
+    def compiler(self) -> list[str]:
+        if self.translator:
+            return self.translator.get_compiler()
         return [os.getenv("CC", "gcc")]
 
     def compile(

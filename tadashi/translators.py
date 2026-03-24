@@ -1,4 +1,5 @@
 # distutils: language=c++
+import abc
 import datetime
 import json
 import logging
@@ -21,6 +22,7 @@ from cython.cimports.tadashi.scop import Scop
 
 from .passesparser import PassParser
 
+# We can't use ABC because this is a @cython.cclass
 ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
@@ -85,6 +87,10 @@ class Translator:
     def generate_code(
         self, input_path: str, output_path: Path, options: list[str]
     ) -> Path:
+        raise NotImplementedError(ABC_ERROR_MSG)
+
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
         raise NotImplementedError(ABC_ERROR_MSG)
 
 
@@ -218,6 +224,10 @@ class Pet(Translator):
         # increment the outer pointer.
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
+
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
+        return [os.getenv("CC", "gcc")]
 
 
 @cython.cclass
@@ -425,3 +435,7 @@ class Polly(Translator):
         cmd += [input_path, f"-o={str(output_path)}"]
         self._run(cmd, "generating assembly")
         return output_path
+
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
+        return [self.compiler, "-O3"]
