@@ -90,15 +90,20 @@ class TestSimple(TestApp):
         app = apps.Simple(
             input_path,
             translator=Polly("flang"),
-            compiler_options=[
-                "-L/usr/lib/clang/21/lib/linux",
-                "-lflang_rt.runtime",
-                "-lm",
-            ],
             runtime_prefix=" WALLTIME: ",
         )
         node = app.scops[0].schedule_tree[1]
         tapp = app.generate_code()
+        print(
+            "TODO : FIX THIS... probably add one more 'compiler_options' (one for compilation the other for parsing, like -Is and -Ds)"
+        )
+        tapp.compile(
+            extra_compiler_options=[
+                "-L/usr/lib/clang/21/lib/linux",
+                "-lflang_rt.runtime",
+                "-lm",
+            ]
+        )
         print(f"{app.output_binary=}, {tapp.output_binary=}")
         print(f"{app.measure()=}")
         print(f"{tapp.measure()=}")
