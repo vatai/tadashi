@@ -42,8 +42,10 @@ class Translator:
     @staticmethod
     def _check_missing_file(path: str | Path):
         path = Path(path)
-        if not path.exists() or not path.is_file():
+        if not path.exists():
             raise ValueError(f"{path} does not exist!")
+        if not path.is_file():
+            raise ValueError(f"{path} is not a file!")
 
     @staticmethod
     def _get_flags(flag: str, flags: list[str]) -> list[str]:
