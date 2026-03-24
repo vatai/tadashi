@@ -153,9 +153,13 @@ class App(abc.ABC):
         self.logger.debug(f"Running: {' '.join(cmd)}")
         # if log_level is high (e.g. critical) then capture = don't print.
         capture_output = self.logger.getEffectiveLevel() > logging.DEBUG
-        result = run(cmd, capture_output=capture_output)
-        # raise an exception if it didn't compile
-        result.check_returncode()
+        proc = run(cmd, capture_output=capture_output)
+        if proc.returncode != 0:
+            print(f"stdout:\n{proc.stdout.decode()}")
+            print(f"stderr:\n{proc.stderr.decode()}")
+            print(f"retcode:\n{proc.returncode}")
+        self.logger.debug(f"{proc.stdout.decode()=}")
+        self.logger.debug(f"{proc.stderr.decode()=}")
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
