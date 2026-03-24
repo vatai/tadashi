@@ -15,7 +15,7 @@ def get_args():
         "-e",
         "--extension",
         help="File extension 'c' or 'f'",
-        default="f",
+        default="c",
     )
     parser.add_argument(
         "-i",
@@ -31,7 +31,8 @@ def get_args():
     )
     args = parser.parse_args()
     if not args.args:
-        args.args = ["flang"]
+        # args.args = ["flang"]
+        args.args = []
     assert args.extension in "cf"
     return args
 
@@ -45,30 +46,31 @@ def print_app(app):
         print(f"scop: {scop_idx} - {num_nodes=} - {max_depth=}")
 
 
+def mkapp(args, file):
+    cls = Pet if args.pet else Polly
+    print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
+    translator = cls(*args.args)
+    cwd = str(Path(".").absolute())
+    app = Simple(file, translator=translator, compiler_options=[f"-I{cwd}"])
+    return app
+
+
 def scop_detector():
     args = get_args()
     patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
     pattern = re.compile(patterns[args.extension], re.IGNORECASE)
-    for file in Path(args.path).rglob("*"):
+    for fidx, file in enumerate(Path(args.path).rglob("*")):
         if pattern.match(file.suffix):
-            cls = Pet if args.pet else Polly
-            print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
-            translator = cls(*args.args)
-            cwd = str(Path(".").absolute())
-            app = Simple(file, translator=translator, compiler_options=["-I{cwd}"])
+            app = mkapp(args, file)
             print_app(app)
+    print(f"{fidx+1} files parsed")
     print("DONE detecting")
 
 
 def scop_printer():
     args = get_args()
-    patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
-    pattern = re.compile(patterns[args.extension], re.IGNORECASE)
-    path = Path(args.path)
-    cls = Pet if args.pet else Polly
-    translator = cls(*args.args)
-    cwd = str(Path(".").absolute())
-    app = Simple(str(path), translator=translator, compiler_options=["-I{cwd}"])
+    file = Path(args.path)
+    app = mkapp(args, file)
     for idx, scop in enumerate(app.scops):
         print(f"SCOP[{idx}]")
         print(scop.schedule_tree[0].yaml_str)
