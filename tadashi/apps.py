@@ -161,9 +161,9 @@ class App(abc.ABC):
         if not self.output_binary.exists():
             self.compile()
         results = []
+        cmd = self.run_cmd()
+        self.logger.debug(f"Running: {' '.join(cmd)} ({repeat=})")
         for _ in range(repeat):
-            cmd = self.run_cmd()
-            self.logger.debug(f"Running: {' '.join(cmd)}")
             proc = run(cmd, capture_output=True, *args, **kwargs)
             results.append(self.extract_runtime(proc))
         return min(results)
