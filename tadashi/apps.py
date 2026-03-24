@@ -98,7 +98,10 @@ class App(abc.ABC):
         else:
             new_file = self._make_new_filename()
         options = self.app_required_options() + self.user_compiler_options
+        msg = f"generate_code({str(self.source)=}, {new_file=}, {options=})"
+        self.logger.debug(msg)
         new_file = self.translator.generate_code(str(self.source), new_file, options)
+        self.logger.debug(f"Return value: {new_file=}")
         translator = copy.copy(self.translator) if populate_scops else None
         compiler_options = None
         if self.user_compiler_options:
