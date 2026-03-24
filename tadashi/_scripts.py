@@ -8,7 +8,7 @@ from tadashi.apps import Simple
 from tadashi.translators import Pet, Polly
 
 
-def get_args():
+def _get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Path to the source file/dir")
     parser.add_argument(
@@ -37,7 +37,7 @@ def get_args():
     return args
 
 
-def print_app(app):
+def _print_summary(app):
     print(f"{len(app.scops)=}")
     for scop_idx, scop in enumerate(app.scops):
         num_nodes = len(scop.schedule_tree)
@@ -46,7 +46,7 @@ def print_app(app):
         print(f"scop: {scop_idx} - {num_nodes=} - {max_depth=}")
 
 
-def mkapp(args, file):
+def _mkapp(args, file):
     cls = Pet if args.pet else Polly
     print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
     translator = cls(*args.args)
@@ -56,21 +56,21 @@ def mkapp(args, file):
 
 
 def scop_detector():
-    args = get_args()
+    args = _get_args()
     patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
     pattern = re.compile(patterns[args.extension], re.IGNORECASE)
     for fidx, file in enumerate(Path(args.path).rglob("*")):
         if pattern.match(file.suffix):
-            app = mkapp(args, file)
-            print_app(app)
+            app = _mkapp(args, file)
+            _print_summary(app)
     print(f"{fidx+1} files parsed")
     print("DONE detecting")
 
 
 def scop_printer():
-    args = get_args()
+    args = _get_args()
     file = Path(args.path)
-    app = mkapp(args, file)
+    app = _mkapp(args, file)
     for idx, scop in enumerate(app.scops):
         print(f"SCOP[{idx}]")
         print(scop.schedule_tree[0].yaml_str)
