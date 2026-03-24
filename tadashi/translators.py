@@ -224,7 +224,7 @@ class Pet(Translator):
 class Polly(Translator):
     compiler: str
     json_paths: list[Path]
-    cwd: Path
+    tmpdir: Path
     before_polly_passes: str
     after_polly_passes: str
     logger: logging.Logger
@@ -238,12 +238,10 @@ class Polly(Translator):
         self.after_polly_passes = pp.reassemble(after)
         self.logger = logging.getLogger(__name__)
 
-    def _run(self, cmd: list[str], description: str, cwd: str = None):
-        """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
-        if cwd is None:
-            cwd = str(self.cwd)
+    def _run(self, cmd: list[str], description: str):
+        """cmd is command list, description is verb-ing"""
         self.logger.debug(f"Running: {' '.join(cmd)}")
-        proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
+        proc = subprocess.run(cmd, capture_output=True)
         self.logger.debug(f"stdout: {proc.stdout.decode()}")
         self.logger.debug(f"stderr: {proc.stderr.decode()}")
         if proc.returncode != 0:
@@ -260,8 +258,8 @@ class Polly(Translator):
         return proc
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
-        compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
-        pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        compile_O0_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
+        pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
         compiler_opts = self._compiler_options()
@@ -277,6 +275,7 @@ class Polly(Translator):
         cmd = self._polly() + [
             str(self._get_pre_polly_bc(options)),
             "-polly-export-jscop",
+            f"-polly-import-jscop-dir={self.tmpdir}",
             "-o=/dev/null",
         ]
         proc = self._run(cmd, "exporting jscops")
@@ -327,13 +326,13 @@ class Polly(Translator):
         if self.ctx is cython.NULL:
             raise MemoryError()
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
+        self.tmpdir = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
         self._get_pre_polly_bc(options)
         stderr = self._export_jscops(options)
         self.json_paths = self._fill_json_paths(stderr)
         for file in self.json_paths:
             self.logger.debug(f"Start processing jscop [{file.name}]")
-            with open(self.cwd / file) as fp:
+            with open(self.tmpdir / file) as fp:
                 jscop = json.load(fp)
             self._proc_jscop(jscop)
             self.logger.debug(f"Finish processing jscop [{file.name}]")
@@ -348,35 +347,42 @@ class Polly(Translator):
                 return ["-O0", "-Xclang", "-disable-O0-optnone"]
         raise ValueError(f"Unsupported compiler: {self.compiler}")
 
-    @staticmethod
-    def _polly():
-        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subprocess.run(cmd, stderr=subprocess.DEVNULL)
-        final = ["opt"]
-        if proc.returncode == 0:
-            final.append("-load=LLVMPolly.so")
-        final.append("-polly-canonicalize")
-        return final
+    def _polly(self):
+        opt_cmd = ["opt"]
+        flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        proc = subprocess.run(opt_cmd + flags, stderr=subprocess.DEVNULL)
+        opt_cmd += ["-load=LLVMPolly.so"] if proc.returncode == 0 else []
+        opt_cmd += [
+            "-polly-canonicalize",
+            f"-polly-import-jscop-dir={self.tmpdir}",
+        ]
+        return opt_cmd
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
-        cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
+        cmd = self._polly() + [
+            input_path,
+            "-polly-import-jscop",
+            "-o=/dev/null",
+        ]
         proc = self._run(cmd, "checking legality")
         return proc.returncode == 0
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_pre_polly_bc(options))
-        post_polly_bc = self.cwd / self.source.with_suffix(".post_opt.bc").name
+        post_polly_bc = self.tmpdir / self.source.with_suffix(".post_opt.bc").name
 
-        polly_cmd = self._polly() + [input_path, "-polly-import-jscop"]
-        polly_cmd += [
-            "-polly-codegen",
-            f"-o={str(post_polly_bc)}",
+        polly_cmd = self._polly() + [
+            input_path,
+            "-polly-import-jscop",
+            f"-polly-import-jscop-dir={self.tmpdir}",
             "-disable-polly-legality",
+            # "-polly-codegen",
+            f"-o={str(post_polly_bc)}",
         ]
         self._run(polly_cmd, "importing jscops")
 
-        output = self.cwd / self.source.with_suffix(".bc").name
+        output = self.tmpdir / self.source.with_suffix(".bc").name
 
         opt_cmd = ["opt", f"-passes={self.after_polly_passes}"]
         opt_cmd += [str(post_polly_bc), f"-o={str(output)}"]
@@ -388,7 +394,7 @@ class Polly(Translator):
         self, input_path: str, output_path: Path, options: list[str]
     ) -> Path:
         for scop_idx, jscop_path in enumerate(self.json_paths):
-            jscop_path = self.cwd / jscop_path
+            jscop_path = self.tmpdir / jscop_path
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
             self._update_jscop(jscop_path, scop_idx)
