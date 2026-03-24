@@ -267,13 +267,18 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
+    @staticmethod
+    def _sanitize(options: list[str]) -> list[str]:
+        return options
+
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
         compile_O0_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
         compiler_opts = self._compiler_options()
-        compile_cmd = [self.compiler, *compiler_opts, *options, "-c", "-emit-llvm"]
+        sanitized = self._sanitize(options)
+        compile_cmd = [self.compiler, *compiler_opts, *sanitized, "-c", "-emit-llvm"]
         compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
         opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
