@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <isl/map_type.h>
 #include <isl/point.h>
 #include <ostream>
 
@@ -394,9 +395,11 @@ _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   std::cout << "***** bsl: " << isl_basic_set_list_to_str(bsl) << std::endl;
   std::cout << "range: " << isl_set_to_str(range) << std::endl;
   std::cout << "bounded: " << isl_set_is_bounded(range) << std::endl;
+  isl_basic_set_list_free(bsl);
 #endif // NDEBUG
   range = isl_set_coalesce(range);
   range = isl_set_drop_unused_params(range);
+  range = isl_set_project_out_all_params(range);
   isl_set_foreach_point(range, _add_point, &set_list);
   isl_set_free(range);
   isl_size n_points = isl_set_list_size(set_list);
