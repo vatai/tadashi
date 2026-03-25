@@ -377,8 +377,11 @@ class Polly(Translator):
             "-polly-import-jscop",
             "-o=/dev/null",
         ]
-        proc = self._run(cmd, "checking legality")
-        return proc.returncode == 0
+        try:
+            self._run(cmd, "checking legality")
+        except ValueError as e:
+            return False
+        return True
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_pre_polly_bc(options))
