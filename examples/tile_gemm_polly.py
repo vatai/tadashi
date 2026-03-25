@@ -8,20 +8,33 @@ base = "examples/polybench"
 gemm = Polybench(
     "linear-algebra/blas/gemm",
     base=base,
-    compiler_options=["-DEXTRALARGE_DATASET"],
+    compiler_options=[
+        "-fopenmp",
+        "-DEXTRALARGE_DATASET",
+    ],
     translator=Polly(),
 )
 
 gemm.compile()
 print(f"==== original: {gemm.measure()=}")
-for tile_size in [31, 100]:
+s = gemm.scops[1]
+for tile_size in [8, 15, 31, 63]:
     gemm.reset_scops()
+
     trs = [
-        # [0, 1, TrEnum.FULL_FUSE],
-        # [0, 2, TrEnum.FULL_FUSE],
-        [0, 7, TrEnum.TILE_2D, 32, 32],
+        [1, 2, TrEnum.FULL_SPLIT],
+        [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
     ]
+    # print(s.schedule_tree[0].yaml_str)
     gemm.transform_list(trs)
+    # for i, n in enumerate(s.schedule_tree):
+    #     a = n.available_transformations
+    #     print(i, end=" ")
+    #     if TrEnum.TILE_2D in a:
+    #         print("* ", end="")
+    #     print(a)
+
+    # print(s.schedule_tree[0].yaml_str)
     tiled = gemm.generate_code(alt_infix=f"_tiled{tile_size}", ephemeral=False)
 
     tiled.compile()
