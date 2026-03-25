@@ -395,6 +395,7 @@ _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   std::cout << "range: " << isl_set_to_str(range) << std::endl;
   std::cout << "bounded: " << isl_set_is_bounded(range) << std::endl;
 #endif // NDEBUG
+  range = isl_set_coalesce(range);
   range = isl_set_drop_unused_params(range);
   isl_set_foreach_point(range, _add_point, &set_list);
   isl_set_free(range);
