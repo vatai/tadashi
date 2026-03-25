@@ -270,7 +270,7 @@ class Polly(Translator):
         return options
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
-        compile_O0_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
+        compile_O0_bc = self.tmpdir / self.source.with_suffix(".O3.bc").name
         pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
