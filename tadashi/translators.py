@@ -288,7 +288,6 @@ class Polly(Translator):
         cmd = self._polly() + [
             str(self._get_pre_polly_bc(options)),
             "-polly-export-jscop",
-            f"-polly-import-jscop-dir={self.tmpdir}",
             "-o=/dev/null",
         ]
         proc = self._run(cmd, "exporting jscops")
@@ -388,7 +387,6 @@ class Polly(Translator):
         polly_cmd = self._polly() + [
             input_path,
             "-polly-import-jscop",
-            f"-polly-import-jscop-dir={self.tmpdir}",
             "-disable-polly-legality",
             # "-polly-codegen",
             f"-o={str(post_polly_bc)}",
