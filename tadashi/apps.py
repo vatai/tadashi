@@ -76,6 +76,7 @@ class App(abc.ABC):
     def reset_scops(self):
         for scop in self.scops:
             scop.reset()
+        self.translator.reset()
 
     @property
     def output_binary(self) -> Path:

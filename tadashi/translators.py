@@ -91,6 +91,9 @@ class Translator:
     def get_compiler(self) -> list[str]:
         raise NotImplementedError(ABC_ERROR_MSG)
 
+    def reset(self) -> None:
+        pass
+
 
 @cython.cclass
 class Pet(Translator):
@@ -372,7 +375,6 @@ class Polly(Translator):
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
-        self._export_jscops([])
         cmd = self._polly() + [
             input_path,
             "-polly-import-jscop",
@@ -445,3 +447,6 @@ class Polly(Translator):
     @cython.ccall
     def get_compiler(self) -> list[str]:
         return [self.compiler, "-O3"]
+
+    def reset(self) -> None:
+        self._export_jscops([])
