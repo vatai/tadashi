@@ -34,8 +34,8 @@ jobs:
     # - name: Run end2end.py
     #   run: python examples/end2end.py
 
-    - name: Run priority test
-      run: LOG_LEVEL=DEBUG python -m unittest --locals tests.test_apps.TestSimple.test_end2end_polly
+    # - name: Run priority test
+    #   run: LOG_LEVEL=DEBUG python -m unittest --locals tests.test_apps.TestSimple.test_end2end_polly
 
     - name: Run unittests
       run: python -m unittest -v --locals
