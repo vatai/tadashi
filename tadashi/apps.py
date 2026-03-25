@@ -158,8 +158,9 @@ class App(abc.ABC):
             print(f"stdout:\n{proc.stdout.decode()}")
             print(f"stderr:\n{proc.stderr.decode()}")
             print(f"retcode:\n{proc.returncode}")
-        self.logger.debug(f"{proc.stdout.decode()=}")
-        self.logger.debug(f"{proc.stderr.decode()=}")
+        if capture_output:
+            self.logger.debug(f"{proc.stdout.decode()=}")
+            self.logger.debug(f"{proc.stderr.decode()=}")
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
