@@ -1,5 +1,4 @@
 # distutils: language=c++
-import abc
 import datetime
 import json
 import logging
@@ -13,7 +12,6 @@ from pathlib import Path
 
 import cython
 from cython.cimports.libc.stdio import FILE, fclose, fopen
-from cython.cimports.libcpp.string import string
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
