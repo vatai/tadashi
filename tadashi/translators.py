@@ -372,6 +372,7 @@ class Polly(Translator):
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
+        self._export_jscops([])
         cmd = self._polly() + [
             input_path,
             "-polly-import-jscop",
