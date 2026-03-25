@@ -283,7 +283,7 @@ class Polly(Translator):
         return [
             f"-polly-import-jscop-dir={self.tmpdir}",
             "-aa-pipeline=basic-aa",
-            "-polly-use-llvm-names",
+            # "-polly-use-llvm-names",
             *options,
             "-polly-process-unprofitable",
         ]
