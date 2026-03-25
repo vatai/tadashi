@@ -26,14 +26,12 @@ def _get_args():
     parser.add_argument(
         "-a",
         "--args",
+        default=[],
         action="append",
         help="Args passed to the Polly/PET translator (can be used multiple times)",
     )
-    parser.add_argument("rest", nargs=argparse.REMAINDER)
-    args = parser.parse_args()
-    if not args.args:
-        # args.args = ["flang"]
-        args.args = []
+    args, rest = parser.parse_known_args()
+    args.rest = rest
     assert args.extension in "cf"
     return args
 
