@@ -391,7 +391,8 @@ class Polly(Translator):
             input_path,
             "-polly-import-jscop",
             "-disable-polly-legality",
-            # "-polly-codegen",
+            "-polly-parallel-force",
+            "-polly-codegen",
             f"-o={str(post_polly_bc)}",
         ]
         self._run(polly_cmd, "importing jscops")
