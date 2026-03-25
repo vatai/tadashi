@@ -29,6 +29,7 @@ def _get_args():
         action="append",
         help="Args passed to the Polly/PET translator (can be used multiple times)",
     )
+    parser.add_argument("rest", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if not args.args:
         # args.args = ["flang"]
@@ -51,7 +52,7 @@ def _mkapp(args, file):
     print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
     translator = cls(*args.args)
     cwd = str(Path(".").absolute())
-    app = Simple(file, translator=translator, compiler_options=[f"-I{cwd}"])
+    app = Simple(file, translator=translator, compiler_options=args.rest)
     return app
 
 
