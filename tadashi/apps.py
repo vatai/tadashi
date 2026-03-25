@@ -388,7 +388,6 @@ class Polybench(App):
             str(self.source),
             str(self.base / "utilities/polybench.c"),
             "-lm",
-            "-fopenmp",
             "-o",
             f"{self.output_binary}{suffix}",
             *self.app_required_options(),
