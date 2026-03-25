@@ -32,10 +32,14 @@ main() {
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
 
+  umap = isl_schedule_get_map(schedule);
+
   std::cout << "========================================" << std::endl;
+  std::cout << isl_union_map_to_str(umap) << std::endl;
   std::cout << "========================================" << std::endl;
   std::cout << "RESULS: " << isl_schedule_node_to_str(root) << std::endl;
   std::cout << "DONE!" << std::endl;
+  isl_union_map_free(umap);
   isl_schedule_free(schedule);
   isl_schedule_node_free(root);
   isl_ctx_free(ctx);
