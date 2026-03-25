@@ -157,20 +157,20 @@ collect_call_domains(struct pet_scop *scop) {
  */
 void
 ccScop::_pet_compute_live_out() {
-  isl_schedule *schedule;
+  isl_schedule *sched;
   isl_union_map *kills;
   isl_union_map *exposed;
   isl_union_map *covering;
   isl_union_access_info *access;
   isl_union_flow *flow;
 
-  schedule = isl_schedule_copy(this->schedule);
+  sched = isl_schedule_copy(this->schedule);
   kills = isl_union_map_union(isl_union_map_copy(this->must_writes),
                               isl_union_map_copy(this->must_kills));
   access = isl_union_access_info_from_sink(kills);
   access = isl_union_access_info_set_may_source(
       access, isl_union_map_copy(this->may_writes));
-  access = isl_union_access_info_set_schedule(access, schedule);
+  access = isl_union_access_info_set_schedule(access, sched);
   flow = isl_union_access_info_compute_flow(access);
   covering = isl_union_flow_get_full_may_dependence(flow);
   isl_union_flow_free(flow);
