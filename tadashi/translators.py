@@ -272,27 +272,46 @@ class Polly(Translator):
     def _sanitize(options: list[str]) -> list[str]:
         return options
 
+    def _polly(self) -> list[str]:
+        opt_cmd = ["opt"]
+        flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        proc = subprocess.run(opt_cmd + flags, stderr=subprocess.DEVNULL)
+        opt_cmd += ["-load=LLVMPolly.so"] if proc.returncode == 0 else []
+        return opt_cmd
+
+    def _polly_options(self, options: list[str]) -> list[str]:
+        return [
+            f"-polly-import-jscop-dir={self.tmpdir}",
+            "-aa-pipeline=basic-aa",
+            "-polly-use-llvm-names",
+            *options,
+            "-polly-process-unprofitable",
+        ]
+
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
-        compile_O0_bc = self.tmpdir / self.source.with_suffix(".O0.bc").name
         pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
+        compile_O0_bc = self.tmpdir / self.source.with_suffix(".O0.bc").name
         compiler_opts = self._compiler_options()
         sanitized = self._sanitize(options)
         compile_cmd = [self.compiler, *compiler_opts, *sanitized, "-c", "-emit-llvm"]
         compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
-        opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
+        opt_cmd = self._polly() + ["-polly-canonicalize"]
         opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
         self._run(opt_cmd, "running pre polly opt passes")
         return pre_polly_bc
 
     def _export_jscops(self, options: list[str]) -> str:
-        cmd = self._polly() + [
-            str(self._get_pre_polly_bc(options)),
+        input_path = str(self._get_pre_polly_bc(options))
+
+        opts = [
             "-polly-export-jscop",
+            input_path,
             "-o=/dev/null",
         ]
+        cmd = self._polly() + self._polly_options(opts)
         proc = self._run(cmd, "exporting jscops")
         return proc.stderr.decode()
 
@@ -362,24 +381,15 @@ class Polly(Translator):
                 return ["-O0", "-Xclang", "-disable-O0-optnone"]
         raise ValueError(f"Unsupported compiler: {self.compiler}")
 
-    def _polly(self):
-        opt_cmd = ["opt"]
-        flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subprocess.run(opt_cmd + flags, stderr=subprocess.DEVNULL)
-        opt_cmd += ["-load=LLVMPolly.so"] if proc.returncode == 0 else []
-        opt_cmd += [
-            "-polly-canonicalize",
-            f"-polly-import-jscop-dir={self.tmpdir}",
-        ]
-        return opt_cmd
-
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
-        cmd = self._polly() + [
+
+        opts = [
             input_path,
             "-polly-import-jscop",
             "-o=/dev/null",
         ]
+        cmd = self._polly() + self._polly_options(opts)
         try:
             self._run(cmd, "checking legality")
         except ValueError as e:
@@ -388,23 +398,29 @@ class Polly(Translator):
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_pre_polly_bc(options))
-        post_polly_bc = self.tmpdir / self.source.with_suffix(".post_opt.bc").name
+        post_polly_name = self.source.with_suffix(".post_polly.bc").name
+        post_polly_bc = str(self.tmpdir / post_polly_name)
 
-        polly_cmd = self._polly() + [
+        opts = [
             input_path,
             "-polly-import-jscop",
             "-disable-polly-legality",
             "-polly-parallel-force",
             "-polly-codegen",
-            f"-o={str(post_polly_bc)}",
+            f"-o={post_polly_bc}",
         ]
+        polly_cmd = self._polly() + self._polly_options(opts)
         self._run(polly_cmd, "importing jscops")
 
         output = self.tmpdir / self.source.with_suffix(".bc").name
 
-        opt_cmd = ["opt", f"-passes={self.after_polly_passes}"]
-        opt_cmd += [str(post_polly_bc), f"-o={str(output)}"]
-        opt_proc = self._run(opt_cmd, "running opt after jscops import")
+        opt_cmd = [
+            "opt",
+            "-O3",
+            post_polly_bc,
+            f"-o={str(output)}",
+        ]
+        self._run(opt_cmd, "running opt after jscops import")
         return output
 
     @cython.ccall
@@ -439,7 +455,7 @@ class Polly(Translator):
     def _compile_to_obj(self, output: Path, options: list[str]):
         output_path = Path(output).with_suffix(".o")
         input_path = str(self._import_jscops(options))
-        cmd = ["llc", "-relocation-model=pic", "--filetype=obj"]
+        cmd = ["llc", "-O3", "-relocation-model=pic", "--filetype=obj"]
         cmd += [input_path, f"-o={str(output_path)}"]
         self._run(cmd, "generating assembly")
         return output_path
