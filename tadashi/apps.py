@@ -379,6 +379,7 @@ class Polybench(App):
             f"-I{self.base / 'utilities'}",
             "-DPOLYBENCH_TIME",
             "-DPOLYBENCH_USE_RESTRICT",
+            *self.user_compiler_options,
         ]
 
     def compile_cmd(self, suffix) -> list[str]:
