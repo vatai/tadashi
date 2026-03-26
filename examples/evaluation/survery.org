@@ -1,0 +1,22 @@
+#+title: Summary of all the apps tried
+
+* miniAMR
+- Works with PET backend
+
+* SNbone
+- Small scop with Polly backend
+
+* FS2020-TAPP-kernels
+- 3 are C, at least 2 work with Polly backend
+
+* miniFE
+- Works with Polly but the scops seem too small
+
+* ExaMiniMD
+- Can't parse because it Kokkos (maybe read and build)
+
+* ExaMPM
+- Needs dependecies (maybe read and build)
+
+* SWFFT
+- Needs okish scops in distribution.c (needs fftw as a dependency, didn't build yet)
