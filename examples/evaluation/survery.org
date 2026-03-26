@@ -20,3 +20,6 @@
 
 * SWFFT
 - Needs okish scops in distribution.c (needs fftw as a dependency, didn't build yet)
+
+* miniTRI
+- Spars/graph code. Scops are too small
