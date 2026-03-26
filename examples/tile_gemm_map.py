@@ -46,13 +46,14 @@ def main():
         ] for ts in tile_sizes]
         print(f"{[kwargs] * len(trs)=}")
         print(f"{trs=}")
-        futures = pool.map(remote_measure, [kwargs] * len(trs), trs)
+        print(f"{trs[0]=}")
+        futures = pool.starmap(remote_measure, zip([kwargs] * len(trs), trs))
 
     app = app_from_kwargs(kwargs)
     app.compile()
     print(f"==== original: {app.measure()=}")
-    for f in as_completed(futures):
-        print(f"**** {f.result()=}")
+    for f in futures:
+        print(f"**** {f}")
 
     print("[END]")
 
