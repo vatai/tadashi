@@ -10,12 +10,11 @@ from tadashi.translators import Polly
 
 
 def app_from_kwargs(kwargs):
-    cls = kwargs["translator"]
-    kwargs["translator"] = cls()
+    kwargs["translator"] = Polly()
     return Polybench(**kwargs)
 
 
-def remote_measure(kwargs, trs):
+def remote_measure(kwargs, trs, tile_size):
     print(f"{trs=}")
     hostname = socket.gethostname()
     print(f"{hostname=}")
@@ -34,7 +33,6 @@ def main():
             "-fopenmp",
             "-DEXTRALARGE_DATASET",
         ],
-        "translator": Polly,
     }
     app = app_from_kwargs(kwargs)
 
@@ -45,7 +43,8 @@ def main():
                 [1, 2, TrEnum.FULL_SPLIT],
                 [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
             ]
-            futures.append(executor.submit(remote_measure(kwargs, trs)))
+            future = executor.submit(remote_measure, kwargs, trs, tile_size)
+            futures.append(future)
 
     app.compile()
     print(f"==== original: {app.measure()=}")
