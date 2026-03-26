@@ -3,14 +3,13 @@ import multiprocessing
 import re
 from ast import literal_eval
 from collections import namedtuple
-from dataclasses import dataclass
-from enum import Enum, StrEnum, auto
-from typing import Tuple
+from enum import Enum, auto
 
 import cython
-from cython.cimports.tadashi import isl, pet, transformations
+from cython.cimports.tadashi import isl
 from cython.cimports.tadashi.ccscop import ccScop
 
+from . import TrEnum
 from . import _tr_wrappers as w
 from .node_type import NodeType
 
@@ -52,32 +51,6 @@ arguments for transformations. `None` indicates no upper/lower bound.
 
 
 CAMEL_TO_SNAKE = re.compile(r"(?<=[a-z])(?=[A-Z0-9])")
-
-
-class TrEnum(StrEnum):
-    """Enums of implemented transformations.
-
-    One of these enums needs to be passed to `Node.transform()` (with
-    args) to perform the transformation.
-    """
-
-    TILE_1D = auto()
-    TILE_2D = auto()
-    TILE_3D = auto()
-    INTERCHANGE = auto()
-    FULL_FUSE = auto()
-    FUSE = auto()
-    FULL_SPLIT = auto()
-    SPLIT = auto()
-    SCALE = auto()
-    FULL_SHIFT_VAL = auto()
-    PARTIAL_SHIFT_VAL = auto()
-    FULL_SHIFT_VAR = auto()
-    PARTIAL_SHIFT_VAR = auto()
-    FULL_SHIFT_PARAM = auto()
-    PARTIAL_SHIFT_PARAM = auto()
-    SET_PARALLEL = auto()
-    SET_LOOP_OPT = auto()
 
 
 @cython.cclass

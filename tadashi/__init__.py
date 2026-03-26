@@ -1,8 +1,34 @@
 #!/bin/env python
 import logging
 import os
+from enum import StrEnum, auto
 
-from .scop import TrEnum
+
+class TrEnum(StrEnum):
+    """Enums of implemented transformations.
+
+    One of these enums needs to be passed to `Node.transform()` (with
+    args) to perform the transformation.
+    """
+
+    TILE_1D = auto()
+    TILE_2D = auto()
+    TILE_3D = auto()
+    INTERCHANGE = auto()
+    FULL_FUSE = auto()
+    FUSE = auto()
+    FULL_SPLIT = auto()
+    SPLIT = auto()
+    SCALE = auto()
+    FULL_SHIFT_VAL = auto()
+    PARTIAL_SHIFT_VAL = auto()
+    FULL_SHIFT_VAR = auto()
+    PARTIAL_SHIFT_VAR = auto()
+    FULL_SHIFT_PARAM = auto()
+    PARTIAL_SHIFT_PARAM = auto()
+    SET_PARALLEL = auto()
+    SET_LOOP_OPT = auto()
+
 
 # Format
 FORMAT = "[%(filename)s:%(lineno)s - %(name)s::%(funcName)s() ] %(message)s"
