@@ -14,11 +14,7 @@ def app_from_kwargs(kwargs):
     return Polybench(**kwargs)
 
 
-def remote_measure(kwargs, tile_size):
-    trs = [
-        [1, 2, TrEnum.FULL_SPLIT],
-        [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
-    ]
+def remote_measure(kwargs, trs, tile_size):
     print(f"{trs=}")
     hostname = socket.gethostname()
     print(f"{hostname=}")
@@ -27,7 +23,7 @@ def remote_measure(kwargs, tile_size):
     tapp = app.generate_code(alt_infix=f"_tiled{tile_size}{hostname}", ephemeral=False)
     tapp.compile()
     rv = tapp.measure()
-    return rv
+    return rv, hostname
 
 
 def main():
@@ -48,7 +44,7 @@ def main():
                 [1, 2, TrEnum.FULL_SPLIT],
                 [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
             ]
-            future = executor.submit(remote_measure, kwargs, tile_size)
+            future = executor.submit(remote_measure, kwargs, trs, tile_size)
             futures.append(future)
 
     app = app_from_kwargs(kwargs)
