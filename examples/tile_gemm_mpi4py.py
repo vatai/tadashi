@@ -23,6 +23,7 @@ def remote_measure(kwargs, tile_size):
     hostname = socket.gethostname()
     print(f"{hostname=}")
     app = app_from_kwargs(kwargs)
+    app.transform_list(trs)
     tapp = app.generate_code(alt_infix=f"_tiled{tile_size}{hostname}", ephemeral=False)
     tapp.compile()
     rv = tapp.measure()
