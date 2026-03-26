@@ -49,7 +49,6 @@ def _mkapp(args, file):
     cls = Pet if args.pet else Polly
     print(f"{cls.__name__}({", ".join(args.args)}) for {str(file)}")
     translator = cls(*args.args)
-    cwd = str(Path(".").absolute())
     app = Simple(file, translator=translator, compiler_options=args.rest)
     return app
 
