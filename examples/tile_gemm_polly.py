@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import tadashi
 from tadashi import TrEnum
 from tadashi.apps import Polybench
