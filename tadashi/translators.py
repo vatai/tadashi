@@ -324,10 +324,14 @@ class Polly(Translator):
                 continue
             match = pat.search(t)
             if not match:
-                raise ValueError(
-                    f"Something is wrong with `opt` output. "
-                    + "Please raise an issue and mention this!\n{stderr}"
-                )
+                lines = [
+                    "Something is wrong with `opt` output. ",
+                    "Please raise an issue and mention this!",
+                    f"{stderr}",
+                    "The line that didn't match:",
+                    f"{t}",
+                ]
+                raise ValueError("\n".join(lines))
             file = match.group(1)
             json_paths.append(Path(file))
         return json_paths
