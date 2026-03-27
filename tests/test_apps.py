@@ -158,5 +158,6 @@ class TestPolybench(TestApp):
         app = apps.Polybench("gemm", translator=Polly())
         idx = len(app.scops) // 2  # difference between CI and home
         node = app.scops[idx].schedule_tree[2]
-        legal = node.transform(TrEnum.FULL_SPLIT)
+        node.transform(TrEnum.FULL_SPLIT)
         tapp = app.generate_code()
+        tapp.measure()
