@@ -1,25 +1,65 @@
 #+title: Summary of all the apps tried
+#+COLUMNS: %ITEM %GOODNES
 
-* miniAMR
+* Benchmarks
+:PROPERTIES:
+:ID: benchmarks
+:END:
+** miniAMR
+:PROPERTIES:
+:GOODNES:  good
+:END:
 - Works with PET backend
 
-* SNbone
+** SNbone
+:PROPERTIES:
+:GOODNES:  maybe
+:END:
 - Small scop with Polly backend
 
-* FS2020-TAPP-kernels
+** FS2020-TAPP-kernels
+:PROPERTIES:
+:GOODNES:  maybe
+:END:
 - 3 are C, at least 2 work with Polly backend
 
-* miniFE
-- Works with Polly but the scops seem too small
-
-* ExaMiniMD
-- Can't parse because it Kokkos (maybe read and build)
-
-* ExaMPM
-- Needs dependecies (maybe read and build)
-
-* SWFFT
+** SWFFT
 - Needs okish scops in distribution.c (needs fftw as a dependency, didn't build yet)
 
-* miniTRI
+** ExaMPM
+- Needs dependecies (maybe read and build)
+
+** miniFE
+:PROPERTIES:
+:GOODNES:  not really
+:END:
+- Works with Polly but the scops seem too small
+
+** ExaMiniMD
+:PROPERTIES:
+:GOODNES:  maybe (kokkos)
+:END:
+- Can't parse because it Kokkos (maybe read and build)
+
+** miniTRI
+:PROPERTIES:
+:GOODNES:  too small
+:END:
 - Spars/graph code. Scops are too small
+
+** Lagosh
+
+* Summary
+#+begin: columnview :hlines nil :id benchmarks
+| ITEM                | GOODNES        |
+|---------------------+----------------|
+| Benchmarks          |                |
+| miniAMR             | good           |
+| SNbone              | maybe          |
+| FS2020-TAPP-kernels | maybe          |
+| SWFFT               |                |
+| ExaMPM              |                |
+| miniFE              | not really     |
+| ExaMiniMD           | maybe (kokkos) |
+| miniTRI             | too small      |
+#+end:
