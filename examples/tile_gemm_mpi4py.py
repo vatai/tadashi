@@ -6,19 +6,14 @@ import socket
 from mpi4py.futures import MPIPoolExecutor, as_completed
 from tadashi import TrEnum
 from tadashi.apps import Polybench
-from tadashi.translators import Polly
+from tadashi.translators import Pet, Polly
 
 
-def app_from_kwargs(kwargs):
-    kwargs["translator"] = Polly()
-    return Polybench(**kwargs)
-
-
-def remote_measure(kwargs, trs, tile_size):
+def remote_measure(cls, kwargs, trs, tile_size):
     print(f"{trs=}")
     hostname = socket.gethostname()
     print(f"{hostname=}")
-    app = app_from_kwargs(kwargs)
+    app = cls.mkapp(kwargs)
     app.transform_list(trs)
     tapp = app.generate_code(alt_infix=f"_tiled{tile_size}{hostname}", ephemeral=False)
     tapp.compile()
@@ -35,6 +30,7 @@ def main():
             "-fopenmp",
             "-DEXTRALARGE_DATASET",
         ],
+        "translator": "Polly",
     }
 
     futures = []
@@ -44,10 +40,10 @@ def main():
                 [1, 2, TrEnum.FULL_SPLIT],
                 [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
             ]
-            future = executor.submit(remote_measure, kwargs, trs, tile_size)
+            future = executor.submit(remote_measure, Polybench, kwargs, trs, tile_size)
             futures.append(future)
 
-    app = app_from_kwargs(kwargs)
+    app = Polybench.mkapp(kwargs)
     app.compile()
     print(f"==== original: {app.measure()=}")
     for f in as_completed(futures):

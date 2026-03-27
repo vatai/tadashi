@@ -13,7 +13,7 @@ from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
 from .scop import Scop
-from .translators import Pet, Translator
+from .translators import Pet, Polly, Translator
 
 
 class App(abc.ABC):
@@ -48,6 +48,22 @@ class App(abc.ABC):
                 self.source.unlink()
             else:
                 print("WARNING: source file missing!")
+
+    @classmethod
+    def mkapp(cls, kwargs: dict):
+        cls_dict = {"Polly": Polly, "Pet": Pet}
+
+        tr_key = "translator"
+        tr_cls = cls_dict[kwargs[tr_key]]
+
+        tp_key = "translator_params"
+        if tp_key in kwargs:
+            params = kwargs[tp_key]
+            del kwargs[tp_key]
+            kwargs[tr_key] = tr_cls(params)
+        else:
+            kwargs[tr_key] = tr_cls()
+        return cls(**kwargs)
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
