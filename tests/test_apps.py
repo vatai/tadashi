@@ -156,6 +156,8 @@ class TestPolybench(TestApp):
 
     def test_end2end_polly(self):
         app = apps.Polybench("gemm", translator=Polly())
+        for i, s in enumerate(app.scops):
+            print(i, s.schedule_tree[0].yaml_str)
         node = app.scops[-1].schedule_tree[2]
         legal = node.transform(TrEnum.FULL_FUSE)
         tapp = app.generate_code()
