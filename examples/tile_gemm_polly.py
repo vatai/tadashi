@@ -20,7 +20,7 @@ gemm = Polybench(
 gemm.compile()
 print(f"==== original: {gemm.measure()=}")
 s = gemm.scops[1]
-for tile_size in [8, 15, 31, 63]:
+for tile_size in [19, 20, 21]:
     gemm.reset_scops()
 
     trs = [

@@ -6,7 +6,6 @@ from pathlib import Path
 from subprocess import DEVNULL, PIPE, CompletedProcess, run
 from typing import Optional
 
-from colorama import Fore as CF
 from tadashi import TrEnum
 from tadashi.apps import App
 from tadashi.translators import Translator
