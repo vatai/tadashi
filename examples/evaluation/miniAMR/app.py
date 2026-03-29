@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import os
 import re
+import sys
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CompletedProcess, run
 from typing import Optional
@@ -10,6 +12,16 @@ from tadashi.apps import App
 from tadashi.translators import Translator
 
 BASE_PATH = Path(__file__).parent / "miniAMR/ref"
+
+ml4tadashi = os.path.dirname(__file__)
+ml4tadashi = os.path.dirname(ml4tadashi)
+ml4tadashi = os.path.dirname(ml4tadashi)
+ml4tadashi = os.path.dirname(ml4tadashi)
+sys.path.append(ml4tadashi)
+ml4tadashi = os.path.join(ml4tadashi, "ML4TADASHI")
+sys.path.append(ml4tadashi)
+
+import ML4TADASHI
 
 
 class miniAMR(App):
@@ -106,7 +118,6 @@ class miniAMR(App):
         return cmd
 
     def extract_runtime(self, proc: CompletedProcess) -> float:
-        print(f"{type(proc)=}")
         stdout = proc.stdout.decode()
         lines = stdout.split("\n")
         # scop_idx_check = set([])
@@ -120,7 +131,7 @@ class miniAMR(App):
         raise Exception("No output found")
 
 
-def main():
+def main2():
     scop_idx = 0
     app = miniAMR(
         num_ranks=6,
@@ -179,6 +190,17 @@ def main():
         print(f"{speedup=}")
 
     print("done")
+
+
+def main():
+    npz, npx = 1, 1
+    kwargs = {
+        "num_ranks": npz * npx,
+        "run_args": ["--nx", "10", "--ny", "10", "--nz", "82"]
+        + ["--npz", str(npz), "--npx", str(npx)],
+        "translator": "Pet",
+    }
+    ML4TADASHI.run(miniAMR, kwargs)
 
 
 if __name__ == "__main__":
