@@ -54,9 +54,10 @@ class miniAMR(App):
 
     @staticmethod
     def _mpich_includes():
-        if not which("mpicc"):
+        compiler = "mpicc"
+        if not which(compiler):
             return []
-        cmds = ["mpicc", "-compile_info"]
+        cmds = [compiler, "-compile_info"]
         result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
         if result.returncode == 1:
             return []
@@ -84,6 +85,17 @@ class miniAMR(App):
             if line.startswith("#include <"):
                 collect = True
         return include_paths
+
+    @staticmethod
+    def _mpifcc_includes():
+        compiler = "mpifcc"
+        if not which(compiler):
+            return []
+        result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
+        if result.returncode == 1:
+            return []
+        stdout = result.stdout.decode()
+        return list(stdout.split())
 
     def codegen_init_args(self):
         return {
