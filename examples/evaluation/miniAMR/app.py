@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from shutil import which
 from subprocess import DEVNULL, PIPE, CompletedProcess, run
 from typing import Optional
 
@@ -53,7 +54,9 @@ class miniAMR(App):
 
     @staticmethod
     def _mpich_includes():
-        cmd = ["mpicc", "-compile_info"]
+        if not which("mpicc"):
+            return []
+        cmds = ["mpicc", "-compile_info"]
         result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
         if result.returncode == 1:
             return []
@@ -64,6 +67,8 @@ class miniAMR(App):
 
     @staticmethod
     def _gcc_includes(compiler):
+        if not which(compiler):
+            return []
         cmd = [compiler, "-xc", "-E", "-v", "/dev/null"]
         result = run(cmd, stdout=DEVNULL, stderr=PIPE, check=False)
         if result.returncode == 1:
