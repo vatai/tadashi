@@ -400,6 +400,9 @@ _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
   range = isl_set_coalesce(range);
   range = isl_set_drop_unused_params(range);
   range = isl_set_project_out_all_params(range);
+#ifndef NDEBUG
+  std::cout << "range: " << isl_set_to_str(range) << std::endl;
+#endif // NDEBUG
   isl_set_foreach_point(range, _add_point, &set_list);
   isl_set_free(range);
   isl_size n_points = isl_set_list_size(set_list);
