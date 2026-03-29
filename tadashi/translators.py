@@ -285,7 +285,7 @@ class Polly(Translator):
             "-aa-pipeline=basic-aa",
             # "-polly-use-llvm-names",
             *options,
-            "-polly-process-unprofitable",
+            # "-polly-process-unprofitable",
         ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
