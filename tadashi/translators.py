@@ -453,7 +453,7 @@ class Polly(Translator):
             stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
             isl.isl_union_map_free(stmt_map)
         with jscop_path.open("w", encoding="utf-8") as f:
-            json.dump(jscop, f, indent=2)
+            json.dump(jscop, f, indent=3)
         isl.isl_union_map_free(umap)
 
     def _compile_to_obj(self, output: Path, options: list[str]):
