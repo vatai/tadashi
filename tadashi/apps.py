@@ -172,7 +172,7 @@ class App(abc.ABC):
         # if log_level is high (e.g. critical) then capture = don't print.
         capture_output = self.logger.getEffectiveLevel() > logging.DEBUG
         proc = run(cmd, capture_output=capture_output)
-        if proc.returncode != 0:
+        if proc.returncode != 0 and capture_output:
             print(f"stdout:\n{proc.stdout.decode()}")
             print(f"stderr:\n{proc.stderr.decode()}")
             print(f"retcode:\n{proc.returncode}")
