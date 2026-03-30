@@ -55,6 +55,7 @@ class App(abc.ABC):
 
         tr_key = "translator"
         tr_cls = cls_dict[kwargs[tr_key]]
+        kwargs = {**kwargs}
 
         tp_key = "translator_params"
         if tp_key in kwargs:
