@@ -14,7 +14,8 @@ set -e
 export TMPDIR=/worktmp
 export LD_PRELOAD=/usr/lib/FJSVtcs/ple/lib64/libpmix.so 
 
-#source /home/apps/oss/llvm-v19.1.4/init.sh		  
-module load LLVM/llvmorg-21.1.0
+# miniAMR uses Pet (don't load LLVM!)
+# source /home/apps/oss/llvm-v19.1.4/init.sh		  
+# module load LLVM/llvmorg-21.1.0
 
 mpirun -n 1 python -u app.py --n-threads 2 --method FugakuEvoTADASHI --population-size 4 --max-gen 5

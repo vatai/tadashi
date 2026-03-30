@@ -89,13 +89,15 @@ class miniAMR(App):
     @staticmethod
     def _mpifcc_includes():
         compiler = "mpifcc"
+        cmd = [compiler, "--print-file-name=include"]
         if not which(compiler):
             return []
         result = run(cmd, stdout=PIPE, stderr=DEVNULL, check=False)
         if result.returncode == 1:
             return []
         stdout = result.stdout.decode()
-        return list(stdout.split())
+        includes = [f"-I{inc}/mpi/fujitsu" for inc in stdout.split()]
+        return includes
 
     def codegen_init_args(self):
         return {
@@ -109,6 +111,7 @@ class miniAMR(App):
             self._mpich_includes()
             + self._gcc_includes("gcc")
             + self._gcc_includes("mpicc")
+            + self._mpifcc_includes()
         )
 
     def compile_cmd(self, suffix: str) -> list[str]:
