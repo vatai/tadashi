@@ -32,6 +32,7 @@ class miniAMR(App):
         num_ranks: int,
         run_args: Optional[list[str]] = None,
         base: Path = BASE_PATH,
+        mpicc: None,
         *,
         source: Path = BASE_PATH / "stencil.c",
         translator: Optional[Translator] = None,
@@ -43,6 +44,7 @@ class miniAMR(App):
         self.num_ranks = num_ranks
         if not run_args:
             run_args = []
+        self.mpicc = mpicc
         self.run_args = run_args
         super().__init__(
             source=source,
@@ -119,6 +121,8 @@ class miniAMR(App):
             f"STENCIL={self.source.with_suffix('').name}",
             f"EXEC={self.output_binary.name}",
         ]
+        if self.mpicc:
+            cmd += [f"CC={self.mpicc}",f"LD={self.mpicc}"]
         return cmd
 
     def run_cmd(self) -> list[str]:
