@@ -124,7 +124,7 @@ class miniAMR(App):
         ]
         mpifcc = "mpifcc"
         if which(mpifcc):
-            cmd += [f"CC={mpficc}", f"LD={mpifcc}"]
+            cmd += [f"CC={mpifcc}", f"LD={mpifcc}"]
         return cmd
 
     def run_cmd(self) -> list[str]:
