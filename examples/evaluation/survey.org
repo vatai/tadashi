@@ -128,7 +128,7 @@ use -DREAL_4=real -DMAXCOLOR=100
 
 *** TODO NICAM.vi_rhow_solver.20160902
 :PROPERTIES:
-:GOODNES:  TODO!!!!!
+:GOODNES:  READY!!!!!
 :END:
 
 *** TODO QCD.ddd_in_s_.20170621
