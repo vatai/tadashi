@@ -21,9 +21,9 @@
 | DONE | NICAM.Horizontal_Adv_limiter.20170407 | no scops         |
 | DONE | NICAM.Vertical_Adv_limiter.20160902   | no scops         |
 | DONE | NICAM.diffusion.20170220 (f90)        | 1.005x speedup   |
-| TODO | NICAM.divdamp.20170420                | TODO!!!!!        |
-| TODO | NICAM.vi_rhow_solver.20160902         | TODO!!!!!        |
-| TODO | QCD.ddd_in_s_.20170621                |                  |
+| TODO | NICAM.divdamp.20170420                | READY!!!!!       |
+| TODO | NICAM.vi_rhow_solver.20160902         | READY!!!!!       |
+| TODO | QCD.ddd_in_s_.20170621                | READY!!!!!       |
 | DONE | QCD.jinv_ddd_in_s_.20170720           | clang fails      |
 | DONE | streamlike_pattern1                   | no scops         |
 | DONE | streamlike_pattern2                   | no scops         |
@@ -132,6 +132,10 @@ use -DREAL_4=real -DMAXCOLOR=100
 :END:
 
 *** TODO QCD.ddd_in_s_.20170621
+:PROPERTIES:
+:GOODNES:  READY!!!!!
+:END:
+
 *** DONE QCD.jinv_ddd_in_s_.20170720
 :PROPERTIES:
 :GOODNES:  clang fails
