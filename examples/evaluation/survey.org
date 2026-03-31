@@ -1,38 +1,153 @@
 #+title: Summary of all the apps tried
-#+COLUMNS: %ITEM %GOODNES
+#+COLUMNS: %TODO %ITEM %GOODNES
 
 * Summary
 #+begin: columnview :hlines nil :id benchmarks
-| ITEM                  | GOODNES        |
-|-----------------------+----------------|
-| Benchmarks            |                |
-| FS2020 NICAM (f90)    | running        |
-| FS2020 adventure0 (C) | running        |
-| miniAMR               | good           |
-| SNbone                | maybe          |
-| SWFFT                 | maybe          |
-| ExaMPM                |                |
-| ExaMiniMD             | maybe (kokkos) |
-| miniFE                | too small      |
-| miniTRI               | too small      |
-| Lagosh                | no             |
+| TODO | ITEM                                  | GOODNES          |
+|------+---------------------------------------+------------------|
+|      | Benchmarks                            |                  |
+|      | FS2020                                |                  |
+| DONE | Adventure.region0.20170821 (C)        | 1.049x speedup   |
+| DONE | Adventure.region1.20160808            | no scops         |
+| TODO | Adventure.region2.20170727            | TODO!!!!!        |
+| DONE | FFB.callap_kernel2.20160805           | no scops         |
+| DONE | FFB.spmmv_vec8.20170509               | no scops         |
+| TODO | GAMERA.TIMER_COMP_MATVEC_IF           | TODO!!!!!        |
+| DONE | GENESIS.PairList_July                 | no scops         |
+| DONE | GENESIS.PairList_June                 | no scops         |
+| DONE | GENESIS.kernel_July                   | no scops         |
+| DONE | GENESIS.kernel_June                   | no scops         |
+| DONE | NICAM.Horizontal_Adv_flux.20170418    | no scops         |
+| DONE | NICAM.Horizontal_Adv_limiter.20170407 | no scops         |
+| DONE | NICAM.Vertical_Adv_limiter.20160902   | no scops         |
+| DONE | NICAM.diffusion.20170220 (f90)        | 1.005x speedup   |
+| TODO | NICAM.divdamp.20170420                | TODO!!!!!        |
+| TODO | NICAM.vi_rhow_solver.20160902         | TODO!!!!!        |
+| TODO | QCD.ddd_in_s_.20170621                |                  |
+| DONE | QCD.jinv_ddd_in_s_.20170720           | clang fails      |
+| DONE | streamlike_pattern1                   | no scops         |
+| DONE | streamlike_pattern2                   | no scops         |
+| DONE | streamlike_pattern3                   | no scops         |
+|      | miniAMR                               | good             |
+|      | SWFFT                                 | maybe            |
+|      | ExaMPM                                |                  |
+|      | ExaMiniMD                             | maybe (kokkos)   |
+|      | miniFE                                | too small        |
+|      | miniTRI                               | too small        |
+|      | Lagosh                                | no               |
+|      | SNbone                                | no scops         |
+|      | CoMD                                  | no scops         |
+|      | miniGHOST (f)                         | no scops         |
+|      | E3SM                                  | no scops         |
+|      | NEKbone (f)                           | no scops         |
+|      | minq (c++)                            | big dependency   |
+|      | HPGMG                                 | broken           |
+|      | kripke                                | broken url       |
+|      | ntchem kernel from William            | no scops (WTF!?) |
+|      | hypre-mini-app                        | not building     |
+|      | VPFFT                                 | not building     |
 #+end:
 
 * Benchmarks
 :PROPERTIES:
 :ID: benchmarks
 :END:
-** FS2020 NICAM (f90)
-:PROPERTIES:
-:GOODNES:  1.005x speedup
-:END:
-
-** FS2020 adventure0 (C)
+** FS2020
+*** DONE Adventure.region0.20170821 (C)
 :PROPERTIES:
 :GOODNES:  1.049x speedup
 :END:
 - 3 are C, at least 2 work with Polly backend
 
+*** DONE Adventure.region1.20160808
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** TODO Adventure.region2.20170727
+:PROPERTIES:
+:GOODNES:  TODO!!!!!
+:END:
+*** DONE FFB.callap_kernel2.20160805
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE FFB.spmmv_vec8.20170509
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** TODO GAMERA.TIMER_COMP_MATVEC_IF
+:PROPERTIES:
+:GOODNES:  TODO!!!!!
+:END:
+use -DREAL_4=real -DMAXCOLOR=100
+
+*** DONE GENESIS.PairList_July
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE GENESIS.PairList_June
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE GENESIS.kernel_July
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE GENESIS.kernel_June
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE NICAM.Horizontal_Adv_flux.20170418
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.Horizontal_Adv_limiter.20170407
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.Vertical_Adv_limiter.20160902
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.diffusion.20170220 (f90)
+:PROPERTIES:
+:GOODNES:  1.005x speedup
+:END:
+
+*** TODO NICAM.divdamp.20170420
+:PROPERTIES:
+:GOODNES:  TODO!!!!!
+:END:
+
+*** TODO NICAM.vi_rhow_solver.20160902
+:PROPERTIES:
+:GOODNES:  TODO!!!!!
+:END:
+
+*** TODO QCD.ddd_in_s_.20170621
+*** DONE QCD.jinv_ddd_in_s_.20170720
+:PROPERTIES:
+:GOODNES:  clang fails
+:END:
+*** DONE streamlike_pattern1
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE streamlike_pattern2
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE streamlike_pattern3
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
 ** miniAMR
 :PROPERTIES:
 :GOODNES:  good
@@ -110,7 +225,29 @@
 :PROPERTIES:
 :GOODNES:  broken
 :END:
+
 ** kripke
 :PROPERTIES:
 :GOODNES:  broken url
 :END:
+
+** ntchem kernel from William
+:PROPERTIES:
+:GOODNES:  no scops (WTF!?)
+:END:
+
+** hypre-mini-app
+:PROPERTIES:
+:GOODNES:  not building
+:END:
+
+- I get a bunch of error even with clang -O0
+
+** VPFFT
+:PROPERTIES:
+:GOODNES:  not building
+:END:
+- needs deps (eigen)
+
+
+
