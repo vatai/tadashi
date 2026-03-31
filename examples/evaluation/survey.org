@@ -9,10 +9,10 @@
 |      | FS2020                                |                  |
 | DONE | Adventure.region0.20170821 (C)        | 1.049x speedup   |
 | DONE | Adventure.region1.20160808            | no scops         |
-| TODO | Adventure.region2.20170727            | TODO!!!!!        |
+| DONE | Adventure.region2.20170727            | infinite loop    |
 | DONE | FFB.callap_kernel2.20160805           | no scops         |
 | DONE | FFB.spmmv_vec8.20170509               | no scops         |
-| TODO | GAMERA.TIMER_COMP_MATVEC_IF           | TODO!!!!!        |
+| DONE | GAMERA.TIMER_COMP_MATVEC_IF           | infinite loop    |
 | DONE | GENESIS.PairList_July                 | no scops         |
 | DONE | GENESIS.PairList_June                 | no scops         |
 | DONE | GENESIS.kernel_July                   | no scops         |
@@ -63,9 +63,9 @@
 :PROPERTIES:
 :GOODNES:  no scops
 :END:
-*** TODO Adventure.region2.20170727
+*** DONE Adventure.region2.20170727
 :PROPERTIES:
-:GOODNES:  TODO!!!!!
+:GOODNES:  infinite loop
 :END:
 *** DONE FFB.callap_kernel2.20160805
 :PROPERTIES:
@@ -77,9 +77,9 @@
 :GOODNES:  no scops
 :END:
 
-*** TODO GAMERA.TIMER_COMP_MATVEC_IF
+*** DONE GAMERA.TIMER_COMP_MATVEC_IF
 :PROPERTIES:
-:GOODNES:  TODO!!!!!
+:GOODNES:  infinite loop
 :END:
 use -DREAL_4=real -DMAXCOLOR=100
 
