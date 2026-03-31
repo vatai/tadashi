@@ -123,7 +123,7 @@ use -DREAL_4=real -DMAXCOLOR=100
 
 *** TODO NICAM.divdamp.20170420
 :PROPERTIES:
-:GOODNES:  TODO!!!!!
+:GOODNES:  READY!!!!!
 :END:
 
 *** TODO NICAM.vi_rhow_solver.20160902
