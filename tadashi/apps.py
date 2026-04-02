@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import abc
+import atexit
 import copy
 import datetime
 import logging
@@ -41,7 +42,7 @@ class App(abc.ABC):
 
     """
 
-    def __del__(self):
+    def _cleanup(self):
         if self.ephemeral:
             binary = self.output_binary
             self.logger.debug(f"Deleting {binary=} ({binary.exists()=})")
@@ -227,6 +228,7 @@ class App(abc.ABC):
             derived/overridden. Maybe even convert App to a proper ABC.
 
         """
+        atexit.register(self._cleanup)
         self.source = Path(source)
         if compiler_options is None:
             compiler_options = []
