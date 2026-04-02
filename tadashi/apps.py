@@ -19,6 +19,9 @@ from .translators import Pet, Polly, Translator
 class App(abc.ABC):
     """The (abstract) base class for app objects."""
 
+    source: Path
+    """The source file being manipulated by the app object."""
+
     user_compiler_options: list[str]
     """User compiler options are passed to the compilation command."""
 
