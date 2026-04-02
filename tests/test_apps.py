@@ -64,7 +64,7 @@ class TestSimple(TestApp):
                 app = apps.Simple(input_file, Pet())
                 tapp = app.generate_code(ensure_legality=False, ephemeral=ephemeral)
                 file_path = tapp.source
-                del tapp
+                tapp._cleanup()  # called at exit
                 file_exists = file_path.exists()
                 if file_exists:
                     file_path.unlink()
