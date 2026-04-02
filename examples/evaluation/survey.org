@@ -152,13 +152,6 @@ use -DREAL_4=real -DMAXCOLOR=100
 :PROPERTIES:
 :GOODNES:  no scops
 :END:
-** miniAMR
-:PROPERTIES:
-:GOODNES:  good
-:END:
-- Works with PET backend
-- Need to run it with old evotadashi (not mpi4py enabled one)
-
 ** SWFFT
 :PROPERTIES:
 :GOODNES:  maybe
@@ -253,5 +246,19 @@ use -DREAL_4=real -DMAXCOLOR=100
 :END:
 - needs deps (eigen)
 
+** miniAMR
+:PROPERTIES:
+:GOODNES:  good
+:END:
+- Works with PET backend
+- Need to run it with old evotadashi (not mpi4py enabled one)
 
+** CloverLeaf_ref
+:PROPERTIES:
+:GOODNES:  good
+:END:
 
+** sw4lite
+:PROPERTIES:
+:GOODNES:  good
+:END:
