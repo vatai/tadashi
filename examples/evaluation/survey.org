@@ -59,16 +59,93 @@
 - Works with PET backend
 - Need to run it with old evotadashi (not mpi4py enabled one)
 
-** TODO CloverLeaf_ref
-:PROPERTIES:
-:GOODNES:  good
-:END:
-advec_mom_kernel
 ** TODO sw4lite
 :PROPERTIES:
 :GOODNES:  good
 :END:
 will need clang
+** HPGMG
+:PROPERTIES:
+:GOODNES:  broken
+:END:
+#+begin_example
+vatai@niku ../evaluation/hpgmg/finite-volume/source (git)-[master] % scop-detector . -e c -DUSE_JACOBI
+Polly() for operators.fv4.c
+len(app.scops)=0
+Polly() for operators.flux.c
+len(app.scops)=0
+Polly() for operators.test.c
+len(app.scops)=0
+Polly() for timers.c
+len(app.scops)=0
+Polly() for operators.27pt.c
+len(app.scops)=0
+Polly() for mg.c
+len(app.scops)=1
+scop: 0 - num_nodes=8 - max_depth=4
+Polly() for level.c
+len(app.scops)=1
+scop: 0 - num_nodes=14 - max_depth=4
+Polly() for hpgmg-fv.c
+len(app.scops)=0
+Polly() for operators.7pt.c
+len(app.scops)=0
+Polly() for operators.fv2.c
+len(app.scops)=0
+Polly() for solvers.c
+len(app.scops)=0
+Polly() for operators.test/gsrb.ompfor.c
+Traceback (most recent call last):
+  File "/home/vatai/.local/bin/scop-detector", line 6, in <module>
+    sys.exit(scop_detector())
+             ~~~~~~~~~~~~~^^
+  File "/home/vatai/code/tadashi/tadashi/_scripts.py", line 62, in scop_detector
+    app = _mkapp(args, file)
+  File "/home/vatai/code/tadashi/tadashi/_scripts.py", line 52, in _mkapp
+    app = Simple(file, translator=translator, compiler_options=args.rest)
+  File "/home/vatai/code/tadashi/tadashi/apps.py", line 290, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        source=source,
+        ^^^^^^^^^^^^^^
+    ...<3 lines>...
+        populate_scops=populate_scops,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/vatai/code/tadashi/tadashi/apps.py", line 242, in __init__
+    self.translator = translator.set_source(source, options)
+                      ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "tadashi/translators.py", line 79, in tadashi.translators.Translator.set_source
+  File "tadashi/translators.py", line 360, in tadashi.translators.Polly.populate_ccscops
+  File "tadashi/translators.py", line 368, in tadashi.translators.Polly.populate_ccscops
+  File "tadashi/translators.py", line 300, in tadashi.translators.Polly._get_pre_polly_bc
+  File "tadashi/translators.py", line 268, in tadashi.translators.Polly._run
+ValueError: Something went wrong while [compiling with O0]
+cmd: clang -O0 -Xclang -disable-O0-optnone -DUSE_JACOBI -c -emit-llvm /home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c -o /tmp/tadashi-20260404-010548-8cxgm4y0/gsrb.ompfor.O0.bc
+returncode: 1
+stdout:
+
+stderr
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:24:13: error: unknown type name 'level_type'
+   24 | void smooth(level_type * level, int x_id, int rhs_id, double a, double b){
+      |             ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:26:15: error: use of undeclared identifier 'NUM_SMOOTHS'
+   26 |   for(s=0;s<2*NUM_SMOOTHS;s++){ // there are two sweeps per GSRB smooth
+      |               ^~~~~~~~~~~
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:18: error: call to undeclared function 'exchange_boundary'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                  ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:54: error: call to undeclared function 'stencil_get_shape'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                                                      ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:75: error: call to undeclared function 'apply_BCs'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                                                                           ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:37:25: error: call to undeclared function 'getTime'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   37 |     double _timeStart = getTime();
+      |                         ^
+#+end_example
 ** FS2020
 *** DONE Adventure.region0.20170821 (C)
 :PROPERTIES:
@@ -182,6 +259,11 @@ use -DREAL_4=real -DMAXCOLOR=100
 :PROPERTIES:
 :GOODNES:  no scops
 :END:
+** CloverLeaf_ref
+:PROPERTIES:
+:GOODNES:  good
+:END:
+advec_mom_kernel
 ** SWFFT
 :PROPERTIES:
 :GOODNES:  maybe
@@ -246,11 +328,6 @@ use -DREAL_4=real -DMAXCOLOR=100
 ** minq (c++)
 :PROPERTIES:
 :GOODNES: big dependency
-:END:
-
-** HPGMG
-:PROPERTIES:
-:GOODNES:  broken
 :END:
 
 ** kripke
