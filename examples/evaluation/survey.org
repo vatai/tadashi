@@ -63,11 +63,12 @@
 :PROPERTIES:
 :GOODNES:  good
 :END:
-
+advec_mom_kernel
 ** TODO sw4lite
 :PROPERTIES:
 :GOODNES:  good
 :END:
+will need clang
 ** FS2020
 *** DONE Adventure.region0.20170821 (C)
 :PROPERTIES:
