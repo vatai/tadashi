@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -17,11 +18,14 @@ base = os.path.join(tadashi_base, "polybench")
 
 
 def main():
-    benchmark = "gemm"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark")
+    args, unknown = parser.parse_known_args()
+    print(f"{args.benchmark=}")
     translator = "Pet"
     kwargs = {"base": base, "translator": translator}
-    kwargs["benchmark"] = benchmark
-    run(Polybench, kwargs)
+    kwargs["benchmark"] = args.benchmark
+    run(Polybench, kwargs, unknown)
 
 
 if __name__ == "__main__":
