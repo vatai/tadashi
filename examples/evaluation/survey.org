@@ -59,6 +59,19 @@
 :END:
 - 3 are C, at least 2 work with Polly backend
 
+#+begin_example
+Top-3 solutions found:
+    -0.009372 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [1, 21, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 1], [1, 40, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 26], ] --- -0.00937200
+    -0.0094 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [1, 21, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 1], [1, 5, tadashi.TrEnum.INTERCHANGE, ], ] --- -0.00940000
+    -0.009471 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [0, 11, tadashi.TrEnum.TILE_1D, 64], [0, 13, tadashi.TrEnum.SPLIT, 1], ] --- -0.00947100
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+Reproduction time: 3.0209062099456787
+  Fitness on generation 9: -0.00904300 (1.096x speedup)
+#+end_example
+
 *** DONE Adventure.region1.20160808
 :PROPERTIES:
 :GOODNES:  no scops
