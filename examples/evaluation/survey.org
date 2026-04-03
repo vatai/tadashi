@@ -52,6 +52,22 @@
 :PROPERTIES:
 :ID: benchmarks
 :END:
+** TODO miniAMR
+:PROPERTIES:
+:GOODNES:  good
+:END:
+- Works with PET backend
+- Need to run it with old evotadashi (not mpi4py enabled one)
+
+** TODO CloverLeaf_ref
+:PROPERTIES:
+:GOODNES:  good
+:END:
+
+** TODO sw4lite
+:PROPERTIES:
+:GOODNES:  good
+:END:
 ** FS2020
 *** DONE Adventure.region0.20170821 (C)
 :PROPERTIES:
@@ -259,19 +275,3 @@ use -DREAL_4=real -DMAXCOLOR=100
 :END:
 - needs deps (eigen)
 
-** miniAMR
-:PROPERTIES:
-:GOODNES:  good
-:END:
-- Works with PET backend
-- Need to run it with old evotadashi (not mpi4py enabled one)
-
-** CloverLeaf_ref
-:PROPERTIES:
-:GOODNES:  good
-:END:
-
-** sw4lite
-:PROPERTIES:
-:GOODNES:  good
-:END:
