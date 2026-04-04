@@ -47,6 +47,8 @@ will need clang
 *** DONE NICAM.diffusion.20170220 (f90)
 :PROPERTIES:
 :A64FX_SPEEDUP:  1.005x speedup
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
 :END:
 
 *** TODO NICAM.divdamp.20170420
