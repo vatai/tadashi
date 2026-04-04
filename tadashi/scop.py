@@ -407,7 +407,7 @@ class SplitInfo(TransformInfo):
         return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
-@register
+# @register
 class ScaleInfo(TransformInfo):
     arg_help = []
 
