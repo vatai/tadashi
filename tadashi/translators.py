@@ -18,6 +18,7 @@ from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
+from . import TrEnum
 from .passesparser import PassParser
 
 # We can't use ABC because this is a @cython.cclass
@@ -93,6 +94,10 @@ class Translator:
 
     def reset(self) -> None:
         pass
+
+    @staticmethod
+    def tr_block() -> list[TrEnum]:
+        return []
 
 
 @cython.cclass
@@ -470,3 +475,7 @@ class Polly(Translator):
 
     def reset(self) -> None:
         self._export_jscops([])
+
+    @staticmethod
+    def tr_block() -> list[TrEnum]:
+        return [TrEnum.SET_PARALLEL, TrEnum.SET_LOOP_OPT]

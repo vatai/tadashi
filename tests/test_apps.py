@@ -92,6 +92,7 @@ class TestSimple(TestApp):
             translator=Polly("flang"),
             runtime_prefix=" WALLTIME: ",
         )
+        print(f"{len(app.scops)=}")
         node = app.scops[0].schedule_tree[1]
         tapp = app.generate_code()
         print(

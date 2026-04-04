@@ -89,6 +89,40 @@ class App(abc.ABC):
     def legal(self) -> bool:
         return self.translator.legal()
 
+    @staticmethod
+    def _allowed(item: int | str, allow: list, block: list):
+        if allow and block:
+            raise ValueError("Can't specify both allow and block lists")
+        rv = True
+        if allow:
+            rv = item in allow
+        if block:
+            rv = item not in block
+        return rv
+
+    def get_all_transformations(
+        self,
+        *,
+        scop_allow: Optional[list[int]] = None,
+        scop_block: Optional[list[int]] = None,
+        tr_allow: Optional[list[str]] = None,
+        tr_block: Optional[list[str]] = None,
+    ) -> list[list[int | str]]:
+        """Return all available (scop_idx, node_idx, transformation) triplets."""
+        rv = []
+        for si, s in enumerate(self.scops):
+            if self._allowed(si, scop_allow, scop_block):
+                for ni, node in enumerate(s.schedule_tree):
+                    # TODO tr_block should be built into available_transformations
+                    block = self.translator.tr_block()
+                    av = [t for t in node.available_transformations if t not in block]
+                    trs = []
+                    for tr in av:
+                        if self._allowed(tr, tr_allow, tr_block):
+                            trs.append(tr)
+                            rv.append((si, ni, tr))
+        return rv
+
     def transform_list(self, transformation_list: list) -> None:
         for si, ni, *tr in transformation_list:
             node = self.scops[si].schedule_tree[ni]
