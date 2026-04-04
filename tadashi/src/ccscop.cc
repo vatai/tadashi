@@ -260,7 +260,7 @@ _get_flow_from_scop(__isl_keep pet_scop *scop) {
   access = isl_union_access_info_from_sink(reads);
 
   kills = pet_scop_get_must_kills(scop);
-  must_writes = pet_scop_get_tagged_must_writes(scop);
+  must_writes = pet_scop_get_must_writes(scop);
   kills = isl_union_map_union(kills, must_writes);
   access = isl_union_access_info_set_kill(access, kills);
 
