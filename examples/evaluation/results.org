@@ -12,11 +12,11 @@ Config is poppulation size -- max-generations.
 | TODO | sw4lite                        |             |            |                |              |
 |      | HPGMG                          |             |            |                |              |
 |      | FS2020                         |             |            |                |              |
-| DONE | Adventure.region0.20170821 (C) |        6.3% |      20-50 | 4.9%           |              |
+| DONE | Adventure.region0.20170821 (C) | 1.063       | 20-50      | 1.049          |              |
 | DONE | NICAM.diffusion.20170220 (f90) |             |            | 1.005x speedup |              |
-| TODO | NICAM.divdamp.20170420         |             |            |                |              |
-| TODO | NICAM.vi_rhow_solver.20160902  |             |            |                |              |
-| TODO | QCD.ddd_in_s_.20170621         |             |            |                |              |
+| TODO | NICAM.divdamp.20170420         | segfault    | segfault   |                |              |
+| TODO | NICAM.vi_rhow_solver.20160902  | segfault    | segfault   |                |              |
+| TODO | QCD.ddd_in_s_.20170621         | 1.99x       | 20-50      |                |              |
 #+end:
 
 * Results
@@ -39,8 +39,8 @@ will need clang
 ** FS2020
 *** DONE Adventure.region0.20170821 (C)
 :PROPERTIES:
-:A64FX_SPEEDUP:  4.9%
-:X86_SPEEDUP: 6.3%
+:A64FX_SPEEDUP: 1.049
+:X86_SPEEDUP: 1.063
 :X86_CONFIG: 20-50
 :END:
 
@@ -63,5 +63,7 @@ will need clang
 
 *** TODO QCD.ddd_in_s_.20170621
 :PROPERTIES:
+:X86_SPEEDUP: 1.99x
+:X86_CONFIG: 20-50
 :END:
 
