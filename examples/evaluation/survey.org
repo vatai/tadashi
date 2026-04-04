@@ -68,6 +68,8 @@ will need clang
 :PROPERTIES:
 :GOODNES:  broken
 :END:
+*** Detect
+scop-detector . -DUSE_SUBCOMM -DUSE_FCYCLES -DUSE_GSRB -DUSE_BICGSTAB  -I. -D_OPENMP
 *** Compile
 #+begin_example
 % clang -O3 -fopenmp level.c operators.fv4.c mg.c solvers.c hpgmg-fv.c timers.c -DUSE_SUBCOMM -DUSE_FCYCLES -DUSE_GSRB -DUSE_BICGSTAB  -lm -o prog.x
