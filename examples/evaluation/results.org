@@ -1,0 +1,63 @@
+#+title: Results collected
+#+COLUMNS: %TODO %ITEM %X86_SPEEDUP %X86_CONFIG %A64FX_SPEEDUP %A64FX_CONFIG
+
+* Summary
+Config is poppulation size -- max-generations.
+
+#+begin: columnview :hlines nil :id results
+| TODO | ITEM                           | X86_SPEEDUP | X86_CONFIG | A64FX_SPEEDUP  | A64FX_CONFIG |
+|------+--------------------------------+-------------+------------+----------------+--------------|
+|      | Results                        |             |            |                |              |
+| TODO | miniAMR                        |             |            |                |              |
+| TODO | sw4lite                        |             |            |                |              |
+|      | HPGMG                          |             |            |                |              |
+|      | FS2020                         |             |            |                |              |
+| DONE | Adventure.region0.20170821 (C) |        6.3% |      20-50 | 4.9%           |              |
+| DONE | NICAM.diffusion.20170220 (f90) |             |            | 1.005x speedup |              |
+| TODO | NICAM.divdamp.20170420         |             |            |                |              |
+| TODO | NICAM.vi_rhow_solver.20160902  |             |            |                |              |
+| TODO | QCD.ddd_in_s_.20170621         |             |            |                |              |
+#+end:
+
+* Results
+:PROPERTIES:
+:ID: results
+:END:
+** TODO miniAMR
+:PROPERTIES:
+:END:
+- Works with PET backend
+- Need to run it with old evotadashi (not mpi4py enabled one)
+
+** TODO sw4lite
+:PROPERTIES:
+:END:
+will need clang
+** HPGMG
+:PROPERTIES:
+:END:
+** FS2020
+*** DONE Adventure.region0.20170821 (C)
+:PROPERTIES:
+:A64FX_SPEEDUP:  4.9%
+:X86_SPEEDUP: 6.3%
+:X86_CONFIG: 20-50
+:END:
+
+*** DONE NICAM.diffusion.20170220 (f90)
+:PROPERTIES:
+:A64FX_SPEEDUP:  1.005x speedup
+:END:
+
+*** TODO NICAM.divdamp.20170420
+:PROPERTIES:
+:END:
+
+*** TODO NICAM.vi_rhow_solver.20160902
+:PROPERTIES:
+:END:
+
+*** TODO QCD.ddd_in_s_.20170621
+:PROPERTIES:
+:END:
+
