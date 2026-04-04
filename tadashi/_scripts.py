@@ -57,7 +57,7 @@ def scop_detector():
     args = _get_args()
     patterns = {"f": r"\.f|f90", "c": r"\.c[^.]*$"}
     pattern = re.compile(patterns[args.extension], re.IGNORECASE)
-    for fidx, file in enumerate(Path(args.path).rglob("*")):
+    for fidx, file in enumerate(Path(args.path).glob("*")):
         if pattern.match(file.suffix):
             app = _mkapp(args, file)
             _print_summary(app)
