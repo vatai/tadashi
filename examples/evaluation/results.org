@@ -51,10 +51,14 @@ will need clang
 
 *** TODO NICAM.divdamp.20170420
 :PROPERTIES:
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
 :END:
 
 *** TODO NICAM.vi_rhow_solver.20160902
 :PROPERTIES:
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
 :END:
 
 *** TODO QCD.ddd_in_s_.20170621
