@@ -68,6 +68,11 @@ will need clang
 :PROPERTIES:
 :GOODNES:  broken
 :END:
+*** Compile
+#+begin_example
+% clang -O3 -fopenmp level.c operators.fv4.c mg.c solvers.c hpgmg-fv.c timers.c -DUSE_SUBCOMM -DUSE_FCYCLES -DUSE_GSRB -DUSE_BICGSTAB  -lm -o prog.x
+#+end_example
+*** Error
 #+begin_example
 vatai@niku ../evaluation/hpgmg/finite-volume/source (git)-[master] % scop-detector . -e c -DUSE_JACOBI
 Polly() for operators.fv4.c
@@ -261,9 +266,48 @@ use -DREAL_4=real -DMAXCOLOR=100
 :END:
 ** CloverLeaf_ref
 :PROPERTIES:
-:GOODNES:  good
+:GOODNES:  almost scop
 :END:
 advec_mom_kernel
+
+#+begin_example
+clover leaf is no good :cry:
+    for (k=y_min;k<=y_max+1;k++) {
+      for (j=x_min-1;j<=x_max+1;j++) {
+        if(node_flux[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]<0.0){
+          upwind=j+2;
+          donor=j+1;
+          downwind=j;
+          dif=donor;
+        }
+        else{
+          upwind=j-1;
+          donor=j;
+          downwind=j+1;
+          dif=upwind;
+        }you see the if? that's data dependent. that scews things up...
+
+there are some loops witout the if, but when you expand the FTNREF2d (i.e. fortran index to C index macro) you get something like this
+
+#pragma omp for private(j)
+    for (k=y_min-1;k<=y_max+2;k++) {
+#pragma omp simd
+      for (j=x_min;j<=x_max+1;j++) {
+        node_mass_post[((x_max+5)*(k-(y_min-2))+(j)-(x_min-2))]=0.25
+                                                                 *(density1[((x_max+4)*(k-1 -(y_min-2))+(j)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-1 -(y_min-2))+(j)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-(y_min-2))+(j)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-(y_min-2))+(j)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-1 -(y_min-2))+(j-1)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-1 -(y_min-2))+(j-1)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-(y_min-2))+(j-1)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-(y_min-2))+(j-1)-(x_min-2))]);
+      }
+    }this LOOKS better (no if) but the index is all bad.
+
+idx = cst_0 * iter_0 + cst_1 * iter_1 +... + cst_p0 * param_0 + cst_p1 * param_1 this is :white_check_mark: OK! (cst = constant, iter = iterator like k, j , para = parameter like x_min i.e. loop boundary)
+this code has idx = ... + param * iter + ... (namely x_max * k) which is :x: not good for scops.
+#+end_example
 ** SWFFT
 :PROPERTIES:
 :GOODNES:  maybe
