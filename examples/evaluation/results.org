@@ -25,6 +25,7 @@ Config is poppulation size -- max-generations.
 :END:
 ** TODO miniAMR
 :PROPERTIES:
+:A64FX_SPEEDUP: 1.015x
 :END:
 - Works with PET backend
 - Need to run it with old evotadashi (not mpi4py enabled one)
