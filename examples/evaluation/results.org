@@ -4,14 +4,11 @@
 * Summary
 Config is poppulation size -- max-generations.
 
-#+begin: columnview :hlines nil :id results
+#+begin: columnview :hlines nil :id results :skip-empty-rows t
 | TODO | ITEM                           | X86_SPEEDUP | A64FX_SPEEDUP | X86_CONFIG | A64FX_CONFIG |
 |------+--------------------------------+-------------+---------------+------------+--------------|
-|      | Results                        |             |               |            |              |
-| TODO | miniAMR                        |             |               |            |              |
+| TODO | miniAMR                        |             |        1.015x |            |              |
 | TODO | sw4lite                        |             |               |            |              |
-|      | HPGMG                          |             |               |            |              |
-|      | FS2020                         |             |               |            |              |
 | DONE | Adventure.region0.20170821 (C) | 1.063x      |        1.049x | 20-50      |              |
 | DONE | NICAM.diffusion.20170220 (f90) | segfault    |        1.005x | segfault   |              |
 | TODO | NICAM.divdamp.20170420         | segfault    |               | segfault   |              |
