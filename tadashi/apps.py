@@ -185,7 +185,7 @@ class App(abc.ABC):
     def _make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now).replace(":", "-")
+        now_str = datetime.datetime.isoformat(now).replace(":", "-").replace(".", "-")
         suffix = self.source.suffix
         pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
         m = re.match(pattern, str(self.source))
