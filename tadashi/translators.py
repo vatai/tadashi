@@ -288,6 +288,7 @@ class Polly(Translator):
         return [
             f"-polly-import-jscop-dir={self.tmpdir}",
             "-aa-pipeline=basic-aa",
+            "-polly-codegen",
             # "-polly-use-llvm-names",
             *options,
             # "-polly-process-unprofitable",
@@ -312,8 +313,8 @@ class Polly(Translator):
         input_path = str(self._get_pre_polly_bc(options))
 
         opts = [
-            "-polly-export-jscop",
             input_path,
+            "-polly-export-jscop",
             "-o=/dev/null",
         ]
         cmd = self._polly() + self._polly_options(opts)
@@ -415,7 +416,6 @@ class Polly(Translator):
             "-polly-import-jscop",
             "-disable-polly-legality",
             "-polly-parallel-force",
-            "-polly-codegen",
             f"-o={post_polly_bc}",
         ]
         polly_cmd = self._polly() + self._polly_options(opts)
