@@ -291,6 +291,9 @@ tadashi_full_fuse(__isl_take isl_schedule_node *node) {
   }
   mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, "Fused");
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  node = isl_schedule_node_first_child(node);
+  node = isl_schedule_node_sequence_splice_children(node);
+  node = isl_schedule_node_parent(node);
   return node;
 }
 
@@ -321,6 +324,7 @@ tadashi_fuse(__isl_take isl_schedule_node *node, int idx1, int idx2) {
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
+  node = isl_schedule_node_sequence_splice_children(node);
   return node;
 }
 

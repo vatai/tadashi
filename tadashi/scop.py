@@ -344,11 +344,11 @@ class FuseInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        return (
-            (node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET)
-            and (len(node.children) > 1)
-            and (all(ch.children[0].node_type == NodeType.BAND for ch in node.children))
-        )
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if len(node.children) < 2:
+            return False
+        return True
 
     @staticmethod
     def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
