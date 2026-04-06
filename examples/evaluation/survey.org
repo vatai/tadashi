@@ -271,6 +271,8 @@ use -DREAL_4=real -DMAXCOLOR=100
 :GOODNES:  almost scop
 :END:
 advec_mom_kernel
+Manual instrumentation:
+@@@@ |0 0.454686 |1 0.282210 |2 0.345998 |3 0.276447 |4 2.708418 |5 1.111301 |6 2.672818 |7 1.125872 |
 
 #+begin_example
 clover leaf is no good :cry:
