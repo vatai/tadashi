@@ -304,7 +304,10 @@ class App(abc.ABC):
         is the method to override.
 
         """
-        return [str(self.output_binary)]
+        outbin = str(self.output_binary)
+        if not self.output_binary.is_absolute():
+            outbin = f"./{outbin}"
+        return [outbin]
 
 
 class Simple(App):
