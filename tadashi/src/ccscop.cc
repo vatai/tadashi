@@ -251,30 +251,24 @@ ccScop::_pet_eliminate_dead_code() {
 
 static __isl_give isl_union_flow *
 _get_flow_from_scop(__isl_keep pet_scop *scop) {
-  isl_union_map *reads, *may_writes, *kills, *must_writes;
-  // *must_source,
+  isl_union_map *sink, *may_source, *must_source, *kills;
   isl_union_access_info *access;
   isl_schedule *schedule;
-  isl_union_flow *flow;
-  reads = pet_scop_get_may_reads(scop);
-  access = isl_union_access_info_from_sink(reads);
-
+  sink = pet_scop_get_may_reads(scop);
   kills = pet_scop_get_must_kills(scop);
-  must_writes = pet_scop_get_must_writes(scop);
-  kills = isl_union_map_union(kills, must_writes);
-  access = isl_union_access_info_set_kill(access, kills);
-
-  may_writes = pet_scop_get_may_writes(scop);
-  access = isl_union_access_info_set_may_source(access, may_writes);
-
-  /* must_source = pet_scop_get_must_writes(scop); */
-  /* access = isl_union_access_info_set_must_source(access, must_source); */
-
+  kills = isl_union_map_union(kills, pet_scop_get_must_writes(scop));
+  may_source = pet_scop_get_may_writes(scop);
+  must_source = pet_scop_get_must_writes(scop);
   schedule = pet_scop_get_schedule(scop);
+
+  access = isl_union_access_info_from_sink(sink);
+  access = isl_union_access_info_set_kill(access, kills);
+  access = isl_union_access_info_set_may_source(access, may_source);
+  if (must_source)
+    access = isl_union_access_info_set_must_source(access, must_source);
   access = isl_union_access_info_set_schedule(access, schedule);
 
-  flow = isl_union_access_info_compute_flow(access);
-  return flow;
+  return isl_union_access_info_compute_flow(access);
 }
 
 static __isl_give isl_union_map *
@@ -304,7 +298,9 @@ ccScop::ccScop()
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Default()... DONE!" << std::endl;
@@ -325,7 +321,9 @@ ccScop::ccScop(pet_scop *ps)
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]PetPtr()... ";
@@ -525,7 +523,9 @@ ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
       tmp_node(nullptr),                                                // 11.
       current_legal(true),                                              // 12.
       tmp_legal(true),                                                  // 13.
-      modified(0)                                                       // 14.
+      modified(0),                                                      // 14.
+      war(nullptr),                                                     // 15.
+      waw(nullptr)                                                      // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Polly()... ";
@@ -538,6 +538,14 @@ ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
 
 void
 ccScop::_dealloc() {
+  if (this->waw != nullptr) { // 16.
+    isl_union_map_free(this->waw);
+    this->waw = nullptr;
+  }
+  if (this->war != nullptr) { // 15.
+    isl_union_map_free(this->war);
+    this->war = nullptr;
+  }
   // 14-12 need no freeing!
   if (this->tmp_node != nullptr) { // 11.
     isl_schedule_node_free(this->tmp_node);
@@ -623,6 +631,10 @@ ccScop::_copy(const ccScop &other) {
   this->current_legal = other.current_legal; // 12.
   this->tmp_legal = other.tmp_legal;         // 13.
   this->modified = other.modified;           // 14.
+  if (other.war != nullptr)                  // 15.
+    this->war = isl_union_map_copy(other.war);
+  if (other.waw != nullptr) // 16.
+    this->waw = isl_union_map_copy(other.waw);
 }
 
 ccScop::ccScop(const ccScop &other)
@@ -639,7 +651,9 @@ ccScop::ccScop(const ccScop &other)
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Copy()... ";
@@ -666,6 +680,8 @@ ccScop::_set_nullptr(ccScop *scop) {
   scop->current_legal = true;   // 12.
   scop->tmp_legal = true;       // 13.
   scop->modified = 0;           // 14.
+  scop->war = nullptr;          // 15.
+  scop->waw = nullptr;          // 16.
 }
 
 ccScop::ccScop(ccScop &&other) noexcept
@@ -682,7 +698,9 @@ ccScop::ccScop(ccScop &&other) noexcept
       tmp_node(other.tmp_node),           // 11.
       current_legal(other.current_legal), // 12.
       tmp_legal(other.tmp_legal),         // 13.
-      modified(other.modified)            // 14.
+      modified(other.modified),           // 14.
+      war(other.war),                     // 15.
+      waw(other.waw)                      // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Move()... ";
@@ -729,6 +747,8 @@ ccScop::operator=(ccScop &&other) noexcept {
   this->current_legal = other.current_legal; // 12.
   this->tmp_legal = other.tmp_legal;         // 13.
   this->modified = other.modified;           // 14.
+  this->war = other.war;                     // 15.
+  this->waw = other.waw;                     // 16.
   //
   _set_nullptr(&other);
 #ifndef NDEBUG
@@ -771,17 +791,15 @@ _get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
 
 static __isl_give isl_bool
 _check_legality(__isl_keep isl_schedule_node *node,
-                __isl_take isl_union_map *dep) {
+                __isl_keep isl_union_map *dep) {
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
+  if (isl_union_map_is_empty(dep))
+    return isl_bool_true;
   isl_schedule *schedule = isl_schedule_node_get_schedule(node);
   isl_union_map *map = isl_schedule_get_map(schedule);
   isl_schedule_free(schedule);
-  if (isl_union_map_is_empty(dep)) {
-    isl_union_map_free(dep);
-    isl_union_map_free(map);
-    return isl_bool_true;
-  }
+  dep = isl_union_map_copy(dep);
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
@@ -794,21 +812,19 @@ _check_legality(__isl_keep isl_schedule_node *node,
 
 static bool
 _check_legality_parallel(__isl_keep isl_schedule_node *node,
-                         __isl_take isl_union_map *dep) {
+                         __isl_keep isl_union_map *dep) {
   isl_union_map *map;
   bool retval;
   isl_union_map *domain, *cmp;
   isl_union_set *delta, *zeros;
+  if (isl_union_map_is_empty(dep))
+    return isl_bool_true;
   node = isl_schedule_node_copy(node);
   node = isl_schedule_node_first_child(node);
   map = isl_schedule_node_band_get_partial_schedule_union_map(node);
   node = isl_schedule_node_free(node);
 
-  if (isl_union_map_is_empty(dep)) {
-    dep = isl_union_map_free(dep);
-    map = isl_union_map_free(map);
-    return isl_bool_true;
-  }
+  dep = isl_union_map_copy(dep);
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
@@ -839,8 +855,20 @@ ccScop::check_legality() {
       is_parallel = true;
     isl_id_free(id);
   }
-  isl_union_map *dep = isl_union_map_copy(this->dep_flow);
-  if (is_parallel)
-    return _check_legality_parallel(this->current_node, dep);
-  return _check_legality(this->current_node, dep);
+  if (is_parallel) {
+    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+      return false;
+  } else {
+    if (not _check_legality(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality(this->current_node, this->dep_flow))
+      return false;
+  }
+  return true;
 }

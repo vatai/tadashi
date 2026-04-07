@@ -51,7 +51,7 @@ class App(abc.ABC):
             if self.source.exists():
                 self.source.unlink()
             else:
-                print("WARNING: source file missing!")
+                print(f"WARNING: source file ({str(self.source)}) missing!")
 
     @classmethod
     def mkapp(cls, kwargs: dict):

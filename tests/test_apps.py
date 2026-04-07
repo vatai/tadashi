@@ -64,6 +64,9 @@ class TestSimple(TestApp):
                 app = apps.Simple(input_file, Pet())
                 tapp = app.generate_code(ensure_legality=False, ephemeral=ephemeral)
                 file_path = tapp.source
+                if ephemeral:
+                    msg = f"Expect WARNING: source file {str(file_path)} missing! (It's OK!)"
+                    print(msg)
                 tapp._cleanup()  # called at exit
                 file_exists = file_path.exists()
                 if file_exists:
