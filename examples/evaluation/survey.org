@@ -270,10 +270,14 @@ use -DREAL_4=real -DMAXCOLOR=100
 :PROPERTIES:
 :GOODNES:  almost scop
 :END:
-advec_mom_kernel
-Manual instrumentation:
+*** TODO look at Cloverleaf-serial
+*** perf
+**** file: advec_mom_kernel
+**** Manual instrumentation:
+#+begin_example
 @@@@ |0 0.454686 |1 0.282210 |2 0.345998 |3 0.276447 |4 2.708418 |5 1.111301 |6 2.672818 |7 1.125872 |
-
+#+end_example
+**** Code snippet
 #+begin_example
 clover leaf is no good :cry:
     for (k=y_min;k<=y_max+1;k++) {
