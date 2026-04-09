@@ -18,6 +18,7 @@
 #include <isl/val.h>
 
 #include "ccscop.h"
+#include "pet.h"
 
 // === PET RELATED HELPER FUNCTIONS ===================================== //
 // ====================================================================== //
@@ -249,33 +250,31 @@ ccScop::_pet_eliminate_dead_code() {
   /* 					live); */
 }
 
-static __isl_give isl_union_flow *
-_get_flow_from_scop(__isl_keep pet_scop *scop) {
-  isl_union_map *sink, *may_source, *must_source, *kills;
-  isl_union_access_info *access;
-  isl_schedule *schedule;
-  sink = pet_scop_get_may_reads(scop);
-  kills = pet_scop_get_must_kills(scop);
-  kills = isl_union_map_union(kills, pet_scop_get_must_writes(scop));
-  may_source = pet_scop_get_may_writes(scop);
-  must_source = pet_scop_get_must_writes(scop);
-  schedule = pet_scop_get_schedule(scop);
-
-  access = isl_union_access_info_from_sink(sink);
-  access = isl_union_access_info_set_kill(access, kills);
-  access = isl_union_access_info_set_may_source(access, may_source);
-  if (must_source)
-    access = isl_union_access_info_set_must_source(access, must_source);
-  access = isl_union_access_info_set_schedule(access, schedule);
-
-  return isl_union_access_info_compute_flow(access);
-}
-
 static __isl_give isl_union_map *
-get_dependencies(__isl_keep struct pet_scop *scop) {
+get_dependencies(
+    __isl_keep struct pet_scop *scop,
+    __isl_give isl_union_map *(*get_sink)(__isl_keep pet_scop *scop),
+    __isl_give isl_union_map *(*get_may_source)(__isl_keep pet_scop *scop),
+    __isl_give isl_union_map *(*get_must_source)(__isl_keep pet_scop *scop)) {
   isl_union_map *dep;
   isl_union_flow *flow;
-  flow = _get_flow_from_scop(scop);
+  isl_union_map *kills;
+  isl_union_access_info *access;
+  isl_schedule *schedule;
+
+  access = isl_union_access_info_from_sink(get_sink(scop));
+  kills = pet_scop_get_must_kills(scop);
+  kills = isl_union_map_union(kills, pet_scop_get_must_writes(scop));
+  access = isl_union_access_info_set_kill(access, kills);
+  access = isl_union_access_info_set_may_source(access, get_may_source(scop));
+  if (get_must_source) {
+    isl_union_map *must_source = get_must_source(scop);
+    access = isl_union_access_info_set_must_source(access, must_source);
+  }
+  schedule = pet_scop_get_schedule(scop);
+  access = isl_union_access_info_set_schedule(access, schedule);
+
+  flow = isl_union_access_info_compute_flow(access);
   dep = isl_union_flow_get_may_dependence(flow);
   isl_union_flow_free(flow);
   return dep;
@@ -329,7 +328,15 @@ ccScop::ccScop(pet_scop *ps)
   std::cout << ">>> [c]PetPtr()... ";
 #endif // NDEBUG
   this->schedule = pet_scop_get_schedule(ps);
-  this->dep_flow = get_dependencies(ps);
+  this->dep_flow = get_dependencies(ps, /* sink: */ pet_scop_get_may_reads,
+                                    /* may_source: */ pet_scop_get_may_writes,
+                                    /* must_source: */ nullptr);
+  this->war = get_dependencies(ps, /* sink: */ pet_scop_get_may_writes,
+                               /* may_source: */ pet_scop_get_may_reads,
+                               /* must_source: */ nullptr);
+  this->waw = get_dependencies(ps, /* sink: */ pet_scop_get_may_writes,
+                               /* may_source: */ pet_scop_get_may_writes,
+                               /* must_source: */ nullptr);
   this->domain = collect_non_kill_domains(ps);
   this->call = collect_call_domains(ps);
   this->may_writes = pet_scop_get_may_writes(ps);
@@ -858,16 +865,16 @@ ccScop::check_legality() {
   if (is_parallel) {
     if (not _check_legality_parallel(this->current_node, this->dep_flow))
       return false;
-    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+    if (not _check_legality_parallel(this->current_node, this->war))
       return false;
-    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+    if (not _check_legality_parallel(this->current_node, this->waw))
       return false;
   } else {
     if (not _check_legality(this->current_node, this->dep_flow))
       return false;
-    if (not _check_legality(this->current_node, this->dep_flow))
+    if (not _check_legality(this->current_node, this->war))
       return false;
-    if (not _check_legality(this->current_node, this->dep_flow))
+    if (not _check_legality(this->current_node, this->waw))
       return false;
   }
   return true;
