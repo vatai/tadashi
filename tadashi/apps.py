@@ -380,7 +380,7 @@ class Polybench(App):
             dirname = file.parent.name
             if filename == dirname:
                 benchmarks.append(file.parent.relative_to(path))
-        return list(sorted(benchmarks))
+        return list(map(str, sorted(benchmarks)))
 
     def dump_arrays(self):
         suffix = ".dump"
