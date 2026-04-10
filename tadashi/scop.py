@@ -352,10 +352,15 @@ class FuseInfo(TransformInfo):
 
     @staticmethod
     def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
-        return (
-            TransformInfo._is_valid_child_idx(node, loop_idx1)
-            and TransformInfo._is_valid_child_idx(node, loop_idx2),
-        )
+        if not TransformInfo._is_valid_child_idx(node, loop_idx1):
+            return False
+        if not TransformInfo._is_valid_child_idx(node, loop_idx2):
+            return False
+        if node.children[loop_idx1].node_type != NodeType.BAND:
+            return False
+        if node.children[loop_idx2].node_type != NodeType.BAND:
+            return False
+        return True
 
     @staticmethod
     def available_args(node: Node):
