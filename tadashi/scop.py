@@ -356,9 +356,9 @@ class FuseInfo(TransformInfo):
             return False
         if not TransformInfo._is_valid_child_idx(node, loop_idx2):
             return False
-        if node.children[loop_idx1].node_type != NodeType.BAND:
+        if node.children[loop_idx1].children[0].node_type != NodeType.BAND:
             return False
-        if node.children[loop_idx2].node_type != NodeType.BAND:
+        if node.children[loop_idx2].children[0].node_type != NodeType.BAND:
             return False
         return True
 
