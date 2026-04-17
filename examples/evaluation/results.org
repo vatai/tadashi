@@ -1,0 +1,71 @@
+#+title: Results collected
+#+COLUMNS: %TODO %ITEM %X86_SPEEDUP %A64FX_SPEEDUP %X86_CONFIG %A64FX_CONFIG
+
+* Summary
+Config is poppulation size -- max-generations.
+
+#+begin: columnview :hlines nil :id results :skip-empty-rows t
+| TODO | ITEM                           | X86_SPEEDUP | A64FX_SPEEDUP | X86_CONFIG | A64FX_CONFIG |
+|------+--------------------------------+-------------+---------------+------------+--------------|
+| TODO | miniAMR                        | 1.015x      |               |            |              |
+| TODO | sw4lite                        | running now |               |            |              |
+| DONE | Adventure.region0.20170821 (C) | 1.063x      |        1.049x | 20-50      |              |
+| DONE | NICAM.diffusion.20170220 (f90) | segfault    |        1.005x | segfault   |              |
+| TODO | NICAM.divdamp.20170420         | segfault    |               | segfault   |              |
+| TODO | NICAM.vi_rhow_solver.20160902  | segfault    |               | segfault   |              |
+| TODO | QCD.ddd_in_s_.20170621         | 1.99x       |               | 20-50      |              |
+#+end:
+
+* Results
+:PROPERTIES:
+:ID: results
+:END:
+** TODO miniAMR
+:PROPERTIES:
+:A64FX_SPEEDUP:
+:X86_SPEEDUP: 1.015x
+:END:
+- Works with PET backend
+- Need to run it with old evotadashi (not mpi4py enabled one)
+
+** TODO sw4lite
+:PROPERTIES:
+:X86_SPEEDUP: running now
+:END:
+will need clang
+** HPGMG
+:PROPERTIES:
+:END:
+** FS2020
+*** DONE Adventure.region0.20170821 (C)
+:PROPERTIES:
+:A64FX_SPEEDUP: 1.049x
+:X86_SPEEDUP: 1.063x
+:X86_CONFIG: 20-50
+:END:
+
+*** DONE NICAM.diffusion.20170220 (f90)
+:PROPERTIES:
+:A64FX_SPEEDUP:  1.005x
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
+:END:
+
+*** TODO NICAM.divdamp.20170420
+:PROPERTIES:
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
+:END:
+
+*** TODO NICAM.vi_rhow_solver.20160902
+:PROPERTIES:
+:X86_SPEEDUP: segfault
+:X86_CONFIG: segfault
+:END:
+
+*** TODO QCD.ddd_in_s_.20170621
+:PROPERTIES:
+:X86_SPEEDUP: 1.99x
+:X86_CONFIG: 20-50
+:END:
+

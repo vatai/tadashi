@@ -1,21 +1,24 @@
-#include <assert.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
+#include <isl/map_type.h>
+#include <isl/point.h>
+#include <ostream>
 
 #include <isl/aff.h>
 #include <isl/ctx.h>
 #include <isl/flow.h>
 #include <isl/id.h>
+#include <isl/map.h>
 #include <isl/schedule.h>
 #include <isl/schedule_node.h>
-#include <isl/schedule_type.h>
+#include <isl/set.h>
 #include <isl/union_map.h>
 #include <isl/union_set.h>
 #include <isl/val.h>
-#include <iterator>
-#include <ostream>
 
 #include "ccscop.h"
+#include "pet.h"
 
 // === PET RELATED HELPER FUNCTIONS ===================================== //
 // ====================================================================== //
@@ -156,20 +159,20 @@ collect_call_domains(struct pet_scop *scop) {
  */
 void
 ccScop::_pet_compute_live_out() {
-  isl_schedule *schedule;
+  isl_schedule *sched;
   isl_union_map *kills;
   isl_union_map *exposed;
   isl_union_map *covering;
   isl_union_access_info *access;
   isl_union_flow *flow;
 
-  schedule = isl_schedule_copy(this->schedule);
+  sched = isl_schedule_copy(this->schedule);
   kills = isl_union_map_union(isl_union_map_copy(this->must_writes),
                               isl_union_map_copy(this->must_kills));
   access = isl_union_access_info_from_sink(kills);
   access = isl_union_access_info_set_may_source(
       access, isl_union_map_copy(this->may_writes));
-  access = isl_union_access_info_set_schedule(access, schedule);
+  access = isl_union_access_info_set_schedule(access, sched);
   flow = isl_union_access_info_compute_flow(access);
   covering = isl_union_flow_get_full_may_dependence(flow);
   isl_union_flow_free(flow);
@@ -247,39 +250,31 @@ ccScop::_pet_eliminate_dead_code() {
   /* 					live); */
 }
 
-static __isl_give isl_union_flow *
-_get_flow_from_scop(__isl_keep pet_scop *scop) {
-  isl_union_map *reads, *may_writes, *kills, *must_writes;
-  // *must_source,
+static __isl_give isl_union_map *
+get_dependencies(
+    __isl_keep struct pet_scop *scop,
+    __isl_give isl_union_map *(*get_sink)(__isl_keep pet_scop *scop),
+    __isl_give isl_union_map *(*get_may_source)(__isl_keep pet_scop *scop),
+    __isl_give isl_union_map *(*get_must_source)(__isl_keep pet_scop *scop)) {
+  isl_union_map *dep;
+  isl_union_flow *flow;
+  isl_union_map *kills;
   isl_union_access_info *access;
   isl_schedule *schedule;
-  isl_union_flow *flow;
-  reads = pet_scop_get_may_reads(scop);
-  access = isl_union_access_info_from_sink(reads);
 
+  access = isl_union_access_info_from_sink(get_sink(scop));
   kills = pet_scop_get_must_kills(scop);
-  must_writes = pet_scop_get_tagged_must_writes(scop);
-  kills = isl_union_map_union(kills, must_writes);
+  kills = isl_union_map_union(kills, pet_scop_get_must_writes(scop));
   access = isl_union_access_info_set_kill(access, kills);
-
-  may_writes = pet_scop_get_may_writes(scop);
-  access = isl_union_access_info_set_may_source(access, may_writes);
-
-  /* must_source = pet_scop_get_must_writes(scop); */
-  /* access = isl_union_access_info_set_must_source(access, must_source); */
-
+  access = isl_union_access_info_set_may_source(access, get_may_source(scop));
+  if (get_must_source) {
+    isl_union_map *must_source = get_must_source(scop);
+    access = isl_union_access_info_set_must_source(access, must_source);
+  }
   schedule = pet_scop_get_schedule(scop);
   access = isl_union_access_info_set_schedule(access, schedule);
 
   flow = isl_union_access_info_compute_flow(access);
-  return flow;
-}
-
-static __isl_give isl_union_map *
-get_dependencies(__isl_keep struct pet_scop *scop) {
-  isl_union_map *dep;
-  isl_union_flow *flow;
-  flow = _get_flow_from_scop(scop);
   dep = isl_union_flow_get_may_dependence(flow);
   isl_union_flow_free(flow);
   return dep;
@@ -302,7 +297,9 @@ ccScop::ccScop()
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Default()... DONE!" << std::endl;
@@ -323,13 +320,23 @@ ccScop::ccScop(pet_scop *ps)
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]PetPtr()... ";
 #endif // NDEBUG
   this->schedule = pet_scop_get_schedule(ps);
-  this->dep_flow = get_dependencies(ps);
+  this->dep_flow = get_dependencies(ps, /* sink: */ pet_scop_get_may_reads,
+                                    /* may_source: */ pet_scop_get_may_writes,
+                                    /* must_source: */ nullptr);
+  this->war = get_dependencies(ps, /* sink: */ pet_scop_get_may_writes,
+                               /* may_source: */ pet_scop_get_may_reads,
+                               /* must_source: */ nullptr);
+  this->waw = get_dependencies(ps, /* sink: */ pet_scop_get_may_writes,
+                               /* may_source: */ pet_scop_get_may_writes,
+                               /* must_source: */ nullptr);
   this->domain = collect_non_kill_domains(ps);
   this->call = collect_call_domains(ps);
   this->may_writes = pet_scop_get_may_writes(ps);
@@ -360,15 +367,7 @@ _pw_aff_is_cst(__isl_keep isl_pw_aff *pa, void *user) {
   return (isl_bool)(isl_pw_aff_is_cst(pa) == target);
 }
 
-static isl_stat
-_add_pa_range(isl_pw_aff *pa, void *user) {
-  isl_set_list **set_list = (isl_set_list **)user;
-  isl_map *map = isl_pw_aff_as_map(pa);
-  *set_list = isl_set_list_add(*set_list, isl_map_range(map));
-  return isl_stat_ok;
-}
-
-int
+static int
 _cmp(struct isl_set *a, struct isl_set *b, void *user) {
   isl_val *va = isl_set_plain_get_val_if_fixed(a, isl_dim_set, 0);
   isl_val *vb = isl_set_plain_get_val_if_fixed(b, isl_dim_set, 0);
@@ -378,17 +377,46 @@ _cmp(struct isl_set *a, struct isl_set *b, void *user) {
   return rv;
 }
 
+static isl_stat
+_add_point(__isl_take isl_point *pnt, void *user) {
+  isl_set_list **set_list = (isl_set_list **)user;
+  *set_list = isl_set_list_add(*set_list, isl_set_from_point(pnt));
+  return isl_stat_ok;
+}
+
 static __isl_give isl_union_set_list *
 _filters_from_cst_upa(__isl_take isl_union_pw_aff *upa) {
+#ifndef NDEBUG
+  std::cout << "--------------------" << std::endl;
+#endif // NDEBUG
   isl_ctx *ctx = isl_union_pw_aff_get_ctx(upa);
   isl_pw_aff_list *pa_list = isl_union_pw_aff_get_pw_aff_list(upa);
-  isl_size n_pa = isl_pw_aff_list_n_pw_aff(pa_list);
-  isl_set_list *set_list = isl_set_list_alloc(ctx, n_pa);
-  isl_pw_aff_list_foreach(pa_list, _add_pa_range, &set_list);
-  isl_set_list_sort(set_list, _cmp, nullptr);
-  isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_pa);
   isl_union_map *umap = isl_union_map_from_union_pw_aff(upa);
-  for (isl_size i = 0; i < n_pa; i++) {
+  isl_union_set *urange = isl_union_map_range(isl_union_map_copy(umap));
+  isl_set *range = isl_set_from_union_set(urange);
+  isl_set_list *set_list = isl_set_list_alloc(ctx, 1);
+#ifndef NDEBUG
+  isl_basic_set_list *bsl = isl_set_get_basic_set_list(range);
+  std::cout << "***** bsl: " << isl_basic_set_list_to_str(bsl) << std::endl;
+  std::cout << "range: " << isl_set_to_str(range) << std::endl;
+  std::cout << "bounded: " << isl_set_is_bounded(range) << std::endl;
+  isl_basic_set_list_free(bsl);
+#endif // NDEBUG
+  range = isl_set_coalesce(range);
+  range = isl_set_drop_unused_params(range);
+  range = isl_set_project_out_all_params(range);
+#ifndef NDEBUG
+  std::cout << "range: " << isl_set_to_str(range) << std::endl;
+#endif // NDEBUG
+  isl_set_foreach_point(range, _add_point, &set_list);
+  isl_set_free(range);
+  isl_size n_points = isl_set_list_size(set_list);
+#ifndef NDEBUG
+  std::cout << "set_list: " << isl_set_list_to_str(set_list) << std::endl;
+#endif // NDEBUG
+  isl_set_list_sort(set_list, _cmp, nullptr);
+  isl_union_set_list *filters = isl_union_set_list_alloc(ctx, n_points);
+  for (isl_size i = 0; i < n_points; i++) {
     isl_set *set = isl_set_list_get_at(set_list, i);
     isl_pw_multi_aff *pma = isl_pw_multi_aff_from_set(set);
     isl_union_map *preimage = isl_union_map_preimage_range_pw_multi_aff(
@@ -407,6 +435,9 @@ _insert_sequence(__isl_take isl_schedule_node *node,
                  __isl_take isl_union_pw_aff *upa,
                  __isl_keep isl_multi_union_pw_aff *mupa, int pos,
                  unsigned int num_dims) {
+#ifndef NDEBUG
+  std::cout << "------------------------------" << std::endl;
+#endif // NDEBUG
   if (isl_union_pw_aff_n_pw_aff(upa) == 1) {
     isl_union_pw_aff_free(upa);
     return node;
@@ -430,9 +461,22 @@ static __isl_give isl_schedule_node *
 _build_schedule(__isl_take isl_schedule_node *node,
                 __isl_keep isl_multi_union_pw_aff *mupa, unsigned int pos,
                 unsigned int num_dims) {
+#ifndef NDEBUG
+  std::cout << "========================================" << std::endl;
+  std::cout << "_build_sched::BEGIN node" << isl_schedule_node_to_str(node)
+            << std::endl;
+  std::cout << "_build_sched::BEGIN mupa" << isl_multi_union_pw_aff_to_str(mupa)
+            << std::endl;
+  std::cout << "_build_sched::BEGIN pos/num_dims" << pos << "/" << num_dims
+            << std::endl;
+#endif // NDEBUG
   if (pos >= num_dims)
     return node;
   isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, pos);
+#ifndef NDEBUG
+  std::cout << "_build_sched::BEGIN upa" << isl_union_pw_aff_to_str(upa)
+            << std::endl;
+#endif // NDEBUG
   node = isl_schedule_node_first_child(node);
   if (isl_union_pw_aff_every_pw_aff(upa, _pw_aff_is_cst, (void *)1)) {
     node = _insert_sequence(node, upa, mupa, pos, num_dims);
@@ -443,13 +487,19 @@ _build_schedule(__isl_take isl_schedule_node *node,
   }
 
   node = isl_schedule_node_parent(node);
-  // std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
+#ifndef NDEBUG
+  std::cout << "END" << isl_schedule_node_to_str(node) << std::endl;
+#endif // NDEBUG
   return node;
 }
 
 isl_schedule *
 build_schedule_from_umap(__isl_take isl_union_set *domain,
                          __isl_take isl_union_map *map) {
+#ifndef NDEBUG
+  std::cout << "[DOMANIN] >>> " << isl_union_set_to_str(domain) << std::endl;
+  std::cout << "[  MAP  ] >>> " << isl_union_map_to_str(map) << std::endl;
+#endif // NDEBUG
   isl_schedule *schedule = isl_schedule_from_domain(domain);
   isl_schedule_node *root = isl_schedule_get_root(schedule);
   schedule = isl_schedule_free(schedule);
@@ -480,7 +530,9 @@ ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
       tmp_node(nullptr),                                                // 11.
       current_legal(true),                                              // 12.
       tmp_legal(true),                                                  // 13.
-      modified(0)                                                       // 14.
+      modified(0),                                                      // 14.
+      war(nullptr),                                                     // 15.
+      waw(nullptr)                                                      // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Polly()... ";
@@ -493,6 +545,14 @@ ccScop::ccScop(isl_union_set *domain, isl_union_map *sched, isl_union_map *read,
 
 void
 ccScop::_dealloc() {
+  if (this->waw != nullptr) { // 16.
+    isl_union_map_free(this->waw);
+    this->waw = nullptr;
+  }
+  if (this->war != nullptr) { // 15.
+    isl_union_map_free(this->war);
+    this->war = nullptr;
+  }
   // 14-12 need no freeing!
   if (this->tmp_node != nullptr) { // 11.
     isl_schedule_node_free(this->tmp_node);
@@ -578,6 +638,10 @@ ccScop::_copy(const ccScop &other) {
   this->current_legal = other.current_legal; // 12.
   this->tmp_legal = other.tmp_legal;         // 13.
   this->modified = other.modified;           // 14.
+  if (other.war != nullptr)                  // 15.
+    this->war = isl_union_map_copy(other.war);
+  if (other.waw != nullptr) // 16.
+    this->waw = isl_union_map_copy(other.waw);
 }
 
 ccScop::ccScop(const ccScop &other)
@@ -594,7 +658,9 @@ ccScop::ccScop(const ccScop &other)
       tmp_node(nullptr),     // 11.
       current_legal(true),   // 12.
       tmp_legal(true),       // 13.
-      modified(0)            // 14.
+      modified(0),           // 14.
+      war(nullptr),          // 15.
+      waw(nullptr)           // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Copy()... ";
@@ -621,6 +687,8 @@ ccScop::_set_nullptr(ccScop *scop) {
   scop->current_legal = true;   // 12.
   scop->tmp_legal = true;       // 13.
   scop->modified = 0;           // 14.
+  scop->war = nullptr;          // 15.
+  scop->waw = nullptr;          // 16.
 }
 
 ccScop::ccScop(ccScop &&other) noexcept
@@ -637,7 +705,9 @@ ccScop::ccScop(ccScop &&other) noexcept
       tmp_node(other.tmp_node),           // 11.
       current_legal(other.current_legal), // 12.
       tmp_legal(other.tmp_legal),         // 13.
-      modified(other.modified)            // 14.
+      modified(other.modified),           // 14.
+      war(other.war),                     // 15.
+      waw(other.waw)                      // 16.
 {
 #ifndef NDEBUG
   std::cout << ">>> [c]Move()... ";
@@ -684,6 +754,8 @@ ccScop::operator=(ccScop &&other) noexcept {
   this->current_legal = other.current_legal; // 12.
   this->tmp_legal = other.tmp_legal;         // 13.
   this->modified = other.modified;           // 14.
+  this->war = other.war;                     // 15.
+  this->waw = other.waw;                     // 16.
   //
   _set_nullptr(&other);
 #ifndef NDEBUG
@@ -726,17 +798,15 @@ _get_zeros_on_union_set(__isl_take isl_union_set *delta_uset) {
 
 static __isl_give isl_bool
 _check_legality(__isl_keep isl_schedule_node *node,
-                __isl_take isl_union_map *dep) {
+                __isl_keep isl_union_map *dep) {
   isl_union_map *domain, *le;
   isl_union_set *delta, *zeros;
+  if (isl_union_map_is_empty(dep))
+    return isl_bool_true;
   isl_schedule *schedule = isl_schedule_node_get_schedule(node);
   isl_union_map *map = isl_schedule_get_map(schedule);
   isl_schedule_free(schedule);
-  if (isl_union_map_is_empty(dep)) {
-    isl_union_map_free(dep);
-    isl_union_map_free(map);
-    return isl_bool_true;
-  }
+  dep = isl_union_map_copy(dep);
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
@@ -749,21 +819,19 @@ _check_legality(__isl_keep isl_schedule_node *node,
 
 static bool
 _check_legality_parallel(__isl_keep isl_schedule_node *node,
-                         __isl_take isl_union_map *dep) {
+                         __isl_keep isl_union_map *dep) {
   isl_union_map *map;
   bool retval;
   isl_union_map *domain, *cmp;
   isl_union_set *delta, *zeros;
+  if (isl_union_map_is_empty(dep))
+    return isl_bool_true;
   node = isl_schedule_node_copy(node);
   node = isl_schedule_node_first_child(node);
   map = isl_schedule_node_band_get_partial_schedule_union_map(node);
   node = isl_schedule_node_free(node);
 
-  if (isl_union_map_is_empty(dep)) {
-    dep = isl_union_map_free(dep);
-    map = isl_union_map_free(map);
-    return isl_bool_true;
-  }
+  dep = isl_union_map_copy(dep);
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
@@ -794,8 +862,20 @@ ccScop::check_legality() {
       is_parallel = true;
     isl_id_free(id);
   }
-  isl_union_map *dep = isl_union_map_copy(this->dep_flow);
-  if (is_parallel)
-    return _check_legality_parallel(this->current_node, dep);
-  return _check_legality(this->current_node, dep);
+  if (is_parallel) {
+    if (not _check_legality_parallel(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality_parallel(this->current_node, this->war))
+      return false;
+    if (not _check_legality_parallel(this->current_node, this->waw))
+      return false;
+  } else {
+    if (not _check_legality(this->current_node, this->dep_flow))
+      return false;
+    if (not _check_legality(this->current_node, this->war))
+      return false;
+    if (not _check_legality(this->current_node, this->waw))
+      return false;
+  }
+  return true;
 }

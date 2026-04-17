@@ -1,6 +1,7 @@
 # distutils: language=c++
 import datetime
 import json
+import logging
 import os
 import re
 import shutil
@@ -11,15 +12,16 @@ from pathlib import Path
 
 import cython
 from cython.cimports.libc.stdio import FILE, fclose, fopen
-from cython.cimports.libcpp.string import string
 from cython.cimports.libcpp.vector import vector
 from cython.cimports.tadashi import isl, pet
 from cython.cimports.tadashi.ccscop import ccScop
 from cython.cimports.tadashi.codegen import codegen
 from cython.cimports.tadashi.scop import Scop
 
+from . import TrEnum
 from .passesparser import PassParser
 
+# We can't use ABC because this is a @cython.cclass
 ABC_ERROR_MSG = "Translator is an abstract base class, use a derived class."
 DOUBLE_SET_SOURCE = "Translator.set_source() should only be called once."
 
@@ -43,6 +45,8 @@ class Translator:
         path = Path(path)
         if not path.exists():
             raise ValueError(f"{path} does not exist!")
+        if not path.is_file():
+            raise ValueError(f"{path} is not a file!")
 
     @staticmethod
     def _get_flags(flag: str, flags: list[str]) -> list[str]:
@@ -66,10 +70,11 @@ class Translator:
         super().set_source() after populatin the `ccScop`s.
 
         """
-        self._check_missing_file(source)
+        abs_path = Path(source).absolute()
+        self._check_missing_file(abs_path)
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
-        self.source = Path(source).absolute()
+        self.source = abs_path
         self.scops = []
         self.ccscops.clear()
         self.populate_ccscops(options)
@@ -82,6 +87,17 @@ class Translator:
         self, input_path: str, output_path: Path, options: list[str]
     ) -> Path:
         raise NotImplementedError(ABC_ERROR_MSG)
+
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
+        raise NotImplementedError(ABC_ERROR_MSG)
+
+    def reset(self) -> None:
+        pass
+
+    @staticmethod
+    def tr_block() -> list[TrEnum]:
+        return []
 
 
 @cython.cclass
@@ -215,14 +231,19 @@ class Pet(Translator):
         cython.operator.postincrement(cython.operator.dereference(pptr))
         return p
 
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
+        return [os.getenv("CC", "gcc")]
+
 
 @cython.cclass
 class Polly(Translator):
     compiler: str
     json_paths: list[Path]
-    cwd: Path
+    tmpdir: Path
     before_polly_passes: str
     after_polly_passes: str
+    logger: logging.Logger
 
     def __init__(self, compiler: str = "clang"):
         self.compiler = str(compiler)
@@ -231,23 +252,14 @@ class Polly(Translator):
         before, after = pp.split(locs[1])
         self.before_polly_passes = pp.reassemble(before)
         self.after_polly_passes = pp.reassemble(after)
+        self.logger = logging.getLogger(__name__)
 
-    def _run(self, cmd: list[str], description: str, cwd: str = None):
-        """cmd is command list, description is verb-ing, cwd defailts to self.cwd"""
-        if cwd is None:
-            cwd = str(self.cwd)
-        proc = subprocess.run(cmd, capture_output=True, cwd=cwd)
-        ##########
-        # msg = [
-        #     f"Something went wrong while [{description}]",
-        #     "cmd: " + " ".join(cmd),
-        #     "stdout:",
-        #     f"{proc.stdout.decode()}",
-        #     "stderr",
-        #     f"{proc.stderr.decode()}",
-        # ]
-        # print("\n".join(msg))
-        ##########
+    def _run(self, cmd: list[str], description: str):
+        """cmd is command list, description is verb-ing"""
+        self.logger.debug(f"Running: {' '.join(cmd)}")
+        proc = subprocess.run(cmd, capture_output=True)
+        self.logger.debug(f"stdout: {proc.stdout.decode()}")
+        self.logger.debug(f"stderr: {proc.stderr.decode()}")
         if proc.returncode != 0:
             msg = [
                 f"Something went wrong while [{description}]",
@@ -261,57 +273,53 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
-    @cython.ccall
-    def populate_ccscops(self, options: list[str]):
-        self.ctx = pet.isl_ctx_alloc()
-        if self.ctx is cython.NULL:
-            raise MemoryError()
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.cwd = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
-        self._get_pre_polly_bc(options)
-        stderr = self._export_jscops(options)
-        self.json_paths = self._fill_json_paths(stderr)
-        for file in self.json_paths:
-            with open(self.cwd / file) as fp:
-                jscop = json.load(fp)
-            self._proc_jscop(jscop)
+    @staticmethod
+    def _sanitize(options: list[str]) -> list[str]:
+        return options
+
+    def _polly(self) -> list[str]:
+        opt_cmd = ["opt"]
+        flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
+        proc = subprocess.run(opt_cmd + flags, stderr=subprocess.DEVNULL)
+        opt_cmd += ["-load=LLVMPolly.so"] if proc.returncode == 0 else []
+        return opt_cmd
+
+    def _polly_options(self, options: list[str]) -> list[str]:
+        return [
+            f"-polly-import-jscop-dir={self.tmpdir}",
+            "-aa-pipeline=basic-aa",
+            "-polly-codegen",
+            # "-polly-use-llvm-names",
+            *options,
+            # "-polly-process-unprofitable",
+        ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
-        compile_O0_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
-        pre_polly_bc = self.cwd / self.source.with_suffix(".pre_polly.bc").name
+        pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
         if pre_polly_bc.exists():
             return pre_polly_bc
-
-        compiler_opts = {
-            "clang": ["-O0", "-Xclang", "-disable-O0-optnone"],
-            "flang": ["-O0"],
-        }
-        compile_cmd = [self.compiler, *options, "-c", "-emit-llvm", str(self.source)]
-        compile_cmd += [*compiler_opts[self.compiler[:5]], "-o", str(compile_O0_bc)]
+        compile_O0_bc = self.tmpdir / self.source.with_suffix(".O0.bc").name
+        compiler_opts = self._compiler_options()
+        sanitized = self._sanitize(options)
+        compile_cmd = [self.compiler, *compiler_opts, *sanitized, "-c", "-emit-llvm"]
+        compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
-        opt_cmd = ["opt", f"-passes={self.before_polly_passes}"]
+        opt_cmd = self._polly() + ["-polly-canonicalize"]
         opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
         self._run(opt_cmd, "running pre polly opt passes")
         return pre_polly_bc
 
     def _export_jscops(self, options: list[str]) -> str:
-        cmd = self._polly() + [
-            str(self._get_pre_polly_bc(options)),
+        input_path = str(self._get_pre_polly_bc(options))
+
+        opts = [
+            input_path,
             "-polly-export-jscop",
             "-o=/dev/null",
         ]
+        cmd = self._polly() + self._polly_options(opts)
         proc = self._run(cmd, "exporting jscops")
         return proc.stderr.decode()
-
-    @staticmethod
-    def _polly():
-        cmd = ["opt", "-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subprocess.run(cmd, stderr=subprocess.DEVNULL)
-        final = ["opt"]
-        if proc.returncode == 0:
-            final.append("-load=LLVMPolly.so")
-        final.append("-polly-canonicalize")
-        return final
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str) -> list[Path]:
@@ -322,10 +330,14 @@ class Polly(Translator):
                 continue
             match = pat.search(t)
             if not match:
-                raise ValueError(
-                    f"Something is wrong with `opt` output. "
-                    + "Please raise an issue and mention this!\n{stderr}"
-                )
+                lines = [
+                    "Something is wrong with `opt` output. ",
+                    "Please raise an issue and mention this!",
+                    f"{stderr}",
+                    "The line that didn't match:",
+                    f"{t}",
+                ]
+                raise ValueError("\n".join(lines))
             file = match.group(1)
             json_paths.append(Path(file))
         return json_paths
@@ -351,29 +363,73 @@ class Polly(Translator):
             sched = isl.isl_union_map_union(sched, sch)
         self.ccscops.emplace_back(domain, sched, read, write)
 
+    @cython.ccall
+    def populate_ccscops(self, options: list[str]):
+        self.logger.debug("Start populating scops")
+        self.ctx = pet.isl_ctx_alloc()
+        if self.ctx is cython.NULL:
+            raise MemoryError()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.tmpdir = Path(tempfile.mkdtemp(prefix=f"tadashi-{timestamp}-"))
+        self._get_pre_polly_bc(options)
+        stderr = self._export_jscops(options)
+        self.json_paths = self._fill_json_paths(stderr)
+        for file in self.json_paths:
+            self.logger.debug(f"Start processing jscop [{file.name}]")
+            with open(self.tmpdir / file) as fp:
+                jscop = json.load(fp)
+            self._proc_jscop(jscop)
+            self.logger.debug(f"Finish processing jscop [{file.name}]")
+        self.logger.debug("Finish populating scops")
+
+    def _compiler_options(self):
+        for flang in ["mpifort", "mpif90", "mpif77", "flang", "flang-new"]:
+            if flang in self.compiler:
+                return ["-O0"]
+        for clang in ["mpic++", "mpicc", "mpiCC", "mpicxx", "clang", "clang++", "acpp"]:
+            if clang in self.compiler:
+                return ["-O0", "-Xclang", "-disable-O0-optnone"]
+        raise ValueError(f"Unsupported compiler: {self.compiler}")
+
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
-        cmd = self._polly() + [input_path, "-polly-import-jscop", "-o=/dev/null"]
-        proc = self._run(cmd, "checking legality")
-        return proc.returncode == 0
+
+        opts = [
+            input_path,
+            "-polly-import-jscop",
+            "-o=/dev/null",
+        ]
+        cmd = self._polly() + self._polly_options(opts)
+        try:
+            self._run(cmd, "checking legality")
+        except ValueError as e:
+            return False
+        return True
 
     def _import_jscops(self, options: list[str]) -> Path:
         input_path = str(self._get_pre_polly_bc(options))
-        post_polly_bc = self.cwd / self.source.with_suffix(".post_opt.bc").name
+        post_polly_name = self.source.with_suffix(".post_polly.bc").name
+        post_polly_bc = str(self.tmpdir / post_polly_name)
 
-        polly_cmd = self._polly() + [input_path, "-polly-import-jscop"]
-        polly_cmd += [
-            "-polly-codegen",
-            f"-o={str(post_polly_bc)}",
+        opts = [
+            input_path,
+            "-polly-import-jscop",
             "-disable-polly-legality",
+            "-polly-parallel-force",
+            f"-o={post_polly_bc}",
         ]
+        polly_cmd = self._polly() + self._polly_options(opts)
         self._run(polly_cmd, "importing jscops")
 
-        output = self.cwd / self.source.with_suffix(".bc").name
+        output = self.tmpdir / self.source.with_suffix(".bc").name
 
-        opt_cmd = ["opt", f"-passes={self.after_polly_passes}"]
-        opt_cmd += [str(post_polly_bc), f"-o={str(output)}"]
-        opt_proc = self._run(opt_cmd, "running opt after jscops import")
+        opt_cmd = [
+            "opt",
+            "-O3",
+            post_polly_bc,
+            f"-o={str(output)}",
+        ]
+        self._run(opt_cmd, "running opt after jscops import")
         return output
 
     @cython.ccall
@@ -381,7 +437,7 @@ class Polly(Translator):
         self, input_path: str, output_path: Path, options: list[str]
     ) -> Path:
         for scop_idx, jscop_path in enumerate(self.json_paths):
-            jscop_path = self.cwd / jscop_path
+            jscop_path = self.tmpdir / jscop_path
             backup_path = jscop_path.with_suffix(jscop_path.suffix + ".bak")
             shutil.copy2(jscop_path, backup_path)
             self._update_jscop(jscop_path, scop_idx)
@@ -402,13 +458,24 @@ class Polly(Translator):
             stmt["schedule"] = isl.isl_union_map_to_str(stmt_map).decode()
             isl.isl_union_map_free(stmt_map)
         with jscop_path.open("w", encoding="utf-8") as f:
-            json.dump(jscop, f, indent=2)
+            json.dump(jscop, f, indent=3)
         isl.isl_union_map_free(umap)
 
     def _compile_to_obj(self, output: Path, options: list[str]):
         output_path = Path(output).with_suffix(".o")
         input_path = str(self._import_jscops(options))
-        cmd = ["llc", "-relocation-model=pic", "--filetype=obj"]
+        cmd = ["llc", "-O3", "-relocation-model=pic", "--filetype=obj"]
         cmd += [input_path, f"-o={str(output_path)}"]
         self._run(cmd, "generating assembly")
         return output_path
+
+    @cython.ccall
+    def get_compiler(self) -> list[str]:
+        return [self.compiler, "-O3"]
+
+    def reset(self) -> None:
+        self._export_jscops([])
+
+    @staticmethod
+    def tr_block() -> list[TrEnum]:
+        return [TrEnum.SET_PARALLEL, TrEnum.SET_LOOP_OPT]

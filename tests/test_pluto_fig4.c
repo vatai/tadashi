@@ -24,8 +24,8 @@
 /// #pragma endscop
 /// }
 ///
-/// legality=True
-/// legality=True
+/// legality=False
+/// legality=False
 /// legality=True
 /// legality=True
 #include <stdlib.h>

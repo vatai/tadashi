@@ -21,20 +21,25 @@ int
 main() {
   isl_ctx *ctx = isl_ctx_alloc();
   isl_union_set *domain = isl_union_set_read_from_str(
-      ctx, "[p_0, p_1, p_2] -> { Stmt5[i0, i1, i2] : 0 <= i0 < p_0 and 0 <= i1 "
-           "< p_2 and 0 <= i2 < p_1; Stmt2[i0, i1] : 0 <= i0 < p_0 and 0 <= i1 "
-           "< p_1 }");
+      ctx, "[p_0, p_1, p_2] -> { Stmt4[-1 + p_0] : p_0 > 0 and (p_2 >= 2 + p_1 "
+           "or p_2 <= p_1); Stmt3[-1 + p_0] : p_2 = 1 + p_1 and p_0 > 0; "
+           "Stmt1last[i0] : 0 <= i0 < p_0; Stmt39[] }");
   isl_union_map *umap = isl_union_map_read_from_str(
-      ctx, "[p_0, p_1, p_2] -> { Stmt2[i0, i1] -> [i0, 0, i1, 0]; Stmt5[i0, "
-           "i1, i2] -> [i0, 1, i1, i2] }");
+      ctx, "[p_0, p_1, p_2] -> { Stmt39[] -> [1, 0, 0]; Stmt4[i0] -> [0, -1 + "
+           "p_0, 1] : p_2 >= 2 + p_1 or p_2 <= p_1; Stmt1last[i0] -> [0, i0, "
+           "0]; Stmt3[i0] -> [0, -1 + p_0, 2] }");
   isl_schedule *schedule = build_schedule_from_umap(domain, umap);
   isl_schedule_node *root;
   root = isl_schedule_get_root(schedule);
 
+  umap = isl_schedule_get_map(schedule);
+
   std::cout << "========================================" << std::endl;
+  std::cout << isl_union_map_to_str(umap) << std::endl;
   std::cout << "========================================" << std::endl;
   std::cout << "RESULS: " << isl_schedule_node_to_str(root) << std::endl;
   std::cout << "DONE!" << std::endl;
+  isl_union_map_free(umap);
   isl_schedule_free(schedule);
   isl_schedule_node_free(root);
   isl_ctx_free(ctx);

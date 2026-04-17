@@ -88,7 +88,10 @@ class PassParser:
         return locs
 
     def split(self, locs: list[int]):
-        return self._split(locs, self.pass_tree())
+        before, after = self._split(locs, self.pass_tree())
+        if after[-1] == "print":
+            after = after[:-1]
+        return before, after
 
     @staticmethod
     def _split(locs: list[int], subtree: list[tuple]):

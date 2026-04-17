@@ -7,7 +7,6 @@ from tadashi.apps import Simple
 
 
 class MakefileApp(Simple):
-    @property
     def compile_cmd(self) -> list[str]:
         cmd = ["make", f"-C{self.source.parent}", str(self.output_binary)]
         return cmd

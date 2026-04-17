@@ -19,7 +19,7 @@ jobs:
       run: sudo apt -y install llvm clang # libpolly-18-dev
 
     - name: Set up Python 🐍
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.12"
         cache: 'pip'
@@ -34,5 +34,8 @@ jobs:
     # - name: Run end2end.py
     #   run: python examples/end2end.py
 
+    - name: Run priority test
+      run: LOG_LEVEL=DEBUG python -m unittest --locals tests.test_apps.TestPolybench.test_end2end_polly
+
     - name: Run unittests
-      run: python -m unittest -v
+      run: python -m unittest -v --locals

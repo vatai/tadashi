@@ -32,8 +32,8 @@ private:
   void _pet_eliminate_dead_code();
 
 private:
-  isl_schedule *schedule;     // 1. todo maybe remove
-  isl_union_map *dep_flow;    // 2. todo maybe private?
+  isl_schedule *schedule;     // 1.
+  isl_union_map *dep_flow;    // 2.
   isl_union_set *domain;      // 3.
   isl_union_set *call;        // 4.
   isl_union_map *may_writes;  // 5.
@@ -48,6 +48,10 @@ public:
   bool current_legal;              // 12.
   bool tmp_legal;                  // 13.
   int modified;                    // 14.
+
+private:
+  isl_union_map *war; // 15.
+  isl_union_map *waw; // 16.
 };
 
 #endif

@@ -1,0 +1,407 @@
+#+title: Summary of all the apps tried
+#+COLUMNS: %TODO %ITEM %GOODNES
+
+* Summary
+#+begin: columnview :hlines nil :id benchmarks
+| TODO | ITEM                                  | GOODNES          |
+|------+---------------------------------------+------------------|
+|      | Benchmarks                            |                  |
+|      | FS2020                                |                  |
+| DONE | Adventure.region0.20170821 (C)        | 1.049x speedup   |
+| DONE | Adventure.region1.20160808            | no scops         |
+| DONE | Adventure.region2.20170727            | infinite loop    |
+| DONE | FFB.callap_kernel2.20160805           | no scops         |
+| DONE | FFB.spmmv_vec8.20170509               | no scops         |
+| DONE | GAMERA.TIMER_COMP_MATVEC_IF           | infinite loop    |
+| DONE | GENESIS.PairList_July                 | no scops         |
+| DONE | GENESIS.PairList_June                 | no scops         |
+| DONE | GENESIS.kernel_July                   | no scops         |
+| DONE | GENESIS.kernel_June                   | no scops         |
+| DONE | NICAM.Horizontal_Adv_flux.20170418    | no scops         |
+| DONE | NICAM.Horizontal_Adv_limiter.20170407 | no scops         |
+| DONE | NICAM.Vertical_Adv_limiter.20160902   | no scops         |
+| DONE | NICAM.diffusion.20170220 (f90)        | 1.005x speedup   |
+| TODO | NICAM.divdamp.20170420                | READY!!!!!       |
+| TODO | NICAM.vi_rhow_solver.20160902         | READY!!!!!       |
+| TODO | QCD.ddd_in_s_.20170621                | READY!!!!!       |
+| DONE | QCD.jinv_ddd_in_s_.20170720           | clang fails      |
+| DONE | streamlike_pattern1                   | no scops         |
+| DONE | streamlike_pattern2                   | no scops         |
+| DONE | streamlike_pattern3                   | no scops         |
+|      | miniAMR                               | good             |
+|      | SWFFT                                 | maybe            |
+|      | ExaMPM                                |                  |
+|      | ExaMiniMD                             | maybe (kokkos)   |
+|      | miniFE                                | too small        |
+|      | miniTRI                               | too small        |
+|      | Lagosh                                | no               |
+|      | SNbone                                | no scops         |
+|      | CoMD                                  | no scops         |
+|      | miniGHOST (f)                         | no scops         |
+|      | E3SM                                  | no scops         |
+|      | NEKbone (f)                           | no scops         |
+|      | minq (c++)                            | big dependency   |
+|      | HPGMG                                 | broken           |
+|      | kripke                                | broken url       |
+|      | ntchem kernel from William            | no scops (WTF!?) |
+|      | hypre-mini-app                        | not building     |
+|      | VPFFT                                 | not building     |
+#+end:
+
+* Benchmarks
+:PROPERTIES:
+:ID: benchmarks
+:END:
+** TODO miniAMR
+:PROPERTIES:
+:GOODNES:  good
+:END:
+- Works with PET backend
+- Need to run it with old evotadashi (not mpi4py enabled one)
+
+** TODO sw4lite
+:PROPERTIES:
+:GOODNES:  good
+:END:
+will need clang
+** HPGMG
+:PROPERTIES:
+:GOODNES:  broken
+:END:
+*** Detect
+scop-detector . -DUSE_SUBCOMM -DUSE_FCYCLES -DUSE_GSRB -DUSE_BICGSTAB  -I. -D_OPENMP
+*** Compile
+#+begin_example
+% clang -O3 -fopenmp level.c operators.fv4.c mg.c solvers.c hpgmg-fv.c timers.c -DUSE_SUBCOMM -DUSE_FCYCLES -DUSE_GSRB -DUSE_BICGSTAB  -lm -o prog.x
+#+end_example
+*** Error
+#+begin_example
+vatai@niku ../evaluation/hpgmg/finite-volume/source (git)-[master] % scop-detector . -e c -DUSE_JACOBI
+Polly() for operators.fv4.c
+len(app.scops)=0
+Polly() for operators.flux.c
+len(app.scops)=0
+Polly() for operators.test.c
+len(app.scops)=0
+Polly() for timers.c
+len(app.scops)=0
+Polly() for operators.27pt.c
+len(app.scops)=0
+Polly() for mg.c
+len(app.scops)=1
+scop: 0 - num_nodes=8 - max_depth=4
+Polly() for level.c
+len(app.scops)=1
+scop: 0 - num_nodes=14 - max_depth=4
+Polly() for hpgmg-fv.c
+len(app.scops)=0
+Polly() for operators.7pt.c
+len(app.scops)=0
+Polly() for operators.fv2.c
+len(app.scops)=0
+Polly() for solvers.c
+len(app.scops)=0
+Polly() for operators.test/gsrb.ompfor.c
+Traceback (most recent call last):
+  File "/home/vatai/.local/bin/scop-detector", line 6, in <module>
+    sys.exit(scop_detector())
+             ~~~~~~~~~~~~~^^
+  File "/home/vatai/code/tadashi/tadashi/_scripts.py", line 62, in scop_detector
+    app = _mkapp(args, file)
+  File "/home/vatai/code/tadashi/tadashi/_scripts.py", line 52, in _mkapp
+    app = Simple(file, translator=translator, compiler_options=args.rest)
+  File "/home/vatai/code/tadashi/tadashi/apps.py", line 290, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        source=source,
+        ^^^^^^^^^^^^^^
+    ...<3 lines>...
+        populate_scops=populate_scops,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/vatai/code/tadashi/tadashi/apps.py", line 242, in __init__
+    self.translator = translator.set_source(source, options)
+                      ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "tadashi/translators.py", line 79, in tadashi.translators.Translator.set_source
+  File "tadashi/translators.py", line 360, in tadashi.translators.Polly.populate_ccscops
+  File "tadashi/translators.py", line 368, in tadashi.translators.Polly.populate_ccscops
+  File "tadashi/translators.py", line 300, in tadashi.translators.Polly._get_pre_polly_bc
+  File "tadashi/translators.py", line 268, in tadashi.translators.Polly._run
+ValueError: Something went wrong while [compiling with O0]
+cmd: clang -O0 -Xclang -disable-O0-optnone -DUSE_JACOBI -c -emit-llvm /home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c -o /tmp/tadashi-20260404-010548-8cxgm4y0/gsrb.ompfor.O0.bc
+returncode: 1
+stdout:
+
+stderr
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:24:13: error: unknown type name 'level_type'
+   24 | void smooth(level_type * level, int x_id, int rhs_id, double a, double b){
+      |             ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:26:15: error: use of undeclared identifier 'NUM_SMOOTHS'
+   26 |   for(s=0;s<2*NUM_SMOOTHS;s++){ // there are two sweeps per GSRB smooth
+      |               ^~~~~~~~~~~
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:18: error: call to undeclared function 'exchange_boundary'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                  ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:54: error: call to undeclared function 'stencil_get_shape'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                                                      ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:33:75: error: call to undeclared function 'apply_BCs'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   33 |                  exchange_boundary(level,       x_id,stencil_get_shape());apply_BCs(level,        x_id,stencil_get_shape());
+      |                                                                           ^
+/home/vatai/code/tadashi/examples/evaluation/hpgmg/finite-volume/source/operators.test/gsrb.ompfor.c:37:25: error: call to undeclared function 'getTime'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   37 |     double _timeStart = getTime();
+      |                         ^
+#+end_example
+** FS2020
+*** DONE Adventure.region0.20170821 (C)
+:PROPERTIES:
+:GOODNES:  1.049x speedup
+:END:
+- 3 are C, at least 2 work with Polly backend
+
+#+begin_example
+Top-3 solutions found:
+    -0.009372 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [1, 21, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 1], [1, 40, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 26], ] --- -0.00937200
+    -0.0094 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [1, 21, tadashi.TrEnum.FULL_SHIFT_PARAM, 0, 1], [1, 5, tadashi.TrEnum.INTERCHANGE, ], ] --- -0.00940000
+    -0.009471 [[1, 4, tadashi.TrEnum.FULL_SHIFT_VAR, 0, 36], [1, 3, tadashi.TrEnum.TILE_1D, 16], [1, 5, tadashi.TrEnum.TILE_1D, 8], [0, 4, tadashi.TrEnum.TILE_2D, 16, 16], [1, 6, tadashi.TrEnum.SET_LOOP_OPT, 0, 1], [0, 11, tadashi.TrEnum.TILE_1D, 64], [0, 13, tadashi.TrEnum.SPLIT, 1], ] --- -0.00947100
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+isl_space.c:642: tuple has no id
+Reproduction time: 3.0209062099456787
+  Fitness on generation 9: -0.00904300 (1.096x speedup)
+#+end_example
+
+*** DONE Adventure.region1.20160808
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE Adventure.region2.20170727
+:PROPERTIES:
+:GOODNES:  infinite loop
+:END:
+*** DONE FFB.callap_kernel2.20160805
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE FFB.spmmv_vec8.20170509
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE GAMERA.TIMER_COMP_MATVEC_IF
+:PROPERTIES:
+:GOODNES:  infinite loop
+:END:
+use -DREAL_4=real -DMAXCOLOR=100
+
+*** DONE GENESIS.PairList_July
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE GENESIS.PairList_June
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE GENESIS.kernel_July
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE GENESIS.kernel_June
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE NICAM.Horizontal_Adv_flux.20170418
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.Horizontal_Adv_limiter.20170407
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.Vertical_Adv_limiter.20160902
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+*** DONE NICAM.diffusion.20170220 (f90)
+:PROPERTIES:
+:GOODNES:  1.005x speedup
+:END:
+
+*** TODO NICAM.divdamp.20170420
+:PROPERTIES:
+:GOODNES:  READY!!!!!
+:END:
+
+*** TODO NICAM.vi_rhow_solver.20160902
+:PROPERTIES:
+:GOODNES:  READY!!!!!
+:END:
+
+*** TODO QCD.ddd_in_s_.20170621
+:PROPERTIES:
+:GOODNES:  READY!!!!!
+:END:
+
+*** DONE QCD.jinv_ddd_in_s_.20170720
+:PROPERTIES:
+:GOODNES:  clang fails
+:END:
+*** DONE streamlike_pattern1
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE streamlike_pattern2
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+*** DONE streamlike_pattern3
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+** CloverLeaf_ref
+:PROPERTIES:
+:GOODNES:  almost scop
+:END:
+*** TODO look at Cloverleaf-serial
+*** perf
+**** file: advec_mom_kernel
+**** Manual instrumentation:
+#+begin_example
+@@@@ |0 0.454686 |1 0.282210 |2 0.345998 |3 0.276447 |4 2.708418 |5 1.111301 |6 2.672818 |7 1.125872 |
+#+end_example
+**** Code snippet
+#+begin_example
+clover leaf is no good :cry:
+    for (k=y_min;k<=y_max+1;k++) {
+      for (j=x_min-1;j<=x_max+1;j++) {
+        if(node_flux[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]<0.0){
+          upwind=j+2;
+          donor=j+1;
+          downwind=j;
+          dif=donor;
+        }
+        else{
+          upwind=j-1;
+          donor=j;
+          downwind=j+1;
+          dif=upwind;
+        }you see the if? that's data dependent. that scews things up...
+
+there are some loops witout the if, but when you expand the FTNREF2d (i.e. fortran index to C index macro) you get something like this
+
+#pragma omp for private(j)
+    for (k=y_min-1;k<=y_max+2;k++) {
+#pragma omp simd
+      for (j=x_min;j<=x_max+1;j++) {
+        node_mass_post[((x_max+5)*(k-(y_min-2))+(j)-(x_min-2))]=0.25
+                                                                 *(density1[((x_max+4)*(k-1 -(y_min-2))+(j)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-1 -(y_min-2))+(j)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-(y_min-2))+(j)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-(y_min-2))+(j)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-1 -(y_min-2))+(j-1)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-1 -(y_min-2))+(j-1)-(x_min-2))]
+                                                                  +density1[((x_max+4)*(k-(y_min-2))+(j-1)-(x_min-2))]
+                                                                  *post_vol[((x_max+5)*(k-(y_min-2))+(j-1)-(x_min-2))]);
+      }
+    }this LOOKS better (no if) but the index is all bad.
+
+idx = cst_0 * iter_0 + cst_1 * iter_1 +... + cst_p0 * param_0 + cst_p1 * param_1 this is :white_check_mark: OK! (cst = constant, iter = iterator like k, j , para = parameter like x_min i.e. loop boundary)
+this code has idx = ... + param * iter + ... (namely x_max * k) which is :x: not good for scops.
+#+end_example
+** SWFFT
+:PROPERTIES:
+:GOODNES:  maybe
+:END:
+- Needs okish scops in distribution.c (needs fftw as a dependency, didn't build yet)
+
+** ExaMPM
+- Needs dependecies (maybe read and build)
+
+** ExaMiniMD
+:PROPERTIES:
+:GOODNES:  maybe (kokkos)
+:END:
+- Can't parse because it Kokkos (maybe read and build)
+
+** miniFE
+:PROPERTIES:
+:GOODNES:  too small
+:END:
+- Works with Polly but the scops seem too small
+
+** miniTRI
+:PROPERTIES:
+:GOODNES:  too small
+:END:
+- Spars/graph code. Scops are too small
+
+** Lagosh
+:PROPERTIES:
+:GOODNES:  no
+:END:
+
+- The filenames automatically generated by polly (which I cannot control) are too freaking long!
+
+** SNbone
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+- Small scop with (original) Polly backend
+- No scops with (rewritten) Polly backend
+
+** CoMD
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+** miniGHOST (f)
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+** E3SM
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+** NEKbone (f)
+:PROPERTIES:
+:GOODNES:  no scops
+:END:
+
+** minq (c++)
+:PROPERTIES:
+:GOODNES: big dependency
+:END:
+
+** kripke
+:PROPERTIES:
+:GOODNES:  broken url
+:END:
+
+** ntchem kernel from William
+:PROPERTIES:
+:GOODNES:  no scops (WTF!?)
+:END:
+
+** hypre-mini-app
+:PROPERTIES:
+:GOODNES:  not building
+:END:
+
+- I get a bunch of error even with clang -O0
+
+** VPFFT
+:PROPERTIES:
+:GOODNES:  not building
+:END:
+- needs deps (eigen)
+

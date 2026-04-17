@@ -3,14 +3,13 @@ import multiprocessing
 import re
 from ast import literal_eval
 from collections import namedtuple
-from dataclasses import dataclass
-from enum import Enum, StrEnum, auto
-from typing import Tuple
+from enum import Enum, auto
 
 import cython
-from cython.cimports.tadashi import isl, pet, transformations
+from cython.cimports.tadashi import isl
 from cython.cimports.tadashi.ccscop import ccScop
 
+from . import TrEnum
 from . import _tr_wrappers as w
 from .node_type import NodeType
 
@@ -54,32 +53,6 @@ arguments for transformations. `None` indicates no upper/lower bound.
 CAMEL_TO_SNAKE = re.compile(r"(?<=[a-z])(?=[A-Z0-9])")
 
 
-class TrEnum(StrEnum):
-    """Enums of implemented transformations.
-
-    One of these enums needs to be passed to `Node.transform()` (with
-    args) to perform the transformation.
-    """
-
-    TILE_1D = auto()
-    TILE_2D = auto()
-    TILE_3D = auto()
-    INTERCHANGE = auto()
-    FULL_FUSE = auto()
-    FUSE = auto()
-    FULL_SPLIT = auto()
-    SPLIT = auto()
-    SCALE = auto()
-    FULL_SHIFT_VAL = auto()
-    PARTIAL_SHIFT_VAL = auto()
-    FULL_SHIFT_VAR = auto()
-    PARTIAL_SHIFT_VAR = auto()
-    FULL_SHIFT_PARAM = auto()
-    PARTIAL_SHIFT_PARAM = auto()
-    SET_PARALLEL = auto()
-    SET_LOOP_OPT = auto()
-
-
 @cython.cclass
 class Node:
     """Schedule node (Python representation)."""
@@ -110,7 +83,7 @@ class Node:
         if not TRANSFORMATIONS[tr].valid(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
         if not TRANSFORMATIONS[tr].valid_args(self, *args):
-            tr_name = tr.__class__.__name__
+            tr_name = tr.value
             msg = f"Not valid {args=}, for {tr_name=}"
             raise ValueError(msg)
         # TODO proc_args (from olden times)
@@ -371,18 +344,23 @@ class FuseInfo(TransformInfo):
 
     @staticmethod
     def valid(node: Node):
-        return (
-            (node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET)
-            and (len(node.children) > 1)
-            and (all(ch.children[0].node_type == NodeType.BAND for ch in node.children))
-        )
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        if len(node.children) < 2:
+            return False
+        return True
 
     @staticmethod
     def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
-        return (
-            TransformInfo._is_valid_child_idx(node, loop_idx1)
-            and TransformInfo._is_valid_child_idx(node, loop_idx2),
-        )
+        if not TransformInfo._is_valid_child_idx(node, loop_idx1):
+            return False
+        if not TransformInfo._is_valid_child_idx(node, loop_idx2):
+            return False
+        if node.children[loop_idx1].children[0].node_type != NodeType.BAND:
+            return False
+        if node.children[loop_idx2].children[0].node_type != NodeType.BAND:
+            return False
+        return True
 
     @staticmethod
     def available_args(node: Node):
@@ -434,7 +412,7 @@ class SplitInfo(TransformInfo):
         return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
-@register
+# @register
 class ScaleInfo(TransformInfo):
     arg_help = []
 
@@ -631,12 +609,10 @@ class Scop:
     def legal(self) -> bool:
         return bool(self.ptr_ccscop.current_legal)
 
-    def transform_list(self, trs: list) -> list[bool]:
-        result = []
+    def transform_list(self, trs: list):
         for node_idx, tr, *args in trs:
             node = self.schedule_tree[node_idx]
-            result.append(node.transform(tr, *args))
-        return result
+            node.transform(tr, *args)
 
     def reset(self):
         self.ptr_ccscop.reset()

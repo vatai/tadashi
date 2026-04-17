@@ -27,7 +27,5 @@ class TestTadashi(unittest.TestCase):
             [2, TrEnum.FULL_SPLIT],
             [7, TrEnum.SET_LOOP_OPT, 0, 3],
         ]
-        legal = app.scops[0].transform_list(trs)
-        self.assertTrue(legal[0])
-        self.assertFalse(legal[1])
-        self.assertFalse(legal[2])
+        app.scops[0].transform_list(trs)
+        self.assertFalse(app.legal)

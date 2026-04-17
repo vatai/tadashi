@@ -1,24 +1,27 @@
 #!/bin/env python
 
 import abc
+import atexit
 import copy
 import datetime
+import logging
 import os
 import re
-import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
+from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
 from .scop import Scop
-from .translators import Pet, Translator
-
-Result = namedtuple("Result", ["legal", "walltime"])
+from .translators import Pet, Polly, Translator
 
 
 class App(abc.ABC):
     """The (abstract) base class for app objects."""
+
+    source: Path
+    """The source file being manipulated by the app object."""
 
     user_compiler_options: list[str]
     """User compiler options are passed to the compilation command."""
@@ -39,47 +42,33 @@ class App(abc.ABC):
 
     """
 
-    def __del__(self):
+    def _cleanup(self):
         if self.ephemeral:
             binary = self.output_binary
+            self.logger.debug(f"Deleting {binary=} ({binary.exists()=})")
             if binary.exists():
                 binary.unlink()
             if self.source.exists():
                 self.source.unlink()
             else:
-                print("WARNING: source file missing!")
+                print(f"WARNING: source file ({str(self.source)}) missing!")
 
-    def __init__(
-        self,
-        source: str | Path,
-        translator: Optional[Translator] = None,
-        compiler_options: Optional[list[str]] = None,
-        ephemeral: bool = False,
-        populate_scops: bool = True,
-    ):
-        """Construct an app object.
+    @classmethod
+    def mkapp(cls, kwargs: dict):
+        cls_dict = {"Polly": Polly, "Pet": Pet}
 
-        Args:
+        tr_key = "translator"
+        tr_cls = cls_dict[kwargs[tr_key]]
+        kwargs = {**kwargs}
 
-          source: The source file.
-          translator: See `Translator`.
-        """
-        self.source = Path(source)
-        if translator is None and populate_scops:
-            translator = Pet()
-        amended_options = self._amend_compiler_options(compiler_options)
-        if populate_scops and translator:
-            self.translator = translator.set_source(source, amended_options)
+        tp_key = "translator_params"
+        if tp_key in kwargs:
+            params = kwargs[tp_key]
+            del kwargs[tp_key]
+            kwargs[tr_key] = tr_cls(params)
         else:
-            self.translator = None
-        self.user_compiler_options = compiler_options
-        self.ephemeral = ephemeral
-        self.populate_scops = populate_scops
-
-    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
-        if compiler_options is None:
-            compiler_options = []
-        return compiler_options
+            kwargs[tr_key] = tr_cls()
+        return cls(**kwargs)
 
     def __getstate__(self):
         """This was probably needed for serialisation."""
@@ -100,17 +89,49 @@ class App(abc.ABC):
     def legal(self) -> bool:
         return self.translator.legal()
 
-    def transform_list(self, transformation_list: list) -> Result:
+    @staticmethod
+    def _allowed(item: int | str, allow: list, block: list):
+        if allow and block:
+            raise ValueError("Can't specify both allow and block lists")
+        rv = True
+        if allow:
+            rv = item in allow
+        if block:
+            rv = item not in block
+        return rv
+
+    def get_all_transformations(
+        self,
+        *,
+        scop_allow: Optional[list[int]] = None,
+        scop_block: Optional[list[int]] = None,
+        tr_allow: Optional[list[str]] = None,
+        tr_block: Optional[list[str]] = None,
+    ) -> list[list[int | str]]:
+        """Return all available (scop_idx, node_idx, transformation) triplets."""
+        rv = []
+        for si, s in enumerate(self.scops):
+            if self._allowed(si, scop_allow, scop_block):
+                for ni, node in enumerate(s.schedule_tree):
+                    # TODO tr_block should be built into available_transformations
+                    block = self.translator.tr_block()
+                    av = [t for t in node.available_transformations if t not in block]
+                    trs = []
+                    for tr in av:
+                        if self._allowed(tr, tr_allow, tr_block):
+                            trs.append(tr)
+                            rv.append((si, ni, tr))
+        return rv
+
+    def transform_list(self, transformation_list: list) -> None:
         for si, ni, *tr in transformation_list:
             node = self.scops[si].schedule_tree[ni]
-            legal = node.transform(*tr)
-        self.compile()
-        walltime = self.measure()
-        return Result(legal, walltime)
+            node.transform(*tr)
 
     def reset_scops(self):
         for scop in self.scops:
             scop.reset()
+        self.translator.reset()
 
     @property
     def output_binary(self) -> Path:
@@ -132,8 +153,11 @@ class App(abc.ABC):
             new_file = self._source_with_infix(alt_infix)
         else:
             new_file = self._make_new_filename()
-        options = self._amend_compiler_options(self.user_compiler_options)
+        options = self.app_required_options() + self.user_compiler_options
+        msg = f"generate_code({str(self.source)=}, {new_file=}, {options=})"
+        self.logger.debug(msg)
         new_file = self.translator.generate_code(str(self.source), new_file, options)
+        self.logger.debug(f"Return value: {new_file=}")
         translator = copy.copy(self.translator) if populate_scops else None
         compiler_options = None
         if self.user_compiler_options:
@@ -161,7 +185,7 @@ class App(abc.ABC):
     def _make_new_filename(self) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
-        now_str = datetime.datetime.isoformat(now).replace(":", "-")
+        now_str = datetime.datetime.isoformat(now).replace(":", "-").replace(".", "-")
         suffix = self.source.suffix
         pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
         m = re.match(pattern, str(self.source))
@@ -169,52 +193,121 @@ class App(abc.ABC):
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    @property
-    @abc.abstractmethod
-    def compile_cmd(self) -> list[str]:
-        """Command executed for compilation (list of strings)."""
-        pass
-
-    def codegen_init_args(self) -> dict:
-        return {}
-
-    @staticmethod
-    def compiler():
+    def compiler(self) -> list[str]:
+        if self.translator:
+            return self.translator.get_compiler()
         return [os.getenv("CC", "gcc")]
 
     def compile(
         self,
-        verbose: bool = False,
         extra_compiler_options: list[str] = [],
-        output_binary_suffix="",
+        suffix="",
     ):
         """Compile the app so it can be measured/executed."""
-        cmd = self.compile_cmd
-        cmd += ["-o", f"{self.output_binary}{output_binary_suffix}"]
-        cmd += self._amend_compiler_options(self.user_compiler_options)
+        cmd = self.compile_cmd(suffix)
         cmd += extra_compiler_options
-        if verbose:
-            print(f"{' '.join(cmd)}")
-        result = subprocess.run(cmd)
-        # raise an exception if it didn't compile
-        result.check_returncode()
+        self.logger.debug(f"Running: {' '.join(cmd)}")
+        # if log_level is high (e.g. critical) then capture = don't print.
+        capture_output = self.logger.getEffectiveLevel() > logging.DEBUG
+        proc = run(cmd, capture_output=capture_output)
+        if proc.returncode != 0 and capture_output:
+            print(f"stdout:\n{proc.stdout.decode()}")
+            print(f"stderr:\n{proc.stderr.decode()}")
+            print(f"retcode:\n{proc.returncode}")
+        if capture_output:
+            self.logger.debug(f"{proc.stdout.decode()=}")
+            self.logger.debug(f"{proc.stderr.decode()=}")
 
     def measure(self, repeat=1, *args, **kwargs) -> float:
         """Measure the runtime of the app."""
         if not self.output_binary.exists():
             self.compile()
         results = []
+        cmd = self.run_cmd()
+        self.logger.debug(f"Running: {' '.join(cmd)} ({repeat=})")
         for _ in range(repeat):
-            result = subprocess.run(
-                str(self.output_binary), stdout=subprocess.PIPE, *args, **kwargs
-            )
-            stdout = result.stdout.decode()
-            results.append(self.extract_runtime(stdout))
+            proc = run(cmd, capture_output=True, *args, **kwargs)
+            results.append(self.extract_runtime(proc))
         return min(results)
 
-    def extract_runtime(self, stdout: str) -> float:
+    def __init__(
+        self,
+        *,
+        source: str | Path,
+        translator: Optional[Translator],
+        compiler_options: Optional[list[str]],
+        ephemeral: bool,
+        populate_scops: bool,
+    ):
+        """Construct an app object.
+
+        Args:
+
+          source: The source file.
+
+          translator: See `Translator`.
+
+          compiler_options: compiler options used for parsing the
+             source file, code generation and compilation.
+
+          populate_scops: [obsolete] `False` should results in
+            something similar to invoking this constructor with
+            `translator` set to `None`.
+
+        .. todo:: There is much to be done here.
+
+        .. todo:: 1. populate_scops should be obsoleted and then removed.
+
+        .. todo:: 2. order and clarify what should be
+            derived/overridden. Maybe even convert App to a proper ABC.
+
+        """
+        atexit.register(self._cleanup)
+        self.source = Path(source)
+        if compiler_options is None:
+            compiler_options = []
+        self.user_compiler_options = compiler_options
+        self.ephemeral = ephemeral
+        self.populate_scops = populate_scops
+        if translator is None and populate_scops:
+            translator = Pet()
+        if populate_scops and translator:
+            options = self.app_required_options() + self.user_compiler_options
+            self.translator = translator.set_source(source, options)
+        else:
+            self.translator = None
+        self.logger = logging.getLogger(__name__)
+
+    @abc.abstractmethod
+    def codegen_init_args(self) -> dict:
+        return {}
+
+    def app_required_options(self) -> list[str]:
+        return []
+
+    @abc.abstractmethod
+    def compile_cmd(self, suffix: str) -> list[str]:
+        """Command executed for compilation (list of strings)."""
+        pass
+
+    @abc.abstractmethod
+    def extract_runtime(self, proc: CompletedProcess) -> float:
         """Extract the measured runtime from the output."""
         raise NotImplementedError()
+
+    # @abc.abstractmethod # default behaviour is often acceptable, ergo not abstract
+    def run_cmd(self):
+        """Construct the command executed in `App.measure`.
+
+        If measuring a benchmark requires running something other then
+        `self.output_binary`, potentially with app specific args this
+        is the method to override.
+
+        """
+        outbin = str(self.output_binary)
+        if not self.output_binary.is_absolute():
+            outbin = f"./{outbin}"
+        return [outbin]
 
 
 class Simple(App):
@@ -232,26 +325,28 @@ class Simple(App):
     ):
         self.runtime_prefix = runtime_prefix
         super().__init__(
-            source,
-            translator,
+            source=source,
+            translator=translator,
             compiler_options=compiler_options,
             ephemeral=ephemeral,
             populate_scops=populate_scops,
         )
 
-    @property
-    def compile_cmd(self) -> list[str]:
+    def codegen_init_args(self):
+        return {"runtime_prefix": self.runtime_prefix}
+
+    def compile_cmd(self, suffix: str) -> list[str]:
         cmd = [
             *self.compiler(),
             str(self.source),
             "-fopenmp",
+            "-o",
+            f"{self.output_binary}{suffix}",
         ]
         return cmd
 
-    def codegen_init_args(self):
-        return {"runtime_prefix": self.runtime_prefix}
-
-    def extract_runtime(self, stdout) -> float:
+    def extract_runtime(self, proc: CompletedProcess) -> float:
+        stdout = proc.stdout.decode()
         for line in stdout.split("\n"):
             if line.startswith(self.runtime_prefix):
                 num = line.split(self.runtime_prefix)[1]
@@ -268,35 +363,6 @@ class Polybench(App):
     benchmark: str  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
-    def __init__(
-        self,
-        benchmark: str,
-        source: Optional[Path] = None,
-        translator: Optional[Translator] = None,
-        base: Path = Path(POLYBENCH_BASE),
-        compiler_options: Optional[list[str]] = None,
-        ephemeral: bool = False,
-        populate_scops: bool = True,
-    ):
-        self.base = Path(base)
-        self.benchmark = self._get_benchmark(benchmark)
-        if source is None:
-            filename = Path(self.benchmark).with_suffix(".c").name
-            source = self.base / self.benchmark / filename
-        if compiler_options is None:
-            compiler_options = []
-        super().__init__(
-            source,
-            translator,
-            compiler_options=compiler_options,
-            ephemeral=ephemeral,
-            populate_scops=populate_scops,
-        )
-
-    def _amend_compiler_options(self, compiler_options: list[str] | None = None):
-        compiler_options = super()._amend_compiler_options(compiler_options)
-        return compiler_options + [f"-I{self.base / 'utilities'}"]
-
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
         for c_file in self.base.glob("**/*.c"):
@@ -306,12 +372,6 @@ class Polybench(App):
                 return str(c_file.relative_to(self.base).parent)
         raise ValueError(f"Not a polybench {benchmark=}")
 
-    def codegen_init_args(self):
-        return {
-            "benchmark": self.benchmark,
-            "base": self.base,
-        }
-
     @staticmethod
     def get_benchmarks(path: str = POLYBENCH_BASE):
         benchmarks = []
@@ -320,40 +380,15 @@ class Polybench(App):
             dirname = file.parent.name
             if filename == dirname:
                 benchmarks.append(file.parent.relative_to(path))
-        return list(sorted(benchmarks))
-
-    @property
-    def compile_cmd(self) -> list[str]:
-        cmd = [
-            *self.compiler(),
-            str(self.source),
-            str(self.base / "utilities/polybench.c"),
-            "-DPOLYBENCH_TIME",
-            "-DPOLYBENCH_USE_RESTRICT",
-            "-lm",
-            "-fopenmp",
-        ]
-        return cmd
-
-    def extract_runtime(self, stdout) -> float:
-        result = 0.0
-        try:
-            result = float(stdout.split()[0])
-        except IndexError as e:
-            print(f"App probaly crashed: {e}")
-        return result
+        return list(map(str, sorted(benchmarks)))
 
     def dump_arrays(self):
         suffix = ".dump"
         self.compile(
             extra_compiler_options=["-DPOLYBENCH_DUMP_ARRAYS"],
-            output_binary_suffix=suffix,
+            suffix=suffix,
         )
-        result = subprocess.run(
-            f"{self.output_binary}{suffix}",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+        result = run(f"{self.output_binary}{suffix}", stdout=PIPE, stderr=PIPE)
         return result.stderr.decode()
 
     def dump_scop(self):
@@ -369,3 +404,61 @@ class Polybench(App):
             if "#pragma" in line and "scop" in line:
                 inside_scop = True
         return "\n".join(lines)
+
+    def __init__(
+        self,
+        benchmark: str,
+        source: Optional[Path] = None,
+        translator: Optional[Translator] = None,
+        base: Path = Path(POLYBENCH_BASE),
+        compiler_options: Optional[list[str]] = None,
+        ephemeral: bool = False,
+        populate_scops: bool = True,
+    ):
+        self.base = Path(base)
+        self.benchmark = self._get_benchmark(benchmark)
+        if source is None:
+            filename = Path(self.benchmark).with_suffix(".c").name
+            source = self.base / self.benchmark / filename
+        super().__init__(
+            source=source,
+            translator=translator,
+            compiler_options=compiler_options,
+            ephemeral=ephemeral,
+            populate_scops=populate_scops,
+        )
+
+    def codegen_init_args(self):
+        return {
+            "benchmark": self.benchmark,
+            "base": self.base,
+        }
+
+    def app_required_options(self) -> list[str]:
+        return [
+            f"-I{self.base / 'utilities'}",
+            "-DPOLYBENCH_TIME",
+            "-DPOLYBENCH_USE_RESTRICT",
+        ]
+
+    def compile_cmd(self, suffix) -> list[str]:
+        cmd = [
+            *self.compiler(),
+            str(self.source),
+            str(self.base / "utilities/polybench.c"),
+            "-lm",
+            "-o",
+            f"{self.output_binary}{suffix}",
+            *self.app_required_options(),
+            *self.user_compiler_options,
+        ]
+        return cmd
+
+    def extract_runtime(self, proc: CompletedProcess) -> float:
+        stdout = proc.stdout.decode()
+        result = 0.0
+        try:
+            result = float(stdout.split()[0])
+        except IndexError as e:
+            print(f"App probaly crashed: {e}")
+        return result
