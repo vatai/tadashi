@@ -83,7 +83,7 @@ class Node:
         if not TRANSFORMATIONS[tr].valid(self):
             raise ValueError(f"Transformation {tr} not valied here:\n{self.yaml_str}")
         if not TRANSFORMATIONS[tr].valid_args(self, *args):
-            tr_name = tr.__class__.__name__
+            tr_name = tr.value
             msg = f"Not valid {args=}, for {tr_name=}"
             raise ValueError(msg)
         # TODO proc_args (from olden times)
