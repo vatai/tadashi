@@ -13,7 +13,6 @@ third_party/opt
 third_party/isl*
 third_party/pet*
 
-.aider*
 *.tex
 *~
 _minted*
@@ -33,3 +32,6 @@ times/*.json
 
 output.*
 STDIN.*
+
+.aider*
+/.agent-shell/
