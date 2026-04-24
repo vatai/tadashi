@@ -447,8 +447,8 @@ class Polly(Translator):
     def _update_jscop(self, jscop_path: Path, scop_idx: int):
         ccscop = self.ccscops[scop_idx]
         sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
-        isl.isl_schedule_free(sched)
         umap = isl.isl_schedule_get_map(sched)
+        isl.isl_schedule_free(sched)
         with jscop_path.open("r", encoding="utf-8") as f:
             jscop = json.load(f)
         for stmt in jscop["statements"]:
