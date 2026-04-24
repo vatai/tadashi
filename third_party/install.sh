@@ -2,6 +2,7 @@
 set -e
 set -x
 
+LLVM_VERSION=17
 if [ -e "$(which yum)" ]; then
 	yum install -y gmp-c++ gmp-devel clang-devel-17.0.6 llvm-devel-17.0.6
 	LICENSE_FILE=/usr/include/llvm/Support/LICENSE.TXT
@@ -13,18 +14,22 @@ elif [ -e "$(which apt-get)" ]; then
 	apt-get update
 	apt-get install -y git build-essential autoconf pkg-config libtool llvm-17-dev clang-17 libclang-17-dev libgmp-dev libomp-dev
 	LICENSE_FILE=/usr/lib/llvm-17/build/utils/lit/LICENSE.TXT
+else
+	LLVM_VERSION=20
 fi
 
 ROOT="$(git rev-parse --show-toplevel)"
 PREFIX="$ROOT/third_party/opt"
 
-cp -r "$(clang-17 -print-resource-dir)/include" "$ROOT/tadashi"
-cp "$LICENSE_FILE" "$ROOT/tadashi/include"
-CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which llvm-config-17)")")")"
+if [[ "x$LICENSE_FILE" != "x" ]]; then
+	cp -r "$("clang-$LLVM_VERSION" -print-resource-dir)/include" "$ROOT/tadashi"
+	cp "$LICENSE_FILE" "$ROOT/tadashi/include"
+fi
+CLANG_PREFIX="$(dirname "$(dirname "$(realpath "$(which "llvm-config-$LLVM_VERSION")")")")"
 CLANG_OPTION=${CLANG_PREFIX:+--with-clang-prefix=$CLANG_PREFIX}
 
 cd /tmp
-git clone git://repo.or.cz/pet.git
+[ -e pet ] || git clone git://repo.or.cz/pet.git
 
 cd /tmp/pet
 ./get_submodules.sh
