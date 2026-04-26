@@ -70,13 +70,6 @@ class App(abc.ABC):
             kwargs[tr_key] = tr_cls()
         return cls(**kwargs)
 
-    def __getstate__(self):
-        """This was probably needed for serialisation."""
-        state = {}
-        for k, v in self.__dict__.items():
-            state[k] = None if k == "translator" else v
-        return state
-
     @property
     def scops(self) -> list[Scop]:
         """The `Scop` list forwarded from `App.translator` (both for
