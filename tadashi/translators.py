@@ -34,6 +34,23 @@ class Translator:
     scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
     source: Path
+    options: list[str]
+    logger: logging.Logger
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
+    def __getstate__(self):
+        state = {
+            "logger": self.logger,
+            "source": self.source,
+            "options": self.options,
+        }
+        return state
+
+    def __setstate__(self, state):
+        self.logger = state["logger"]
+        self.set_source(state["source"], state["options"])
 
     def __dealloc__(self):
         self.ccscops.clear()
@@ -75,6 +92,7 @@ class Translator:
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
         self.source = abs_path
+        self.options = options
         self.scops = []
         self.ccscops.clear()
         self.populate_ccscops(options)
@@ -105,7 +123,17 @@ class Pet(Translator):
     autodetect: bool
 
     def __init__(self, autodetect: bool = False):
+        super().__init__()
         self.autodetect = autodetect
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        state["autodetect"] = self.autodetect
+        return state
+
+    def __setstate__(self, state):
+        self.autodetect = state["autodetect"]
+        super().__setstate__(state)
 
     def __copy__(self):
         cls = self.__class__
@@ -241,18 +269,19 @@ class Polly(Translator):
     compiler: str
     json_paths: list[Path]
     tmpdir: Path
-    before_polly_passes: str
-    after_polly_passes: str
-    logger: logging.Logger
 
     def __init__(self, compiler: str = "clang"):
+        super().__init__()
         self.compiler = str(compiler)
-        pp = PassParser()
-        locs = pp.find("loop-rotate")
-        before, after = pp.split(locs[1])
-        self.before_polly_passes = pp.reassemble(before)
-        self.after_polly_passes = pp.reassemble(after)
-        self.logger = logging.getLogger(__name__)
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        state["compiler"] = self.compiler
+        return state
+
+    def __setstate__(self, state):
+        self.compiler = state["compiler"]
+        super().__setstate__(state)
 
     def _run(self, cmd: list[str], description: str):
         """cmd is command list, description is verb-ing"""
