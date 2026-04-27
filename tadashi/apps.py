@@ -53,23 +53,6 @@ class App(abc.ABC):
             else:
                 print(f"WARNING: source file ({str(self.source)}) missing!")
 
-    @classmethod
-    def mkapp(cls, kwargs: dict):
-        cls_dict = {"Polly": Polly, "Pet": Pet}
-
-        tr_key = "translator"
-        tr_cls = cls_dict[kwargs[tr_key]]
-        kwargs = {**kwargs}
-
-        tp_key = "translator_params"
-        if tp_key in kwargs:
-            params = kwargs[tp_key]
-            del kwargs[tp_key]
-            kwargs[tr_key] = tr_cls(params)
-        else:
-            kwargs[tr_key] = tr_cls()
-        return cls(**kwargs)
-
     @property
     def scops(self) -> list[Scop]:
         """The `Scop` list forwarded from `App.translator` (both for
