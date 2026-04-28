@@ -88,7 +88,10 @@ tile_Nd(__isl_take isl_schedule_node *node, int N, int *sizes,
     mv = isl_multi_val_set_at(mv, i, v);
     mv = isl_multi_val_set_dim_name(mv, isl_dim_out, i, "foo");
     mupa = isl_schedule_node_band_get_partial_schedule(node);
-    labels[i] = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+    if (isl_multi_union_pw_aff_has_tuple_id(mupa, isl_dim_out))
+      labels[i] = isl_multi_union_pw_aff_get_tuple_name(mupa, isl_dim_out);
+    else
+      labels[i] = "";
     isl_union_pw_aff *upa = isl_multi_union_pw_aff_get_at(mupa, 0);
     mupa = isl_multi_union_pw_aff_free(mupa);
     upas = isl_union_pw_aff_list_add(upas, upa);
