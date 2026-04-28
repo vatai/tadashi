@@ -41,16 +41,49 @@ class Translator:
         self.logger = logging.getLogger(__name__)
 
     def __getstate__(self):
+        scops_data = []
+        for i, scop in enumerate(self.scops):
+            cc = self.ccscops[i]
+
+            sched = isl.isl_schedule_node_get_schedule(cc.current_node)
+            cur = isl.isl_schedule_to_str(sched)
+            isl.isl_schedule_free(sched)
+
+            tmp = "".encode()
+            if cc.tmp_node != cython.NULL:
+                sched = isl.isl_schedule_node_get_schedule(cc.tmp_node)
+                tmp = isl.isl_schedule_to_str(sched)
+                isl.isl_schedule_free(sched)
+
+            scops_data.append((cc.modified, cur, cc.current_legal, tmp, cc.tmp_legal))
+
         state = {
             "logger": self.logger,
             "source": self.source,
             "options": self.options,
+            "scops_data": scops_data,
         }
         return state
 
     def __setstate__(self, state):
         self.logger = state["logger"]
         self.set_source(state["source"], state["options"])
+        for i, data in enumerate(state["scops_data"]):
+            modified, cur, current_legal, tmp, tmp_legal = data
+            self.ccscops[i].modified = modified
+
+            isl.isl_schedule_node_free(self.ccscops[i].current_node)
+            sched = isl.isl_schedule_read_from_str(self.ctx, cur)
+            self.ccscops[i].current_node = isl.isl_schedule_get_root(sched)
+            isl.isl_schedule_free(sched)
+            self.ccscops[i].current_legal = current_legal
+
+            if tmp != "".encode():
+                isl.isl_schedule_node_free(self.ccscops[i].tmp_node)
+                sched = isl.isl_schedule_read_from_str(self.ctx, tmp)
+                self.ccscops[i].tmp_node = isl.isl_schedule_get_root(sched)
+                isl.isl_schedule_free(sched)
+            self.ccscops[i].tmp_legal = tmp_legal
 
     def __dealloc__(self):
         self.ccscops.clear()

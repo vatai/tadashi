@@ -109,38 +109,12 @@ class TestTranslator(unittest.TestCase):
 
         restored = pickle.loads(pickle.dumps(translator))
 
+        transformed_yamls = self._scop_yamls(restored)
         self.assertEqual(
             modified_yamls,
-            self._scop_yamls(restored),
+            transformed_yamls,
             "Unpickled translator should have modified scops",
         )
-
-    def _test_pickle_preserves_state_after_modify(self, translator: Translator):
-        """Modifying scops must not corrupt the translator's pickled
-        state: a pickle taken after a transform still restores to the
-        un-modified scops (same as a pickle taken before the transform).
-
-        """
-        self.assertTrue(False)
-        file = self.examples / "inputs/depnodep.c"
-        translator.set_source(file, [])
-        pristine_yamls = self._scop_yamls(translator)
-
-        # Pickle BEFORE modifying.
-        pickle_before = pickle.dumps(translator)
-
-        node = self._first_tilable(translator.scops[0])
-        self.assertIsNotNone(node)
-        node.transform(TrEnum.TILE_1D, 32)
-
-        # Pickle AFTER modifying.
-        pickle_after = pickle.dumps(translator)
-
-        restored_before = pickle.loads(pickle_before)
-        restored_after = pickle.loads(pickle_after)
-
-        self.assertEqual(pristine_yamls, self._scop_yamls(restored_before))
-        self.assertEqual(pristine_yamls, self._scop_yamls(restored_after))
 
 
 class TestPet(TestTranslator):
@@ -199,9 +173,6 @@ class TestPet(TestTranslator):
     def test_pickle_after_modify(self):
         self._test_pickle_after_modify(Pet())
 
-    def test_pickle_preserves_state_after_modify(self):
-        self._test_pickle_preserves_state_after_modify(Pet())
-
 
 class TestPolly(TestTranslator):
     def test_compilation_error(self):
@@ -223,6 +194,3 @@ class TestPolly(TestTranslator):
 
     def test_pickle_after_modify(self):
         self._test_pickle_after_modify(Polly("clang"))
-
-    def test_pickle_preserves_state_after_modify(self):
-        self._test_pickle_preserves_state_after_modify(Polly("clang"))
