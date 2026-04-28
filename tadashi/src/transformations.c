@@ -64,7 +64,7 @@ split_and_sel_labels(__isl_take isl_schedule_node *node, const char **label,
     if (i < dim - 1)
       node = isl_schedule_node_band_split(node, 1);
     mupa = isl_schedule_node_band_get_partial_schedule(node);
-    sprintf(buffer, "%s-tile%dd-%s", label[i], dim, str);
+    sprintf(buffer, "%s_tile%dd_%s", label[i], dim, str);
     mupa = isl_multi_union_pw_aff_set_tuple_name(mupa, isl_dim_out, buffer);
     node = isl_schedule_node_delete(node);
     node = isl_schedule_node_insert_partial_schedule(node, mupa);
