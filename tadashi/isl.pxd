@@ -19,18 +19,6 @@ cdef extern from "isl/printer.h":
     isl_printer *isl_printer_free(isl_printer *p)
 ctypedef isl_printer* printer
 
-# --------
-# schedule
-# --------
-cdef extern from "isl/schedule.h":
-    ctypedef struct isl_schedule: pass
-    #
-    isl_schedule *isl_schedule_free(isl_schedule *sched)
-    isl_schedule_node *isl_schedule_get_root(isl_schedule *sched)
-    isl_union_map *isl_schedule_get_map(isl_schedule *sched)
-    const char *isl_schedule_to_str(isl_schedule *sched)
-ctypedef isl_schedule* schedule
-
 # ---
 # set
 # ---
@@ -99,6 +87,19 @@ cdef extern from "isl/aff.h":
     isl_union_set *isl_multi_union_pw_aff_domain(isl_multi_union_pw_aff *mupa)
 ctypedef isl_multi_union_pw_aff* multi_union_pw_aff
 
+# --------
+# schedule
+# --------
+cdef extern from "isl/schedule.h":
+    ctypedef struct isl_schedule: pass
+    #
+    isl_schedule *isl_schedule_free(isl_schedule *sched)
+    isl_schedule_node *isl_schedule_get_root(isl_schedule *sched)
+    isl_union_map *isl_schedule_get_map(isl_schedule *sched)
+    const char *isl_schedule_to_str(isl_schedule *sched)
+    isl_schedule *isl_schedule_read_from_str(isl_ctx *ctx, const char* str)
+ctypedef isl_schedule* schedule
+
 # -------------
 # schedule_node
 # -------------
@@ -118,6 +119,7 @@ cdef extern from "isl/schedule_node.h":
         isl_schedule_node_sequence
         isl_schedule_node_set
     #
+    isl_ctx *isl_schedule_node_get_ctx(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_free(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_copy(isl_schedule_node *node)
     isl_schedule_node *isl_schedule_node_root(isl_schedule_node *node)
