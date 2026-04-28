@@ -461,6 +461,29 @@ after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
   return for_node;
 }
 
+/* isl_union_map_foreach_map callback: track max output dim across all maps. */
+static isl_stat
+_max_map_out_dim(__isl_take isl_map *map, void *user) {
+  isl_size *max_dim = (isl_size *)user;
+  isl_size d = isl_map_dim(map, isl_dim_out);
+  if (d > *max_dim)
+    *max_dim = d;
+  isl_map_free(map);
+  return isl_stat_ok;
+}
+
+/* Return the number of schedule dimensions required to name every loop level
+ * in "schedule", i.e. the maximum output dimension of any per-statement map
+ * in the schedule's union map. */
+static size_t
+_schedule_num_iterators(__isl_keep isl_schedule *schedule) {
+  isl_union_map *umap = isl_schedule_get_map(schedule);
+  isl_size max_dim = 0;
+  isl_union_map_foreach_map(umap, _max_map_out_dim, &max_dim);
+  isl_union_map_free(umap);
+  return max_dim < 0 ? 0 : (size_t)max_dim;
+}
+
 __isl_give isl_printer *
 codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
         __isl_take isl_schedule *schedule) {
@@ -475,11 +498,11 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
-  size_t num_iterators = 50;
+  size_t num_iterators = _schedule_num_iterators(schedule);
   isl_id_list *iterators = isl_id_list_alloc(ctx, num_iterators);
   for (size_t i = 0; i < num_iterators; i++) {
-    char buffer[20];
-    sprintf(buffer, "_tadashi_%zu", i);
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "_tadashi_%zu", i);
     isl_id *id = isl_id_alloc(ctx, buffer, NULL);
     iterators = isl_id_list_add(iterators, id);
   }

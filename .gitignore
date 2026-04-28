@@ -13,7 +13,6 @@ third_party/opt
 third_party/isl*
 third_party/pet*
 
-.aider*
 *.tex
 *~
 _minted*
@@ -31,3 +30,8 @@ __pycache__
 times/*.json
 *.jscop
 
+output.*
+STDIN.*
+
+.aider*
+/.agent-shell/

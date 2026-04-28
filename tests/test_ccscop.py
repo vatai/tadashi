@@ -124,14 +124,14 @@ class TestCcScop(unittest.TestCase):
         self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4")
         trs = [[27, TrEnum.TILE_1D, 11]]
         app.scops[0].transform_list(trs)
-        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile1d-outer")
-        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4-tile1d-inner")
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4_tile1d_outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_4_tile1d_inner")
 
         app.scops[0].reset()
         trs = [[27, TrEnum.TILE_2D, 11, 13]]
         app.scops[0].transform_list(trs)
-        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4-tile2d-outer")
-        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5-tile2d-outer")
+        self.assertEqual(app.scops[0].schedule_tree[27].label, "L_4_tile2d_outer")
+        self.assertEqual(app.scops[0].schedule_tree[28].label, "L_5_tile2d_outer")
 
     def test_repeated_code_generation(self):
         base = Path(__file__).parent.parent

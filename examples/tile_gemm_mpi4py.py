@@ -9,11 +9,11 @@ from tadashi.apps import Polybench
 from tadashi.translators import Pet, Polly
 
 
-def remote_measure(cls, kwargs, trs, tile_size):
+def remote_measure(app, trs, tile_size):
     print(f"{trs=}")
     hostname = socket.gethostname()
     print(f"{hostname=}")
-    app = cls.mkapp(kwargs)
+    app.reset_scops()
     app.transform_list(trs)
     tapp = app.generate_code(alt_infix=f"_tiled{tile_size}{hostname}", ephemeral=False)
     tapp.compile()
@@ -23,15 +23,15 @@ def remote_measure(cls, kwargs, trs, tile_size):
 
 def main():
     print("[BEGIN]")
-    kwargs = {
-        "benchmark": "gemm",
-        "base": "examples/polybench",
-        "compiler_options": [
-            "-fopenmp",
-            "-DEXTRALARGE_DATASET",
-        ],
-        "translator": "Polly",
-    }
+    app = Polybench(
+        benchmark="gemm",
+        base="examples/polybench",
+        translator=Polly(),
+        compiler_options=["-fopenmp", "-DEXTRALARGE_DATASET"],
+    )
+    app.compile()
+    otime = app.measure()
+    print(f"==== original: {otime=}")
 
     futures = []
     with MPIPoolExecutor() as executor:
@@ -40,14 +40,12 @@ def main():
                 [1, 2, TrEnum.FULL_SPLIT],
                 [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
             ]
-            future = executor.submit(remote_measure, Polybench, kwargs, trs, tile_size)
+            future = executor.submit(remote_measure, app, trs, tile_size)
             futures.append(future)
 
-    app = Polybench.mkapp(kwargs)
-    app.compile()
-    print(f"==== original: {app.measure()=}")
     for f in as_completed(futures):
-        print(f"**** {f.result()=}")
+        ttime = f.result()
+        print(f"**** {ttime=}")
 
     print("[END]")
 

@@ -34,6 +34,56 @@ class Translator:
     scops = cython.declare(list[Scop], visibility="public")
     ctx: isl.ctx
     source: Path
+    options: list[str]
+    logger: logging.Logger
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
+    def __getstate__(self):
+        scops_data = []
+        for i, scop in enumerate(self.scops):
+            cc = self.ccscops[i]
+
+            sched = isl.isl_schedule_node_get_schedule(cc.current_node)
+            cur = isl.isl_schedule_to_str(sched)
+            isl.isl_schedule_free(sched)
+
+            tmp = "".encode()
+            if cc.tmp_node != cython.NULL:
+                sched = isl.isl_schedule_node_get_schedule(cc.tmp_node)
+                tmp = isl.isl_schedule_to_str(sched)
+                isl.isl_schedule_free(sched)
+
+            scops_data.append((cc.modified, cur, cc.current_legal, tmp, cc.tmp_legal))
+
+        state = {
+            "logger": self.logger,
+            "source": self.source,
+            "options": self.options,
+            "scops_data": scops_data,
+        }
+        return state
+
+    def __setstate__(self, state):
+        self.logger = state["logger"]
+        self.set_source(state["source"], state["options"])
+        for i, data in enumerate(state["scops_data"]):
+            modified, cur, current_legal, tmp, tmp_legal = data
+            self.ccscops[i].modified = modified
+
+            isl.isl_schedule_node_free(self.ccscops[i].current_node)
+            sched = isl.isl_schedule_read_from_str(self.ctx, cur)
+            self.ccscops[i].current_node = isl.isl_schedule_get_root(sched)
+            isl.isl_schedule_free(sched)
+            self.ccscops[i].current_legal = current_legal
+
+            if tmp != "".encode():
+                isl.isl_schedule_node_free(self.ccscops[i].tmp_node)
+                sched = isl.isl_schedule_read_from_str(self.ctx, tmp)
+                self.ccscops[i].tmp_node = isl.isl_schedule_get_root(sched)
+                isl.isl_schedule_free(sched)
+            self.ccscops[i].tmp_legal = tmp_legal
 
     def __dealloc__(self):
         self.ccscops.clear()
@@ -75,6 +125,7 @@ class Translator:
         if self.ccscops.size():
             raise RuntimeError(DOUBLE_SET_SOURCE)
         self.source = abs_path
+        self.options = options
         self.scops = []
         self.ccscops.clear()
         self.populate_ccscops(options)
@@ -105,7 +156,17 @@ class Pet(Translator):
     autodetect: bool
 
     def __init__(self, autodetect: bool = False):
+        super().__init__()
         self.autodetect = autodetect
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        state["autodetect"] = self.autodetect
+        return state
+
+    def __setstate__(self, state):
+        self.autodetect = state["autodetect"]
+        super().__setstate__(state)
 
     def __copy__(self):
         cls = self.__class__
@@ -241,18 +302,19 @@ class Polly(Translator):
     compiler: str
     json_paths: list[Path]
     tmpdir: Path
-    before_polly_passes: str
-    after_polly_passes: str
-    logger: logging.Logger
 
     def __init__(self, compiler: str = "clang"):
+        super().__init__()
         self.compiler = str(compiler)
-        pp = PassParser()
-        locs = pp.find("loop-rotate")
-        before, after = pp.split(locs[1])
-        self.before_polly_passes = pp.reassemble(before)
-        self.after_polly_passes = pp.reassemble(after)
-        self.logger = logging.getLogger(__name__)
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        state["compiler"] = self.compiler
+        return state
+
+    def __setstate__(self, state):
+        self.compiler = state["compiler"]
+        super().__setstate__(state)
 
     def _run(self, cmd: list[str], description: str):
         """cmd is command list, description is verb-ing"""
@@ -447,8 +509,8 @@ class Polly(Translator):
     def _update_jscop(self, jscop_path: Path, scop_idx: int):
         ccscop = self.ccscops[scop_idx]
         sched = isl.isl_schedule_node_get_schedule(ccscop.current_node)
-        isl.isl_schedule_free(sched)
         umap = isl.isl_schedule_get_map(sched)
+        isl.isl_schedule_free(sched)
         with jscop_path.open("r", encoding="utf-8") as f:
             jscop = json.load(f)
         for stmt in jscop["statements"]:
