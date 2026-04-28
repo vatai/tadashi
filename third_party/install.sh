@@ -14,7 +14,8 @@ elif [ -e "$(which apt-get)" ]; then
 	apt-get update
 	apt-get install -y git build-essential autoconf pkg-config libtool llvm-17-dev clang-17 libclang-17-dev libgmp-dev libomp-dev
 	LICENSE_FILE=/usr/lib/llvm-17/build/utils/lit/LICENSE.TXT
-else
+elif [ -e "$(which pacman)" ]; then
+	sudo pacman -S llvm20 clang20
 	LLVM_VERSION=20
 fi
 
