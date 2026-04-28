@@ -1,15 +1,17 @@
 # Tadashi
 
-Tadashi is a Python library for program optimization and transformation using the ISL and PET libraries. It provides an interface to work with SCoPs (Single Collection Optimization Problems) and enables program transformations like tiling, interchange, fusion, and more.
+Tadashi is a Python library for program optimization and transformation using the ISL and PET libraries. It provides an interface to work with SCoPs (Static Control Parts) and enables program transformations like tiling, interchange, fusion, and more.
 
 ## Installation
 
 Install via pip:
+
 ```bash
 pip install tadashi
 ```
 
 Or for development:
+
 ```bash
 pip install -e .
 ```
@@ -17,6 +19,7 @@ pip install -e .
 ## Development Setup
 
 For development, use the provided setup:
+
 ```bash
 # Build in-place for development
 python setup.py build_ext -i
@@ -31,6 +34,7 @@ python -m unittest tests.test_apps.TestSimple.test_end2end_polly_flang
 ## Usage
 
 ### Using PET Backend (Default)
+
 ```python
 from tadashi import TrEnum
 from tadashi.translators import Pet
@@ -50,6 +54,7 @@ for node in schedule_tree:
 ```
 
 ### Using Polly Backend
+
 ```python
 from tadashi import TrEnum
 from tadashi.translators import Polly
@@ -84,7 +89,7 @@ for node in schedule_tree:
 ## Components
 
 - `ccScop` - C++ class representing SCoP
-- `Scop` - Python wrapper for SCoP operations  
+- `Scop` - Python wrapper for SCoP operations
 - `Node` - Schedule tree node representation
 - `Translators` - Input format parsers:
   - `Pet` - Uses PET library
