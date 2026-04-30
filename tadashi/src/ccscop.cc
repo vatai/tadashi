@@ -821,11 +821,12 @@ static bool
 _check_legality_parallel(__isl_keep isl_schedule_node *node,
                          __isl_keep isl_union_map *dep) {
   isl_union_map *map;
-  bool retval;
   isl_union_map *domain, *cmp;
   isl_union_set *delta, *zeros;
-  if (isl_union_map_is_empty(dep))
-    return isl_bool_true;
+  isl_bool empty_dep = isl_union_map_is_empty(dep);
+  assert(empty_dep != isl_bool_error);
+  if (empty_dep == isl_bool_true)
+    return true;
   node = isl_schedule_node_copy(node);
   node = isl_schedule_node_first_child(node);
   map = isl_schedule_node_band_get_partial_schedule_union_map(node);
@@ -835,19 +836,23 @@ _check_legality_parallel(__isl_keep isl_schedule_node *node,
   domain = isl_union_map_apply_domain(dep, isl_union_map_copy(map));
   domain = isl_union_map_apply_range(domain, map);
   delta = isl_union_map_deltas(domain);
-  if (isl_union_set_is_empty(delta)) {
-    delta = isl_union_set_free(delta);
-    return isl_bool_true;
+  isl_bool empty_delta = isl_union_set_is_empty(delta);
+  assert(empty_delta != isl_bool_error);
+  if (empty_delta == isl_bool_true) {
+    isl_union_set_free(delta);
+    return true;
   }
   zeros = _get_zeros_on_union_set(isl_union_set_copy(delta));
   cmp = isl_union_set_lex_lt_union_set(isl_union_set_copy(delta),
                                        isl_union_set_copy(zeros));
-  retval = isl_union_map_is_empty(cmp);
-  cmp = isl_union_map_free(cmp);
-  cmp = isl_union_set_lex_gt_union_set(delta, zeros);
-  retval = retval && isl_union_map_is_empty(cmp);
+  isl_bool lt_empty = isl_union_map_is_empty(cmp);
+  assert(lt_empty != isl_bool_error);
   isl_union_map_free(cmp);
-  return retval;
+  cmp = isl_union_set_lex_gt_union_set(delta, zeros);
+  isl_bool gt_empty = isl_union_map_is_empty(cmp);
+  assert(gt_empty != isl_bool_error);
+  isl_union_map_free(cmp);
+  return lt_empty == isl_bool_true && gt_empty == isl_bool_true;
 }
 
 bool
