@@ -829,6 +829,7 @@ _check_legality_parallel(__isl_keep isl_schedule_node *node,
     return true;
   node = isl_schedule_node_copy(node);
   node = isl_schedule_node_first_child(node);
+  assert(isl_schedule_node_get_type(node) == isl_schedule_node_band);
   map = isl_schedule_node_band_get_partial_schedule_union_map(node);
   node = isl_schedule_node_free(node);
 
