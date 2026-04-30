@@ -870,11 +870,11 @@ ccScop::check_legality() {
     if (not _check_legality_parallel(this->current_node, this->waw))
       return false;
   } else {
-    if (not _check_legality(this->current_node, this->dep_flow))
+    if (_check_legality(this->current_node, this->dep_flow) != isl_bool_true)
       return false;
-    if (not _check_legality(this->current_node, this->war))
+    if (_check_legality(this->current_node, this->war) != isl_bool_true)
       return false;
-    if (not _check_legality(this->current_node, this->waw))
+    if (_check_legality(this->current_node, this->waw) != isl_bool_true)
       return false;
   }
   return true;
