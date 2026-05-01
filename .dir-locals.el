@@ -13,8 +13,8 @@
      (projectile-project-test-cmd
       ;; . "python -m unittest tests.test_translators.TestPolly.test_wip")
       . "python -m unittest tests.test_apps.TestSimple.test_end2end_polly_flang")
-     (corfu-auto
-      . t))
+     ;; (corfu-auto . t)
+     )
   )
  ;; (python-base-mode . ((indent-tabs-mode . nil)))
  ;; (go-mode          . ((indent-tabs-mode . t)))
