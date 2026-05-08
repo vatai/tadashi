@@ -351,14 +351,19 @@ class FuseInfo(TransformInfo):
         return True
 
     @staticmethod
+    def _child_starts_with_band(node: Node, child_idx: int):
+        if not TransformInfo._is_valid_child_idx(node, child_idx):
+            return False
+        child = node.children[child_idx]
+        if not child.children:
+            return False
+        return child.children[0].node_type == NodeType.BAND
+
+    @staticmethod
     def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
-        if not TransformInfo._is_valid_child_idx(node, loop_idx1):
+        if not FuseInfo._child_starts_with_band(node, loop_idx1):
             return False
-        if not TransformInfo._is_valid_child_idx(node, loop_idx2):
-            return False
-        if node.children[loop_idx1].children[0].node_type != NodeType.BAND:
-            return False
-        if node.children[loop_idx2].children[0].node_type != NodeType.BAND:
+        if not FuseInfo._child_starts_with_band(node, loop_idx2):
             return False
         return True
 
@@ -368,7 +373,8 @@ class FuseInfo(TransformInfo):
         args = []
         for arg1 in range(nc):
             for arg2 in range(arg1 + 1, nc):
-                args.append([arg1, arg2])
+                if FuseInfo.valid_args(node, arg1, arg2):
+                    args.append([arg1, arg2])
         return args
 
 
