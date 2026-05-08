@@ -172,7 +172,10 @@ class Node:
         result = []
         for k, tr in TRANSFORMATIONS.items():
             if tr.valid(self):
-                result.append(k)
+                args = self.get_args(k, -9, 9)
+                nargs = len(tr.arg_help)
+                if all([len(t) == nargs for t in args]):
+                    result.append(k)
         return result
 
     def valid_args(self, tr: TrEnum, *args) -> bool:  # todo add test
