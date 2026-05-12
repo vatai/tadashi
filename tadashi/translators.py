@@ -316,6 +316,10 @@ class Polly(Translator):
         self.compiler = state["compiler"]
         super().__setstate__(state)
 
+    def __copy__(self):
+        cls = self.__class__
+        return cls(self.compiler)
+
     def _run(self, cmd: list[str], description: str):
         """cmd is command list, description is verb-ing"""
         self.logger.debug(f"Running: {' '.join(cmd)}")
