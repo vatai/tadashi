@@ -37,8 +37,8 @@ def main():
     with MPIPoolExecutor() as executor:
         for tile_size in [19, 20, 21]:
             trs = [
-                [1, 2, TrEnum.FULL_SPLIT],
-                [1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
+                [0, 1, 2, TrEnum.FULL_SPLIT],
+                [0, 1, 7, TrEnum.TILE_3D, tile_size, tile_size, tile_size],
             ]
             future = executor.submit(remote_measure, app, trs, tile_size)
             futures.append(future)

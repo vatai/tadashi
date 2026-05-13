@@ -29,7 +29,7 @@ if doOnlySplit:
 
 	
 	trs=[ 
-	[0, 2, TrEnum.FULL_SPLIT],
+	[0, 0, 2, TrEnum.FULL_SPLIT],
 	]
 
 	app.transform_list(trs)
@@ -47,15 +47,15 @@ for tile_size in [8,10,16, 32]:
 	app.reset_scops()
 
 	trs=[ 
-		[0, 2, TrEnum.FULL_SPLIT],
-		[0, 4, TrEnum.TILE3D, tile_size, tile_size, tile_size],
-		[0, 3, TrEnum.INTERCHANGE],
-		[0, 4, TrEnum.INTERCHANGE],
-		[0, 5, TrEnum.INTERCHANGE],
-		[0, 13, TrEnum.TILE3D, tile_size, tile_size, tile_size],
-		[0, 12, TrEnum.INTERCHANGE],
-		[0, 13, TrEnum.INTERCHANGE],
-		[0, 14, TrEnum.INTERCHANGE],
+		[0, 0, 2, TrEnum.FULL_SPLIT],
+		[0, 0, 4, TrEnum.TILE3D, tile_size, tile_size, tile_size],
+		[0, 0, 3, TrEnum.INTERCHANGE],
+		[0, 0, 4, TrEnum.INTERCHANGE],
+		[0, 0, 5, TrEnum.INTERCHANGE],
+		[0, 0, 13, TrEnum.TILE3D, tile_size, tile_size, tile_size],
+		[0, 0, 12, TrEnum.INTERCHANGE],
+		[0, 0, 13, TrEnum.INTERCHANGE],
+		[0, 0, 14, TrEnum.INTERCHANGE],
 	]
 
 	app.transform_list(trs)

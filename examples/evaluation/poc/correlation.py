@@ -30,19 +30,19 @@ for tile_size in [32, 64, 128, 256]:
 
 	
 	trs=[ 
-	[0, 41, TrEnum.FULL_SPLIT],
-	[0, 36, TrEnum.FULL_SPLIT],
-	[0, 29, TrEnum.FULL_SPLIT],
-	[0, 14, TrEnum.FULL_SPLIT],
-	[0, 4, TrEnum.FULL_SPLIT],
-	[0, 53, TrEnum.TILE2D, tile_size, tile_size],
-	[0, 20, TrEnum.TILE2D, tile_size, tile_size],
-	[0, 8, TrEnum.TILE2D, tile_size, tile_size],
-	[0, 52, TrEnum.FULL_FUSE],
-	[0, 46, TrEnum.FULL_FUSE],
-	[0, 38, TrEnum.FULL_FUSE],
-	[0, 17, TrEnum.FULL_FUSE],
-	[0, 3, TrEnum.FULL_FUSE],
+	[0, 0, 41, TrEnum.FULL_SPLIT],
+	[0, 0, 36, TrEnum.FULL_SPLIT],
+	[0, 0, 29, TrEnum.FULL_SPLIT],
+	[0, 0, 14, TrEnum.FULL_SPLIT],
+	[0, 0, 4, TrEnum.FULL_SPLIT],
+	[0, 0, 53, TrEnum.TILE2D, tile_size, tile_size],
+	[0, 0, 20, TrEnum.TILE2D, tile_size, tile_size],
+	[0, 0, 8, TrEnum.TILE2D, tile_size, tile_size],
+	[0, 0, 52, TrEnum.FULL_FUSE],
+	[0, 0, 46, TrEnum.FULL_FUSE],
+	[0, 0, 38, TrEnum.FULL_FUSE],
+	[0, 0, 17, TrEnum.FULL_FUSE],
+	[0, 0, 3, TrEnum.FULL_FUSE],
 	]
 
 	app.transform_list(trs)
@@ -93,5 +93,4 @@ for tile_size in [32, 64, 128, 256]:
 # Tiling with size 64: 2.009392
 # Tiling with size 128: 2.137372
 # Tiling with size 256: 2.188174
-
 

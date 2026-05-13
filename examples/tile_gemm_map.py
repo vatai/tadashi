@@ -41,8 +41,8 @@ def main():
     with Pool() as pool:
         tile_sizes = [19, 20, 21]
         trs = [[
-            [1, 2, TrEnum.FULL_SPLIT],
-            [1, 7, TrEnum.TILE_3D, ts, ts, ts],
+            [0, 1, 2, TrEnum.FULL_SPLIT],
+            [0, 1, 7, TrEnum.TILE_3D, ts, ts, ts],
         ] for ts in tile_sizes]
         print(f"{[kwargs] * len(trs)=}")
         print(f"{trs=}")

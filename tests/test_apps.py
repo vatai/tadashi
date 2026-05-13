@@ -17,7 +17,14 @@ class TestApp(unittest.TestCase):
         tapp = app.generate_code(ensure_legality=False)
         tkeys = sorted(tapp.__dict__.keys())
         self.assertListEqual(akeys, tkeys)
-        not_equal = ["source", "ephemeral", "populate_scops", "translator"]
+        not_equal = [
+            "source",
+            "sources",
+            "ephemeral",
+            "populate_scops",
+            "translator",
+            "translators",
+        ]
         for akey, aval in app.__dict__.items():
             tval = tapp.__dict__[akey]
             if akey in not_equal:
@@ -27,12 +34,30 @@ class TestApp(unittest.TestCase):
     def test_app_legality(self):
         app = apps.Polybench("jacobi-1d")
         trs = [
-            [0, 7, TrEnum.SET_LOOP_OPT, 0, 0],
-            [0, 2, TrEnum.FULL_SPLIT],
-            [0, 7, TrEnum.SET_LOOP_OPT, 0, 3],
+            [0, 0, 7, TrEnum.SET_LOOP_OPT, 0, 0],
+            [0, 0, 2, TrEnum.FULL_SPLIT],
+            [0, 0, 7, TrEnum.SET_LOOP_OPT, 0, 3],
         ]
         app.transform_list(trs)
         self.assertFalse(app.scops[0].legal)
+
+    def test_app_get_all_transformations_source_aware(self):
+        app = apps.Simple("tests/dummy.c", Pet())
+        transformations = app.get_all_transformations()
+        self.assertTrue(transformations)
+        self.assertTrue(all(len(tr) == 4 for tr in transformations))
+        self.assertEqual({tr[0] for tr in transformations}, {0})
+
+    def test_app_transform_list_selects_source(self):
+        app = apps.Simple(
+            ["tests/dummy.c", "tests/dummy.c"],
+            Pet(),
+        )
+        source0_before = repr(app.translators[0].scops[0])
+        source1_before = repr(app.translators[1].scops[0])
+        app.transform_list([[1, 0, 1, TrEnum.TILE_1D, 2]])
+        self.assertEqual(source0_before, repr(app.translators[0].scops[0]))
+        self.assertNotEqual(source1_before, repr(app.translators[1].scops[0]))
 
     @unittest.skip("New removed legality breaks this")
     def test_app_legal(self):

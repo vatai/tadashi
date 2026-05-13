@@ -51,9 +51,9 @@ class Individual:
         tmp = "["
         for op in self.operation_list:
             tmp += "[%s, %s, %s], " % (
-                str(op[0:2]),
-                "tadashi.TrEnum." + op[2].name,
-                str(op[3:]),
+                str(op[0:3]),
+                "tadashi.TrEnum." + op[3].name,
+                str(op[4:]),
             )
         tmp += "]"
         return "%s --- %s" % (tmp, f)
@@ -176,7 +176,7 @@ class Individual:
                     tran = possible[randint(0, len(possible) - 1)]
                     args = random_args(node, tran)
 
-                    op = [x1, x2, tran, *args]
+                    op = [0, x1, x2, tran, *args]
 
                     tmp_op = op_list[:]
                     tmp_op.append(op)

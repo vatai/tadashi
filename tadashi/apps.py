@@ -20,8 +20,8 @@ from .translators import Pet, Polly, Translator
 class App(abc.ABC):
     """The (abstract) base class for app objects."""
 
-    source: Path
-    """The source file being manipulated by the app object."""
+    sources: list[Path]
+    """The source files being manipulated by the app object."""
 
     user_compiler_options: list[str]
     """User compiler options are passed to the compilation command."""
@@ -48,10 +48,31 @@ class App(abc.ABC):
             self.logger.debug(f"Deleting {binary=} ({binary.exists()=})")
             if binary.exists():
                 binary.unlink()
-            if self.source.exists():
-                self.source.unlink()
-            else:
-                print(f"WARNING: source file ({str(self.source)}) missing!")
+            for source in self.sources:
+                if source.exists():
+                    source.unlink()
+                else:
+                    print(f"WARNING: source file ({str(source)}) missing!")
+
+    @property
+    def source(self) -> Path:
+        """The primary source file being manipulated by the app object."""
+        return self.sources[0]
+
+    @source.setter
+    def source(self, value: str | Path) -> None:
+        self.sources = [Path(value)]
+
+    @property
+    def translator(self) -> Optional[Translator]:
+        """The primary source translator."""
+        if not self.translators:
+            return None
+        return self.translators[0]
+
+    @translator.setter
+    def translator(self, value: Optional[Translator]) -> None:
+        self.translators = [value]
 
     @property
     def scops(self) -> list[Scop]:
@@ -63,7 +84,7 @@ class App(abc.ABC):
 
     @property
     def legal(self) -> bool:
-        return self.translator.legal()
+        return all(t.legal() for t in self.translators if t is not None)
 
     @staticmethod
     def _allowed(item: int | str, allow: list, block: list):
@@ -79,35 +100,44 @@ class App(abc.ABC):
     def get_all_transformations(
         self,
         *,
+        source_allow: Optional[list[int]] = None,
+        source_block: Optional[list[int]] = None,
         scop_allow: Optional[list[int]] = None,
         scop_block: Optional[list[int]] = None,
         tr_allow: Optional[list[str]] = None,
         tr_block: Optional[list[str]] = None,
     ) -> list[list[int | str]]:
-        """Return all available (scop_idx, node_idx, transformation) triplets."""
+        """Return all available source/scop/node/transformation tuples."""
         rv = []
-        for si, s in enumerate(self.scops):
-            if self._allowed(si, scop_allow, scop_block):
-                for ni, node in enumerate(s.schedule_tree):
-                    # TODO tr_block should be built into available_transformations
-                    block = self.translator.tr_block()
-                    av = [t for t in node.available_transformations if t not in block]
-                    trs = []
-                    for tr in av:
-                        if self._allowed(tr, tr_allow, tr_block):
-                            trs.append(tr)
-                            rv.append((si, ni, tr))
+        for source_idx, translator in enumerate(self.translators):
+            if translator is None:
+                continue
+            if not self._allowed(source_idx, source_allow, source_block):
+                continue
+            for si, s in enumerate(translator.scops):
+                if self._allowed(si, scop_allow, scop_block):
+                    for ni, node in enumerate(s.schedule_tree):
+                        # TODO tr_block should be built into available_transformations
+                        block = translator.tr_block()
+                        av = [t for t in node.available_transformations if t not in block]
+                        for tr in av:
+                            if self._allowed(tr, tr_allow, tr_block):
+                                rv.append((source_idx, si, ni, tr))
         return rv
 
     def transform_list(self, transformation_list: list) -> None:
-        for si, ni, *tr in transformation_list:
-            node = self.scops[si].schedule_tree[ni]
+        for source_idx, si, ni, *tr in transformation_list:
+            translator = self.translators[source_idx]
+            node = translator.scops[si].schedule_tree[ni]
             node.transform(*tr)
 
     def reset_scops(self):
-        for scop in self.scops:
-            scop.reset()
-        self.translator.reset()
+        for translator in self.translators:
+            if translator is None:
+                continue
+            for scop in translator.scops:
+                scop.reset()
+            translator.reset()
 
     @property
     def output_binary(self) -> Path:
@@ -123,24 +153,33 @@ class App(abc.ABC):
     ):
         """Create a transformed copy of the app object."""
         if ensure_legality:
-            if not self.translator.legal():
+            if not self.legal:
                 raise ValueError("The App is not in a legal state")
-        if alt_infix:
-            new_file = self._source_with_infix(alt_infix)
-        else:
-            new_file = self._make_new_filename()
+        new_files = [
+            self._source_with_infix(source, alt_infix)
+            if alt_infix
+            else self._make_new_filename(source)
+            for source in self.sources
+        ]
         options = self.app_required_options() + self.user_compiler_options
-        msg = f"generate_code({str(self.source)=}, {new_file=}, {options=})"
-        self.logger.debug(msg)
-        new_file = self.translator.generate_code(str(self.source), new_file, options)
-        self.logger.debug(f"Return value: {new_file=}")
-        translator = copy.copy(self.translator) if populate_scops else None
+        for idx, translator in enumerate(self.translators):
+            if translator is None:
+                continue
+            msg = f"generate_code({str(self.sources[idx])=}, {new_files[idx]=}, {options=})"
+            self.logger.debug(msg)
+            new_files[idx] = translator.generate_code(
+                str(self.sources[idx]), new_files[idx], options
+            )
+            self.logger.debug(f"Return value: {new_files[idx]=}")
+        translators = [copy.copy(t) if t is not None else None for t in self.translators]
+        if not populate_scops:
+            translators = None
         compiler_options = None
         if self.user_compiler_options:
             compiler_options = self.user_compiler_options[:]
         kwargs = {
-            "source": new_file,
-            "translator": translator,
+            "source": new_files,
+            "translator": translators,
             "compiler_options": compiler_options,
             "populate_scops": populate_scops,
         }
@@ -149,23 +188,23 @@ class App(abc.ABC):
         app.ephemeral = ephemeral
         return app
 
-    def _source_with_infix(self, alt_infix: str):
+    def _source_with_infix(self, source: Path, alt_infix: str):
         mark = "INFIX"
-        suffix = self.source.suffix
+        suffix = source.suffix
         pattern = rf"(.*)(-{mark}-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
+        m = re.match(pattern, str(source))
+        filename = m.groups()[0] if m else source.with_suffix("")
         prefix = f"{filename}-{mark}-{alt_infix}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
-    def _make_new_filename(self) -> Path:
+    def _make_new_filename(self, source: Path) -> Path:
         mark = "TMPFILE"
         now = datetime.datetime.now()
         now_str = datetime.datetime.isoformat(now).replace(":", "-").replace(".", "-")
-        suffix = self.source.suffix
+        suffix = source.suffix
         pattern = rf"(.*)(-{mark}-\d+-\d+-\d+T\d+-\d+-\d+.\d+-.*)({suffix})"
-        m = re.match(pattern, str(self.source))
-        filename = m.groups()[0] if m else self.source.with_suffix("")
+        m = re.match(pattern, str(source))
+        filename = m.groups()[0] if m else source.with_suffix("")
         prefix = f"{filename}-{mark}-{now_str}-"
         return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir="."))
 
@@ -209,8 +248,8 @@ class App(abc.ABC):
     def __init__(
         self,
         *,
-        source: str | Path,
-        translator: Optional[Translator],
+        source: str | Path | list[str | Path],
+        translator: Optional[Translator | list[Optional[Translator]]],
         compiler_options: Optional[list[str]],
         ephemeral: bool,
         populate_scops: bool,
@@ -239,20 +278,41 @@ class App(abc.ABC):
 
         """
         atexit.register(self._cleanup)
-        self.source = Path(source)
+        if isinstance(source, (str, Path)):
+            sources = [source]
+        else:
+            sources = source
+        self.sources = [Path(src) for src in sources]
+        if not self.sources:
+            raise ValueError("At least one source is required")
         if compiler_options is None:
             compiler_options = []
         self.user_compiler_options = compiler_options
         self.ephemeral = ephemeral
         self.populate_scops = populate_scops
-        if translator is None and populate_scops:
-            translator = Pet()
-        if populate_scops and translator:
+        self.translators = self._init_translators(translator, populate_scops)
+        if populate_scops:
             options = self.app_required_options() + self.user_compiler_options
-            self.translator = translator.set_source(source, options)
-        else:
-            self.translator = None
+            self.translators = [
+                tr.set_source(source, options) if tr is not None else None
+                for source, tr in zip(self.sources, self.translators)
+            ]
         self.logger = logging.getLogger(__name__)
+
+    def _init_translators(
+        self,
+        translator: Optional[Translator | list[Optional[Translator]]],
+        populate_scops: bool,
+    ) -> list[Optional[Translator]]:
+        if not populate_scops:
+            return [None for _ in self.sources]
+        if translator is None:
+            return [Pet() for _ in self.sources]
+        if isinstance(translator, list):
+            if len(translator) != len(self.sources):
+                raise ValueError("Number of translators must match number of sources")
+            return translator
+        return [translator if idx == 0 else copy.copy(translator) for idx in range(len(self.sources))]
 
     @abc.abstractmethod
     def codegen_init_args(self) -> dict:
@@ -291,8 +351,8 @@ class Simple(App):
 
     def __init__(
         self,
-        source: str | Path,
-        translator: Optional[Translator] = None,
+        source: str | Path | list[str | Path],
+        translator: Optional[Translator | list[Optional[Translator]]] = None,
         compiler_options: Optional[list[str]] = None,
         ephemeral: bool = False,
         populate_scops: bool = True,
@@ -314,7 +374,7 @@ class Simple(App):
     def compile_cmd(self, suffix: str) -> list[str]:
         cmd = [
             *self.compiler(),
-            str(self.source),
+            *map(str, self.sources),
             "-fopenmp",
             "-o",
             f"{self.output_binary}{suffix}",
@@ -384,8 +444,8 @@ class Polybench(App):
     def __init__(
         self,
         benchmark: str,
-        source: Optional[Path] = None,
-        translator: Optional[Translator] = None,
+        source: Optional[str | Path | list[str | Path]] = None,
+        translator: Optional[Translator | list[Optional[Translator]]] = None,
         base: Path = Path(POLYBENCH_BASE),
         compiler_options: Optional[list[str]] = None,
         ephemeral: bool = False,
@@ -420,7 +480,7 @@ class Polybench(App):
     def compile_cmd(self, suffix) -> list[str]:
         cmd = [
             *self.compiler(),
-            str(self.source),
+            *map(str, self.sources),
             str(self.base / "utilities/polybench.c"),
             "-lm",
             "-o",

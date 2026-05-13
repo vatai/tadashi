@@ -16,7 +16,7 @@ def func(idx):
 def main():
     app = Simple("examples/inputs/depnodep.c")
     tlist = [
-        [0, 1, tadashi.TrEnum.FULL_SHIFT_VAR, 13, 1],
+        [0, 0, 1, tadashi.TrEnum.FULL_SHIFT_VAR, 13, 1],
     ]
     print(f"MAIN {socket.gethostname()=}")
     fs = []

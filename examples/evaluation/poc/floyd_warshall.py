@@ -38,7 +38,7 @@ for tile_size in [32, 64, 128]:
 
 	
 	trs=[ 
-	[0, 1, TrEnum.TILE3D, tile_size, tile_size, tile_size],
+	[0, 0, 1, TrEnum.TILE3D, tile_size, tile_size, tile_size],
 	]
 
 	app.transform_list(trs)
@@ -59,8 +59,7 @@ for tile_size in [32, 64, 128]:
 
 # tile 3D
 trs=[ 
-	[0, 1, TrEnum.TILE3D, tile_size, tile_size, tile_size],
+	[0, 0, 1, TrEnum.TILE3D, tile_size, tile_size, tile_size],
 ]
 # tile_size=64: tiled.measure()=14.037779
-
 
