@@ -26,6 +26,9 @@ class App(abc.ABC):
     user_compiler_options: list[str]
     """User compiler options are passed to the compilation command."""
 
+    translator: Optional[Translator]
+    """Translator used to extract and transform SCoPs."""
+
     ephemeral: bool = False
     """Ephemeral, i.e. short lived apps.
 
