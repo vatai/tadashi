@@ -59,6 +59,21 @@ class TestApp(unittest.TestCase):
         self.assertEqual(source0_before, repr(app.translators[0].scops[0]))
         self.assertNotEqual(source1_before, repr(app.translators[1].scops[0]))
 
+    def test_app_transform_list_backward_compatible(self):
+        app = apps.Simple("tests/dummy.c", Pet())
+        source_before = repr(app.translators[0].scops[0])
+        # Old format: [si, ni, tr, *args]
+        app.transform_list([[0, 1, TrEnum.TILE_1D, 4]])
+        self.assertNotEqual(source_before, repr(app.translators[0].scops[0]))
+
+    def test_app_scops_flattened(self):
+        app = apps.Simple(
+            ["tests/dummy.c", "tests/dummy.c"],
+            Pet(),
+        )
+        # Each dummy.c has 1 scop.
+        self.assertEqual(len(app.scops), 2)
+
     @unittest.skip("New removed legality breaks this")
     def test_app_legal(self):
         app = apps.Polybench("gemm")

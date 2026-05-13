@@ -13,6 +13,7 @@ from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
+from . import TrEnum
 from .scop import Scop
 from .translators import Pet, Polly, Translator
 
@@ -76,11 +77,14 @@ class App(abc.ABC):
 
     @property
     def scops(self) -> list[Scop]:
-        """The `Scop` list forwarded from `App.translator` (both for
-        compatibility and convenience reasons)."""
-        if self.translator == None:
+        """The `Scop` list forwarded from all translators (flattened)."""
+        if not self.translators or all(t is None for t in self.translators):
             return None
-        return self.translator.scops
+        rv = []
+        for translator in self.translators:
+            if translator is not None:
+                rv.extend(translator.scops)
+        return rv
 
     @property
     def legal(self) -> bool:
@@ -126,7 +130,17 @@ class App(abc.ABC):
         return rv
 
     def transform_list(self, transformation_list: list) -> None:
-        for source_idx, si, ni, *tr in transformation_list:
+        for item in transformation_list:
+            if len(item) >= 3 and isinstance(item[2], TrEnum):
+                # Old format: [si, ni, tr, *args]
+                source_idx = 0
+                si, ni, *tr = item
+            elif len(item) >= 4:
+                # New format: [source_idx, si, ni, tr, *args]
+                source_idx, si, ni, *tr = item
+            else:
+                raise ValueError(f"Invalid transformation item: {item}")
+
             translator = self.translators[source_idx]
             node = translator.scops[si].schedule_tree[ni]
             node.transform(*tr)
