@@ -1,5 +1,7 @@
 #!/bin/env python
 
+from __future__ import annotations
+
 import abc
 import atexit
 import copy
@@ -7,14 +9,21 @@ import datetime
 import logging
 import os
 import re
+import socket
 import tempfile
-from collections import namedtuple
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
 from .scop import Scop
-from .translators import Pet, Polly, Translator
+from .translators import Pet, Translator
+
+try:
+    from mpi4py.futures import MPIPoolExecutor
+
+    MPI_AVAILABLE = True
+except ImportError:
+    MPI_AVAILABLE = False
 
 
 class App(abc.ABC):
@@ -209,24 +218,25 @@ class App(abc.ABC):
             results.append(self.extract_runtime(proc))
         return min(results)
 
-    def transform_measure_mpi(self):
-        # print(f"{trs=}")
-        # hostname = socket.gethostname()
-        # print(f"{hostname=}")
-        # app.transform_list(trs)
-        # tapp = app.generate_code(alt_infix=f"_evot_{hostname}", ephemeral=False)
-        # tapp.compile()
-        # rv = tapp.measure()
-        # return rv, hostname
-        #####
-        # results = list(
-        #     self.executor.map(
-        #         util.remote_measure,
-        #         [self.app_factory] * len(self.population),
-        #         [ind.operation_list for ind in self.population],
-        #     )
-        # )
-        pass
+    def transform_measure(self, trs: list):
+        # ..todo:: remove
+        print(f"{trs=}")
+        hostname = socket.gethostname()
+        print(f"{hostname=}")
+
+        self.reset_scops()
+        self.transform_list(trs)
+        tapp = self.generate_code()
+        tapp.compile()
+        return tapp.measure(), hostname
+
+    def transform_measure_mpi(
+        self,
+        trs_list: list[list],
+        executor: MPIPoolExecutor = None,
+    ):
+        results = executor.map(self.transform_measure, trs_list)
+        return results
 
     def __init__(
         self,
