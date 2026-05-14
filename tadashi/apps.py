@@ -209,6 +209,25 @@ class App(abc.ABC):
             results.append(self.extract_runtime(proc))
         return min(results)
 
+    def transform_measure_mpi(self):
+        # print(f"{trs=}")
+        # hostname = socket.gethostname()
+        # print(f"{hostname=}")
+        # app.transform_list(trs)
+        # tapp = app.generate_code(alt_infix=f"_evot_{hostname}", ephemeral=False)
+        # tapp.compile()
+        # rv = tapp.measure()
+        # return rv, hostname
+        #####
+        # results = list(
+        #     self.executor.map(
+        #         util.remote_measure,
+        #         [self.app_factory] * len(self.population),
+        #         [ind.operation_list for ind in self.population],
+        #     )
+        # )
+        pass
+
     def __init__(
         self,
         *,
