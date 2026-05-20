@@ -19,6 +19,11 @@ from .scop import Scop
 from .translators import Pet, Translator
 
 try:
+    ld_preload = "/usr/lib/FJSVtcs/ple/lib64/libpmix.so"
+    ompi_envvar = "OMPI_UNIVERSE_SIZE"
+    if os.getenv("LD_PRELOAD") == ld_preload:
+        if ompi_envvar not in os.environ:
+            raise ImportError()
     from mpi4py.futures import MPIPoolExecutor
 
     MPI_AVAILABLE = True
