@@ -225,9 +225,8 @@ class App(abc.ABC):
 
     def transform_measure(self, trs: list):
         # ..todo:: remove
-        print(f"{trs=}")
         hostname = socket.gethostname()
-        print(f"{hostname=}")
+        self.logger.debug(f"[{hostname}]: {trs=}")
 
         self.reset_scops()
         self.transform_list(trs)
