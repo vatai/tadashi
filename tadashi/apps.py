@@ -9,6 +9,7 @@ import datetime
 import logging
 import os
 import re
+import shutil
 import socket
 import tempfile
 from pathlib import Path
@@ -19,11 +20,24 @@ from .scop import Scop
 from .translators import Pet, Translator
 
 try:
-    ld_preload = "/usr/lib/FJSVtcs/ple/lib64/libpmix.so"
-    ompi_envvar = "OMPI_UNIVERSE_SIZE"
-    if os.getenv("LD_PRELOAD") == ld_preload:
-        if ompi_envvar not in os.environ:
+    if not shutil.which("mpirun"):
+        raise ImportError("No mpirun")
+    mpi_vars = [
+        "OMPI_COMM_WORLD_RANK",  # Open MPI
+        "PMI_RANK",  # MPICH / Intel MPI / Slurm
+        "I_MPI_MPIRUN",  # Intel MPI specific
+        "MPI_LOCALRANKID",  # General MPI
+    ]
+
+    if all(os.getenv(var) is None for var in mpi_vars):
+        raise ImportError("Not in mpirun/mpiexec")
+
+    proc = run(["mpirun", "--version"], capture_output=True)
+    if "FUJITSU MPI Library" in proc.stdout.decode():
+        ld_preload = "/usr/lib/FJSVtcs/ple/lib64/libpmix.so"
+        if ld_preload not in os.getenv("LD_PRELOAD"):
             raise ImportError()
+
     from mpi4py.futures import MPIPoolExecutor
 
     MPI_AVAILABLE = True
