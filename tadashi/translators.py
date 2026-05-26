@@ -339,10 +339,6 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
-    @staticmethod
-    def _sanitize(options: list[str]) -> list[str]:
-        return options
-
     def _polly(self) -> list[str]:
         opt_cmd = ["opt"]
         flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
@@ -366,8 +362,8 @@ class Polly(Translator):
             return pre_polly_bc
         compile_O0_bc = self.tmpdir / self.source.with_suffix(".O0.bc").name
         compiler_opts = self._compiler_options()
-        sanitized = self._sanitize(options)
-        compile_cmd = [self.compiler, *compiler_opts, *sanitized, "-c", "-emit-llvm"]
+        # *options befor *compiler_opts is IMPORTANT!
+        compile_cmd = [self.compiler, *options, *compiler_opts, "-c", "-emit-llvm"]
         compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
         opt_cmd = self._polly() + ["-polly-canonicalize"]
