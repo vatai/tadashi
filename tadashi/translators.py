@@ -487,7 +487,7 @@ class Polly(Translator):
 
         opt_cmd = [
             "opt",
-            *options,
+            "-O3",  # this should be a sanitized version of `*options`
             post_polly_bc,
             f"-o={str(output)}",
         ]
