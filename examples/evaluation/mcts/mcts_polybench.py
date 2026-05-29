@@ -7,11 +7,11 @@ import time
 from pathlib import Path
 from timeit import repeat
 
-from tadashi import TrEnum
-from tadashi.apps import Polybench, Simple
-
 from mcts import config
 from mcts.optimize import optimize_app
+
+from tadashi import TrEnum
+from tadashi.apps import Polybench, Simple
 
 
 def main(args):
@@ -25,9 +25,9 @@ def main(args):
     )
     print(app.scops[0].schedule_tree[0].yaml_str)
     allowed_transformations = {
-        TrEnum.TILE1D,
-        TrEnum.TILE2D,
-        TrEnum.TILE3D,
+        TrEnum.TILE_1D,
+        TrEnum.TILE_2D,
+        TrEnum.TILE_3D,
         TrEnum.INTERCHANGE,
         # TrEnum.FUSE,
         TrEnum.FULL_FUSE,
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
     parser.add_argument(
-        "--allow-omp", type=bool, default=False, action=argparse.BooleanOptionalAction
+        "--allow-omp", default=False, action=argparse.BooleanOptionalAction
     )
     parser.add_argument("--prefix", type=str, default="data")
     args = parser.parse_args()
