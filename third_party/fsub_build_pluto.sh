@@ -31,9 +31,10 @@ set -x
 ROOT="$(git rev-parse --show-toplevel)"
 PREFIX="$ROOT/third_party/opt"
 set_env "$PREFIX"
-mkdir -p "$TMPDIR/$(whoami)"
+# mkdir -p "$TMPDIR/$(whoami)"
 # BUILD_DIR="$(mktemp -d -p "$TMPDIR/$(whoami)")"
-BUILD_DIR="$TMPDIR/$(whoami)"
+BUILD_DIR="$ROOT/third_party/build"
+mkdir -p "$BUILD_DIR"
 pushd "$BUILD_DIR" || exit
 
 # build pluto
@@ -47,7 +48,7 @@ sed -i -e 's/doc//' candl/Makefile.am
 # cat cloog-isl/configure.ac
 ./autogen.sh
 ./configure --prefix="$PREFIX"
-make -j$(nproc)
+make -j$(nproc) install
 popd || exit
 
 popd || exit
