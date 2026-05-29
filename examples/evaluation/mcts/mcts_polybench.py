@@ -7,11 +7,11 @@ import time
 from pathlib import Path
 from timeit import repeat
 
-from mcts import config
-from mcts.optimize import optimize_app
-
 from tadashi import TrEnum
 from tadashi.apps import Polybench, Simple
+
+from mcts import config
+from mcts.optimize import optimize_app
 
 
 def main(args):
@@ -58,9 +58,7 @@ if __name__ == "__main__":
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
-    parser.add_argument(
-        "--allow-omp", default=False, action=argparse.BooleanOptionalAction
-    )
+    parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     parser.add_argument("--prefix", type=str, default="data")
     args = parser.parse_args()
 
