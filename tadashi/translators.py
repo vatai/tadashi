@@ -350,10 +350,10 @@ class Polly(Translator):
         return [
             f"-polly-import-jscop-dir={self.tmpdir}",
             "-aa-pipeline=basic-aa",
-            "-polly-codegen",  # moved from import jscop 3/3
-            # "-polly-use-llvm-names", # removed 1/3
+            "-polly-use-llvm-names",  # removed 1/3
             *options,
-            # "-polly-process-unprofitable", # removed 2/3
+            "-polly-codegen",  # moved from import jscop 3/3
+            "-polly-process-unprofitable",  # removed 2/3
         ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
