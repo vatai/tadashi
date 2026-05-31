@@ -26,6 +26,7 @@ Source = "https://github.com/vatai/tadashi/"
 [project.scripts]
 scop-detector = "tadashi._scripts:scop_detector"
 scop-print = "tadashi._scripts:scop_printer"
+tadashi-mcp-server = "tadashi._mcp:server"
 
 [tool.setuptools]
 packages = ["tadashi"]
