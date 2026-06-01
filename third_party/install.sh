@@ -10,13 +10,14 @@ elif [ -e "$(which apk)" ]; then
 	apk add gmp-dev clang17-dev llvm17-dev
 	LICENSE_FILE=/usr/lib/llvm17/include/llvm/Support/LICENSE.TXT
 elif [ -e "$(which apt-get)" ]; then
+	LLVM_VERSION=20
 	DEBIAN_FRONTEND=noninteractive
 	apt-get update
-	apt-get install -y git build-essential autoconf pkg-config libtool llvm-17-dev clang-17 libclang-17-dev libgmp-dev libomp-dev
+	apt-get install -y git build-essential autoconf pkg-config libtool llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION libclang-$LLVM_VERSION-dev libgmp-dev libomp-dev
 	LICENSE_FILE=/usr/lib/llvm-17/build/utils/lit/LICENSE.TXT
 elif [ -e "$(which pacman)" ]; then
-	sudo pacman -S llvm20 clang20
 	LLVM_VERSION=20
+	sudo pacman -S "llvm${LLVM_VERSION}" "clang${LLVM_VERSION}"
 fi
 
 ROOT="$(git rev-parse --show-toplevel)"

@@ -353,6 +353,7 @@ class Polly(Translator):
             "-polly-use-llvm-names",  # removed 1/3
             *options,
             "-polly-process-unprofitable",  # removed 2/3
+            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
@@ -478,7 +479,6 @@ class Polly(Translator):
             "-disable-polly-legality",
             "-polly-parallel-force",
             f"-o={post_polly_bc}",
-            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
         polly_cmd = self._polly() + self._polly_options(opts)
         self._run(polly_cmd, "importing jscops")
