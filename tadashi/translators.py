@@ -352,7 +352,6 @@ class Polly(Translator):
             "-aa-pipeline=basic-aa",
             "-polly-use-llvm-names",  # removed 1/3
             *options,
-            "-polly-codegen",  # moved from import jscop 3/3
             "-polly-process-unprofitable",  # removed 2/3
         ]
 
@@ -479,6 +478,7 @@ class Polly(Translator):
             "-disable-polly-legality",
             "-polly-parallel-force",
             f"-o={post_polly_bc}",
+            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
         polly_cmd = self._polly() + self._polly_options(opts)
         self._run(polly_cmd, "importing jscops")
