@@ -36,4 +36,4 @@ cd /tmp/pet
 ./get_submodules.sh
 ./autogen.sh
 ./configure --prefix="$PREFIX" "$CLANG_OPTION"
-make -j install
+make -j$(nproc) install
