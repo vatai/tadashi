@@ -252,7 +252,10 @@ class App(abc.ABC):
         self,
         trs_list: list[list],
         executor: MPIPoolExecutor = None,
-    ):
+    ) -> list:
+        if not MPI_AVAILABLE:
+            msg = "Can't call tranform_measure_mpi when MPI is not available."
+            raise ValueError(msg)
         results = executor.map(self.transform_measure, trs_list)
         return results
 
