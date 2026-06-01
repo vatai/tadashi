@@ -460,9 +460,9 @@ class SplitInfo(TransformInfo):
 
 
 # Ignore ScaleInfo. It is not yet implemented.
-# @register
+@register
 class ScaleInfo(TransformInfo):
-    arg_help = []
+    arg_help = ["Value"]
 
     @classmethod
     def valid(cls, node: Node) -> bool:
