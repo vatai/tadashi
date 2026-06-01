@@ -352,8 +352,8 @@ class Polly(Translator):
             "-aa-pipeline=basic-aa",
             "-polly-use-llvm-names",  # removed 1/3
             *options,
-            "-polly-codegen",  # moved from import jscop 3/3
             "-polly-process-unprofitable",  # removed 2/3
+            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:

@@ -465,12 +465,13 @@ tadashi_split(__isl_take isl_schedule_node *node, int split_idx) {
 }
 
 isl_schedule_node *
-tadashi_scale(isl_schedule_node *node, long scale) {
+tadashi_scale(isl_schedule_node *node, long val) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  node = isl_schedule_node_band_scale(
-      node, isl_multi_val_from_val_list(
-                isl_schedule_node_band_get_space(node),
-                isl_val_list_from_val(isl_val_int_from_si(ctx, scale))));
+  isl_space *space = isl_schedule_node_band_get_space(node);
+  isl_val *v = isl_val_int_from_si(ctx, val);
+  isl_val_list *vl = isl_val_list_from_val(v);
+  isl_multi_val *mv = isl_multi_val_from_val_list(space, vl);
+  node = isl_schedule_node_band_scale(node, mv);
   return node;
 }
 
