@@ -32,12 +32,13 @@ def main(app, repeat, allow_omp):
 
     trs = searchFor(app, "full_split")
     trs = [[index, TrEnum.FULL_SPLIT] for index in trs]
-    trs = trs[::-1]
+    trs = trs[::-1]  ## reverse
     for t in trs:
         scops[0].reset()
         scops[0].transform_list(full_tr_list)
         valid = scops[0].transform_list([t])
         if valid[-1]:
+            # append legal splits
             full_tr_list.append(t)
         else:
             print("skipped tr:", str(t))
@@ -47,9 +48,11 @@ def main(app, repeat, allow_omp):
     # full_tr_list.extend(trs[::-1])
 
     trs = searchFor(app, "tile3d")
+    # This is not actually used I think
     toRemoveFrom2D = [a for a in trs]
     toRemoveFrom2D.extend([a + 1 for a in trs])
     toRemoveFrom2D = list(set(toRemoveFrom2D))
+
     for t in trs:
         if t - 1 in trs:
             trs.pop(trs.index(t - 1))
