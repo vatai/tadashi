@@ -21,24 +21,9 @@ def searchFor(app, tr_name):
     return ret
 
 
-def main(app_name, repeat, allow_omp):
+def main(app, repeat, allow_omp):
 
-    print("-----------------------------------------\n\n[STARTING NEW APP]")
-
-    print(app_name)
-
-    app = Polybench(
-        app_name,
-        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
-    )
-
-    print(f"{app.user_compiler_options=}")
-    print(f"{repeat=}")
-
-    app.compile()
-
-    print("Baseline measure: %f" % app.measure(repeat=repeat))
-
+    # This list is being constructed
     full_tr_list = []
 
     tile_size = 32
@@ -114,17 +99,21 @@ def main(app_name, repeat, allow_omp):
     # app.transform_list(trs[::-1])
     # full_tr_list.extend(trs[::-1])
     # full_tr_list = [ [0]+l for l in full_tr_list]
+    return full_tr_list
 
+
+def measure(app, repeat, full_tr_list):
+    ### full_tr_list is DONE here
     print("transformation_list=[")
     [print("   %s," % str(t)) for t in full_tr_list]
     print("]")
 
     for tile_size in [32]:
-        scops[0].reset()
+        app.scops[0].reset()
 
         print("Tiling with size %d ..." % tile_size)
 
-        valid = scops[0].transform_list(full_tr_list)
+        valid = app.scops[0].transform_list(full_tr_list)
         print("Is this transformation list valid:", valid)
 
         tiled = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
@@ -141,8 +130,21 @@ if __name__ == "__main__":
     parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
     parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args()
-    if args.benchmark == "all":
-        for benchmark in Polybench.get_benchmarks():
-            main(benchmark, args.repeat, args.allow_omp)
-    else:
-        main(args.benchmark, args.repeat, args.allow_omp)
+
+    print("-----------------------------------------\n\n[STARTING NEW APP]")
+
+    print(args.benchmark)
+
+    app = Polybench(
+        args.benchmark,
+        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+    )
+
+    print(f"{app.user_compiler_options=}")
+    print(f"{args.repeat=}")
+
+    app.compile()
+
+    print("Baseline measure: %f" % app.measure(repeat=args.repeat))
+    tlist = main(args.benchmark, args.repeat, args.allow_omp)
+    measure(app, args.repeat, tlist)
