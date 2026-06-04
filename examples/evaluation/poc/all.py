@@ -8,25 +8,27 @@ apps_miniAMR = [
 ]
 
 
+def extend_with_legal(app, base_trs: list[TrEnum], trs: list[TrEnum]) -> None:
+    for tr in trs:
+        app.reset_scops()
+        app.transform_list(base_trs + [tr])
+        if app.legal:
+            base_trs.append(tr)
+
+
 def main(app, repeat, allow_omp):
 
     # This list is being constructed
 
     r_splits = reversed(app.search_for("full_split"))
     print(f"{r_splits=}")
-    legal_splits = []
-    for tr in r_splits:
-        app.reset_scops()
-        app.transform_list(legal_splits + [tr])
-        if app.legal:
-            legal_splits.append(tr)
-        else:
-            print("skipped tr:", str(tr))
-    app.reset_scops()
-    app.transform_list(legal_splits)
-    print("FULL_SPLIT list legality:", app.legal)
+    legal_trs = []
+    extend_with_legal(app, legal_trs, r_splits)
 
-    print(f"{legal_splits=}")
+    app.reset_scops()
+    app.transform_list(legal_trs)
+    print("FULL_SPLIT list legality:", app.legal)
+    print(f"{legal_trs=}")
 
     tile_size = 32
     tile3s = reversed(app.search_for("tile_3d"))
@@ -39,15 +41,10 @@ def main(app, repeat, allow_omp):
     trs3D.extend(trs2D)
     trs3D.sort()
     trs3D = trs3D[::-1]
-    for t in trs3D:
-        app.reset_scops()
-        app.transform_list(legal_splits + [t])
-        if app.legal:
-            legal_splits.append(t)
-        else:
-            print("skipped tr:", str(t))
+
+    extend_with_legal(app, legal_trs, trs3D)
     app.reset_scops()
-    app.transform_list(legal_splits)
+    app.transform_list(legal_trs)
     print("TILE 2D and 3D list legality:", app.legal)
 
     if allow_omp:
@@ -55,18 +52,12 @@ def main(app, repeat, allow_omp):
         # trs = [[index, TrEnum.SET_PARALLEL, 0] for index in trs]
         trs = [[trs[0], TrEnum.SET_PARALLEL, 0]]
         trs = trs[::-1]
-        for t in trs:
-            app.reset_scop()
-            app.transform_list(legal_splits + [t])
-            if app.legal:
-                legal_splits.append(t)
-            else:
-                print("skipped tr:", str(t))
+        extend_with_legal(app, legal_trs, trs)
         app.reset_scops()
-        app.transform_list(legal_splits)
+        app.transform_list(legal_trs)
         print("SET_PARALLEL list validity:", app.legal)
 
-    return legal_splits
+    return legal_trs
 
 
 def measure(app, repeat, full_tr_list):
