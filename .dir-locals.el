@@ -9,7 +9,7 @@
                 ;; :gopls (:usePlaceholders t)
          ))
      (projectile-project-compilation-cmd
-      . "./setup.py build_ext -i")
+      . "./setup.py build_ext -i -j$(nproc)")
      (projectile-project-test-cmd
       ;; . "python -m unittest tests.test_translators.TestPolly.test_wip")
       . "python -m unittest tests.test_ccscop.TestCcScop.test_full_scale")
