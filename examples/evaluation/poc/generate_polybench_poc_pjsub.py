@@ -48,9 +48,6 @@ pjsub \
 #PJM -N {job_name}
 #PJM -L rscgrp={resource_group}
 #PJM -L elapse={elapse}
-#PJM -L node=1
-#PJM --mpi "max-proc-per-node=1"
-# #PJM --llio localtmp-size=40Gi
 #PJM -S
 #PJM -j
 
@@ -61,18 +58,8 @@ export LD_PRELOAD=/usr/lib/FJSVtcs/ple/lib64/libpmix.so
 
 {env}
 
-MPIRUN=(
-  mpirun -n 1
-  -stdout-proc "$RESULT_ROOT/pjsub.$PJM_JOBID.out"
-  -stderr-proc "$RESULT_ROOT/pjsub.$PJM_JOBID.err"
-)
-
-FLAGS=(
-{flags}
-)
-
 mkdir -p "$RESULT_ROOT"
-"${{MPIRUN[@]}}" python -u "${{ENTRYPOINT}}" "${{FLAGS[@]}}"
+python -u "${{ENTRYPOINT}}" "{benchmark}"
 PJSUB_EOF
 """
 
@@ -120,13 +107,13 @@ def build_submission_script(args, config, benchmark, path):
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
-    ]
+    ]  # TODO
     return SUBMISSION_TEMPLATE.format(
         job_name=f"EvoT_{config['name']}_{benchmark}",
         resource_group="small",
         elapse=args.elapse,
         env="\n".join(config["env"]),
-        flags="\n".join(f"  {quote(f)}" for f in flags),
+        benchmark=benchmark,
     )
 
 
