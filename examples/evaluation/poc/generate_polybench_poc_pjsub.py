@@ -32,7 +32,7 @@ set -e
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_DIR=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 RESULT_ROOT="$SCRIPT_DIR/$(basename -- "${{0%.*}}")"
-ENTRYPOINT="$REPO_DIR/examples/polybench_evotadashi.py"
+ENTRYPOINT="$REPO_DIR/examples/evaluation/heuristic/split-n-tile.py"
 
 mkdir -p "$RESULT_ROOT"
 
@@ -48,7 +48,7 @@ pjsub \
 #PJM -N {job_name}
 #PJM -L rscgrp={resource_group}
 #PJM -L elapse={elapse}
-#PJM -L node={nodes}
+#PJM -L node=1
 #PJM --mpi "max-proc-per-node=1"
 # #PJM --llio localtmp-size=40Gi
 #PJM -S
@@ -87,12 +87,12 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="Generate Fugaku PJSub scripts for Polybench EvoTADASHI runs."
+        description="Generate Fugaku PJSub scripts for split-n-tile runs."
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("jobs/polybench_evotadashi"),
+        default=Path("jobs/polybench_splitandtile"),
         help="Directory where generated PJSub scripts are written.",
     )
     parser.add_argument(  # before
@@ -101,41 +101,11 @@ def get_parser():
         default="EXTRALARGE",
         help="Polybench dataset size passed to the runner.",
     )
-    parser.add_argument(  # cfg1
-        "--population-size",
-        type=int,
-        default=300,
-        help="EvoTADASHI population size.",
-    )
-    parser.add_argument(  # cfg2
-        "--max-gen",
-        type=int,
-        default=20,
-        help="Maximum number of EvoTADASHI generations.",
-    )
-    parser.add_argument(  # cfg3
-        "--n-trials",
-        type=int,
-        default=2,
-        help="Number of evaluation trials per individual.",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Initial seed.",
-    )
     parser.add_argument(
         "--elapse",
         type=str,
-        default="21:00:00",
+        default="1:00:00",
         help="PJSub wall-time limit for each generated job.",
-    )
-    parser.add_argument(  # cfg4
-        "--nodes",
-        type=int,
-        default=None,
-        help="Allocated PJSub nodes. Defaults to population size + 1.",
     )
     parser.add_argument(
         "benchmarks",
@@ -145,39 +115,18 @@ def get_parser():
     return parser
 
 
-def nodes(args):
-    return args.nodes or args.population_size + 1
-
-
-def config_str(args):
-    fields = [
-        f"ps{args.population_size}",
-        f"mg{args.max_gen}",
-        f"nt{args.n_trials}",
-        f"n{nodes(args)}",
-    ]
-    return "-".join(fields)
-
-
 def build_submission_script(args, config, benchmark, path):
     flags = [
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
-        f"--population-size={args.population_size}",
-        f"--max-gen={args.max_gen}",
-        f"--n-trials={args.n_trials}",
-        f"--init_seed={args.seed}",
-        "--use-mpi",
     ]
     return SUBMISSION_TEMPLATE.format(
         job_name=f"EvoT_{config['name']}_{benchmark}",
         resource_group="small",
         elapse=args.elapse,
-        nodes=nodes(args),
         env="\n".join(config["env"]),
         flags="\n".join(f"  {quote(f)}" for f in flags),
-        seed=args.seed,
     )
 
 
@@ -189,13 +138,7 @@ def main():
 
     for config in CONFIGS:
         for benchmark in benchmarks:
-            path = (
-                args.output_dir
-                / args.dataset
-                / config_str(args)
-                / config["name"]
-                / f"{benchmark}-seed{args.seed}.sh"
-            )
+            path = args.output_dir / args.dataset / config["name"] / f"{benchmark}.sh"
             relative_path = path.relative_to(args.output_dir / args.dataset)
             run_all.append('"$SCRIPT_DIR"/' + quote(str(relative_path)))
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -203,7 +146,7 @@ def main():
             path.write_text(body)
             os.chmod(path, 0o755)
 
-    run_all_path = args.output_dir / args.dataset / f"{config_str(args)}_launcher.sh"
+    run_all_path = args.output_dir / f"{args.dataset}_launcher.sh"
     run_all_path.parent.mkdir(parents=True, exist_ok=True)
     run_all_path.write_text(RUN_ALL_TEMPLATE.format(submission="\n".join(run_all)))
     os.chmod(run_all_path, 0o755)
