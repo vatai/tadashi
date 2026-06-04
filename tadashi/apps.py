@@ -260,7 +260,7 @@ class App(abc.ABC):
         results = executor.map(self.transform_measure, trs_list)
         return results
 
-    def search_for(self, transformation: str | TrEnum) -> list[Tuple[int, int]]:
+    def search_for(self, transformation: str | TrEnum) -> list[list[int, int, TrEnum]]:
         if isinstance(transformation, TrEnum):
             tr = transformation
         else:
@@ -270,7 +270,7 @@ class App(abc.ABC):
             for ni, node in enumerate(scop.schedule_tree):
                 av = node.available_transformations
                 if tr in av:
-                    ret.append((si, ni, tr))
+                    ret.append([si, ni, tr])
         return ret
 
     def __init__(
