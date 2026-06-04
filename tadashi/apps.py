@@ -132,9 +132,11 @@ class App(abc.ABC):
         return rv
 
     def transform_list(self, transformation_list: list) -> None:
-        for si, ni, *tr in transformation_list:
+        for si, ni, tr, *args in transformation_list:
             node = self.scops[si].schedule_tree[ni]
-            node.transform(*tr)
+            if isinstance(tr, str):
+                tr = TrEnum(tr)
+            node.transform(tr, *args)
 
     def reset_scops(self):
         for scop in self.scops:
