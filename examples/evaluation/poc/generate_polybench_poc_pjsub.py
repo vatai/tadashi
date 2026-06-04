@@ -146,7 +146,7 @@ def main():
             path.write_text(body)
             os.chmod(path, 0o755)
 
-    run_all_path = args.output_dir / f"{args.dataset}_launcher.sh"
+    run_all_path = args.output_dir / args.dataset / "launcher.sh"
     run_all_path.parent.mkdir(parents=True, exist_ok=True)
     run_all_path.write_text(RUN_ALL_TEMPLATE.format(submission="\n".join(run_all)))
     os.chmod(run_all_path, 0o755)
