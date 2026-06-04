@@ -36,16 +36,19 @@ def filter_tiles(trs):
     return ret
 
 
-def add_params(trs, tile_size):
+def add_params(trs, param):
     ret = []
     for loc in trs:
         tr = loc[2]
-        tile_dim = int(str(tr)[5])
-        ret.append(loc + [tile_size] * tile_dim)
+        if tr in [TrEnum.TILE_2D, TrEnum.TILE_3D]:
+            rep = int(str(tr)[5])
+        elif tr == TrEnum.SET_PARALLEL:
+            rep = 1
+        ret.append(loc + [param] * rep)
     return ret
 
 
-def main(app, repeat, allow_omp):
+def main(app, repeat, allow_omp, tile_size):
 
     legal_trs = []
 
@@ -61,17 +64,15 @@ def main(app, repeat, allow_omp):
     tile3d = app.search_for("tile_3d")
     tile2d = app.search_for("tile_2d")
     tile_trs = filter_tiles(sorted(tile3d + tile2d, reverse=True))
-    extend_with_legal(app, legal_trs, add_params(tile_trs, 32))
+    extend_with_legal(app, legal_trs, add_params(tile_trs, tile_size))
     app.reset_scops()
     app.transform_list(legal_trs)
     print("TILE 2D and 3D list legality:", app.legal)
 
     if allow_omp:
-        trs = app.search_for("set_parallel")
-        # trs = [[index, TrEnum.SET_PARALLEL, 0] for index in trs]
-        trs = [[trs[0], TrEnum.SET_PARALLEL, 0]]
-        trs = trs[::-1]
-        extend_with_legal(app, legal_trs, trs)
+        trs = app.search_for("set_parallel")  # [-2:]
+        trs.reverse()
+        extend_with_legal(app, legal_trs, add_params(trs, 0))
         app.reset_scops()
         app.transform_list(legal_trs)
         print("SET_PARALLEL list validity:", app.legal)
@@ -79,20 +80,19 @@ def main(app, repeat, allow_omp):
     return legal_trs
 
 
-def measure(app, repeat, full_tr_list):
+def measure(app, repeat, full_tr_list, tile_size):
     print("transformation_list=[")
     for t in full_tr_list:
         print("   %s," % str(t))
     print("]")
 
-    for tile_size in [32]:
-        print("Tiling with size %d ..." % tile_size)
-        app.reset_scops()
-        app.transform_list(full_tr_list)
-        # print("Is this transformation list valid:", app.legal)
-        tapp = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
-        tapp.compile()
-        print("Tiling with size %d: %f" % (tile_size, tapp.measure(repeat=repeat)))
+    print("Tiling with size %d ..." % tile_size)
+    app.reset_scops()
+    app.transform_list(full_tr_list)
+    # print("Is this transformation list valid:", app.legal)
+    tapp = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
+    tapp.compile()
+    print("Tiling with size %d: %f" % (tile_size, tapp.measure(repeat=repeat)))
 
     print("[FINISHED APP]\n\n")
 
@@ -100,7 +100,9 @@ def measure(app, repeat, full_tr_list):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("benchmark", type=str, default="jacobi-2d")
-    parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
+    parser.add_argument(
+        "--allow-omp", action=argparse.BooleanOptionalAction, default=True
+    )
     parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args()
 
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     app = Polybench(
         args.benchmark,
         compiler_options=[
-            # "-DEXTRALARGE_DATASET",
+            "-DEXTRALARGE_DATASET",
             "-O3",
         ],
     )
@@ -122,5 +124,6 @@ if __name__ == "__main__":
     app.compile()
 
     print("Baseline measure: %f" % app.measure(repeat=args.repeat))
-    tlist = main(app, args.repeat, args.allow_omp)
-    measure(app, args.repeat, tlist)
+    tile_size = 20
+    tlist = main(app, args.repeat, args.allow_omp, tile_size)
+    measure(app, args.repeat, tlist, tile_size)
