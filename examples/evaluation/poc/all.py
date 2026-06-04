@@ -16,13 +16,30 @@ def extend_with_legal(app, base_trs: list[TrEnum], trs: list[TrEnum]) -> None:
             base_trs.append(tr)
 
 
+def filter(app, tile3d, tile2d):
+    # for each si
+    # ni in tile3d => ni, ni+1, ni+2 are covered by ni, 3d
+    # ni in tile2d => ni, ni+1 are covered by ni, 2d
+    # every ni should be covered only once and with 3d if possible
+    covers = {}
+    for si, ni, tr in tile3d:
+        if tr == TrEnum.TILE_3D:
+            num_cover = 3
+        elif tr == TrEnum.TILE_2D:
+            num_cover = 2
+        else:
+            raise Exception()
+        for i in range(num_cover):
+            if (si, ni) not in covers:
+                covers[si, ni] = {}
+
+
 def main(app, repeat, allow_omp):
 
-    # This list is being constructed
-
-    r_splits = reversed(app.search_for("full_split"))
-    print(f"{r_splits=}")
     legal_trs = []
+
+    r_splits = app.search_for("full_split")
+    r_splits.reverse()
     extend_with_legal(app, legal_trs, r_splits)
 
     app.reset_scops()
@@ -30,14 +47,19 @@ def main(app, repeat, allow_omp):
     print("FULL_SPLIT list legality:", app.legal)
     print(f"{legal_trs=}")
 
+    tile3d = app.search_for("tile_3d")
+    tile3d.sort(reverse=True)
+    print(f">>>> {tile3d=}")
+    tile2d = app.search_for("tile_2d")
+    tile2d.sort(reverse=True)
+    print(f">>>> {tile2d=}")
+    for si, ni, tr in tile3d:
+        if (si, ni - 1, tr) in tile3d:
+            tile3d.pop(tile3d.index((si, ni - 1, tr)))
+
     tile_size = 32
-    tile3s = reversed(app.search_for("tile_3d"))
-    for si, ni, tr in tile3s:
-        if (si, ni - 1, tr) in tile3s:
-            tile3s.pop(tile3s.index((si, ni - 1, tr)))
-    trs3D = [[*tr, tile_size, tile_size, tile_size] for tr in tile3s]
-    trs2 = app.search_for("tile_2d")
-    trs2D = [[*tr, tile_size, tile_size] for tr in trs2[::-1]]
+    trs3D = [[*tr, tile_size, tile_size, tile_size] for tr in tile3d]
+    trs2D = [[*tr, tile_size, tile_size] for tr in tile2d[::-1]]
     trs3D.extend(trs2D)
     trs3D.sort()
     trs3D = trs3D[::-1]
@@ -91,7 +113,10 @@ if __name__ == "__main__":
 
     app = Polybench(
         args.benchmark,
-        compiler_options=["-DEXTRALARGE_DATASET", "-O3"],
+        compiler_options=[
+            # "-DEXTRALARGE_DATASET",
+            "-O3",
+        ],
     )
 
     print(f"{app.user_compiler_options=}")
