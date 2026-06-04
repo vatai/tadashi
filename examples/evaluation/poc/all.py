@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 
 from tadashi import TrEnum
 from tadashi.apps import Polybench
@@ -16,22 +17,32 @@ def extend_with_legal(app, base_trs: list[TrEnum], trs: list[TrEnum]) -> None:
             base_trs.append(tr)
 
 
-def filter(app, tile3d, tile2d):
+def filter_tiles(trs):
     # for each si
     # ni in tile3d => ni, ni+1, ni+2 are covered by ni, 3d
     # ni in tile2d => ni, ni+1 are covered by ni, 2d
-    # every ni should be covered only once and with 3d if possible
-    covers = {}
-    for si, ni, tr in tile3d:
-        if tr == TrEnum.TILE_3D:
-            num_cover = 3
-        elif tr == TrEnum.TILE_2D:
-            num_cover = 2
-        else:
-            raise Exception()
-        for i in range(num_cover):
-            if (si, ni) not in covers:
-                covers[si, ni] = {}
+    # every ni should be covered only once and with 3d if possible or with the highest (=deepest) ni
+    covers = defaultdict(list)
+    for si, ni, tr in trs:
+        tile_dim = int(str(tr)[5])
+        for i in range(tile_dim):
+            covers[si, ni + i].append((tr, ni))
+    ret = []
+    for (si, _), cover in covers.items():
+        tr, ni = sorted(cover, reverse=True)[0]
+        winner = [si, ni, tr]
+        if winner not in ret:
+            ret.append(winner)
+    return ret
+
+
+def add_params(trs, tile_size):
+    ret = []
+    for loc in trs:
+        tr = loc[2]
+        tile_dim = int(str(tr)[5])
+        ret.append(loc + [tile_size] * tile_dim)
+    return ret
 
 
 def main(app, repeat, allow_omp):
@@ -48,23 +59,9 @@ def main(app, repeat, allow_omp):
     print(f"{legal_trs=}")
 
     tile3d = app.search_for("tile_3d")
-    tile3d.sort(reverse=True)
-    print(f">>>> {tile3d=}")
     tile2d = app.search_for("tile_2d")
-    tile2d.sort(reverse=True)
-    print(f">>>> {tile2d=}")
-    for si, ni, tr in tile3d:
-        if (si, ni - 1, tr) in tile3d:
-            tile3d.pop(tile3d.index((si, ni - 1, tr)))
-
-    tile_size = 32
-    trs3D = [[*tr, tile_size, tile_size, tile_size] for tr in tile3d]
-    trs2D = [[*tr, tile_size, tile_size] for tr in tile2d[::-1]]
-    trs3D.extend(trs2D)
-    trs3D.sort()
-    trs3D = trs3D[::-1]
-
-    extend_with_legal(app, legal_trs, trs3D)
+    tile_trs = filter_tiles(sorted(tile3d + tile2d, reverse=True))
+    extend_with_legal(app, legal_trs, add_params(tile_trs, 32))
     app.reset_scops()
     app.transform_list(legal_trs)
     print("TILE 2D and 3D list legality:", app.legal)
