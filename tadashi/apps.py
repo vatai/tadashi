@@ -270,7 +270,7 @@ class App(abc.ABC):
             for ni, node in enumerate(scop.schedule_tree):
                 av = node.available_transformations
                 if tr in av:
-                    ret.append((si, ni))
+                    ret.append((si, ni, tr))
         return ret
 
     def __init__(
