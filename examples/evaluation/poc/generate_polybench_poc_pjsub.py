@@ -32,7 +32,7 @@ set -e
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_DIR=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 RESULT_ROOT="$SCRIPT_DIR/$(basename -- "${{0%.*}}")"
-ENTRYPOINT="$REPO_DIR/examples/evaluation/heuristic/split-n-tile.py"
+ENTRYPOINT="$REPO_DIR/examples/evaluation/poc/split-n-tile.py"
 
 mkdir -p "$RESULT_ROOT"
 
