@@ -14,8 +14,9 @@ import socket
 import tempfile
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
-from typing import Optional
+from typing import Optional, Tuple
 
+from . import TrEnum
 from .scop import Scop
 from .translators import Pet, Translator
 
@@ -258,6 +259,19 @@ class App(abc.ABC):
             raise ValueError(msg)
         results = executor.map(self.transform_measure, trs_list)
         return results
+
+    def search_for(self, transformation: str | TrEnum) -> list[Tuple[int, int]]:
+        if isinstance(transformation, TrEnum):
+            tr = transformation
+        else:
+            tr = TrEnum(transformation.lower())
+        ret = []
+        for si, scop in enumerate(self.scops):
+            for ni, node in enumerate(scop.schedule_tree):
+                av = node.available_transformations
+                if tr in av:
+                    ret.append((si, ni))
+        return ret
 
     def __init__(
         self,
