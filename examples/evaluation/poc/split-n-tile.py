@@ -1,7 +1,7 @@
 import argparse
 from collections import defaultdict
 
-from tadashi import TrEnum
+from tadashi import TrEnum, translators
 from tadashi.apps import Polybench
 
 apps_miniAMR = [
@@ -83,39 +83,39 @@ def main(app, repeat, allow_omp, tile_size):
 def measure(app, repeat, full_tr_list, tile_size):
     print("transformation_list=[")
     for t in full_tr_list:
-        print("   %s," % str(t))
+        print(f"   {t},")
     print("]")
 
-    print("Tiling with size %d ..." % tile_size)
+    print(f"Tiling with size {tile_size} ...")
     app.reset_scops()
     app.transform_list(full_tr_list)
     # print("Is this transformation list valid:", app.legal)
-    tapp = app.generate_code(alt_infix="_tiled%d" % tile_size, ephemeral=False)
+    tapp = app.generate_code(alt_infix=f"_tiled{tile_size}", ephemeral=False)
     tapp.compile()
-    print("Tiling with size %d: %f" % (tile_size, tapp.measure(repeat=repeat)))
+    print(f"Tiling with size {tile_size}: {tapp.measure(repeat=repeat)}")
 
     print("[FINISHED APP]\n\n")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("benchmark", type=str, default="jacobi-2d")
+    parser = Polybench.args_parser()
+    parser.add_argument("--repeat", type=int, default=1)
+    parser.set_defaults(dataset="EXTRALARGE")
     parser.add_argument(
         "--allow-omp", action=argparse.BooleanOptionalAction, default=True
     )
-    parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args()
 
     print("-----------------------------------------\n\n[STARTING NEW APP]")
 
+    translator = getattr(translators, args.translator)
     print(args.benchmark)
 
+    compiler_options = ([f"-{args.dataset}_DATASET", f"-O{args.oflag}"],)
     app = Polybench(
         args.benchmark,
-        compiler_options=[
-            "-DEXTRALARGE_DATASET",
-            "-O3",
-        ],
+        compiler_options=[f"-D{args.dataset}_DATASET", f"-O{args.oflag}"],
+        translator=translator(),
     )
 
     print(f"{app.user_compiler_options=}")
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     app.compile()
 
-    print("Baseline measure: %f" % app.measure(repeat=args.repeat))
+    print(f"Baseline measure: {app.measure(repeat=args.repeat)}")
     tile_size = 20
     tlist = main(app, args.repeat, args.allow_omp, tile_size)
     measure(app, args.repeat, tlist, tile_size)

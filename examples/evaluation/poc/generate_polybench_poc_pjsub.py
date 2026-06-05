@@ -30,8 +30,8 @@ SUBMISSION_TEMPLATE = r"""#!/bin/bash
 set -e
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-REPO_DIR=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 RESULT_ROOT="$SCRIPT_DIR/$(basename -- "${{0%.*}}")"
+REPO_DIR=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 ENTRYPOINT="$REPO_DIR/examples/evaluation/poc/split-n-tile.py"
 
 mkdir -p "$RESULT_ROOT"
@@ -58,8 +58,11 @@ export LD_PRELOAD=/usr/lib/FJSVtcs/ple/lib64/libpmix.so
 
 {env}
 
+FLAGS=(
+{flags}
+)
 mkdir -p "$RESULT_ROOT"
-python -u "${{ENTRYPOINT}}" "{benchmark}"
+python -u "${{ENTRYPOINT}}" "${{FLAGS}}"
 PJSUB_EOF
 """
 
@@ -107,13 +110,13 @@ def build_submission_script(args, config, benchmark, path):
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
-    ]  # TODO
+    ]
     return SUBMISSION_TEMPLATE.format(
         job_name=f"EvoT_{config['name']}_{benchmark}",
         resource_group="small",
         elapse=args.elapse,
         env="\n".join(config["env"]),
-        benchmark=benchmark,
+        flags="\n".join(f"  {quote(f)}" for f in flags),
     )
 
 
