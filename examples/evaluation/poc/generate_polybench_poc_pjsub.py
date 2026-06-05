@@ -62,7 +62,7 @@ FLAGS=(
 {flags}
 )
 mkdir -p "$RESULT_ROOT"
-python -u "${{ENTRYPOINT}}" "${{FLAGS}}"
+python -u "${{ENTRYPOINT}}" "${{FLAGS[@]}}"
 PJSUB_EOF
 """
 
