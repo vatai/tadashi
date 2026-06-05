@@ -17,7 +17,7 @@ from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
-from . import TrEnum
+from . import TrEnum, translators
 from .scop import Scop
 from .translators import Pet, Translator
 
@@ -413,6 +413,7 @@ class Polybench(App):
     def args_parser(
         parser: Optional[argparse.ArgumentParser] = None,
     ) -> argparse.ArgumentParser:
+        """Create a parser which parses a benchmark, base, dataset, and oflag"""
         if not parser:
             parser = argparse.ArgumentParser()
         parser.add_argument(
@@ -423,6 +424,18 @@ class Polybench(App):
         parser.add_argument("--dataset", type=str, default="LARGE")
         parser.add_argument("--oflag", type=int, default=3)
         return parser
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> Polybench:
+        translator = getattr(translators, args.translator)
+        compiler_options = [f"-D{args.dataset}_DATASET", f"-O{args.oflag}"]
+        if args.allow_omp:
+            compiler_options.append("-fopenmp")
+        return cls(
+            args.benchmark,
+            compiler_options=compiler_options,
+            translator=translator(),
+        )
 
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
