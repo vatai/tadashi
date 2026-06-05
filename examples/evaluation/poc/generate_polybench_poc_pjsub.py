@@ -92,6 +92,9 @@ def get_parser():
         help="Polybench dataset size passed to the runner.",
     )
     parser.add_argument(
+        "--allow-omp", action=argparse.BooleanOptionalAction, default=True
+    )
+    parser.add_argument(
         "--elapse",
         type=str,
         default="1:00:00",
@@ -110,6 +113,7 @@ def build_submission_script(args, config, benchmark, path):
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
+        "--allow-omp" if args.allow_omp else "--no-allow-omp",
     ]
     return SUBMISSION_TEMPLATE.format(
         job_name=f"EvoT_{config['name']}_{benchmark}",
