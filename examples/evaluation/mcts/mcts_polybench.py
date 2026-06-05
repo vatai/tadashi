@@ -19,10 +19,7 @@ def main(args):
     # logger = logging.getLogger(__name__)
     # logger.info('message')
     random.seed(args.seed)
-    app = Polybench(
-        args.benchmark,
-        compiler_options=args.compiler_options.split(" "),
-    )
+    app = Polybench.from_args(args)
     print(app.scops[0].schedule_tree[0].yaml_str)
     allowed_transformations = {
         TrEnum.TILE_1D,
@@ -50,11 +47,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("benchmark", type=str, default="stencils/jacobi-2d")
-    parser.add_argument(
-        "--compiler_options", type=str, default="-DEXTRALARGE_DATASET -O3"
-    )
+    parser = Polybench.args_parser()
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--rollouts", type=int, default=100)
     parser.add_argument("--seed", type=int, default=time.time())
