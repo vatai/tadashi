@@ -90,7 +90,7 @@ def measure(app, repeat, full_tr_list, tile_size):
     app.reset_scops()
     app.transform_list(full_tr_list)
     # print("Is this transformation list valid:", app.legal)
-    tapp = app.generate_code(alt_infix=f"_tiled{tile_size}", ephemeral=False)
+    tapp = app.generate_code(alt_infix=f"_tiled{tile_size}")
     tapp.compile()
     print(f"Tiling with size {tile_size}: {tapp.measure(repeat=repeat)}")
 
