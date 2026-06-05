@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import argparse
 import atexit
 import copy
 import datetime
@@ -14,7 +15,7 @@ import socket
 import tempfile
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
-from typing import Optional, Tuple
+from typing import Optional
 
 from . import TrEnum
 from .scop import Scop
@@ -407,6 +408,21 @@ class Polybench(App):
 
     benchmark: str  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
+
+    @staticmethod
+    def args_parser(
+        parser: Optional[argparse.ArgumentParser] = None,
+    ) -> argparse.ArgumentParser:
+        if not parser:
+            parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--translator", type=str, choices=["Pet", "Polly"], default="Pet"
+        )
+        parser.add_argument("--benchmark", type=str, default="stencils/jacobi-1d")
+        parser.add_argument("--base", type=str, default="examples/polybench")
+        parser.add_argument("--dataset", type=str, default="LARGE")
+        parser.add_argument("--oflag", type=int, default=3)
+        return parser
 
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
