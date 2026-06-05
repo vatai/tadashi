@@ -111,7 +111,7 @@ if __name__ == "__main__":
     translator = getattr(translators, args.translator)
     print(args.benchmark)
 
-    compiler_options = [f"-{args.dataset}_DATASET", f"-O{args.oflag}"]
+    compiler_options = [f"-D{args.dataset}_DATASET", f"-O{args.oflag}"]
     if args.allow_omp:
         compiler_options.append("-fopenmp")
     app = Polybench(
