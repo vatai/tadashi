@@ -101,16 +101,12 @@ if __name__ == "__main__":
     parser = Polybench.args_parser()
     parser.add_argument("--repeat", type=int, default=1)
     parser.set_defaults(dataset="EXTRALARGE")
-    parser.add_argument(
-        "--allow-omp", action=argparse.BooleanOptionalAction, default=True
-    )
     args = parser.parse_args()
 
     print("-----------------------------------------\n\n[STARTING NEW APP]")
 
-    translator = getattr(translators, args.translator)
     print(args.benchmark)
-
+    translator = getattr(translators, args.translator)
     compiler_options = [f"-D{args.dataset}_DATASET", f"-O{args.oflag}"]
     if args.allow_omp:
         compiler_options.append("-fopenmp")

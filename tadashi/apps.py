@@ -423,6 +423,7 @@ class Polybench(App):
         parser.add_argument("--base", type=str, default="examples/polybench")
         parser.add_argument("--dataset", type=str, default="LARGE")
         parser.add_argument("--oflag", type=int, default=3)
+        parser.add_argument("--allow-omp", action=argparse.BooleanOptionalAction)
         return parser
 
     @classmethod
