@@ -537,3 +537,11 @@ class Polybench(App):
         except IndexError as e:
             print(f"App probaly crashed: {e}")
         return result
+
+    @property
+    def json_paths(self) -> list[path]:
+        """The `json_paths` list forwarded from `App.translator` (both for
+        compatibility and convenience reasons)."""
+        if self.translator == None:
+            return None
+        return self.translator.json_paths

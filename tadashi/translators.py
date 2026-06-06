@@ -300,8 +300,8 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
-    json_paths: list[Path]
     tmpdir: Path
+    json_paths = cython.declare(list[Path], visibility="public")
 
     def __init__(self, compiler: str = "clang"):
         super().__init__()
