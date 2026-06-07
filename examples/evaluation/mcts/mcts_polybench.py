@@ -3,7 +3,6 @@
 import random
 import time
 
-from tadashi import TrEnum
 from tadashi.apps import Polybench
 
 from mcts.optimize import optimize_app
@@ -13,25 +12,12 @@ def main(args):
     random.seed(args.seed)
     app = Polybench.from_args(args)
     print(app.scops[0].schedule_tree[0].yaml_str)
-    allowed_transformations = {
-        # TrEnum.TILE_1D,
-        TrEnum.TILE_2D,
-        TrEnum.TILE_3D,
-        TrEnum.INTERCHANGE,
-        # TrEnum.FUSE,
-        TrEnum.FULL_FUSE,
-        TrEnum.SPLIT,
-        TrEnum.FULL_SPLIT,
-    }
     print(f"{args.allow_omp=}")
-    if args.allow_omp:
-        allowed_transformations.add(TrEnum.SET_PARALLEL)
 
     optimize_app(
         app,
         rollouts=args.rollouts,
         repeats=args.repeats,
-        # whitelist_transformations=allowed_transformations,
         prefix=args.prefix,
     )
     print("all done")
