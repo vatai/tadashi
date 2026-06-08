@@ -20,7 +20,12 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 mkdir restuls
 
 for file in "${BENCHMARKS[@]}"; do
-	pjsub -x NUM_REPS -x file -x SIZE -x OFLAG <<'PJSUB_EOF'
+	pjsub -j -o "results/${file%.c}" \
+		-x NUM_REPS \
+		-x file \
+		-x SIZE \
+		-x OFLAG \
+		<<'PJSUB_EOF'
 echo "$OMP_NUM_THREADS"
 basename "$file"
 for CC in gcc fcc clang-19 clang-21; do
