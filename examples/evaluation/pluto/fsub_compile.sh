@@ -37,27 +37,32 @@ GCC_ARGS=(
 for file in "${BENCHMARKS[@]}"; do
 	cd "$(dirname "$file")" || exit
 	test -f "${file%.c}.pluto.c" || $PLUTO "$file"
-
-	export CC=gcc
-	$CC -o "${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
-	$CC -o "${file%.c}.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.c" "${GCC_ARGS[@]}"
-
-	export CC=fcc
-	$CC -o "${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
-	$CC -o "${file%.c}.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.c" "${GCC_ARGS[@]}"
-
-	module load LLVM/llvmorg-21.1.0
-	export CC=clang-21
-	$CC -o "${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
-	$CC -o "${file%.c}.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.c" "${GCC_ARGS[@]}"
-	module unload LLVM/llvmorg-21.1.0
-
-	source /home/apps/oss/llvm-v19.1.4/init.sh
-	export CC=clang-19
-	$CC -o "${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
-	$CC -o "${file%.c}.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.c" "${GCC_ARGS[@]}"
-
 	cd - >/dev/null || exit
 done
+
+compile_all() {
+	for file in "${BENCHMARKS[@]}"; do
+		cd "$(dirname "$file")" || exit
+		$CC -o "${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
+		$CC -o "${file%.c}.${SIZE}_O${OFLAG}.${CC}.x" "${file%.c}.c" "${GCC_ARGS[@]}"
+
+		cd - >/dev/null || exit
+	done
+}
+
+export CC=gcc
+compile_all
+
+export CC=fcc
+compile_all
+
+module load LLVM/llvmorg-21.1.0
+export CC=clang-21
+compile_all
+module unload LLVM/llvmorg-21.1.0
+
+source /home/apps/oss/llvm-v19.1.4/init.sh
+export CC=clang-19
+compile_all
 
 echo "done"
