@@ -20,7 +20,9 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 mkdir restuls
 
 for file in "${BENCHMARKS[@]}"; do
-	pjsub -j -o "results/$(basename ${file%.c})" \
+	pjsub -j \
+		-o "results/$(basename ${file%.c}).%j.out" \
+		-e "results/$(basename ${file%.c}).%j.err" \
 		-x NUM_REPS \
 		-x file \
 		-x SIZE \
