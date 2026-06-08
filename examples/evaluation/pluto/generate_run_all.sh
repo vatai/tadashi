@@ -20,14 +20,19 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 mkdir results
 
 for file in "${BENCHMARKS[@]}"; do
+	name="$(basename ${file%.c})"
 	pjsub -j \
-		-o "results/$(basename ${file%.c}).%j.out" \
-		-e "results/$(basename ${file%.c}).%j.err" \
+		-o "results/${name}.%j.out" \
+		-e "results/${name}.%j.err" \
+		-N "pluto_${name}" \
 		-x NUM_REPS \
 		-x file \
 		-x SIZE \
 		-x OFLAG \
 		<<'PJSUB_EOF'
+#!/bin/bash
+#PJM -g ra000012
+#PJM -x PJM_LLIO_GFSCACHE=/vol0004
 echo "$OMP_NUM_THREADS"
 basename "$file"
 for CC in gcc fcc clang-19 clang-21; do
