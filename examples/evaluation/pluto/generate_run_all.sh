@@ -33,6 +33,9 @@ for file in "${BENCHMARKS[@]}"; do
 #!/bin/bash
 #PJM -g ra000012
 #PJM -x PJM_LLIO_GFSCACHE=/vol0004
+#PJM -L elapse=1:00:00
+#PJM -L node=1
+
 echo "$OMP_NUM_THREADS"
 basename "$file"
 for CC in gcc fcc clang-19 clang-21; do

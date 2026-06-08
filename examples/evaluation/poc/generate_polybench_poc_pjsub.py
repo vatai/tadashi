@@ -53,6 +53,7 @@ pjsub \
 #PJM -N {job_name}
 #PJM -L rscgrp={resource_group}
 #PJM -L elapse={elapse}
+#PJM -L node=1
 #PJM -S
 #PJM -j
 
