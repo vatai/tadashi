@@ -17,7 +17,7 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 	grep -v pluto.c |
 	tr "\n" "\0")
 
-mkdir restuls
+mkdir results
 
 for file in "${BENCHMARKS[@]}"; do
 	pjsub -j \
