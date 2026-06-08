@@ -36,7 +36,7 @@ for file in "${BENCHMARKS[@]}"; do
 #PJM -L elapse=5:00:00
 #PJM -L node=1
 OMP_NUM_THREADS=48
-for CC in gcc fcc clang-19 clang-21; do
+for CC in clang-19 clang-21 gcc fcc; do
 
         bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
         for rep in $(seq "$NUM_REPS"); do
