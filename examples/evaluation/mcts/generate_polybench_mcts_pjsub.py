@@ -61,19 +61,13 @@ export LD_PRELOAD=/usr/lib/FJSVtcs/ple/lib64/libpmix.so
 
 {env}
 
-MPIRUN=(
-  mpirun -n 1
-  -stdout-proc "$RESULT_ROOT/pjsub.$PJM_JOBID.out"
-  -stderr-proc "$RESULT_ROOT/pjsub.$PJM_JOBID.err"
-)
-
 FLAGS=(
 {flags}
 --prefix="$RESULT_ROOT"
 )
 
 mkdir -p "$RESULT_ROOT"
-"${{MPIRUN[@]}}" python -u "${{ENTRYPOINT}}" "${{FLAGS[@]}}"
+python -u "${{ENTRYPOINT}}" "${{FLAGS[@]}}"
 PJSUB_EOF
 """
 
