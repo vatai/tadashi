@@ -118,7 +118,7 @@ def build_submission_script(args, config, benchmark, path):
         "--allow-omp" if args.allow_omp else "--no-allow-omp",
     ]
     return SUBMISSION_TEMPLATE.format(
-        job_name=f"EvoT_{config['name']}_{benchmark}",
+        job_name=f"poc_{config['name']}_{benchmark}",
         resource_group="small",
         elapse=args.elapse,
         env="\n".join(config["env"]),
