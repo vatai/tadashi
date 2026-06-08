@@ -61,10 +61,6 @@ export CC=clang-21
 run_all
 module unload LLVM/llvmorg-21.1.0
 
-source /home/apps/oss/llvm-v19.1.4/init.sh
-export CC=clang-19
-run_all
-
 PJSUB_EOF
 done
 
