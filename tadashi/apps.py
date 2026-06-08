@@ -27,6 +27,7 @@ try:
     mpi_vars = [
         "OMPI_COMM_WORLD_RANK",  # Open MPI
         "PMI_RANK",  # MPICH / Intel MPI / Slurm
+        "PMIX_RANK",  # Fugaku
         "I_MPI_MPIRUN",  # Intel MPI specific
         "MPI_LOCALRANKID",  # General MPI
     ]
