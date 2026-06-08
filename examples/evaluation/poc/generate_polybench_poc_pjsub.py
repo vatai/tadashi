@@ -19,11 +19,6 @@ CONFIGS = [
         "env": ["export CC=fcc"],
     },
     {
-        "name": "polly-llvm19",
-        "translator": "Polly",
-        "env": ["source /home/apps/oss/llvm-v19.1.4/init.sh"],
-    },
-    {
         "name": "polly-llvm21",
         "translator": "Polly",
         "env": ["module load LLVM/llvmorg-21.1.0"],
@@ -103,7 +98,7 @@ def get_parser():
     parser.add_argument(
         "--elapse",
         type=str,
-        default="1:00:00",
+        default="5:00:00",
         help="PJSub wall-time limit for each generated job.",
     )
     parser.add_argument(

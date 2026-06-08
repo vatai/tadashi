@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     app.compile()
 
-    print(f"Baseline measure: {app.measure(repeat=args.repeat)}")
+    print(f"Baseline measure: {app.measure()}")
     tile_size = 20
     tlist = main(app, args.repeat, args.allow_omp, tile_size)
     measure(app, args.repeat, tlist, tile_size)
