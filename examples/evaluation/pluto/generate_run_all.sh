@@ -38,13 +38,14 @@ for file in "${BENCHMARKS[@]}"; do
 OMP_NUM_THREADS=48
 for CC in gcc fcc clang-19 clang-21; do
 
-        pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
         bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
         for rep in $(seq "$NUM_REPS"); do
-                echo "$(basename "${file%.pluto."${SIZE}_O${OFLAG}".x}"):::$rep:::$("$bin")"
+                echo "$(basename "$bin"):::$rep:::$("$bin")"
         done
+
+        pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
         for rep in $(seq "$NUM_REPS"); do
-                echo "$(basename "${file%.pluto."${SIZE}_O${OFLAG}".x}"):::$rep:::$("$pluto_bin")"
+                echo "$(basename "$pluto_bin"):::$rep:::$("$pluto_bin")"
         done
 done
 PJSUB_EOF
