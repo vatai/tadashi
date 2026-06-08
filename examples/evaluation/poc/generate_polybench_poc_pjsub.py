@@ -126,7 +126,9 @@ def build_submission_script(args, config, benchmark, path):
 
 
 def main():
-    args = get_parser().parse_args()
+    parser = get_parser()
+    parser.add_argument("--repeat", type=int, default=1)
+    args = parser.parse_args()
     bms = args.benchmarks if args.benchmarks else Polybench.get_benchmarks()
     benchmarks = [Path(str(b)).name for b in bms]
     run_all = []
