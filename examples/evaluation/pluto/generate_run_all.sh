@@ -35,9 +35,7 @@ for file in "${BENCHMARKS[@]}"; do
 #PJM -x PJM_LLIO_GFSCACHE=/vol0004
 #PJM -L elapse=5:00:00
 #PJM -L node=1
-
-echo "$OMP_NUM_THREADS"
-basename "$file"
+OMP_NUM_THREADS=48
 for CC in gcc fcc clang-19 clang-21; do
 
         pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
