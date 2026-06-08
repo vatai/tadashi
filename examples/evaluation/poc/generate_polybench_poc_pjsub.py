@@ -114,6 +114,7 @@ def build_submission_script(args, config, benchmark, path):
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
+        f"--repeat={args.repeat}",
         "--allow-omp" if args.allow_omp else "--no-allow-omp",
     ]
     return SUBMISSION_TEMPLATE.format(

@@ -99,6 +99,7 @@ def measure(app, repeat, full_tr_list, tile_size):
 
 if __name__ == "__main__":
     parser = Polybench.args_parser()
+    parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args()
 
     print("-----------------------------------------\n\n[STARTING NEW APP]")
