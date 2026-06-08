@@ -25,10 +25,10 @@ for file in "${BENCHMARKS[@]}"; do
 		-o "results/${name}.%j.out" \
 		-e "results/${name}.%j.err" \
 		-N "pluto_${name}" \
-		-x NUM_REPS \
-		-x file \
-		-x SIZE \
-		-x OFLAG \
+		-x NUM_REPS="$NUM_REPS" \
+		-x file="$file" \
+		-x SIZE="$SIZE" \
+		-x OFLAG="$OFLAG" \
 		<<'PJSUB_EOF'
 #!/bin/bash
 #PJM -g ra000012
