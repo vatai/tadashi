@@ -429,7 +429,7 @@ class Polybench(App):
         )
         parser.add_argument("--benchmark", type=str, default="stencils/jacobi-1d")
         parser.add_argument("--base", type=str, default="examples/polybench")
-        parser.add_argument("--dataset", type=str, default="LARGE")
+        parser.add_argument("--dataset", type=str, default="EXTRALARGE")
         parser.add_argument("--oflag", type=int, default=3)
         parser.add_argument(
             "--allow-omp", action=argparse.BooleanOptionalAction, default=True
