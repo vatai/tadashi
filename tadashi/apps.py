@@ -8,6 +8,7 @@ import atexit
 import copy
 import datetime
 import logging
+import math
 import os
 import re
 import shutil
@@ -242,16 +243,22 @@ class App(abc.ABC):
             results.append(self.extract_runtime(proc))
         return min(results)
 
-    def transform_measure(self, trs: list):
+    def transform_measure(self, trs: list, safe=True):
         # ..todo:: remove
         hostname = socket.gethostname()
         self.logger.debug(f"[{hostname}]: {trs=}")
-
-        self.reset_scops()
-        self.transform_list(trs)
-        tapp = self.generate_code()
-        tapp.compile()
-        return tapp.measure(), hostname
+        try:
+            self.reset_scops()
+            self.transform_list(trs)
+            tapp = self.generate_code()
+            tapp.compile()
+            wtime = tapp.measure()
+        except Exception as e:
+            if not safe:
+                raise
+            self.logger.critical(f"Exception:\n{e}\ntrs=\n{trs}\n", args, kwargs)
+            wtime = math.inf
+        return wtime, hostname
 
     def transform_measure_mpi(
         self,
