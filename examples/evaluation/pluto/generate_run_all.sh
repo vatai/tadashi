@@ -36,19 +36,20 @@ for file in "${BENCHMARKS[@]}"; do
 #PJM -L elapse=5:00:00
 #PJM -L node=1
 OMP_NUM_THREADS=48
+
 run_all() {
+	bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
 	for rep in $(seq "$NUM_REPS"); do
 		echo "$(basename "$bin"):::$rep:::$("$bin")"
 	done
 
+	pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
 	for rep in $(seq "$NUM_REPS"); do
 		echo "$(basename "$pluto_bin"):::$rep:::$("$pluto_bin")"
 	done
 }
 
 
-bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
-pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
 export CC=gcc
 run_all
 
