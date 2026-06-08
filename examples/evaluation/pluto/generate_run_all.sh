@@ -20,7 +20,7 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 mkdir restuls
 
 for file in "${BENCHMARKS[@]}"; do
-	pjsub -x NUM_REPS -x file -x SIZE -x OFLAG <<'EOF'
+	pjsub -x NUM_REPS -x file -x SIZE -x OFLAG <<'PJSUB_EOF'
 echo "$OMP_NUM_THREADS"
 basename "$file"
 for CC in gcc fcc clang-19 clang-21; do
@@ -34,7 +34,7 @@ for CC in gcc fcc clang-19 clang-21; do
                 echo "$(basename "${file%.pluto."${SIZE}_O${OFLAG}".x}"):::$rep:::$("$pluto_bin")"
         done
 done
-'EOF'
+PJSUB_EOF
 done
 
 echo "done"
