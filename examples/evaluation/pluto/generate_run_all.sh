@@ -36,18 +36,34 @@ for file in "${BENCHMARKS[@]}"; do
 #PJM -L elapse=5:00:00
 #PJM -L node=1
 OMP_NUM_THREADS=48
-for CC in clang-19 clang-21 gcc fcc; do
+run_all() {
+	for rep in $(seq "$NUM_REPS"); do
+		echo "$(basename "$bin"):::$rep:::$("$bin")"
+	done
 
-        bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
-        for rep in $(seq "$NUM_REPS"); do
-                echo "$(basename "$bin"):::$rep:::$("$bin")"
-        done
+	for rep in $(seq "$NUM_REPS"); do
+		echo "$(basename "$pluto_bin"):::$rep:::$("$pluto_bin")"
+	done
+}
 
-        pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
-        for rep in $(seq "$NUM_REPS"); do
-                echo "$(basename "$pluto_bin"):::$rep:::$("$pluto_bin")"
-        done
-done
+
+bin="${file%.c}.${SIZE}_O${OFLAG}.${CC}.x"
+pluto_bin="${file%.c}.pluto.${SIZE}_O${OFLAG}.${CC}.x"
+export CC=gcc
+run_all
+
+export CC=fcc
+run_all
+
+module load LLVM/llvmorg-21.1.0
+export CC=clang-21
+run_all
+module unload LLVM/llvmorg-21.1.0
+
+source /home/apps/oss/llvm-v19.1.4/init.sh
+export CC=clang-19
+run_all
+
 PJSUB_EOF
 done
 
