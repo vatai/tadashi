@@ -48,7 +48,7 @@ pjsub \
 #PJM -N {job_name}
 #PJM -L rscgrp={resource_group}
 #PJM -L elapse={elapse}
-#PJM -L node={nodes}
+#PJM -L node=1
 #PJM --mpi "max-proc-per-node=1"
 # #PJM --llio localtmp-size=40Gi
 #PJM -S
@@ -69,6 +69,7 @@ MPIRUN=(
 
 FLAGS=(
 {flags}
+--prefix="$RESULT_ROOT"
 )
 
 mkdir -p "$RESULT_ROOT"
@@ -85,39 +86,19 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 """
 
 
-def get_parser():
-    parser = argparse.ArgumentParser(
-        description="Generate Fugaku PJSub scripts for Polybench EvoTADASHI runs."
-    )
+def get_args():
+    parser = Polybench.args_parser()
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("jobs/polybench_evotadashi"),
+        default=Path("jobs/polybench_mcts"),
         help="Directory where generated PJSub scripts are written.",
     )
-    parser.add_argument(  # before
-        "--dataset",
-        type=str,
-        default="EXTRALARGE",
-        help="Polybench dataset size passed to the runner.",
-    )
-    parser.add_argument(  # cfg1
-        "--population-size",
-        type=int,
-        default=300,
-        help="EvoTADASHI population size.",
-    )
-    parser.add_argument(  # cfg2
-        "--max-gen",
-        type=int,
-        default=20,
-        help="Maximum number of EvoTADASHI generations.",
-    )
     parser.add_argument(  # cfg3
-        "--n-trials",
+        "--rollouts",
         type=int,
-        default=2,
-        help="Number of evaluation trials per individual.",
+        default=100,
+        help="Number of rolls.",
     )
     parser.add_argument(
         "--seed",
@@ -131,30 +112,12 @@ def get_parser():
         default="21:00:00",
         help="PJSub wall-time limit for each generated job.",
     )
-    parser.add_argument(  # cfg4
-        "--nodes",
-        type=int,
-        default=None,
-        help="Allocated PJSub nodes. Defaults to population size + 1.",
-    )
-    parser.add_argument(
-        "benchmarks",
-        nargs="*",
-        help="Optional Polybench benchmarks; filenames like cholesky are enough.",
-    )
-    return parser
-
-
-def nodes(args):
-    return args.nodes or args.population_size + 1
+    return parser.parse_args()
 
 
 def config_str(args):
     fields = [
-        f"ps{args.population_size}",
-        f"mg{args.max_gen}",
-        f"nt{args.n_trials}",
-        f"n{nodes(args)}",
+        f"ro{args.rollouts}",
     ]
     return "-".join(fields)
 
@@ -164,29 +127,24 @@ def build_submission_script(args, config, benchmark, path):
         f"--translator={config['translator']}",
         f"--benchmark={benchmark}",
         f"--dataset={args.dataset}",
-        f"--population-size={args.population_size}",
-        f"--max-gen={args.max_gen}",
-        f"--n-trials={args.n_trials}",
-        f"--init_seed={args.seed}",
-        "--use-mpi",
+        f"--oflag={args.oflag}",
+        "--allow-omp" if args.allow_omp else "--no-allow-omp",
+        f"--rollouts={args.rollouts}",
+        f"--seed={args.seed}",
     ]
     return SUBMISSION_TEMPLATE.format(
-        job_name=f"EvoT_{config['name']}_{benchmark}",
+        job_name=f"MCTS_{config['name']}_{benchmark}",
         resource_group="small",
         elapse=args.elapse,
-        nodes=nodes(args),
         env="\n".join(config["env"]),
         flags="\n".join(f"  {quote(f)}" for f in flags),
-        seed=args.seed,
     )
 
 
 def main():
-    args = get_parser().parse_args()
-    bms = args.benchmarks if args.benchmarks else Polybench.get_benchmarks()
-    benchmarks = [Path(str(b)).name for b in bms]
+    args = get_args()
+    benchmarks = [Path(str(b)).name for b in Polybench.get_benchmarks()]
     run_all = []
-
     for config in CONFIGS:
         for benchmark in benchmarks:
             path = (
