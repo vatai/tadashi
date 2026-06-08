@@ -4,7 +4,7 @@
 
 REPO_ROOT="$(realpath "$(git rev-parse --show-toplevel)")"
 POLYBENCH_ROOT="$REPO_ROOT/examples/polybench"
-NUM_REPS=10
+NUM_REPS=3
 SIZE=EXTRALARGE
 OFLAG=3
 # export OMP_NUM_THREADS=1
@@ -33,7 +33,7 @@ for file in "${BENCHMARKS[@]}"; do
 #!/bin/bash
 #PJM -g ra000012
 #PJM -x PJM_LLIO_GFSCACHE=/vol0004
-#PJM -L elapse=1:00:00
+#PJM -L elapse=5:00:00
 #PJM -L node=1
 
 echo "$OMP_NUM_THREADS"
