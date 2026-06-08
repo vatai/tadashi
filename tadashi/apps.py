@@ -256,7 +256,7 @@ class App(abc.ABC):
         except Exception as e:
             if not safe:
                 raise
-            self.logger.critical(f"Exception:\n{e}\ntrs=\n{trs}\n", args, kwargs)
+            self.logger.critical(f"Exception:\n{e}\ntrs=\n{trs}\n")
             wtime = math.inf
         return wtime, hostname
 
