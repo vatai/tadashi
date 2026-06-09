@@ -38,5 +38,11 @@ for file in "${BENCHMARKS[@]}"; do
 		-x ROOT="$REPO_ROOT/examples/evaluation/mcts/ro10k" \
 		-x BENCHMARK=$BM \
 		fsub.sh
+	pjsub -j -o poc-${BM}.%j \
+		-N poc-${BM} \
+		-x ENTRYPOINT=poc.py \
+		-x ROOT="$REPO_ROOT/examples/evaluation/poc/poc-runs" \
+		-x BENCHMARK=$BM \
+		fsub.sh
 
 done
