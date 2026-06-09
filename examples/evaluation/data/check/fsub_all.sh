@@ -26,11 +26,16 @@ GCC_ARGS=(
 
 for file in "${BENCHMARKS[@]}"; do
 	BM=$(basename ${file%.*})
-	echo $BM
 	pjsub -j -o evo-${BM}.%j \
 		-N evo-${BM} \
 		-x ENTRYPOINT=evo.py \
 		-x ROOT="$REPO_ROOT/../ML4TADASHI/scripts/after-safe-measure" \
+		-x BENCHMARK=$BM \
+		fsub.sh
+	pjsub -j -o mcts-${BM}.%j \
+		-N mcts-${BM} \
+		-x ENTRYPOINT=mcts.py \
+		-x ROOT="$REPO_ROOT/examples/evaluation/mcts/ro10k" \
 		-x BENCHMARK=$BM \
 		fsub.sh
 
