@@ -54,7 +54,8 @@ def main(root, compiler="pet"):
     for path in sorted(root.glob(f"**/*.out.1.0")):
         print(path)
         gens = parse_evo_out(path)
-        run_tr(*gens[-1])
+        if gens:
+            run_tr(*gens[-1])
 
     print("done")
 
