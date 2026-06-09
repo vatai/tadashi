@@ -28,7 +28,10 @@ for file in "${BENCHMARKS[@]}"; do
 	BM=$(basename ${file%.*})
 	echo $BM
 	pjsub -j -o evo-${BM}.%j \
-		-x ENTRYPOINT=evo.py -x ROOT="$REPO_ROOT/../ML4TADASHI/scripts/after-safe-measure" \
+		-N evo-${BM} \
+		-x ENTRYPOINT=evo.py \
+		-x ROOT="$REPO_ROOT/../ML4TADASHI/scripts/after-safe-measure" \
+		-x BENCHMARK=$BM \
 		fsub.sh
 
 done
