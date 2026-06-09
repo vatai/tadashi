@@ -35,7 +35,7 @@ def run_tr(benchmark, backend, trs, speed):
         compiler_options=[
             "-O3",
             "-fopenmp",
-            "-DSMALL_DATASET",
+            "-DEXTRALARGE_DATASET",
             "-DPOLYBENCH_DUMP_ARRAYS",
         ],
     )
@@ -50,8 +50,8 @@ def run_tr(benchmark, backend, trs, speed):
         print(">>> OK <<<", benchmark)
 
 
-def main(root, compiler="pet"):
-    for path in sorted(root.glob(f"**/*.out.1.0")):
+def main(root, benchmark):
+    for path in sorted(root.glob(f"**/{benchmark}*/*.out.1.0")):
         print(path)
         gens = parse_evo_out(path)
         if gens:
@@ -62,6 +62,7 @@ def main(root, compiler="pet"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark", type=str, default=Path("durbin"))
     parser.add_argument("--root", type=Path, default=Path("after-safe-measure"))
     args = parser.parse_args()
-    main(args.root)
+    main(args.root, args.benchmark)
