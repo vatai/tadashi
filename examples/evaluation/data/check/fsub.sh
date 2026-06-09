@@ -6,6 +6,5 @@
 #PJM -L elapse=30:00
 #PJM -L node=1
 # #PJM --llio localtmp-size=40Gi
-#PJM -j -S
 module load LLVM/llvmorg-21.1.0
 python -u $ENTRYPOINT --benchmark="${BENCHMARK}" --root="${ROOT}"
