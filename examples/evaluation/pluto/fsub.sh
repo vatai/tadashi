@@ -36,7 +36,7 @@ $CC -o "$BINARY" "${file%.c}.pluto.c" "${GCC_ARGS[@]}"
 echo "--- RUNS ---"
 echo $BINARY
 for r in $(seq 3); do
-	"./$BINARY"
+	"$BINARY"
 done
 
 cd - >/dev/null || exit
