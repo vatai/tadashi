@@ -27,8 +27,13 @@ plt.rcParams.update(
 
 FONTSIZE = 12
 # source https://colorkit.co/palette/c7522a-e5c185-fbf2c4-74a892-008585/
-COLORS = ["#c7522a", "#e5c185", "#74a892"]
-METHOD_LABELS = {"poc": "POC", "evo": "Evolution", "mcts": "MCTS"}
+COLORS = ["#c7522a", "#e5c185", "#74a892", "#008585"]
+METHOD_LABELS = {
+    "poc": "POC",
+    "evo": "Evolution",
+    "mcts": "MCTS",
+    "pluto": "Pluto",
+}
 
 
 def check_ok(path: Path, benchmark: str, compiler: str):
@@ -142,13 +147,43 @@ def visit_st_mt(path: Path, fun):
     return pd.concat({"st": st_df, "mt": mt_df}, names=["nt"])
 
 
-def get_pluto_data(path):
-    # LAST
-    print(list(path.glob("*")))
+def get_pluto_data(path: Path):
+    result = {}
+    compilers = {
+        "clang-21": "polly-llvm21",
+        "gcc": "pet",
+        "fcc": "pet-fcc",
+    }
+    pattern = re.compile(r"pluto-(.+)-(clang-21|gcc|fcc)\.\d+")
+    number = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
+    for nt in ("st", "mt"):
+        for p in (path / f"{nt}-{path.name}").iterdir():
+            match = pattern.fullmatch(p.name)
+            if not match:
+                continue
+            benchmark, compiler = match.groups()
+            lines = p.read_text().splitlines()
+            try:
+                runs = lines[lines.index("--- RUNS ---") + 2 :]
+            except ValueError:
+                continue
+            timings = [
+                float(line) for line in runs if number.fullmatch(line.strip())
+            ][:3]
+            if timings:
+                result[(nt, compilers[compiler], benchmark)] = {
+                    "check": True,
+                    "ttime": min(timings),
+                }
+    return pd.DataFrame.from_dict(
+        result,
+        orient="index",
+    ).rename_axis(["nt", "compiler", "benchmark"])
 
 
 def plot_speedups(speedups: pd.DataFrame, filename: Path):
     methods = list(METHOD_LABELS)
+    speedups = speedups.loc[speedups.drop(columns="pluto").notna().any(axis=1)]
     benchmarks = sorted(speedups.index.get_level_values("benchmark").unique())
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 5))
 
@@ -202,12 +237,17 @@ def plot_speedups(speedups: pd.DataFrame, filename: Path):
 
 
 def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
-    # pluto_data = get_pluto_data(pluto)
+    pluto_data = get_pluto_data(pluto)
     poc_data = visit_st_mt(poc, poc1)
     evo_data = visit_st_mt(evo, evo1)
     mcts_data = visit_st_mt(mcts, mcts1)
     data = pd.concat(
-        {"poc": poc_data, "evo": evo_data, "mcts": mcts_data},
+        {
+            "poc": poc_data,
+            "evo": evo_data,
+            "mcts": mcts_data,
+            "pluto": pluto_data,
+        },
         axis="columns",
     )
     baseline = data[[("poc", "otime"), ("mcts", "otime")]].min(axis="columns")
@@ -219,12 +259,13 @@ def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
                     "checkb": data[(method, "check")],
                 }
             )
-            for method in ("poc", "evo", "mcts")
+            for method in METHOD_LABELS
         },
         axis="columns",
     )
+    checks = speedups.xs("checkb", axis="columns", level=1)
     valid_speedups = speedups.xs("speedup", axis="columns", level=1).where(
-        speedups.xs("checkb", axis="columns", level=1).fillna(False)
+        checks.eq(True)
     )
     merged = valid_speedups.groupby(level=["nt", "benchmark"]).max()
     polly_llvm21 = valid_speedups.xs("polly-llvm21", level="compiler")
