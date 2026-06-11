@@ -17,8 +17,8 @@ for file in "${BENCHMARKS[@]}"; do
 	for NT in st mt; do
 		for CC in gcc fcc clang-21; do
 			BM=$(basename ${file%.*})
-			pjsub -j -o "pluto/${NT}-pluto-${BM}.%j" \
-				-N "${NT}-pluto-${BM}" \
+			pjsub -j -o "pluto/${NT}-pluto-${BM}-${CC}.%j" \
+				-N "${NT}-pluto-${BM}-${CC}" \
 				-x file=$file \
 				-x NT=$NT \
 				-x CC=$CC \
