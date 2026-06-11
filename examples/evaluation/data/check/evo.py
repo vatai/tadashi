@@ -8,7 +8,7 @@ from tadashi import translators
 from tadashi.apps import Polybench
 
 
-def parse_evo_out(path):
+def parse_out(path):
     benchmark = path.parent.name.split("-seed")[0]
     backend = str(path.parent.parent.name.split("-")[0]).capitalize()
     updating_pattern = re.compile(
@@ -53,7 +53,7 @@ def run_tr(benchmark, backend, trs, speed):
 def main(root, benchmark):
     for path in sorted(root.glob(f"**/{benchmark}*/*.out.1.0")):
         print(path)
-        gens = parse_evo_out(path)
+        gens = parse_out(path)
         if gens:
             run_tr(*gens[-1])
 
