@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-
 plt.rcParams["text.latex.preamble"] = (
     r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    # r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
 )
 plt.rcParams.update(
     {
@@ -22,9 +22,11 @@ plt.rcParams.update(
         "font.size": 11,
         "font.family": "libertine",
     }
+    # "text.latex.unicode": True,
 )
 
 FONTSIZE = 12
+# source https://colorkit.co/palette/c7522a-e5c185-fbf2c4-74a892-008585/
 COLORS = ["#c7522a", "#e5c185", "#74a892"]
 METHOD_LABELS = {"poc": "POC", "evo": "Evolution", "mcts": "MCTS"}
 
