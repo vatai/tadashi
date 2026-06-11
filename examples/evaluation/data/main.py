@@ -48,6 +48,30 @@ def poc1(path: Path):
     return result
 
 
+def evo1(path: Path):
+    result = defaultdict(dict)
+    number = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+    opattern = re.compile(rf"Measure without transformations:\s*({number})")
+    tpattern = re.compile(rf"\s*Fitness on generation\s+(\d+):\s*({number})")
+    for p in path.rglob("*.out.1.0"):
+        benchmark = p.parent.name.rsplit("-seed", 1)[0]
+        compiler = p.parents[1].name
+        entry = {"check": check_ok(path, benchmark, compiler)}
+        timings = []
+        for line in p.read_text().splitlines():
+            m = opattern.fullmatch(line)
+            if m:
+                entry["otime"] = abs(float(m.group(1)))
+                continue
+            m = tpattern.match(line)
+            if m:
+                timings.append((abs(float(m.group(2))), int(m.group(1))))
+        if timings:
+            entry["ttime"], entry["generation"] = min(timings)
+        result[compiler][benchmark] = entry
+    return result
+
+
 def nested_data_frame(data):
     return pd.concat(
         {
@@ -67,7 +91,7 @@ def visit_st_mt(path: Path, fun):
         print(s)
     st_df = nested_data_frame(st_data)
     mt_df = nested_data_frame(mt_data)
-    return st_df, mt_df
+    return pd.concat({"st": st_df, "mt": mt_df}, names=["nt"])
 
 
 def get_pluto_data(path):
@@ -79,8 +103,8 @@ def get_poc_data(path):
     return visit_st_mt(path, poc1)
 
 
-# def get_evo_data(path):
-#     visit_st_mt(path, fun)
+def get_evo_data(path):
+    return visit_st_mt(path, evo1)
 
 
 # def get_mcts_data(path):
@@ -89,14 +113,11 @@ def get_poc_data(path):
 
 def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
     # pluto_data = get_pluto_data(pluto)
-    st_poc, mt_poc = get_poc_data(poc)
-    print(st_poc)
-    print(mt_poc["check"].keys())
-    print(mt_poc.keys())
-    # print(poc_data["gemm"])
-    # print(len(poc_data.columns))
-    # evo_data = get_evo_data(evo)
+    poc_data = get_poc_data(poc)
+    evo_data = get_evo_data(evo)
     # mcts_data = get_mcts_data(mcts)
+    data = pd.concat({"poc": poc_data, "evo": evo_data}, axis="columns")
+    print(data.index.droplevel("benchmark").unique())
 
 
 if __name__ == "__main__":
