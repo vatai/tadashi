@@ -94,8 +94,6 @@ def mcts1(path: Path):
                 entry["otime"] = seconds
             timings.append(seconds)
         if timings:
-            if len(timings) > 1:
-                print(min(timings), max(timings))
             entry["ttime"] = min(timings)
         result[compiler][benchmark] = entry
     return result
