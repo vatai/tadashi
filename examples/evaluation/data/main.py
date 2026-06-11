@@ -114,8 +114,6 @@ def visit_st_mt(path: Path, fun):
     st_data = fun(st)
     mt = path / f"mt-{path.name}"
     mt_data = fun(mt)
-    for s in st_data:
-        print(s)
     st_df = nested_data_frame(st_data)
     mt_df = nested_data_frame(mt_data)
     return pd.concat({"st": st_df, "mt": mt_df}, names=["nt"])
@@ -135,7 +133,9 @@ def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
         {"poc": poc_data, "evo": evo_data, "mcts": mcts_data},
         axis="columns",
     )
-    print(data.index.droplevel("benchmark").unique())
+    # print(data.index.droplevel("benchmark").unique())
+    with pd.option_context("display.max_rows", None):
+        print(data.xs("otime", axis="columns", level=1))
 
 
 if __name__ == "__main__":
