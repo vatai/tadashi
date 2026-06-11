@@ -2,6 +2,8 @@ data:
 	scp fugaku:tadashi-results.tgz fugaku:ml4t-results.tgz .
 	tar xvf tadashi-results.tgz
 	tar xvf ml4t-results.tgz
+	mkdir evo
+	mv st-evo mt-evo evo
 
 analyze:
 	python3 collect_results.py
