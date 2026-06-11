@@ -232,9 +232,9 @@ def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
     pet_fcc = valid_speedups.xs("pet-fcc", level="compiler")
 
     plot_speedups(merged, Path("comparison.pdf"))
-    plot_speedups(polly_llvm21, Path("polly-llvm21-comparison.pdf"))
-    plot_speedups(pet, Path("pet-comparison.pdf"))
-    plot_speedups(pet_fcc, Path("pet-fcc-comparison.pdf"))
+    plot_speedups(polly_llvm21, Path("comparison-polly.pdf"))
+    plot_speedups(pet, Path("comparison-pet-gcc.pdf"))
+    plot_speedups(pet_fcc, Path("comparison-pet-fcc.pdf"))
 
 
 if __name__ == "__main__":
