@@ -63,6 +63,6 @@ def main(root, benchmark):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=str, default=Path("durbin"))
-    parser.add_argument("--root", type=Path, default=Path("after-safe-measure"))
+    parser.add_argument("--root", type=Path, default=Path("evo"))
     args = parser.parse_args()
     main(args.root, args.benchmark)
