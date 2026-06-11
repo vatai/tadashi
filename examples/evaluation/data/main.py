@@ -72,6 +72,35 @@ def evo1(path: Path):
     return result
 
 
+def mcts1(path: Path):
+    result = defaultdict(dict)
+    number = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+    pattern = re.compile(rf"(initial|optimized) time:\s*({number})")
+    check_path = path.with_name(path.name.replace("mcts", "mtcs"))
+    for p in path.rglob("*.stdout"):
+        benchmark = p.parent.name.rsplit("-seed", 1)[0]
+        compiler = p.parents[1].name
+        entry = {"check": check_ok(check_path, benchmark, compiler)}
+        timings = []
+        for line in p.read_text().splitlines():
+            m = pattern.fullmatch(line)
+            if not m:
+                continue
+            kind = m.group(1)
+            seconds = float(m.group(2))
+            if seconds <= 0:
+                continue
+            if kind == "initial" and "otime" not in entry:
+                entry["otime"] = seconds
+            timings.append(seconds)
+        if timings:
+            if len(timings) > 1:
+                print(min(timings), max(timings))
+            entry["ttime"] = min(timings)
+        result[compiler][benchmark] = entry
+    return result
+
+
 def nested_data_frame(data):
     return pd.concat(
         {
@@ -99,24 +128,15 @@ def get_pluto_data(path):
     print(list(path.glob("*")))
 
 
-def get_poc_data(path):
-    return visit_st_mt(path, poc1)
-
-
-def get_evo_data(path):
-    return visit_st_mt(path, evo1)
-
-
-# def get_mcts_data(path):
-#     visit_st_mt(path, fun)
-
-
 def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
     # pluto_data = get_pluto_data(pluto)
-    poc_data = get_poc_data(poc)
-    evo_data = get_evo_data(evo)
-    # mcts_data = get_mcts_data(mcts)
-    data = pd.concat({"poc": poc_data, "evo": evo_data}, axis="columns")
+    poc_data = visit_st_mt(poc, poc1)
+    evo_data = visit_st_mt(evo, evo1)
+    mcts_data = visit_st_mt(mcts, mcts1)
+    data = pd.concat(
+        {"poc": poc_data, "evo": evo_data, "mcts": mcts_data},
+        axis="columns",
+    )
     print(data.index.droplevel("benchmark").unique())
 
 
