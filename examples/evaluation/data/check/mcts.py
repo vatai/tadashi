@@ -46,7 +46,7 @@ def run_tr(benchmark, backend, trs, speed):
     if original != tapp.dump_arrays():
         print("<<< ng >>>", benchmark, trs)
     else:
-        print(">>> OK <<<", benchmark)
+        print(">>> OK <<<", benchmark, trs)
 
 
 def main(root, benchmark):
