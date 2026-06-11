@@ -12,12 +12,12 @@ readarray -d '' BENCHMARKS < <(find "$POLYBENCH_ROOT" -name '*.c' |
 	grep -v pluto.c |
 	tr "\n" "\0")
 
-mkdir pluto
+mkdir -p st-pluto mt-pluto
 for file in "${BENCHMARKS[@]}"; do
 	for NT in st mt; do
 		for CC in gcc fcc clang-21; do
 			BM=$(basename ${file%.*})
-			pjsub -j -o "pluto/${NT}-pluto-${BM}-${CC}.%j" \
+			pjsub -j -o "${NT}-pluto/pluto-${BM}-${CC}.%j" \
 				-N "${NT}-pluto-${BM}-${CC}" \
 				-x file=$file \
 				-x NT=$NT \
