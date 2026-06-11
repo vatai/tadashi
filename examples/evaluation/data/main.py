@@ -133,9 +133,21 @@ def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
         {"poc": poc_data, "evo": evo_data, "mcts": mcts_data},
         axis="columns",
     )
-    # print(data.index.droplevel("benchmark").unique())
+    baseline = data[[("poc", "otime"), ("mcts", "otime")]].min(axis="columns")
+    speedups = pd.concat(
+        {
+            method: pd.DataFrame(
+                {
+                    "speedup": baseline / data[(method, "ttime")],
+                    "checkb": data[(method, "check")],
+                }
+            )
+            for method in ("poc", "evo", "mcts")
+        },
+        axis="columns",
+    )
     with pd.option_context("display.max_rows", None):
-        print(data.xs("otime", axis="columns", level=1))
+        print(speedups)
 
 
 if __name__ == "__main__":
