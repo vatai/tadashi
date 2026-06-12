@@ -34,6 +34,11 @@ METHOD_LABELS = {
     "mcts": "MCTS",
     "pluto": "Pluto",
 }
+COMPILER_LABELS = {
+    "polly-llvm21": "Polly/LLVM 21",
+    "pet": "PET/GCC",
+    "pet-fcc": "PET/FCC",
+}
 
 
 def check_ok(path: Path, benchmark: str, compiler: str):
@@ -236,6 +241,80 @@ def plot_speedups(speedups: pd.DataFrame, filename: Path):
     plt.close(fig)
 
 
+def plot_speedups6(speedups: pd.DataFrame, filename: Path):
+    methods = list(METHOD_LABELS)
+    speedups = speedups.loc[speedups.drop(columns="pluto").notna().any(axis=1)]
+    benchmarks = sorted(speedups.index.get_level_values("benchmark").unique())
+    compilers = list(COMPILER_LABELS)
+    thread_modes = ("st", "mt")
+    yticks = [1, 5, 20, 80, 320]
+    fig, axes = plt.subplots(
+        nrows=len(compilers),
+        ncols=len(thread_modes),
+        figsize=(16, 10),
+        sharex=True,
+        sharey=True,
+    )
+
+    for row, compiler in enumerate(compilers):
+        for col, nt in enumerate(thread_modes):
+            ax = axes[row, col]
+            plot_data = (
+                speedups.xs((nt, compiler), level=("nt", "compiler"))
+                .reindex(benchmarks)
+                .clip(lower=1)
+            )
+
+            ax.axhline(y=1.0, color="#ff6961", linestyle="--", linewidth=0.6)
+            for y in yticks:
+                ax.axhline(y=y, color="lightgray", linestyle="-", linewidth=0.3)
+
+            x = np.arange(len(plot_data))
+            width = 0.6 / len(methods)
+            offset = width
+            for i, method in enumerate(methods):
+                ax.bar(
+                    x + i * width - offset,
+                    plot_data[method],
+                    width,
+                    label=METHOD_LABELS[method],
+                    color=COLORS[i],
+                    edgecolor="black",
+                    linewidth=0.0,
+                    zorder=2,
+                )
+
+            if row == 0:
+                ax.set_title(
+                    "Single-thread" if nt == "st" else "Multi-thread",
+                    fontsize=FONTSIZE,
+                )
+            if col == 0:
+                ax.set_ylabel(
+                    f"{COMPILER_LABELS[compiler]}\nSpeedup",
+                    fontsize=FONTSIZE,
+                )
+            ax.set_yscale("log")
+            ax.set_yticks(yticks)
+            ax.get_yaxis().set_major_formatter(plt.ScalarFormatter())
+            ax.set_ylim(ymin=0.8, ymax=320)
+            ax.set_xticks(x)
+            if row == len(compilers) - 1:
+                ax.set_xticklabels(
+                    plot_data.index,
+                    rotation=45,
+                    ha="right",
+                    fontsize=FONTSIZE - 2,
+                )
+            else:
+                ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+
+    axes[0, 0].legend(loc="upper left")
+    fig.tight_layout()
+    fig.savefig(filename)
+    plt.close(fig)
+
+
 def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
     pluto_data = get_pluto_data(pluto)
     poc_data = visit_st_mt(poc, poc1)
@@ -276,6 +355,7 @@ def main(pluto: Path, poc: Path, evo: Path, mcts: Path):
     plot_speedups(polly_llvm21, Path("comparison-polly.pdf"))
     plot_speedups(pet, Path("comparison-pet-gcc.pdf"))
     plot_speedups(pet_fcc, Path("comparison-pet-fcc.pdf"))
+    plot_speedups6(valid_speedups, Path("comparison6.pdf"))
 
 
 if __name__ == "__main__":
