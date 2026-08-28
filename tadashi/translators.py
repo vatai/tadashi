@@ -455,6 +455,8 @@ class Polly(Translator):
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
+        for scop_idx, jscop_path in enumerate(self.json_paths):
+            self._update_jscop(self.tmpdir / jscop_path, scop_idx)
 
         opts = [
             input_path,
