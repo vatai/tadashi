@@ -15,7 +15,7 @@ Data analysed:
 
 | benchmarks | cause |
 | --- | --- |
-| `adi` × {gcc,fcc,clang-21} × {st,mt} | `PLUTO` never reaches the job |
+| `adi` × {gcc,fcc,clang-21} × {st,mt} | `PLUTO` never reaches the job — *and* Pluto cannot convert `adi.c` |
 | `heat-3d-fcc` st+mt | fcc compile killed at the 30 min elapse limit |
 | `cholesky`, `lu`, `ludcmp` × {gcc,clang-21} × {st,mt} | elapse limit, 0 of 3 runs completed |
 | `seidel-2d` st (all 3), `floyd-warshall` st (fcc, clang-21) | elapse limit, 1–2 of 3 runs |
@@ -41,9 +41,31 @@ artefacts, never tracked (`.gitignore:26`), so a fresh clone would fail on all 3
 The `${PLUTO:-polycc}` fallback cannot work either: there is no `polycc` on `PATH` on Fugaku, and none
 anywhere on the machine outside this repo. The built one is `third_party/opt/bin/polycc` (aarch64, so it only
 runs on a compute node). Its wrapper hardcodes build-tree paths, so `third_party/build/pluto/` must stay in
-place, and it needs `third_party/opt/lib` on `LD_LIBRARY_PATH` — which `fsub.sh` does not set. The paths
-referenced in `fsub_compile.sh:14` and `data/check/fsub_all.sh:4`
+place, and it needs `third_party/opt/lib` on `LD_LIBRARY_PATH` and an LLVM `init.sh` sourced for `libomp.so` —
+neither of which `fsub.sh` sets. The paths referenced in `fsub_compile.sh:14` and `data/check/fsub_all.sh:4`
 (`$REPO_ROOT/deps/build/pluto-0.13.0/polycc`) do not exist at all.
+
+**Forwarding `PLUTO` will still not fix `adi`: Pluto cannot convert `adi.c`.** Verified on a compute node
+(job `51054036`, log `verify/pluto-adi.51054036.out`, script `verify/pluto-adi/job.sh`):
+
+```
+$ third_party/opt/bin/polycc adi.c
+[Clan] Error: syntax error at line 81, column 39.
+Error extracting polyhedra from source file: 'adi.c'
+```
+
+Line 81 is the first statement inside `#pragma scop`, and column 39 is the end of the cast expression:
+
+```c
+  DX = SCALAR_VAL(1.0)/(DATA_TYPE)_PB_N;     /* adi.c:81, plus :82 and :83 */
+```
+
+Clan — Pluto's polyhedral extractor — does not parse the `(DATA_TYPE)` cast, so no SCoP is extracted and no
+`adi.pluto.c` is ever produced. `adi` is the *only* benchmark of the 30 with a cast inside its scop region
+(`grep`-checked over the whole polybench tree), which is consistent with the other 29 having converted fine.
+Pet and Polly handle the same file, so this is a Pluto-frontend limitation, not a broken benchmark. It has to
+be handled at the source level (rewrite the three casts, or pre-process the file for Pluto) or `adi` has to be
+dropped from the Pluto comparison — no change to the job scripts can recover it.
 
 **`elapse=30:00` is too short.** `fsub.sh:6` allows 30 minutes and `fsub.sh:38-40` runs the binary three times
 with no per-run budget — there is no `timeout` or `ulimit -t` anywhere in the evaluation scripts, so the
@@ -195,6 +217,9 @@ Not executed as part of this analysis.
 - Replay every logged generation, not just `gens[-1]`.
 - In `pluto/fsub_all.sh`, forward `-x PLUTO=<abs path to third_party/opt/bin/polycc>` and `LD_LIBRARY_PATH`;
   raise the `fsub.sh` elapse limit to `6:00:00`.
+- Decide what to do about `adi`: rewrite the three `(DATA_TYPE)` casts (`adi.c:81-83`) so Clan can parse them,
+  or exclude `adi` from the Pluto comparison and say so in the paper. Forwarding `PLUTO` alone leaves 6 empty
+  jobs.
 
 ## Reproduction
 
@@ -212,6 +237,11 @@ done
 head -3 st-pluto/pluto-adi-gcc.49206335       # "adi.c: Permission denied"
 tail -3 st-pluto/pluto-heat-3d-fcc.49206324   # "CPU time limit exceeded" / SIGTERM
 
+# adi is the only benchmark with a cast inside its scop (what Clan chokes on)
+for f in $(find ../../polybench -name '*.c' | grep -vE 'utilities|TMPFILE|INFIX|orig\.c|pluto\.c'); do
+	awk '/#pragma scop/{s=1} s&&/\((DATA_TYPE|double|float|int)\)/{print FILENAME": "FNR": "$0} /#pragma endscop/{s=0}' "$f"
+done
+
 cd ../data/check
 # verdict counts per method and per variant
 for d in poc mcts evo; do
@@ -220,6 +250,14 @@ for d in poc mcts evo; do
 	grep -ahB1 '<<< ng' "$d"/* | grep -oE '(pet-fcc|pet|polly-llvm21)/' | sort | uniq -c
 done
 grep -h "scale', 0" evo/*heat-3d*             # the scale 0 winners, stamped OK
+```
+
+The Pluto/`adi` failure needs a compute node (the `pluto` binary is aarch64), sources `llvm-v15.0.3/init.sh`
+for `libomp.so` and puts `third_party/opt/lib` on `LD_LIBRARY_PATH`; `verify/pluto-adi/job.sh` does all three
+and copies `adi.c`/`adi.h` into a scratch dir so the polybench tree is untouched:
+
+```sh
+pjsub -j -o "$PWD/verify/pluto-adi.%j.out" verify/pluto-adi/job.sh   # from the repo root
 ```
 
 To settle the open question above, re-run one replay on a compute node and inspect both dumps:

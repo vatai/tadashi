@@ -4,13 +4,15 @@ Create a tool that will help LLMs generate code which is correct against a refer
 
 # Specification
 
-If pjsub is on the PATH, you are on the Fugaku supercomputer. You need to submit jobs to the compute nodes. Keep fugaku specific code in launch scripts. Python code should not have any fugaku related code in it. On Fugaku, basically everything has to be executed on compute nodes.
+If pjsub is on the PATH, you are on the Fugaku supercomputer. You need to submit jobs to the compute nodes. Keep fugaku specific code in launch scripts. Python code should not have any fugaku related code in it. On Fugaku, basically everything has to be executed on compute nodes. You are running on compute node, which does not share /tmp with compute nodes.
 
 The paper corresponding to the project is in the paper subfolder. Don't modify the paper unless explicitly asked.
 
 Do not add new source files unless explicitly instructed to. Do not add new functions or make medium or major code changes, only fix things. Don't add checks except where you know for sure that something failed. Always find/show proof of some error happening before implementing unneeded checks to avoid them.
 
 Stop before each git commit. Suggest a commit message andand wait for confirmation to proceed.
+
+Pluto fails converting adi.c.
 
 # Plan/Steps
 
@@ -20,6 +22,9 @@ Full diagnosis: `examples/evaluation/FAILURE-ANALYSIS.md`.
       - Pluto sweep, 25/180 jobs: `PLUTO` not forwarded by `pluto/fsub_all.sh` (killed `adi`), and
         `elapse=30:00` in `pluto/fsub.sh` too short for cholesky/lu/ludcmp/seidel-2d/floyd-warshall and for
         the `heat-3d` fcc compile.
+      - `adi` has a second, independent cause (job 51054036): Clan cannot parse the `(DATA_TYPE)` casts at
+        `adi.c:81-83`, so `polycc` extracts no SCoP and `adi.pluto.c` can never be generated. `adi` is the
+        only one of the 30 benchmarks with a cast inside its scop. Fixing the job scripts will not help it.
       - Correctness sweep: 91 `ng` (not just the 7 tracebacks). Partly real, partly checker bugs —
         `pet-fcc` silently re-tests `pet`, `Polly.legal()` never inspects the transformed schedule, only
         `gens[-1]` is replayed, and the `.dump` binaries race between the st and mt jobs.
