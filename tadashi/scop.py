@@ -63,7 +63,7 @@ class Node:
     parent_idx = cython.declare(int, visibility="public")
     index = cython.declare(int, visibility="public")
     label = cython.declare(str, visibility="public")
-    location = cython.declare(list[int], visibility="public")
+    location = cython.declare(list, visibility="public")
     loop_signature = cython.declare(list, visibility="public")
     expr = cython.declare(str, visibility="public")
     children_idx = cython.declare(list[str], visibility="public")

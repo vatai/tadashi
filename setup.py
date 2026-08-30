@@ -36,4 +36,4 @@ ext_modules = [
 ]
 
 
-setup(ext_modules=cythonize(ext_modules, nthreads=len(ext_modules)))
+setup(ext_modules=cythonize(ext_modules))
