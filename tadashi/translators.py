@@ -301,19 +301,66 @@ class Pet(Translator):
 class Polly(Translator):
     compiler: str
     tmpdir: Path
+    new_pm: bool
+    polly_load: list[str]
     json_paths = cython.declare(list[Path], visibility="public")
+
+    @staticmethod
+    def _detect_opt() -> tuple:
+        """Find out how the installed `opt` wants Polly to be invoked.
+
+        LLVM 21 dropped the legacy pass manager from `opt` together with
+        the individual Polly pass flags (`-polly-canonicalize`,
+        `-polly-codegen`, ...).  Since then Polly is a single parametrised
+        pass taking an ordered list of phases:
+        `-passes=polly-custom<prepare;detect;...>`.
+
+        Returns `(new_pass_manager, load_flags)`.  Polly may already be
+        linked into `opt`, in which case nothing has to be loaded.  The
+        probes are unambiguous: `polly-custom` only exists from LLVM 21
+        on, `-polly-canonicalize` only up to LLVM 20, so no `opt` accepts
+        both.  They are ordered newest first only to spend fewer probes
+        on a current toolchain.
+
+        """
+        new_probe = ["-passes=polly-custom<detect>"]
+        legacy_probe = ["-polly-canonicalize"]
+        candidates = [
+            (True, ["-load-pass-plugin=LLVMPolly.so"], new_probe),
+            (True, [], new_probe),
+            (False, ["-load=LLVMPolly.so"], legacy_probe),
+            (False, [], legacy_probe),
+        ]
+        for new_pass_manager, load, probe in candidates:
+            # An empty file parses as an empty module, so this only exercises
+            # `opt`s command line handling.
+            cmd = ["opt", *load, *probe, "/dev/null", "-o=/dev/null"]
+            if subprocess.run(cmd, capture_output=True).returncode == 0:
+                return new_pass_manager, load
+        raise ValueError(
+            "Could not find a working Polly in `opt`. Is LLVMPolly.so "
+            "installed and on the library search path?"
+        )
 
     def __init__(self, compiler: str = "clang"):
         super().__init__()
         self.compiler = str(compiler)
+        self.new_pm, self.polly_load = self._detect_opt()
 
     def __getstate__(self):
         state = super().__getstate__()
         state["compiler"] = self.compiler
+        # We only get pickled to be distributed over a cluster, which has the
+        # same `opt` everywhere, so carry the detection result along instead of
+        # probing again on the other side.
+        state["new_pm"] = self.new_pm
+        state["polly_load"] = self.polly_load
         return state
 
     def __setstate__(self, state):
         self.compiler = state["compiler"]
+        self.new_pm = state["new_pm"]
+        self.polly_load = state["polly_load"]
         super().__setstate__(state)
 
     def __copy__(self):
@@ -339,22 +386,45 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
-    def _polly(self) -> list[str]:
-        opt_cmd = ["opt"]
-        flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
-        proc = subprocess.run(opt_cmd + flags, stderr=subprocess.DEVNULL)
-        opt_cmd += ["-load=LLVMPolly.so"] if proc.returncode == 0 else []
-        return opt_cmd
+    def _polly_cmd(
+        self,
+        input_path: str,
+        output_path: str,
+        passes: list[str],
+        phases: list[str],
+        flags: list[str] = [],
+    ) -> list[str]:
+        """Assemble an `opt` command line running Polly on `input_path`.
 
-    def _polly_options(self, options: list[str]) -> list[str]:
-        return [
+        Args:
+
+            passes: pass flags for the legacy pass manager, which runs
+                them in the order they appear on the command line.
+
+            phases: the phases of the new pass manager's `polly` pass
+                doing the same thing. They must be listed in the order
+                of `polly::PassPhase`.
+
+            flags: options (as opposed to passes) understood by both.
+
+        """
+        cmd = [
+            "opt",
+            *self.polly_load,
             f"-polly-import-jscop-dir={self.tmpdir}",
             "-aa-pipeline=basic-aa",
             "-polly-use-llvm-names",  # removed 1/3
-            *options,
-            "-polly-process-unprofitable",  # removed 2/3
-            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
+        if self.new_pm:
+            cmd += [f"-passes=polly-custom<{';'.join(phases)}>"]
+            cmd += flags + [input_path, f"-o={output_path}"]
+        else:
+            cmd += [input_path, *passes, *flags, f"-o={output_path}"]
+        cmd += ["-polly-process-unprofitable"]  # removed 2/3
+        if not self.new_pm:
+            # moved between _import_jscop() and _polly_options() 3/3
+            cmd += ["-polly-codegen"]
+        return cmd
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
         pre_polly_bc = self.tmpdir / self.source.with_suffix(".pre_polly.bc").name
@@ -366,7 +436,20 @@ class Polly(Translator):
         compile_cmd = [self.compiler, *options, *compiler_opts, "-c", "-emit-llvm"]
         compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
-        opt_cmd = self._polly() + ["-polly-canonicalize"]
+        if self.new_pm:
+            # `-polly-canonicalize` did two things which are now split: the
+            # LLVM canonicalisation below (a transcription of Polly's
+            # buildCanonicalicationPassesForNPM()) and Polly's own
+            # CodePreparation, which became the `prepare` phase of the
+            # `polly` pass.
+            opt_cmd = [
+                "opt",
+                "-passes=function(mem2reg,early-cse<memssa>,instcombine,"
+                "simplifycfg,tailcallelim,simplifycfg,reassociate,"
+                "loop(loop-rotate),instcombine,loop(indvars))",
+            ]
+        else:
+            opt_cmd = ["opt", *self.polly_load, "-polly-canonicalize"]
         opt_cmd += [str(compile_O0_bc), f"-o={str(pre_polly_bc)}"]
         self._run(opt_cmd, "running pre polly opt passes")
         return pre_polly_bc
@@ -374,14 +457,35 @@ class Polly(Translator):
     def _export_jscops(self, options: list[str]) -> str:
         input_path = str(self._get_pre_polly_bc(options))
 
-        opts = [
+        cmd = self._polly_cmd(
             input_path,
-            "-polly-export-jscop",
-            "-o=/dev/null",
-        ]
-        cmd = self._polly() + self._polly_options(opts)
+            "/dev/null",
+            passes=["-polly-export-jscop"],
+            phases=["prepare", "detect", "scops", "export-jscop"],
+        )
         proc = self._run(cmd, "exporting jscops")
-        return proc.stderr.decode()
+        stderr = proc.stderr.decode()
+        if self.new_pm:
+            self._drop_jscop_arrays(self._fill_json_paths(stderr))
+        return stderr
+
+    def _drop_jscop_arrays(self, json_paths: list[Path]) -> None:
+        """Remove the "arrays" key from the exported jscop files.
+
+        Since LLVM 22 the importer runs every array size through
+        `std::stoi`, which aborts on the parametric size of a VLA (e.g.
+        "(zext i32 %0 to i64)"). We only ever round-trip schedules, and
+        the importer skips arrays altogether when the key is missing.
+
+        """
+        for path in json_paths:
+            path = self.tmpdir / path
+            with path.open("r", encoding="utf-8") as f:
+                jscop = json.load(f)
+            if jscop.pop("arrays", None) is None:
+                continue
+            with path.open("w", encoding="utf-8") as f:
+                json.dump(jscop, f, indent=3)
 
     @cython.ccall
     def _fill_json_paths(self, stderr: str) -> list[Path]:
@@ -456,12 +560,12 @@ class Polly(Translator):
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
 
-        opts = [
+        cmd = self._polly_cmd(
             input_path,
-            "-polly-import-jscop",
-            "-o=/dev/null",
-        ]
-        cmd = self._polly() + self._polly_options(opts)
+            "/dev/null",
+            passes=["-polly-import-jscop"],
+            phases=["prepare", "detect", "scops", "deps", "import-jscop"],
+        )
         try:
             self._run(cmd, "checking legality")
         except ValueError as e:
@@ -473,14 +577,21 @@ class Polly(Translator):
         post_polly_name = self.source.with_suffix(".post_polly.bc").name
         post_polly_bc = str(self.tmpdir / post_polly_name)
 
-        opts = [
+        polly_cmd = self._polly_cmd(
             input_path,
-            "-polly-import-jscop",
-            "-disable-polly-legality",
-            "-polly-parallel-force",
-            f"-o={post_polly_bc}",
-        ]
-        polly_cmd = self._polly() + self._polly_options(opts)
+            post_polly_bc,
+            passes=["-polly-import-jscop"],
+            phases=[
+                "prepare",
+                "detect",
+                "scops",
+                "deps",
+                "import-jscop",
+                "ast",
+                "codegen",
+            ],
+            flags=["-disable-polly-legality", "-polly-parallel-force"],
+        )
         self._run(polly_cmd, "importing jscops")
 
         output = self.tmpdir / self.source.with_suffix(".bc").name
