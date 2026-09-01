@@ -12,18 +12,18 @@
 /// #pragma scop
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   {
-///     for(int _tadashi_0 = 0; _tadashi_0 < Ni; _tadashi_0 += 13)
-///       for(int _tadashi_1 = 0; _tadashi_1 < Nj; _tadashi_1 += 25)
-///         for(int _tadashi_2 = 0; _tadashi_2 <= min(12, Ni - _tadashi_0 - 1); _tadashi_2 += 1)
-///           for(int _tadashi_3 = 0; _tadashi_3 <= min(24, Nj - _tadashi_1 - 1); _tadashi_3 += 1)
-///             C[_tadashi_0 + _tadashi_2][_tadashi_1 + _tadashi_3] *= beta;
-///     for(int _tadashi_0 = 0; _tadashi_0 < Ni; _tadashi_0 += 13)
-///       for(int _tadashi_1 = 0; _tadashi_1 < Nk; _tadashi_1 += 25)
-///         for(int _tadashi_2 = 0; _tadashi_2 < Nj; _tadashi_2 += 7)
-///           for(int _tadashi_3 = 0; _tadashi_3 <= min(12, Ni - _tadashi_0 - 1); _tadashi_3 += 1)
-///             for(int _tadashi_4 = 0; _tadashi_4 <= min(24, Nk - _tadashi_1 - 1); _tadashi_4 += 1)
-///               for(int _tadashi_5 = 0; _tadashi_5 <= min(6, Nj - _tadashi_2 - 1); _tadashi_5 += 1)
-///                 C[_tadashi_0 + _tadashi_3][_tadashi_2 + _tadashi_5] += ((alpha * A[_tadashi_0 + _tadashi_3][_tadashi_1 + _tadashi_4]) * B[_tadashi_1 + _tadashi_4][_tadashi_2 + _tadashi_5]);
+///     for(int i = 0; i < Ni; i += 13)
+///       for(int j = 0; j < Nj; j += 25)
+///         for(int i_1 = 0; i_1 <= min(12, Ni - i - 1); i_1 += 1)
+///           for(int j_1 = 0; j_1 <= min(24, Nj - j - 1); j_1 += 1)
+///             C[i + i_1][j + j_1] *= beta;
+///     for(int i = 0; i < Ni; i += 13)
+///       for(int j = 0; j < Nk; j += 25)
+///         for(int i_1 = 0; i_1 < Nj; i_1 += 7)
+///           for(int j_1 = 0; j_1 <= min(12, Ni - i - 1); j_1 += 1)
+///             for(int k = 0; k <= min(24, Nk - j - 1); k += 1)
+///               for(int j_2 = 0; j_2 <= min(6, Nj - i_1 - 1); j_2 += 1)
+///                 C[i + j_1][i_1 + j_2] += ((alpha * A[i + j_1][j + k]) * B[j + k][i_1 + j_2]);
 ///   }
 /// #pragma endscop
 /// }

@@ -5,15 +5,15 @@
 /// #pragma scop
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   #define max(x,y)    ((x) > (y) ? (x) : (y))
-///   for(int _tadashi_0 = 0; _tadashi_0 < N; _tadashi_0 += 13)
-///     for(int _tadashi_1 = 0; _tadashi_1 < N; _tadashi_1 += 25)
-///       for(int _tadashi_2 = max(0, -_tadashi_0 + 1); _tadashi_2 <= min(12, N - _tadashi_0 - 1); _tadashi_2 += 1)
-///         for(int _tadashi_3 = 0; _tadashi_3 <= min(24, N - _tadashi_1 - 1); _tadashi_3 += 1)
+///   for(int i = 0; i < N; i += 13)
+///     for(int j = 0; j < N; j += 25)
+///       for(int i_1 = max(0, -i + 1); i_1 <= min(12, N - i - 1); i_1 += 1)
+///         for(int j_1 = 0; j_1 <= min(24, N - j - 1); j_1 += 1)
 ///           {
-///             for(int _tadashi_4 = 0; _tadashi_4 < N; _tadashi_4 += 1)
-///               A[_tadashi_0 + _tadashi_2][_tadashi_1 + _tadashi_3] = (A[_tadashi_0 + _tadashi_2][_tadashi_1 + _tadashi_3] + (A[_tadashi_0 + _tadashi_2 - 1][_tadashi_1 + _tadashi_3] * (_tadashi_4)));
-///             for(int _tadashi_4 = 0; _tadashi_4 < N; _tadashi_4 += 1)
-///               A[_tadashi_0 + _tadashi_2][_tadashi_1 + _tadashi_3] = ((A[_tadashi_0 + _tadashi_2][_tadashi_1 + _tadashi_3] + A[_tadashi_0 + _tadashi_2 - 1][_tadashi_1 + _tadashi_3]) + (_tadashi_4));
+///             for(int k1 = 0; k1 < N; k1 += 1)
+///               A[i + i_1][j + j_1] = (A[i + i_1][j + j_1] + (A[i + i_1 - 1][j + j_1] * (k1)));
+///             for(int k1 = 0; k1 < N; k1 += 1)
+///               A[i + i_1][j + j_1] = ((A[i + i_1][j + j_1] + A[i + i_1 - 1][j + j_1]) + (k1));
 ///           }
 /// #pragma endscop
 /// }

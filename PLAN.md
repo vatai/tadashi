@@ -67,8 +67,16 @@ member `k` of the band's `isl_multi_union_pw_aff`):
   is a *candidate* for depth `d`; otherwise the `pw_aff` yields no
   candidate.
 
-For each depth `d`, the **first** candidate in traversal order wins (see
-decision D2). Depths with no candidate get no name.
+For each depth `d`, the candidate coming from the statement that appears
+**first in the source** wins (see decision D2), i.e. the one with the lowest
+index in `scop->stmts`. Depths with no candidate get no name.
+
+Note that `isl_union_pw_aff_foreach_pw_aff()` visits the expressions in the
+order of isl's internal hash table, which has nothing to do with the source
+order, so each expression's statement is looked up in `scop->stmts` (matching
+on the tuple name of `isl_pw_aff_get_domain_space()`) to rank it. Taking
+whatever isl happens to hand over first would make the generated names depend
+on isl's hashing.
 
 `isl_pw_aff_involves_dims()` sees through div definitions
 (`isl_local_space_get_active`), so tiled expressions correctly report a
@@ -85,11 +93,11 @@ single dim. Measured member expressions on `tests/test_interchange_1.c`:
 
 ## 4. Reserved names (safety)
 
-A candidate is rejected if it collides with an identifier the generated
-code already uses at that point: `print_for()` emits
-`for(int NAME = ...)`, so a colliding name would shadow the original and
-silently change the program's meaning. The reserved set is built once per
-`codegen()` call from:
+A candidate must not collide with an identifier the generated code already
+uses at that point: `print_for()` emits `for(int NAME = ...)`, so a
+colliding name would shadow the original and silently change the program's
+meaning. Such a candidate is not thrown away, it is disambiguated by §5.
+The reserved set is built once per `codegen()` call from:
 
 1. parameter names of `scop->context` (`isl_dim_param`);
 2. names of arrays/scalars accessed by **surviving** statements: for each
@@ -100,10 +108,13 @@ silently change the program's meaning. The reserved set is built once per
 3. names of functions called by surviving statements
    (`pet_tree_foreach_expr()` + `pet_expr_foreach_call_expr()` +
    `pet_expr_call_get_name()`);
-4. the macro names isl may emit: `min`, `max`, `floord`;
-5. C keywords, and anything that is not a valid C identifier
-   (`[A-Za-z_][A-Za-z0-9_]*`) — only reachable for JSON-imported scops,
-   whose dim names come from a jscop file rather than from a C parser.
+4. the macro names isl may emit: `min`, `max`, `floord`.
+
+Separately, a candidate that is not a valid C identifier
+(`[A-Za-z_][A-Za-z0-9_]*`) is rejected outright and falls back to §6. This is
+only reachable for JSON-imported scops, whose dim names come from a jscop file
+rather than from a C parser. There is no table of C keywords: the names come
+from a C parser, so a keyword can never be one of them.
 
 Rule 2 deliberately ignores statements eliminated as dead code. This is
 what makes the common PolyBench pattern keep its names:
@@ -114,9 +125,9 @@ statements that assign them, so nothing in the emitted code reads them
 and `for (int i = ...)` is safe *and* desirable. It would **not** be safe
 if a surviving statement still read a variable of that name
 (`for (int x = ...) A[x] = x;` with `x` an outer scalar), which is
-exactly what rule 2 catches. Filtering on `scop->arrays` as a whole would
-be both unsafe-free and useless — it would throw away the names in every
-PolyBench kernel.
+exactly what rule 2 catches. Reserving all of `scop->arrays` instead would
+be safe but useless — it would throw away the names in every PolyBench
+kernel.
 
 ## 5. Uniqueness
 
@@ -128,11 +139,20 @@ reserved set), append `_1`, `_2`, … until it is free (see decision D3).
 Example — `TILE_2D 13 25` on an `i`/`j` nest yields `i`, `j`, `i_1`,
 `j_1` (tile loops first, then point loops).
 
+The reserved set of §4 seeds the same "already taken" set, so a candidate
+that would shadow something is disambiguated the same way:
+`tests/test_iter_names_shadow.c` declares a `double i` in front of
+`#pragma scop` and *reads* it inside the scop, so the statement using it
+survives dead code elimination, `i` is reserved and the `i` loop comes out
+as `i_1`.
+
 ## 6. Fallback
 
-A depth with no candidate, or whose candidate was rejected by §4, keeps
-the current name `_tadashi_<d>` (`<d>` = depth, so fallback names stay
-stable and unique).
+A depth with no candidate, or whose candidate is not a valid identifier,
+keeps the current name `_tadashi_<d>` (`<d>` = depth, so fallback names
+stay stable and unique). A candidate colliding with a reserved name is
+*not* a fallback case: §5 turns it into `<name>_1`, which is both safe and
+more informative than `_tadashi_<d>`.
 
 ## 7. Limitations (documented, not fixed)
 
@@ -143,6 +163,29 @@ stable and unique).
   statement bodies are printed from `isl_ast_expr`s built for the actual
   loop, so the code stays correct. Per-branch naming would require nested
   `isl_ast_build_node_from_schedule()` calls and is out of scope.
+
+  When two sibling nests are tiled differently the shared names become
+  actively misleading. `tests/test_gemm.c` (`FULL_SPLIT`, then `TILE_2D` on
+  the first nest and `TILE_3D` on the second) comes out as
+
+  ```c
+  for(int i = 0; i < Ni; i += 13)          /* nest 1: i tiles   */
+    for(int j = 0; j < Nj; j += 25)
+      for(int i_1 = ...)                   /* nest 1: i points  */
+        for(int j_1 = ...)
+          C[i + i_1][j + j_1] *= beta;
+  for(int i = 0; i < Ni; i += 13)          /* nest 2: i tiles   */
+    for(int j = 0; j < Nk; j += 25)        /*         k tiles!  */
+      for(int i_1 = 0; i_1 < Nj; i_1 += 7) /*         j tiles!  */
+        for(int j_1 = ...)                 /*         i points! */
+  ```
+
+  i.e. in the second nest `j` runs over `Nk` and `i_1` over `Nj`, because
+  depths 0-3 were already named after the first nest. The names are still
+  unique, so the code compiles and computes the same thing, but they no
+  longer say anything about the loop. D2's "fall back to `_tadashi_N` on any
+  disagreement" alternative would print `i`, `_tadashi_1`, …, `_tadashi_3`,
+  `k`, `j` there instead.
 * **A name says "derived from", not "equal to".** A tiled, scaled or
   shifted loop whose expression involves only `i` is still called `i` (or
   `i_1`) although its values are not `i`'s (see decision D1).
@@ -160,8 +203,11 @@ stable and unique).
   `_tadashi_N`); (b) also name loops mixing several dims (skewing) after
   their outermost dim.
 * **D2 — statements/branches disagreeing at one depth** (`k1` vs `k2`
-  above). Chosen: first in traversal order wins. Alternatives: most
-  frequent wins; or fall back to `_tadashi_N` on any disagreement.
+  above). Chosen: the statement that comes first in the source wins.
+  Alternatives: most frequent wins; or fall back to `_tadashi_N` on any
+  disagreement (which would keep the flat list from ever attaching a
+  misleading name to a sibling subtree, at the cost of losing the names of
+  every depth two nests disagree on — see the `gemm` example in §7).
 * **D3 — disambiguating suffix for repeated base names** (tile and point
   loop both from `i`). Chosen: `i`, `i_1`, `i_2`, … in depth order.
   Alternatives: reuse the band-label suffix (`i_tile2d_outer` /
@@ -172,26 +218,30 @@ stable and unique).
 
 All in `tadashi/src/codegen.c`, as static helpers; no header change.
 
-1. **Reserved-name set** — a small growable `char **`/count struct with
-   `reserved_add()` / `reserved_has()`, filled by:
-   * `collect_params()` — from `scop->context`;
-   * `collect_accessed_names()` — `isl_schedule_get_domain()` once, then
-     per `scop->stmts[i]`: membership test of `pet_stmt_get_space()` in
-     that union set, then `pet_tree_foreach_access_expr()` /
-     `pet_expr_foreach_call_expr()`;
-   * a static table for `min`, `max`, `floord` and the C keywords.
-2. **Candidate collection** —
-   `collect_iterator_names(schedule, num_iterators)` returning
-   `char *[num_iterators]`, via
-   `isl_schedule_foreach_schedule_node_top_down` + a per-band member loop
-   + `isl_union_pw_aff_foreach_pw_aff`, as in §3.
-3. **Assembly** — replace the `_tadashi_%zu` loop at
-   `tadashi/src/codegen.c:501-509` with: candidate → reserved/uniqueness
-   check → `isl_id_alloc()`, falling back to `_tadashi_<d>`. Keep
-   `_schedule_num_iterators()` as-is.
-4. Free everything (collected names, the union set, the reserved table).
-   This runs once per scop per `generate_code()` call, and
-   `scripts/check_mem.sh` exists to catch leaks.
+1. **Name set** — `struct name_set` with `name_set_has()` /
+   `name_set_add()` / `name_set_free()`, used both for the reserved names
+   and for keeping the names handed out unique.
+2. **Reserved names** — `collect_reserved_names()`: the `min`/`max`/`floord`
+   macros, the `isl_dim_param` names of `scop->context`, then, for each
+   `scop->stmts[i]` whose tuple name appears in
+   `isl_schedule_get_domain(schedule)` (matched by tuple name rather than by
+   space equality), `pet_tree_foreach_access_expr()` with
+   `_add_accessed_name()` and `pet_tree_foreach_expr()` with
+   `_add_called_names()`.
+3. **Candidate collection** — `_collect_candidates()`, an
+   `isl_schedule_foreach_schedule_node_top_down` callback which, for each
+   band member, runs `_candidate_from_pw_aff()` over
+   `isl_multi_union_pw_aff_get_at()` with
+   `isl_union_pw_aff_foreach_pw_aff()`. Each candidate carries the
+   `scop->stmts` index of the statement it came from (`_stmt_rank()`) so the
+   lowest one wins (§3).
+4. **Assembly** — `_iterator_list()` replaces the `_tadashi_%zu` loop:
+   `_iterator_name()` (candidate or `_tadashi_<d>`) → `_unique_name()` →
+   `isl_id_alloc()`. `_schedule_num_iterators()` is unchanged.
+5. Everything allocated is freed before `_iterator_list()` returns. This
+   runs once per scop per `generate_code()` call; a valgrind run over
+   `tests/test_tile3d.c`, `tests/test_gemm.c` and
+   `tests/test_iter_names_shadow.c` reports no leak from it.
 
 # Tests
 
@@ -205,29 +255,37 @@ files embed `_tadashi_N`.
   reviewed, not blindly accepted.
 * **New golden tests** (auto-discovered, just add the files), one rule
   each:
-  * `tests/test_iter_names_interchange.c` — names preserved and swapped;
-  * `tests/test_iter_names_tile.c` — repeated base name → `i` / `i_1`
-    (D3);
-  * `tests/test_iter_names_shadow.c` — a loop iterator whose name is also
-    a scalar read by a surviving statement → `_tadashi_N` fallback (§4);
-  * `tests/test_iter_names_fuse.c` — `FULL_FUSE` of loops with different
-    iterator names → first-wins (D2).
+  * `tests/test_iter_names_interchange.c` — `row`/`col` preserved and
+    swapped;
+  * `tests/test_iter_names_tile.c` — `TILE_2D` gives `i`, `j`, `i_1`,
+    `j_1` (D3);
+  * `tests/test_iter_names_shadow.c` — a `double i` declared in front of
+    the scop and read by a surviving statement makes the `i` loop come out
+    as `i_1` (§4 + §5);
+  * `tests/test_iter_names_fuse.c` — `FULL_FUSE` of a `p` and a `q` loop
+    keeps `p`, the source-first one (D2).
+
+  Each needs at least one transformation: `Pet._codegen_callback()`
+  (`tadashi/translators.py:284`) copies a scop through unchanged when
+  `ccscop.modified` is false, so a golden test without a
+  `/// TRANSFORMATION:` line would just echo its own input.
 * **Keep `tests/test_gemm.c`** as the regression for the
   `int i, j, k;`-outside-the-scop pattern: it must come out with
   `i`/`j`/`k`-derived names and must still compile and run.
 
 # Verification
 
-1. Build: `pip install -e .` then `python setup.py build_ext -i`.
-2. `python -m unittest discover tests` — all golden tests green.
-3. Eyeball a real kernel end to end: `TILE_2D` + `INTERCHANGE` on
-   `gemm`, print the generated source, confirm the loops read
-   `i`/`j`/`k` (+ suffixes) and that no name shadows `alpha`, `beta`,
-   `A`, `B`, `C` or a parameter.
-4. `app.generate_code(...).compile()` and run a couple of PolyBench
-   kernels to confirm the output is unchanged — naming must not alter
-   semantics. `tests/test_ccscop.py::test_transformation_list` and
-   `::test_repeated_code_generation` already exercise compile + repeated
-   codegen.
-5. `scripts/check_mem.sh` (valgrind) on one transformed kernel to confirm
-   the new allocations are freed.
+1. Build: `python setup.py build_ext -i` — clean, no new warnings.
+2. `python -m unittest discover tests` — 75 tests, all green (5 skipped).
+3. `TILE_1D 32` + `INTERCHANGE` on PolyBench `gemm` reads `i`, `i_1`, `j`,
+   `k` and shadows none of `alpha`, `beta`, `A`, `B`, `C`, `ni`, `nj`,
+   `nk`.
+4. `Polybench.dump_arrays()` before and after `generate_code()` is
+   byte-identical for `gemm`, `trmm`, `gesummv` and `jacobi-1d` with a
+   `TILE_1D 13` applied — naming does not alter semantics.
+   `tests/test_ccscop.py::test_transformation_list` and
+   `::test_repeated_code_generation` cover compile + repeated codegen.
+5. valgrind (`--leak-check=full`) over `tests/test_tile3d.c`,
+   `tests/test_gemm.c` and `tests/test_iter_names_shadow.c` — no leak from
+   the new code. Note that `scripts/check_mem.sh` itself is stale: it names
+   `tests.py.test_ctadashi.*` tests that no longer exist.

@@ -5,19 +5,19 @@
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
-///   for(int _tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
+///   for(int i = 1; i < N; i += 1)
 ///     {
-///       for(int _tadashi_1 = 0; _tadashi_1 < min(2 * N - 1, 5 * _tadashi_0); _tadashi_1 += 2)
-///         for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///           A[_tadashi_0][_tadashi_1 / 2] = ((A[_tadashi_0][_tadashi_1 / 2] + A[_tadashi_0 - 1][_tadashi_1 / 2]) + (_tadashi_2));
-///       for(int _tadashi_1 = 5 * _tadashi_0; _tadashi_1 < 2 * N + 5 * _tadashi_0 - 1; _tadashi_1 += 1)
+///       for(int j = 0; j < min(2 * N - 1, 5 * i); j += 2)
+///         for(int k1 = 0; k1 < N; k1 += 1)
+///           A[i][j / 2] = ((A[i][j / 2] + A[i - 1][j / 2]) + (k1));
+///       for(int j = 5 * i; j < 2 * N + 5 * i - 1; j += 1)
 ///         {
-///           if ((_tadashi_0 + _tadashi_1) % 2 == 0)
-///             for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///               A[_tadashi_0][(-5 * _tadashi_0 + _tadashi_1) / 2] = (A[_tadashi_0][(-5 * _tadashi_0 + _tadashi_1) / 2] + (A[_tadashi_0 - 1][(-5 * _tadashi_0 + _tadashi_1) / 2] * (_tadashi_2)));
-///           if (2 * N >= _tadashi_1 + 2 && _tadashi_1 % 2 == 0)
-///             for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///               A[_tadashi_0][_tadashi_1 / 2] = ((A[_tadashi_0][_tadashi_1 / 2] + A[_tadashi_0 - 1][_tadashi_1 / 2]) + (_tadashi_2));
+///           if ((i + j) % 2 == 0)
+///             for(int k1 = 0; k1 < N; k1 += 1)
+///               A[i][(-5 * i + j) / 2] = (A[i][(-5 * i + j) / 2] + (A[i - 1][(-5 * i + j) / 2] * (k1)));
+///           if (2 * N >= j + 2 && j % 2 == 0)
+///             for(int k1 = 0; k1 < N; k1 += 1)
+///               A[i][j / 2] = ((A[i][j / 2] + A[i - 1][j / 2]) + (k1));
 ///         }
 ///     }
 /// #pragma endscop

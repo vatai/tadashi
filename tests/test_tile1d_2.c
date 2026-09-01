@@ -4,14 +4,14 @@
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
-///   for(int _tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
-///     for(int _tadashi_1 = 0; _tadashi_1 < N; _tadashi_1 += 4)
-///       for(int _tadashi_2 = 0; _tadashi_2 <= min(3, N - _tadashi_1 - 1); _tadashi_2 += 1)
+///   for(int i = 1; i < N; i += 1)
+///     for(int j = 0; j < N; j += 4)
+///       for(int j_1 = 0; j_1 <= min(3, N - j - 1); j_1 += 1)
 ///         {
-///           for(int _tadashi_3 = 0; _tadashi_3 < N; _tadashi_3 += 1)
-///             A[_tadashi_0][_tadashi_1 + _tadashi_2] = (A[_tadashi_0][_tadashi_1 + _tadashi_2] + (A[_tadashi_0 - 1][_tadashi_1 + _tadashi_2] * (_tadashi_3)));
-///           for(int _tadashi_3 = 0; _tadashi_3 < N; _tadashi_3 += 1)
-///             A[_tadashi_0][_tadashi_1 + _tadashi_2] = ((A[_tadashi_0][_tadashi_1 + _tadashi_2] + A[_tadashi_0 - 1][_tadashi_1 + _tadashi_2]) + (_tadashi_3));
+///           for(int k1 = 0; k1 < N; k1 += 1)
+///             A[i][j + j_1] = (A[i][j + j_1] + (A[i - 1][j + j_1] * (k1)));
+///           for(int k1 = 0; k1 < N; k1 += 1)
+///             A[i][j + j_1] = ((A[i][j + j_1] + A[i - 1][j + j_1]) + (k1));
 ///         }
 /// #pragma endscop
 /// }

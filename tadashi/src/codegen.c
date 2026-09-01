@@ -46,8 +46,10 @@
  * implied, of Sven Verdoolaege.
  */
 
+#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <isl/ast.h>
@@ -55,6 +57,9 @@
 #include <isl/id.h>
 #include <isl/id_to_id.h>
 #include <isl/printer.h>
+#include <isl/schedule_node.h>
+#include <isl/space.h>
+#include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
 
@@ -484,6 +489,396 @@ _schedule_num_iterators(__isl_keep isl_schedule *schedule) {
   return max_dim < 0 ? 0 : (size_t)max_dim;
 }
 
+/* The iterator names in the generated code are derived from the names of
+ * the iteration domain dimensions, i.e. from the iterator names in the
+ * original source.  pet stores those names in the statement spaces, which
+ * no transformation renames, so they survive an arbitrary sequence of
+ * transformations.  The code below turns them into the list of names passed
+ * to isl_ast_build_set_iterators(), falling back to the depth based
+ * `_tadashi_<depth>` names where an original name cannot be determined.
+ *
+ * `ITERATOR_BASE_SIZE` is the maximum length of the name a loop iterator is
+ * named after; longer names get truncated.  `ITERATOR_NAME_SIZE` leaves
+ * room for the disambiguating suffix described in _unique_name().
+ */
+#define ITERATOR_BASE_SIZE 40
+#define ITERATOR_NAME_SIZE 64
+
+/* A set of names.  Used both to collect the identifiers a generated loop
+ * iterator must not shadow and to keep the names handed out unique.
+ */
+struct name_set {
+  char **names;
+  size_t n;
+  size_t alloc;
+};
+
+/* Does "set" contain "name"?
+ */
+static int
+name_set_has(const struct name_set *set, const char *name) {
+  for (size_t i = 0; i < set->n; i++)
+    if (!strcmp(set->names[i], name))
+      return 1;
+  return 0;
+}
+
+/* Add a copy of "name" to "set", unless it is NULL or already present.
+ */
+static void
+name_set_add(struct name_set *set, const char *name) {
+  char *copy;
+
+  if (!name || name_set_has(set, name))
+    return;
+  if (set->n == set->alloc) {
+    size_t alloc = set->alloc ? 2 * set->alloc : 16;
+    char **names = realloc(set->names, alloc * sizeof(*names));
+
+    if (!names)
+      return;
+    set->names = names;
+    set->alloc = alloc;
+  }
+  copy = strdup(name);
+  if (copy)
+    set->names[set->n++] = copy;
+}
+
+static void
+name_set_free(struct name_set *set) {
+  for (size_t i = 0; i < set->n; i++)
+    free(set->names[i]);
+  free(set->names);
+  set->names = NULL;
+  set->n = set->alloc = 0;
+}
+
+/* pet_tree_foreach_access_expr callback adding the name of the array or
+ * scalar accessed by "expr" to the name set in "user".
+ *
+ * Not every access expression refers to something by name (the index
+ * expression of an access to an array of structures, for instance), and
+ * pet_expr_access_get_id() warns about those, so check first.  A nameless
+ * access cannot be shadowed anyway.
+ */
+static int
+_add_accessed_name(__isl_keep pet_expr *expr, void *user) {
+  isl_multi_pw_aff *index = pet_expr_access_get_index(expr);
+  isl_space *space = isl_multi_pw_aff_get_space(index);
+  isl_bool has_name = isl_space_has_tuple_name(space, isl_dim_out);
+
+  isl_space_free(space);
+  isl_multi_pw_aff_free(index);
+  if (has_name == isl_bool_true) {
+    isl_id *id = pet_expr_access_get_id(expr);
+
+    name_set_add(user, isl_id_get_name(id));
+    isl_id_free(id);
+  }
+  return 0;
+}
+
+/* pet_expr_foreach_call_expr callback adding the name of the function
+ * called by "expr" to the name set in "user".
+ */
+static int
+_add_called_name(__isl_keep pet_expr *expr, void *user) {
+  name_set_add(user, pet_expr_call_get_name(expr));
+  return 0;
+}
+
+/* pet_tree_foreach_expr callback adding the names of all functions called
+ * from "expr" to the name set in "user".
+ */
+static int
+_add_called_names(__isl_keep pet_expr *expr, void *user) {
+  return pet_expr_foreach_call_expr(expr, &_add_called_name, user);
+}
+
+/* isl_union_set_foreach_set callback adding the tuple name of "set" to the
+ * name set in "user".
+ */
+static isl_stat
+_add_tuple_name(__isl_take isl_set *set, void *user) {
+  name_set_add(user, isl_set_get_tuple_name(set));
+  isl_set_free(set);
+  return isl_stat_ok;
+}
+
+/* Collect the identifiers that a generated loop iterator must not shadow.
+ *
+ * print_for() declares the iterator in the for loop itself, so a name that
+ * is also used by the code inside the loop would silently change what that
+ * code refers to.  The names to avoid are the parameters of "scop" and the
+ * arrays, scalars and functions referenced by its statements, plus the
+ * macros isl may emit for the loop bounds.
+ *
+ * Only the statements that still appear in "schedule" are considered.  The
+ * statements that were removed by dead code elimination are ignored on
+ * purpose: when the original iterators are declared outside the scop (as in
+ * an `int i, j, k;` in front of `#pragma scop`), pet models them as scalars
+ * and the statements assigning them are exactly what dead code elimination
+ * removes.  Nothing in the generated code refers to them anymore, so those
+ * names are free to be reused, which is what this whole file is about.
+ */
+static void
+collect_reserved_names(struct name_set *reserved,
+                       __isl_keep struct pet_scop *scop,
+                       __isl_keep isl_schedule *schedule) {
+  static const char *macros[] = {"min", "max", "floord"};
+  struct name_set live = {NULL, 0, 0};
+  isl_union_set *domain;
+  isl_size n_param;
+
+  for (size_t i = 0; i < sizeof(macros) / sizeof(macros[0]); i++)
+    name_set_add(reserved, macros[i]);
+
+  n_param = isl_set_dim(scop->context, isl_dim_param);
+  for (isl_size i = 0; i < n_param; i++)
+    name_set_add(reserved,
+                 isl_set_get_dim_name(scop->context, isl_dim_param, i));
+
+  domain = isl_schedule_get_domain(schedule);
+  isl_union_set_foreach_set(domain, &_add_tuple_name, &live);
+  isl_union_set_free(domain);
+
+  for (int i = 0; i < scop->n_stmt; i++) {
+    struct pet_stmt *stmt = scop->stmts[i];
+    isl_space *space = pet_stmt_get_space(stmt);
+    const char *name = isl_space_get_tuple_name(space, isl_dim_set);
+    int is_live = name && name_set_has(&live, name);
+
+    isl_space_free(space);
+    if (!is_live)
+      continue;
+    pet_tree_foreach_access_expr(stmt->body, &_add_accessed_name, reserved);
+    pet_tree_foreach_expr(stmt->body, &_add_called_names, reserved);
+  }
+  name_set_free(&live);
+}
+
+/* The name a single schedule dimension is derived from, together with the
+ * position in "scop" of the statement it was taken from.  A schedule
+ * dimension may be described by one expression per statement, while isl
+ * supports a single iterator name per depth, so "rank" is used to always
+ * pick the statement that comes first in the original source.
+ */
+struct candidate {
+  char *name;
+  int rank;
+  struct pet_scop *scop;
+};
+
+/* The position in "scop" of the statement "pa" schedules, or scop->n_stmt if
+ * it cannot be determined.
+ *
+ * isl_union_pw_aff_foreach_pw_aff() visits the expressions in the order of
+ * isl's internal hash table, which has nothing to do with the order of the
+ * statements in the source, hence this lookup.
+ */
+static int
+_stmt_rank(__isl_keep struct pet_scop *scop, __isl_keep isl_pw_aff *pa) {
+  isl_space *space = isl_pw_aff_get_domain_space(pa);
+  const char *name = isl_space_get_tuple_name(space, isl_dim_set);
+  int rank = scop->n_stmt;
+
+  for (int i = 0; name && i < scop->n_stmt; i++) {
+    isl_space *stmt_space = pet_stmt_get_space(scop->stmts[i]);
+    const char *stmt_name = isl_space_get_tuple_name(stmt_space, isl_dim_set);
+    int match = stmt_name && !strcmp(name, stmt_name);
+
+    isl_space_free(stmt_space);
+    if (match) {
+      rank = i;
+      break;
+    }
+  }
+  isl_space_free(space);
+  return rank;
+}
+
+/* isl_union_pw_aff_foreach_pw_aff callback determining the original iterator
+ * name the schedule dimension described by "pa" was derived from.
+ *
+ * If "pa" depends on exactly one iteration domain dimension, then the name
+ * of that dimension is the candidate.  This includes the dimensions
+ * introduced by tiling, scaling and shifting (`i - (i) mod 32`, `3i`,
+ * `-2i`, ...), which all still refer to a single original iterator;
+ * isl_pw_aff_involves_dims() sees through the div definitions of the tiled
+ * forms.  Dimensions mixing several iterators (skewing) get no candidate.
+ *
+ * "user" points to the candidate of a single schedule dimension.  The
+ * statement that comes first in the source wins.
+ */
+static isl_stat
+_candidate_from_pw_aff(__isl_take isl_pw_aff *pa, void *user) {
+  struct candidate *candidate = user;
+  int rank = _stmt_rank(candidate->scop, pa);
+  int found = -1;
+  isl_size n;
+
+  if (candidate->name && rank >= candidate->rank) {
+    isl_pw_aff_free(pa);
+    return isl_stat_ok;
+  }
+  n = isl_pw_aff_dim(pa, isl_dim_in);
+  for (isl_size i = 0; i < n; i++) {
+    if (isl_pw_aff_involves_dims(pa, isl_dim_in, i, 1) != isl_bool_true)
+      continue;
+    if (found >= 0) {
+      found = -1;
+      break;
+    }
+    found = i;
+  }
+  if (found >= 0) {
+    const char *name = isl_pw_aff_get_dim_name(pa, isl_dim_in, found);
+    char *copy = name ? strdup(name) : NULL;
+
+    if (copy) {
+      free(candidate->name);
+      candidate->name = copy;
+      candidate->rank = rank;
+    }
+  }
+  isl_pw_aff_free(pa);
+  return isl_stat_ok;
+}
+
+/* The candidates of all schedule dimensions, indexed by depth.
+ */
+struct candidates {
+  struct candidate *c;
+  size_t n;
+};
+
+/* isl_schedule_foreach_schedule_node_top_down callback collecting the
+ * candidate names of the schedule dimensions of "node".
+ *
+ * Only band nodes introduce schedule dimensions.  Member "k" of a band at
+ * schedule depth "depth" describes the loop at depth "depth + k".
+ */
+static isl_bool
+_collect_candidates(__isl_keep isl_schedule_node *node, void *user) {
+  struct candidates *candidates = user;
+  isl_multi_union_pw_aff *mupa;
+  isl_size depth, n_member;
+
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_band)
+    return isl_bool_true;
+  depth = isl_schedule_node_get_schedule_depth(node);
+  n_member = isl_schedule_node_band_n_member(node);
+  if (depth < 0 || n_member < 0)
+    return isl_bool_error;
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  for (isl_size k = 0; k < n_member; k++) {
+    size_t d = (size_t)depth + (size_t)k;
+    isl_union_pw_aff *upa;
+
+    if (d >= candidates->n ||
+        (candidates->c[d].name && candidates->c[d].rank == 0))
+      continue;
+    upa = isl_multi_union_pw_aff_get_at(mupa, k);
+    isl_union_pw_aff_foreach_pw_aff(upa, &_candidate_from_pw_aff,
+                                    &candidates->c[d]);
+    isl_union_pw_aff_free(upa);
+  }
+  isl_multi_union_pw_aff_free(mupa);
+  return isl_bool_true;
+}
+
+/* Is "name" usable as the name of a loop iterator in the generated code?
+ *
+ * The names come from a C parser, so this only rejects the degenerate cases
+ * of a schedule that was not derived from C source.
+ */
+static int
+_is_identifier(const char *name) {
+  if (!name || (!isalpha((unsigned char)name[0]) && name[0] != '_'))
+    return 0;
+  for (const char *c = name + 1; *c; c++)
+    if (!isalnum((unsigned char)*c) && *c != '_')
+      return 0;
+  return 1;
+}
+
+/* Write a name based on "base" that does not appear in "taken" to "buffer",
+ * by appending `_1`, `_2`, ... to "base" until the name is free.
+ *
+ * "base" is at most ITERATOR_BASE_SIZE long and "buffer" is
+ * ITERATOR_NAME_SIZE long, so the suffix never gets truncated (which would
+ * make this loop spin forever).
+ */
+static void
+_unique_name(char *buffer, size_t size, const char *base,
+             const struct name_set *taken) {
+  snprintf(buffer, size, "%s", base);
+  for (unsigned i = 1; name_set_has(taken, buffer); i++)
+    snprintf(buffer, size, "%s_%u", base, i);
+}
+
+/* Write the name of the loop iterator for schedule dimension "depth" to
+ * "buffer".
+ *
+ * Use "candidate", the original iterator this dimension was derived from,
+ * if there is one, and fall back to the depth based name otherwise.  Either
+ * way the name is made unique with respect to "taken", which holds both the
+ * identifiers the generated code must not shadow and the names of the outer
+ * loops: isl uses a single list of iterator names for all branches of the
+ * schedule tree, so a name reused at a deeper level would shadow itself.
+ * Tiling for instance turns an `i` loop into an `i` and an `i_1` loop.
+ */
+static void
+_iterator_name(char *buffer, size_t size, const char *candidate, size_t depth,
+               const struct name_set *taken) {
+  char base[ITERATOR_BASE_SIZE];
+
+  if (_is_identifier(candidate))
+    snprintf(base, sizeof(base), "%s", candidate);
+  else
+    snprintf(base, sizeof(base), "_tadashi_%zu", depth);
+  _unique_name(buffer, size, base, taken);
+}
+
+/* Construct the names of the "num_iterators" loop iterators of the code
+ * generated for "schedule", preserving the iterator names of the original
+ * source where possible.
+ */
+static __isl_give isl_id_list *
+_iterator_list(isl_ctx *ctx, __isl_keep struct pet_scop *scop,
+               __isl_keep isl_schedule *schedule, size_t num_iterators) {
+  struct candidate *c = calloc(num_iterators, sizeof(*c));
+  struct candidates candidates = {c, num_iterators};
+  struct name_set taken = {NULL, 0, 0};
+  isl_id_list *iterators;
+
+  collect_reserved_names(&taken, scop, schedule);
+  if (c) {
+    for (size_t d = 0; d < num_iterators; d++) {
+      c[d].rank = scop->n_stmt;
+      c[d].scop = scop;
+    }
+    isl_schedule_foreach_schedule_node_top_down(schedule, &_collect_candidates,
+                                                &candidates);
+  }
+
+  iterators = isl_id_list_alloc(ctx, num_iterators);
+  for (size_t d = 0; d < num_iterators; d++) {
+    char buffer[ITERATOR_NAME_SIZE];
+
+    _iterator_name(buffer, sizeof(buffer), c ? c[d].name : NULL, d, &taken);
+    name_set_add(&taken, buffer);
+    iterators = isl_id_list_add(iterators, isl_id_alloc(ctx, buffer, NULL));
+  }
+
+  for (size_t d = 0; c && d < num_iterators; d++)
+    free(c[d].name);
+  free(c);
+  name_set_free(&taken);
+  return iterators;
+}
+
 __isl_give isl_printer *
 codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
         __isl_take isl_schedule *schedule) {
@@ -499,13 +894,7 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);
   size_t num_iterators = _schedule_num_iterators(schedule);
-  isl_id_list *iterators = isl_id_list_alloc(ctx, num_iterators);
-  for (size_t i = 0; i < num_iterators; i++) {
-    char buffer[32];
-    snprintf(buffer, sizeof(buffer), "_tadashi_%zu", i);
-    isl_id *id = isl_id_alloc(ctx, buffer, NULL);
-    iterators = isl_id_list_add(iterators, id);
-  }
+  isl_id_list *iterators = _iterator_list(ctx, scop, schedule, num_iterators);
   build = isl_ast_build_set_iterators(build, iterators);
   node = isl_ast_build_node_from_schedule(build, schedule);
   print_options = isl_ast_print_options_alloc(ctx);
