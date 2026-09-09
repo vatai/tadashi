@@ -1,7 +1,7 @@
 # Failure analysis of the 2026-06-11 evaluation sweep
 
-Diagnosis only — no code was changed and no jobs were resubmitted. Recommended fixes are listed in
-[Part 3](#part-3--recommended-follow-ups) and mirrored as unchecked items in `PLAN.md`.
+Originally diagnosis only. Fixes applied since are marked in [Part 3](#part-3--recommended-follow-ups) and
+mirrored in `PLAN.md`; the Pluto sweep has been re-run (see [1a-fix](#1a-fix-the-re-run-sweep-2026-09-09-is-complete)).
 
 Data analysed:
 
@@ -41,9 +41,12 @@ artefacts, never tracked (`.gitignore:26`), so a fresh clone would fail on all 3
 The `${PLUTO:-polycc}` fallback cannot work either: there is no `polycc` on `PATH` on Fugaku, and none
 anywhere on the machine outside this repo. The built one is `third_party/opt/bin/polycc` (aarch64, so it only
 runs on a compute node). Its wrapper hardcodes build-tree paths, so `third_party/build/pluto/` must stay in
-place, and it needs `third_party/opt/lib` on `LD_LIBRARY_PATH` and an LLVM `init.sh` sourced for `libomp.so` —
-neither of which `fsub.sh` sets. The paths referenced in `fsub_compile.sh:14` and `data/check/fsub_all.sh:4`
-(`$REPO_ROOT/deps/build/pluto-0.13.0/polycc`) do not exist at all.
+place, and it needs an LLVM `init.sh` sourced for `libomp.so`/`libclang-cpp.so.15`, which `fsub.sh` did not
+do. (`third_party/opt/lib` on `LD_LIBRARY_PATH` turned out *not* to be needed: `readelf -d` shows no
+RPATH/RUNPATH and its only other NEEDED library, `libgmp.so.10`, is system-provided. Probe job `51055620`
+converted `jacobi-2d` with and without that path, byte-identically.) The paths referenced in
+`fsub_compile.sh:14` and `data/check/fsub_all.sh:4` (`$REPO_ROOT/deps/build/pluto-0.13.0/polycc`) do not
+exist at all.
 
 **Forwarding `PLUTO` will still not fix `adi`: Pluto cannot convert `adi.c`.** Verified on a compute node
 (job `51054036`, log `verify/pluto-adi.51054036.out`, script `verify/pluto-adi/job.sh`):
@@ -81,16 +84,42 @@ Compilation aborted.
 fcc: Driver has abnormally ended due to SIGTERM.
 ```
 
-**Side observation worth a separate look.** On the solvers, fcc is more than 20× faster than gcc/clang:
+**Side observation, since resolved.** The June logs suggested fcc was more than 20× faster than gcc/clang on
+the solvers. The re-run (below) shows the opposite — the gcc/clang binaries were not slow, they were stuck:
 
-| benchmark | fcc (st) | gcc / clang-21 (st) |
-| --- | --- | --- |
-| cholesky | 23.4 s | > 1800 s |
-| lu | 52.6 s | > 1800 s |
-| ludcmp | 93.8 s | > 1800 s |
+| benchmark (st) | fcc, June | fcc, re-run | gcc / clang-21, June | gcc / clang-21, re-run |
+| --- | --- | --- | --- | --- |
+| cholesky | 23.4 s | 23.36 s | > 1800 s | 12.68 s / 13.16 s |
+| lu | 52.6 s | 52.57 s | > 1800 s | 25.59 s / 18.61 s |
+| ludcmp | 93.8 s | 93.80 s | > 1800 s | 398.38 s / 304.32 s |
 
-That gap is large enough that it should be confirmed the gcc/clang binaries are actually progressing and not
-hanging.
+The fcc numbers reproduce to the digit, so the measurement itself is stable; what the gcc/clang binaries were
+doing for >30 min in June (they now finish in 13–400 s) is unexplained. 180 jobs compiling and running
+concurrently in the same polybench tree over LLIO is the obvious suspect, but nothing in the logs proves it.
+
+### 1a-fix. The re-run sweep (2026-09-09) is complete
+
+Jobs `51055888`–`51056062`, 174 = 29 benchmarks × {gcc,fcc,clang-21} × {st,mt}, all with 3 of 3 runs
+(`grep -c ':::'` = 3 in every log; 522 measurement lines total). What changed:
+
+- `pluto/fsub_all.sh` forwards `-x PLUTO=$REPO_ROOT/third_party/opt/bin/polycc` and drops `adi` from the
+  benchmark list (hence 174 jobs, not 180).
+- `pluto/fsub.sh` raises `elapse` to `6:00:00`, sources the LLVM 15 init in a subshell around `polycc` (so it
+  cannot shadow the LLVM 21 module used for the `clang-21` compile), and prints
+  `<binary>:::<rep>:::<seconds>` — the format `parse_pluto_files` already expects. Slowest run in the new
+  data: `floyd-warshall` fcc st at 942 s, so 30 min was indeed the binding limit.
+- Job outputs are now named `*.%j.out`: `collect_results.py` globs `*.out`, so the old
+  `pluto-<bm>-<cc>.<jobid>` logs were invisible to it regardless of their format. The 174 new logs were
+  renamed accordingly; the June logs keep their names (the Reproduction section below refers to them).
+- `parse_pluto_files` took the compiler from `name_parts[-2]`, which on the new
+  `<bm>.pluto.<dataset>_O3.<cc>.<st|mt>.x` names yields `"st"`. It now matches the whole name with
+  `EXECUTABLE_NAME` (`collect_results.py:20`); all 344 distinct executable names in the logs, old and new,
+  parse, and every `compiler` value is one of gcc/fcc/clang-21.
+
+Still open, and pipeline-wide rather than Pluto-specific: `fastest_by_benchmark`
+(`collect_results.py:381-389`) groups on `(benchmark, compiler)`, so st and mt are folded into one minimum —
+for every method, not just Pluto. See the reporting list in
+[Part 2](#the-reporting-pipeline-amplifies-rather-than-catches-this).
 
 ### 1b. The correctness sweep is far worse than its 7 tracebacks suggest
 
@@ -197,17 +226,18 @@ These affect every number in the paper's Fig. 5, not only heat-3d:
 - **Slowdowns are hidden and the outlier is clipped off the chart.** `main.py:167` `.clip(lower=1)` and
   `:189` `ylim(0.8, 320)`; the paper caption states this explicitly ("take the maximum of 1x and the actual
   speedup", `paper/main.tex:1019`), and the 1000× bar exceeds `ymax`.
-- **The new Pluto logs are not parsed at all.** `parse_pluto_files:337` reads `name_parts[-2]` as the
-  compiler, but the current binaries are named `...EXTRALARGE_O3.clang-21.st.x`, so the compiler parses as
-  `"st"`; and the `{st,mt}-pluto/*` logs print bare numbers with no `:::`, so they are skipped
-  (`collect_results.py:327-329`). Only the older MT-only `pluto/results/*.out` currently feed `original_runs`.
+- **The new Pluto logs were not parsed at all** — three separate reasons: the job outputs were not named
+  `*.out` (the glob in `collect`), they printed bare numbers with no `:::`, and `parse_pluto_files` read the
+  compiler as `name_parts[-2]`, i.e. `"st"` on `...EXTRALARGE_O3.clang-21.st.x`. Fixed; see
+  [1a-fix](#1a-fix-the-re-run-sweep-2026-09-09-is-complete). `original_runs` still comes only from the older
+  MT-only `pluto/results/*.out`, since the re-run sweep measures the Pluto binaries only.
 
 ## Part 3 — Recommended follow-ups
 
-Not executed as part of this analysis.
+`[done]` items have been applied and verified; the rest are outstanding.
 
-- Reject `scale` with `val <= 0` at the API boundary **and** fix `Polly.legal()` to write the jscop files
-  before checking, so the whole class of bug is caught generically instead of per-transformation.
+- Reject `scale` with `val <= 0` at the API boundary **and** `[done]` fix `Polly.legal()` to write the jscop
+  files before checking, so the whole class of bug is caught generically instead of per-transformation.
 - Treat all current `polly-llvm21` numbers — search results *and* `>>> OK <<<` verdicts — as invalid; re-run
   the searches and the check sweep once legality works, then diff against the old numbers.
 - Make `App.compile` raise on a non-zero return code, and stop `extract_runtime` returning `0.0` for a crashed
@@ -215,11 +245,13 @@ Not executed as part of this analysis.
 - Set `CC` per variant in `check/fsub.sh` so `pet-fcc` actually tests fcc.
 - Give each check job a private output directory so the `.dump` binaries stop racing.
 - Replay every logged generation, not just `gens[-1]`.
-- In `pluto/fsub_all.sh`, forward `-x PLUTO=<abs path to third_party/opt/bin/polycc>` and `LD_LIBRARY_PATH`;
-  raise the `fsub.sh` elapse limit to `6:00:00`.
-- Decide what to do about `adi`: rewrite the three `(DATA_TYPE)` casts (`adi.c:81-83`) so Clan can parse them,
-  or exclude `adi` from the Pluto comparison and say so in the paper. Forwarding `PLUTO` alone leaves 6 empty
-  jobs.
+- `[done]` In `pluto/fsub_all.sh`, forward `-x PLUTO=<abs path to third_party/opt/bin/polycc>`; raise the
+  `fsub.sh` elapse limit to `6:00:00`. (`LD_LIBRARY_PATH` proved unnecessary; the LLVM 15 init is what
+  `polycc` needs.)
+- `[done]` `adi` is excluded from the Pluto comparison — the paper has to say so. Rewriting the three
+  `(DATA_TYPE)` casts (`adi.c:81-83`) remains the alternative if a 30-benchmark Pluto column is wanted.
+- `[done]` Make the Pluto logs reachable by the report: `*.%j.out` job outputs, `:::`-formatted measurement
+  lines, and compiler extraction by full-name match in `parse_pluto_files`.
 
 ## Reproduction
 
@@ -227,12 +259,18 @@ All read-only.
 
 ```sh
 cd examples/evaluation/pluto
-# incomplete jobs: 15 in st-pluto, 10 in mt-pluto
+# June sweep, incomplete jobs: 15 in st-pluto, 10 in mt-pluto (logs without .out)
 for d in st-pluto mt-pluto; do
-	for f in "$d"/*; do
+	for f in "$d"/*[0-9]; do
 		n=$(grep -cE '^[0-9]+\.[0-9]+$' "$f")
 		test "$n" -lt 3 && printf '%-45s runs=%s\n' "$(basename "$f")" "$n"
 	done
+done
+# re-run sweep: 174 logs, 3 measurements each, nothing printed = all complete
+ls st-pluto/*.out mt-pluto/*.out | wc -l
+for f in st-pluto/*.out mt-pluto/*.out; do
+	n=$(grep -cE ':::[0-9]+:::[0-9]+\.[0-9]+$' "$f")
+	test "$n" -lt 3 && printf '%-45s runs=%s\n' "$(basename "$f")" "$n"
 done
 head -3 st-pluto/pluto-adi-gcc.49206335       # "adi.c: Permission denied"
 tail -3 st-pluto/pluto-heat-3d-fcc.49206324   # "CPU time limit exceeded" / SIGTERM

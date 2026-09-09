@@ -44,6 +44,25 @@ Follow-ups:
         `scale 0`, including the time band. So with the Polly translator the isl-side legality check does not
         catch `scale 0` either — only the `opt` check now does.
 
+- [x] Re-run the Pluto sweep with the fixed scripts (2026-09-09, jobs 51055888-51056062).
+      - 174/174 jobs complete with 3 of 3 runs each (29 benchmarks x {gcc,fcc,clang-21} x {st,mt}; `adi`
+        dropped because Pluto cannot convert it). `elapse=6:00:00` was enough: slowest run is
+        floyd-warshall/fcc/st at 942 s.
+      - `polycc` needs only `/home/apps/oss/llvm-v15.0.3/init.sh` (for `libomp.so`/`libclang-cpp.so.15`);
+        `third_party/opt/lib` on `LD_LIBRARY_PATH` is *not* needed — probe job 51055620 converted jacobi-2d
+        byte-identically with and without it. The earlier claim in FAILURE-ANALYSIS.md was unproven and is
+        now corrected.
+      - The Pluto logs reach the report for the first time: job outputs are named `*.%j.out` (the `collect`
+        glob), measurements are printed as `<binary>:::<rep>:::<seconds>`, and `parse_pluto_files` matches
+        the whole executable name instead of `name_parts[-2]` (which parsed the compiler as `"st"`). All 344
+        distinct executable names in the logs parse; every compiler is gcc/fcc/clang-21.
+      - Observation: the June "fcc is 20x faster on the solvers" gap was an artefact. fcc reproduces to the
+        digit (cholesky 23.36 s, lu 52.57 s, ludcmp 93.80 s) while gcc/clang, previously >1800 s, now finish
+        in 12.7/13.2 s (cholesky) and 25.6/18.6 s (lu). What they were doing in June is unexplained.
+      - Note: `collect_results.py` cannot be run on Fugaku (no numpy/pandas for the login node's python3,
+        and `.venv` is aarch64-only); the parser fix was verified against every executable name in the logs
+        with the stdlib `re` module instead.
+
 - [ ] Check the re-run heat-3d searches (jobs 51052754 st, 51052755 mt) once they finish. Both are the
       `polly-llvm21` variant, EXTRALARGE, ps200-mg10-nt2-n170, launched with the fixed `Polly.legal()`:
       `ML4TADASHI/scripts/{st,mt}-evo/EXTRALARGE/ps200-mg10-nt2-n170/polly-llvm21/heat-3d-seed42/pjsub.<jobid>.out`.

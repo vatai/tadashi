@@ -16,6 +16,11 @@ import pandas as pd
 
 FLOAT = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
 SEED_SUFFIX = re.compile(r"-seed\d+$")
+# Binaries are named <benchmark>[.pluto].<dataset>_O<level>.<compiler>[.st|.mt].x
+EXECUTABLE_NAME = re.compile(
+    r"^(?P<benchmark>[^.]+)(?P<transformed>\.pluto)?"
+    r"\.[^.]+_O\d+\.(?P<compiler>[^.]+)(?:\.(?:st|mt))?\.x$"
+)
 DATASET_NAME = re.compile(r"^[A-Z][A-Z0-9_-]*$")
 
 EVOLUTION_RUN_COLUMNS = [
@@ -330,13 +335,14 @@ def parse_pluto_files(
         fields["repetition"] = pd.to_numeric(fields["repetition"])
         fields["seconds"] = pd.to_numeric(fields["seconds"])
         for line_index, record in fields.iterrows():
-            name_parts = record["executable"].split(".")
+            name = EXECUTABLE_NAME.match(record["executable"])
+            if not name:
+                continue
             rows.append(
                 {
-                    "benchmark": name_parts[0],
-                    "compiler": name_parts[-2] if len(name_parts) >= 2 else "",
-                    "transformed": len(name_parts) > 1
-                    and name_parts[1] == "pluto",
+                    "benchmark": name["benchmark"],
+                    "compiler": name["compiler"],
+                    "transformed": bool(name["transformed"]),
                     "repetition": record["repetition"],
                     "seconds": record["seconds"],
                     "source": str(path.relative_to(root)),
