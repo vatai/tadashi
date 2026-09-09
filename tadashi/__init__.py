@@ -29,6 +29,9 @@ class TrEnum(StrEnum):
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
 
+    def __repr__(self):
+        return f'"{self}"'
+
 
 # Format
 FORMAT = "[%(filename)s:%(lineno)s - %(name)s::%(funcName)s() ] %(message)s"
