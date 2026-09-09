@@ -3,11 +3,23 @@
 The analysis tools use pandas, NumPy, and matplotlib. They analyze benchmark
 timings and search progress; `.stat` files and job-system data are ignored.
 
-Run both collection and reporting from this directory:
+The data is produced on Fugaku, which has none of those packages, so the logs
+are packed there and analysed elsewhere. On Fugaku:
 
 ```sh
-make analyze
+examples/evaluation/pack_results.sh
 ```
+
+Then, from this directory on the machine doing the analysis:
+
+```sh
+make data      # scp the tarballs from fugaku and extract them here
+make analyze   # collect_results.py, then report_results.py
+```
+
+`pack_results.sh` also writes `tadashi-check.tgz`, the correctness verdicts of
+the check sweep; those belong in `check/` and are committed to the repo, not fed
+to the analysis.
 
 `collect_results.py` scans the extracted data recursively and writes normalized
 CSV files to `analysis/`:
