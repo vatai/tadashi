@@ -1,9 +1,13 @@
+FUGAKU ?= fugaku
+TARBALLS = tadashi-results.tgz ml4t-results.tgz tadashi-check.tgz
+
 data:
-	scp fugaku:tadashi-results.tgz fugaku:ml4t-results.tgz .
+	scp $(addprefix $(FUGAKU):,$(TARBALLS)) .
 	tar xvf tadashi-results.tgz
 	tar xvf ml4t-results.tgz
-	mkdir evo
+	mkdir -p evo
 	mv st-evo mt-evo evo
+	tar xvf tadashi-check.tgz -C check
 
 analyze:
 	python3 collect_results.py

@@ -13,13 +13,13 @@ examples/evaluation/pack_results.sh
 Then, from this directory on the machine doing the analysis:
 
 ```sh
-make data      # scp the tarballs from fugaku and extract them here
+make data      # scp the three tarballs from fugaku (override with FUGAKU=<host>) and extract them
 make analyze   # collect_results.py, then report_results.py
 ```
 
-`pack_results.sh` also writes `tadashi-check.tgz`, the correctness verdicts of
-the check sweep; those belong in `check/` and are committed to the repo, not fed
-to the analysis.
+`tadashi-check.tgz` holds the correctness verdicts of the check sweep; `make
+data` extracts it into `check/`, where they are committed to the repo. They are
+read by `main.py`, not by the analysis scripts.
 
 `collect_results.py` scans the extracted data recursively and writes normalized
 CSV files to `analysis/`:
