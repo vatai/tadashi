@@ -38,8 +38,8 @@ def split(scop: Scop, split_idx: int):
     scop.ptr_ccscop.current_node = tadashi_split(scop.ptr_ccscop.current_node, split_idx)
 
 @cython.ccall
-def scale(scop: Scop, scale: int):
-    scop.ptr_ccscop.current_node = tadashi_scale(scop.ptr_ccscop.current_node, scale)
+def scale(scop: Scop, val: int):
+    scop.ptr_ccscop.current_node = tadashi_scale(scop.ptr_ccscop.current_node, val)
 
 @cython.ccall
 def full_shift_val(scop: Scop, val: int):

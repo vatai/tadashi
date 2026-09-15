@@ -1,20 +1,52 @@
 #!/bin/env python
 
+from __future__ import annotations
+
 import abc
+import argparse
 import atexit
 import copy
 import datetime
 import logging
+import math
 import os
 import re
+import shutil
+import socket
 import tempfile
-from collections import namedtuple
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, run
 from typing import Optional
 
+from . import TrEnum, translators
 from .scop import Scop
-from .translators import Pet, Polly, Translator
+from .translators import Pet, Translator
+
+try:
+    if not shutil.which("mpirun"):
+        raise ImportError("No mpirun")
+    mpi_vars = [
+        "OMPI_COMM_WORLD_RANK",  # Open MPI
+        "PMI_RANK",  # MPICH / Intel MPI / Slurm
+        "PMIX_RANK",  # Fugaku
+        "I_MPI_MPIRUN",  # Intel MPI specific
+        "MPI_LOCALRANKID",  # General MPI
+    ]
+
+    if all(os.getenv(var) is None for var in mpi_vars):
+        raise ImportError("Not in mpirun/mpiexec")
+
+    proc = run(["mpirun", "--version"], capture_output=True)
+    if "FUJITSU MPI Library" in proc.stdout.decode():
+        ld_preload = "/usr/lib/FJSVtcs/ple/lib64/libpmix.so"
+        if ld_preload not in os.getenv("LD_PRELOAD"):
+            raise ImportError()
+
+    from mpi4py.futures import MPIPoolExecutor
+
+    MPI_AVAILABLE = True
+except ImportError:
+    MPI_AVAILABLE = False
 
 
 class App(abc.ABC):
@@ -25,6 +57,9 @@ class App(abc.ABC):
 
     user_compiler_options: list[str]
     """User compiler options are passed to the compilation command."""
+
+    translator: Optional[Translator]
+    """Translator used to extract and transform SCoPs."""
 
     ephemeral: bool = False
     """Ephemeral, i.e. short lived apps.
@@ -100,9 +135,11 @@ class App(abc.ABC):
         return rv
 
     def transform_list(self, transformation_list: list) -> None:
-        for si, ni, *tr in transformation_list:
+        for si, ni, tr, *args in transformation_list:
             node = self.scops[si].schedule_tree[ni]
-            node.transform(*tr)
+            if isinstance(tr, str):
+                tr = TrEnum(tr)
+            node.transform(tr, *args)
 
     def reset_scops(self):
         for scop in self.scops:
@@ -205,6 +242,47 @@ class App(abc.ABC):
             proc = run(cmd, capture_output=True, *args, **kwargs)
             results.append(self.extract_runtime(proc))
         return min(results)
+
+    def transform_measure(self, trs: list, safe=True):
+        # ..todo:: remove
+        hostname = socket.gethostname()
+        self.logger.debug(f"[{hostname}]: {trs=}")
+        try:
+            self.reset_scops()
+            self.transform_list(trs)
+            tapp = self.generate_code()
+            tapp.compile()
+            wtime = tapp.measure()
+        except Exception as e:
+            if not safe:
+                raise
+            self.logger.critical(f"Exception ({type(e)}):\n{e}\ntrs={trs}\n")
+            wtime = math.inf
+        return wtime, hostname
+
+    def transform_measure_mpi(
+        self,
+        trs_list: list[list],
+        executor: MPIPoolExecutor = None,
+    ) -> list:
+        if not MPI_AVAILABLE:
+            msg = "Can't call tranform_measure_mpi when MPI is not available."
+            raise ValueError(msg)
+        results = executor.map(self.transform_measure, trs_list)
+        return results
+
+    def search_for(self, transformation: str | TrEnum) -> list[list[int, int, TrEnum]]:
+        if isinstance(transformation, TrEnum):
+            tr = transformation
+        else:
+            tr = TrEnum(transformation.lower())
+        ret = []
+        for si, scop in enumerate(self.scops):
+            for ni, node in enumerate(scop.schedule_tree):
+                av = node.available_transformations
+                if tr in av:
+                    ret.append([si, ni, tr])
+        return ret
 
     def __init__(
         self,
@@ -339,6 +417,37 @@ class Polybench(App):
     benchmark: str  # path to the benchmark dir from base
     base: Path  # the dir where polybench was unpacked
 
+    @staticmethod
+    def args_parser(
+        parser: Optional[argparse.ArgumentParser] = None,
+    ) -> argparse.ArgumentParser:
+        """Create a parser which parses a benchmark, base, dataset, and oflag"""
+        if not parser:
+            parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--translator", type=str, choices=["Pet", "Polly"], default="Pet"
+        )
+        parser.add_argument("--benchmark", type=str, default="stencils/jacobi-1d")
+        parser.add_argument("--base", type=str, default="examples/polybench")
+        parser.add_argument("--dataset", type=str, default="EXTRALARGE")
+        parser.add_argument("--oflag", type=int, default=3)
+        parser.add_argument(
+            "--allow-omp", action=argparse.BooleanOptionalAction, default=True
+        )
+        return parser
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> Polybench:
+        translator = getattr(translators, args.translator)
+        compiler_options = [f"-D{args.dataset}_DATASET", f"-O{args.oflag}"]
+        if args.allow_omp:
+            compiler_options.append("-fopenmp")
+        return cls(
+            args.benchmark,
+            compiler_options=compiler_options,
+            translator=translator(),
+        )
+
     def _get_benchmark(self, benchmark: str) -> str:
         target = Path(benchmark).with_suffix(".c").name
         for c_file in self.base.glob("**/*.c"):
@@ -438,3 +547,11 @@ class Polybench(App):
         except IndexError as e:
             print(f"App probaly crashed: {e}")
         return result
+
+    @property
+    def json_paths(self) -> list[path]:
+        """The `json_paths` list forwarded from `App.translator` (both for
+        compatibility and convenience reasons)."""
+        if self.translator == None:
+            return None
+        return self.translator.json_paths

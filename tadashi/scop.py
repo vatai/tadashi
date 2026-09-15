@@ -63,10 +63,10 @@ class Node:
     parent_idx = cython.declare(int, visibility="public")
     index = cython.declare(int, visibility="public")
     label = cython.declare(str, visibility="public")
-    location = cython.declare(list[int], visibility="public")
+    location = cython.declare(list, visibility="public")
     loop_signature = cython.declare(list, visibility="public")
     expr = cython.declare(str, visibility="public")
-    children_idx = cython.declare(list[str], visibility="public")
+    children_idx = cython.declare(list[int], visibility="public")
 
     def transform(self, tr: TrEnum, *args) -> bool:
         """Execute the selected transformation.
@@ -172,7 +172,10 @@ class Node:
         result = []
         for k, tr in TRANSFORMATIONS.items():
             if tr.valid(self):
-                result.append(k)
+                args = self.get_args(k, -9, 9)
+                nargs = len(tr.arg_help)
+                if all([len(t) == nargs for t in args]):
+                    result.append(k)
         return result
 
     def valid_args(self, tr: TrEnum, *args) -> bool:  # todo add test
@@ -197,6 +200,7 @@ class Node:
 
 
 TRANSFORMATIONS = {}
+INVTRANSFORMATIONS = {}
 
 
 def register(cls):
@@ -207,6 +211,7 @@ def register(cls):
     funcname = CAMEL_TO_SNAKE.sub("_", funcname).lower()
     cls.transform = getattr(w, funcname)
     TRANSFORMATIONS[TrEnum(funcname)] = cls
+    INVTRANSFORMATIONS[cls] = TrEnum(funcname)
     return cls
 
 
@@ -216,10 +221,20 @@ class TransformInfo:
     arg_help: list[str] = []
     """Help string describing the arg."""
 
-    @staticmethod
-    def valid(node: Node) -> bool:
+    @classmethod
+    def _has_args(cls, node: Node):
+        args = node.get_args(INVTRANSFORMATIONS[cls], -9, 9)
+        nargs = len(cls.arg_help)
+        return bool(args) and all([len(t) == nargs for t in args])
+
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         """Check that the transformation is valid on the node."""
-        return node.node_type == NodeType.BAND
+        if node.node_type != NodeType.BAND:
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
     @staticmethod
     def valid_args(node: Node, *arg, **kwargs) -> bool:
@@ -262,9 +277,13 @@ def _tilable(node: Node, dim: int) -> bool:  # todo: try to move to Node
 class Tile1DInfo(TransformInfo):
     arg_help = ["Tile size"]
 
-    @staticmethod
-    def valid(node: Node):
-        return _tilable(node, 1)
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if not _tilable(node, 1):
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
     @staticmethod
     def valid_args(node, size1):
@@ -281,9 +300,13 @@ class Tile1DInfo(TransformInfo):
 class Tile2DInfo(TransformInfo):
     arg_help = ["Size1", "Size2"]
 
-    @staticmethod
-    def valid(node: Node):
-        return _tilable(node, 2)
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if not _tilable(node, 2):
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
     @staticmethod
     def valid_args(node, size1, size2):
@@ -301,9 +324,13 @@ class Tile2DInfo(TransformInfo):
 class Tile3DInfo(TransformInfo):
     arg_help = ["Size1", "Size2", "Size3"]
 
-    @staticmethod
-    def valid(node: Node):
-        return _tilable(node, 3)
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if not _tilable(node, 3):
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
     @staticmethod
     def valid_args(node, size1, size2, size3):
@@ -320,45 +347,60 @@ class Tile3DInfo(TransformInfo):
 
 @register
 class InterchangeInfo(TransformInfo):
-    @staticmethod
-    def valid(node: Node):
-        return (
-            node.node_type == NodeType.BAND
-            and len(node.children) == 1
-            and node.children[0].node_type == NodeType.BAND
-        )
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        if len(node.children) != 1:
+            return False
+        if node.children[0].node_type != NodeType.BAND:
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
 
 @register
 class FullFuseInfo(TransformInfo):
-    @staticmethod
-    def valid(node: Node):
-        return (
-            node.node_type == NodeType.SEQUENCE or node.node_type == NodeType.SET
-        ) and all(ch.children[0].node_type == NodeType.BAND for ch in node.children)
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if node.node_type != NodeType.SEQUENCE and node.node_type != NodeType.SET:
+            return False
+        if any(ch.children[0].node_type != NodeType.BAND for ch in node.children):
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
 
 @register
 class FuseInfo(TransformInfo):
     arg_help = ["Index of first loop to fuse", "Index of second loop to fuse"]
 
-    @staticmethod
-    def valid(node: Node):
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
             return False
         if len(node.children) < 2:
             return False
+        if not cls._has_args(node):
+            return False
         return True
 
     @staticmethod
+    def _child_starts_with_band(node: Node, child_idx: int):
+        if not TransformInfo._is_valid_child_idx(node, child_idx):
+            return False
+        child = node.children[child_idx]
+        if not child.children:
+            return False
+        return child.children[0].node_type == NodeType.BAND
+
+    @staticmethod
     def valid_args(node: Node, loop_idx1: int, loop_idx2: int):
-        if not TransformInfo._is_valid_child_idx(node, loop_idx1):
+        if not FuseInfo._child_starts_with_band(node, loop_idx1):
             return False
-        if not TransformInfo._is_valid_child_idx(node, loop_idx2):
-            return False
-        if node.children[loop_idx1].children[0].node_type != NodeType.BAND:
-            return False
-        if node.children[loop_idx2].children[0].node_type != NodeType.BAND:
+        if not FuseInfo._child_starts_with_band(node, loop_idx2):
             return False
         return True
 
@@ -368,18 +410,21 @@ class FuseInfo(TransformInfo):
         args = []
         for arg1 in range(nc):
             for arg2 in range(arg1 + 1, nc):
-                args.append([arg1, arg2])
+                if FuseInfo.valid_args(node, arg1, arg2):
+                    args.append([arg1, arg2])
         return args
 
 
 @register
 class FullSplitInfo(TransformInfo):
     # TODO -> split sequence!
-    @staticmethod
-    def valid(node: Node):
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
             return False
         if node.parent.node_type != NodeType.BAND:
+            return False
+        if not cls._has_args(node):
             return False
         return True
 
@@ -388,8 +433,10 @@ class FullSplitInfo(TransformInfo):
 class SplitInfo(TransformInfo):
     arg_help = ["Index where the sequence should be split"]
 
-    @staticmethod
-    def valid(node: Node):
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if not cls._has_args(node):
+            return False
         if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
             return False
         if len(node.children) < 2:
@@ -412,13 +459,18 @@ class SplitInfo(TransformInfo):
         return [LowerUpperBound(lower=1, upper=nc - 1)]
 
 
-# @register
+# Ignore ScaleInfo. It is not yet implemented.
+@register
 class ScaleInfo(TransformInfo):
-    arg_help = []
+    arg_help = ["Value"]
 
-    @staticmethod
-    def valid(node: Node):
-        return node.node_type != NodeType.BAND
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
 
     @staticmethod
     def available_args(node: Node) -> list:
@@ -452,12 +504,14 @@ class PartialShiftValInfo(TransformInfo):
 class FullShiftVarInfo(TransformInfo):
     arg_help = ["Variable index", "Coefficient"]
 
-    @staticmethod
-    def valid(node: Node) -> bool:
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
         args = FullShiftVarInfo.available_args(node)
         if not args:
+            return False
+        if not cls._has_args(node):
             return False
         return bool(args[0])
 
@@ -505,12 +559,14 @@ class PartialShiftVarInfo(TransformInfo):
 class FullShiftParamInfo(TransformInfo):
     arg_help = ["Parameter index", "Coefficient"]
 
-    @staticmethod
-    def valid(node: Node) -> bool:
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
         args = FullShiftParamInfo.available_args(node)
         if not args:
+            return False
+        if not cls._has_args(node):
             return False
         return bool(args[0])
 
@@ -533,12 +589,14 @@ class FullShiftParamInfo(TransformInfo):
 class PartialShiftParamInfo(TransformInfo):
     arg_help = ["Statement index", "Parameter index", "Coefficient"]
 
-    @staticmethod
-    def valid(node: Node) -> bool:
+    @classmethod
+    def valid(cls, node: Node) -> bool:
         if node.node_type != NodeType.BAND:
             return False
         args = PartialShiftParamInfo.available_args(node)
         if not args:
+            return False
+        if not cls._has_args(node):
             return False
         return bool(args[0])
 

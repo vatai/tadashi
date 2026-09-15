@@ -300,8 +300,8 @@ class Pet(Translator):
 @cython.cclass
 class Polly(Translator):
     compiler: str
-    json_paths: list[Path]
     tmpdir: Path
+    json_paths = cython.declare(list[Path], visibility="public")
 
     def __init__(self, compiler: str = "clang"):
         super().__init__()
@@ -315,6 +315,10 @@ class Polly(Translator):
     def __setstate__(self, state):
         self.compiler = state["compiler"]
         super().__setstate__(state)
+
+    def __copy__(self):
+        cls = self.__class__
+        return cls(self.compiler)
 
     def _run(self, cmd: list[str], description: str):
         """cmd is command list, description is verb-ing"""
@@ -335,10 +339,6 @@ class Polly(Translator):
             raise ValueError("\n".join(msg))
         return proc
 
-    @staticmethod
-    def _sanitize(options: list[str]) -> list[str]:
-        return options
-
     def _polly(self) -> list[str]:
         opt_cmd = ["opt"]
         flags = ["-load=LLVMPolly.so", "/dev/null", "-o=/dev/null"]
@@ -350,10 +350,10 @@ class Polly(Translator):
         return [
             f"-polly-import-jscop-dir={self.tmpdir}",
             "-aa-pipeline=basic-aa",
-            "-polly-codegen",
-            # "-polly-use-llvm-names",
+            "-polly-use-llvm-names",  # removed 1/3
             *options,
-            # "-polly-process-unprofitable",
+            "-polly-process-unprofitable",  # removed 2/3
+            "-polly-codegen",  # moved between _import_jscop() and _polly_options() 3/3
         ]
 
     def _get_pre_polly_bc(self, options: list[str]) -> Path:
@@ -362,8 +362,8 @@ class Polly(Translator):
             return pre_polly_bc
         compile_O0_bc = self.tmpdir / self.source.with_suffix(".O0.bc").name
         compiler_opts = self._compiler_options()
-        sanitized = self._sanitize(options)
-        compile_cmd = [self.compiler, *compiler_opts, *sanitized, "-c", "-emit-llvm"]
+        # *options befor *compiler_opts is IMPORTANT!
+        compile_cmd = [self.compiler, *options, *compiler_opts, "-c", "-emit-llvm"]
         compile_cmd += [str(self.source), "-o", str(compile_O0_bc)]
         self._run(compile_cmd, "compiling with O0")
         opt_cmd = self._polly() + ["-polly-canonicalize"]
@@ -455,6 +455,8 @@ class Polly(Translator):
 
     def legal(self) -> bool:
         input_path = str(self._get_pre_polly_bc([]))
+        for scop_idx, jscop_path in enumerate(self.json_paths):
+            self._update_jscop(self.tmpdir / jscop_path, scop_idx)
 
         opts = [
             input_path,
@@ -487,7 +489,7 @@ class Polly(Translator):
 
         opt_cmd = [
             "opt",
-            "-O3",
+            "-O3",  # this should be a sanitized version of `*options`
             post_polly_bc,
             f"-o={str(output)}",
         ]

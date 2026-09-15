@@ -5,7 +5,7 @@ from random import choice, seed
 import tadashi
 from tadashi.apps import Simple
 
-seed(1234)
+seed(42)
 
 dir_path = Path(__file__).parent
 examples_path = dir_path if dir_path.name == "examples" else "examples"
@@ -14,7 +14,8 @@ print(app)
 
 node = app.scops[0].schedule_tree[1]
 print(f"{node=}")
-tr = choice(node.available_transformations)
+tr = tadashi.TrEnum.PARTIAL_SHIFT_PARAM
+assert tr in node.available_transformations
 print(f"{tr=}")
 # output:
 
