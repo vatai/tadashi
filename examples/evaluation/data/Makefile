@@ -7,6 +7,7 @@ data:
 	tar xvf ml4t-results.tgz
 	mkdir -p evo
 	mv st-evo mt-evo evo
+	mkdir -p check
 	tar xvf tadashi-check.tgz -C check
 
 analyze:
@@ -17,6 +18,6 @@ test:
 	python3 -m unittest -v test_analysis.py
 
 clean:
-	rm -rf `find -maxdepth 1 -mindepth 1 -type d` *.tgz
+	rm -rf `find -maxdepth 1 -mindepth 1 -type d -not -name check` *.tgz
 
 .PHONY: data analyze test clean
