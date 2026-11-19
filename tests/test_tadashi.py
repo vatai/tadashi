@@ -8,6 +8,13 @@ from tadashi.apps import Polybench, Simple
 
 
 class TestTadashi(unittest.TestCase):
+    def test_fuse_available_args_are_valid(self):
+        app = Simple(Path(__file__).parent.parent / "examples/inputs/shifts.c")
+        node = app.scops[0].schedule_tree[8]
+
+        self.assertEqual([], node.available_args(TrEnum.FUSE))
+        self.assertFalse(node.valid_args(TrEnum.FUSE, 0, 1))
+
     def test_get_args(self):
         app = Simple(Path(__file__).parent.parent / "examples/inputs/shifts.c")
         node = app.scops[0].schedule_tree[3]

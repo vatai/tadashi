@@ -465,12 +465,13 @@ tadashi_split(__isl_take isl_schedule_node *node, int split_idx) {
 }
 
 isl_schedule_node *
-tadashi_scale(isl_schedule_node *node, long scale) {
+tadashi_scale(isl_schedule_node *node, long val) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  node = isl_schedule_node_band_scale(
-      node, isl_multi_val_from_val_list(
-                isl_schedule_node_band_get_space(node),
-                isl_val_list_from_val(isl_val_int_from_si(ctx, scale))));
+  isl_space *space = isl_schedule_node_band_get_space(node);
+  isl_val *v = isl_val_int_from_si(ctx, val);
+  isl_val_list *vl = isl_val_list_from_val(v);
+  isl_multi_val *mv = isl_multi_val_from_val_list(space, vl);
+  node = isl_schedule_node_band_scale(node, mv);
   return node;
 }
 
@@ -531,10 +532,11 @@ tadashi_full_shift_val(__isl_take isl_schedule_node *node, long val) {
   isl_multi_union_pw_aff *mupa;
   isl_union_pw_aff *upa;
   isl_union_set *domain;
-  isl_id *id;
+  isl_id *id = NULL;
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   mupa = isl_schedule_node_band_get_partial_schedule(node);
-  id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
+  if (isl_multi_union_pw_aff_has_tuple_id(mupa, isl_dim_out))
+    id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
   assert(isl_multi_union_pw_aff_dim(mupa, isl_dim_out) == 1);
   upa = isl_multi_union_pw_aff_get_at(mupa, 0);
   mupa = isl_multi_union_pw_aff_free(mupa);

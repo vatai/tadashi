@@ -1,9 +1,10 @@
 from itertools import product
 
-from tadashi import TRANSFORMATIONS, LowerUpperBound, TrEnum
-
 import mcts.node_node
 from mcts import config
+
+from tadashi import TrEnum
+from tadashi.scop import TRANSFORMATIONS, LowerUpperBound
 
 from .base import MCTSNode
 
@@ -16,7 +17,7 @@ class MCTSNode_Params(MCTSNode):
         node = self.app.scops[scop_idx].schedule_tree[self.parent.action]
         if self.action == TrEnum.SET_PARALLEL:
             return [[0]]
-        tiles = [TrEnum.TILE1D, TrEnum.TILE2D, TrEnum.TILE3D]
+        tiles = [TrEnum.TILE_1D, TrEnum.TILE_2D, TrEnum.TILE_3D]
         if self.action in tiles:
             rep = 1 + tiles.index(self.action)
             return [[2**x] * rep for x in range(5, 10)]

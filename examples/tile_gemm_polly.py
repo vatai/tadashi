@@ -18,6 +18,7 @@ gemm = Polybench(
 )
 
 gemm.compile()
+print(f"==== num scops: {len(gemm.scops)}")
 print(f"==== original: {gemm.measure()=}")
 s = gemm.scops[1]
 for tile_size in [19, 20, 21]:

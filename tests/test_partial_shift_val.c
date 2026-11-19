@@ -3,20 +3,20 @@
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
-///   #define max(x,y)    ((x) > (y) ? (x) : (y))
+///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   for(int _tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
 ///     {
-///       for(int _tadashi_1 = 0; _tadashi_1 < N; _tadashi_1 += 1)
-///         {
-///           if (_tadashi_1 >= 42)
-///             for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///               A[_tadashi_0][_tadashi_1 - 42] = (A[_tadashi_0][_tadashi_1 - 42] + (A[_tadashi_0 - 1][_tadashi_1 - 42] * (_tadashi_2)));
-///           for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///             A[_tadashi_0][_tadashi_1] = ((A[_tadashi_0][_tadashi_1] + A[_tadashi_0 - 1][_tadashi_1]) + (_tadashi_2));
-///         }
-///       for(int _tadashi_1 = max(42, N); _tadashi_1 <= N + 41; _tadashi_1 += 1)
+///       for(int _tadashi_1 = 0; _tadashi_1 <= min(41, N - 1); _tadashi_1 += 1)
 ///         for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
-///           A[_tadashi_0][_tadashi_1 - 42] = (A[_tadashi_0][_tadashi_1 - 42] + (A[_tadashi_0 - 1][_tadashi_1 - 42] * (_tadashi_2)));
+///           A[_tadashi_0][_tadashi_1] = ((A[_tadashi_0][_tadashi_1] + A[_tadashi_0 - 1][_tadashi_1]) + (_tadashi_2));
+///       for(int _tadashi_1 = 42; _tadashi_1 <= N + 41; _tadashi_1 += 1)
+///         {
+///           for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
+///             A[_tadashi_0][_tadashi_1 - 42] = (A[_tadashi_0][_tadashi_1 - 42] + (A[_tadashi_0 - 1][_tadashi_1 - 42] * (_tadashi_2)));
+///           if (N >= _tadashi_1 + 1)
+///             for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
+///               A[_tadashi_0][_tadashi_1] = ((A[_tadashi_0][_tadashi_1] + A[_tadashi_0 - 1][_tadashi_1]) + (_tadashi_2));
+///         }
 ///     }
 /// #pragma endscop
 /// }

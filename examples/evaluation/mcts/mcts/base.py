@@ -20,7 +20,7 @@ class MCTSNode:
 
     # TODO: make this config
     def select_child(self):
-        return self.select_child_random()
+        return self.select_child_PUCT()
 
     def select_child_random(self):
         child = random.choice(self.children)
@@ -28,38 +28,29 @@ class MCTSNode:
 
     # TODO: add policy component
     def select_child_PUCT(self):
-        """Implement Upper Confidence Bound sampling strategy"""
-        # return random.choice(self.children)
-        # TODO: consider softmax
+        """Select a child using a uniform-prior PUCT score."""
+        if not self.children:
+            raise ValueError("cannot select a child from an empty node")
+
         exploration_constant = 1
-        best_score = -1
+        policy_child = 1 / len(self.children)
         best_child = self.children[0]
+        best_score = -math.inf
+
         for child in self.children:
             if child._number_of_visits == 0:
                 return child
-            else:
-                # UCB
-                # UCT(node) = Q(node) + C * sqrt(ln(N(parent))/N(node))
-                # Q(node): Average reward (win rate) of the node (exploitation).
-                # N(parent): Number of visits to the parent node.
-                # N(node): Number of visits to the node.
-                # C: Exploration constant (balances exploration vs. exploitation).
-                # can start from C=1
-                exploitation_term = child.speedup / child._number_of_visits
-                # exploration_term = exploration_constant * math.sqrt(math.log(self._number_of_visits) / child._number_of_visits)
-                # ucb_score = exploitation_term + exploration_term
-                # PUCT
-                # adding a component from policy
-                policy_child = 1 / len(self.children)
-                exploitation_term = policy_child * (
-                    math.sqrt(self._number_of_visits) / (1 + child._number_of_visits)
-                )
-                ucb_score = exploitation_term + exploration_constant * exploitation_term
-                if ucb_score > best_score:
-                    best_score = ucb_score
-                    best_child = child
-        # print("SCORES:",scores)
-        # child = random.choice(self.children)
+
+            exploration_term = (
+                exploration_constant
+                * policy_child
+                * (math.sqrt(self._number_of_visits) / (1 + child._number_of_visits))
+            )
+            puct_score = child.speedup + exploration_term
+            if puct_score > best_score:
+                best_score = puct_score
+                best_child = child
+
         return best_child
 
     def get_initial_time(self):

@@ -15,8 +15,8 @@ plt.style.use("seaborn-v0_8-paper")
 sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
 
 plt.rcParams["text.latex.preamble"] = (
-    # r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
-    r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
+    r"\usepackage{libertine}\usepackage{zi4}\usepackage{newtxmath}"
+    # r"\usepackage{newtxtext,bm}\usepackage[cmintegrals]{newtxmath}"
 )
 
 # begin SC subbmision code
@@ -121,7 +121,7 @@ def main(datadir, scale_factor):
     i = 0
     ax_objs = []
     directory = Path(datadir)
-    json_files = list(sorted(directory.glob("*.jsonl")))
+    json_files = list(sorted(directory.glob("**/*.jsonl")))
     to_csv(json_files, directory.with_suffix(".csv"))
     filter = [
         "3mm",
@@ -129,6 +129,8 @@ def main(datadir, scale_factor):
         "atax",
         "bicg",
         "covariance",
+        "correlation",
+        "heat-3d",
         "deriche",
         "durbin",
         "fdtd-2d",
@@ -172,7 +174,7 @@ def main(datadir, scale_factor):
             step="post",
             color="#74a892",  # colors was here
         )
-        ax.set_xlim(0, 2000)
+        ax.set_xlim(0, 1000)
         ax.set_ylim(0, 100)
 
         # make background transparent
