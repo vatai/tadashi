@@ -74,6 +74,11 @@ def set_parallel(scop: Scop, num_threads: int):
     scop.ptr_ccscop.current_node = tadashi_set_parallel(scop.ptr_ccscop.current_node, num_threads)
 
 @cython.ccall
+def reorder(scop: Scop, positions: list):
+    pos_bytes = ",".join(map(str, positions)).encode()
+    scop.ptr_ccscop.current_node = tadashi_reorder(scop.ptr_ccscop.current_node, pos_bytes)
+
+@cython.ccall
 def set_parallel_private(scop: Scop, num_threads: int, private_count: int):
     scop.ptr_ccscop.current_node = tadashi_set_parallel_private(scop.ptr_ccscop.current_node, num_threads, private_count)
 
@@ -84,6 +89,10 @@ def set_vector(scop: Scop):
 @cython.ccall
 def set_guard(scop: Scop):
     scop.ptr_ccscop.current_node = tadashi_set_guard(scop.ptr_ccscop.current_node)
+
+@cython.ccall
+def set_guard_param(scop: Scop, param_idx: int):
+    scop.ptr_ccscop.current_node = tadashi_set_guard_param(scop.ptr_ccscop.current_node, param_idx)
 
 @cython.ccall
 def limit_param(scop: Scop, param_idx: int, limit: int):

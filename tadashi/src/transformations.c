@@ -1,5 +1,6 @@
 /** @file */
 #include <assert.h>
+#include <stdlib.h>
 #include <isl/ast_type.h>
 #include <limits.h>
 
@@ -372,6 +373,24 @@ tadashi_valid_full_split(__isl_keep isl_schedule_node *node) {
   return 1;
 }
 
+/* If "node" (a sequence) sits under a filter of an outer sequence,
+ * splice it into the outer sequence (flatten nested sequences). */
+static __isl_give isl_schedule_node *
+_splice_into_outer_sequence(__isl_take isl_schedule_node *node) {
+  if (isl_schedule_node_has_parent(node) != isl_bool_true)
+    return node;
+  node = isl_schedule_node_parent(node);
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_filter)
+    return isl_schedule_node_first_child(node);
+  isl_size pos = isl_schedule_node_get_child_position(node);
+  node = isl_schedule_node_parent(node);
+  if (isl_schedule_node_get_type(node) != isl_schedule_node_sequence) {
+    node = isl_schedule_node_child(node, pos);
+    return isl_schedule_node_first_child(node);
+  }
+  return isl_schedule_node_sequence_splice_child(node, pos);
+}
+
 __isl_give isl_schedule_node *
 tadashi_full_split(__isl_take isl_schedule_node *node) {
   assert(tadashi_valid_full_split(node));
@@ -392,7 +411,7 @@ tadashi_full_split(__isl_take isl_schedule_node *node) {
     node = isl_schedule_node_parent(node);
   }
   isl_multi_union_pw_aff_free(mupa);
-  return node;
+  return _splice_into_outer_sequence(node);
 }
 
 /**
@@ -661,6 +680,30 @@ tadashi_set_guard(__isl_take isl_schedule_node *node) {
   return isl_schedule_node_first_child(node);
 }
 
+/* Reorder the children of a sequence by inserting a band of constant
+ * per-statement values above it ("positions" = comma-separated new
+ * position of each child). */
+__isl_give isl_schedule_node *
+tadashi_reorder(__isl_take isl_schedule_node *node, const char *positions) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_size n = isl_schedule_node_n_children(node);
+  isl_union_pw_aff *upa = isl_union_pw_aff_empty_ctx(ctx);
+  const char *s = positions;
+  for (isl_size i = 0; i < n; i++) {
+    long pos = strtol(s, (char **)&s, 10);
+    if (*s == ',')
+      s++;
+    node = isl_schedule_node_child(node, i);
+    isl_union_set *filter = isl_schedule_node_filter_get_filter(node);
+    isl_val *v = isl_val_int_from_si(ctx, pos);
+    upa = isl_union_pw_aff_union_add(
+        upa, isl_union_pw_aff_val_on_domain(filter, v));
+    node = isl_schedule_node_parent(node);
+  }
+  isl_multi_union_pw_aff *mupa = isl_multi_union_pw_aff_from_union_pw_aff(upa);
+  return isl_schedule_node_insert_partial_schedule(node, mupa);
+}
+
 __isl_give isl_schedule_node *
 tadashi_set_parallel_private(__isl_take isl_schedule_node *node,
                              int num_threads, int private_count) {
@@ -668,6 +711,24 @@ tadashi_set_parallel_private(__isl_take isl_schedule_node *node,
   char pragma[LINE_MAX];
   sprintf(pragma, "pragma_parallel_%d_%d", num_threads, private_count);
   return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
+}
+
+/* Like set_guard, but only with the constraints involving one
+ * parameter (CLooG omits guard conjuncts enforced by the loops). */
+__isl_give isl_schedule_node *
+tadashi_set_guard_param(__isl_take isl_schedule_node *node, int param_idx) {
+  isl_union_set *domain = isl_schedule_node_get_domain(node);
+  isl_set *params = isl_union_set_params(domain);
+  isl_size n = isl_set_dim(params, isl_dim_param);
+  for (isl_size j = 0; j < n; j++)
+    if (j != param_idx)
+      params = isl_set_drop_constraints_involving_dims(params, isl_dim_param,
+                                                       j, 1);
+  isl_set *guard = isl_set_from_params(params);
+  isl_size depth = isl_schedule_node_get_schedule_depth(node);
+  guard = isl_set_add_dims(guard, isl_dim_set, depth);
+  node = isl_schedule_node_insert_guard(node, guard);
+  return isl_schedule_node_first_child(node);
 }
 
 __isl_give isl_schedule_node *

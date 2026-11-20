@@ -638,6 +638,25 @@ class PartialShiftParamInfo(TransformInfo):
 
 
 @register
+class ReorderInfo(TransformInfo):
+    arg_help = ["New child positions"]
+
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if node.node_type not in [NodeType.SEQUENCE, NodeType.SET]:
+            return False
+        return len(node.children) >= 2
+
+    @staticmethod
+    def valid_args(node: Node, positions) -> bool:
+        return sorted(positions) == list(range(len(node.children)))
+
+    @staticmethod
+    def available_args(node: Node):
+        return [[list(range(len(node.children)))]]
+
+
+@register
 class SetParallelInfo(TransformInfo):
     arg_help = ["omp num_threads"]
 
@@ -667,6 +686,20 @@ class SetVectorInfo(TransformInfo):
 @register
 class SetGuardInfo(TransformInfo):
     pass
+
+
+@register
+class SetGuardParamInfo(TransformInfo):
+    arg_help = ["Parameter index"]
+
+    @staticmethod
+    def valid_args(node: Node, param_idx: int):
+        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
+
+    @staticmethod
+    def available_args(node: Node):
+        nps = [len(s["params"]) for s in node.loop_signature]
+        return [LowerUpperBound(lower=0, upper=min(nps))]
 
 
 @register

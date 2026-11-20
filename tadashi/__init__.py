@@ -27,10 +27,12 @@ class TrEnum(StrEnum):
     FULL_SHIFT_PARAM = auto()
     PARTIAL_SHIFT_PARAM = auto()
     FULL_SHIFT_BAND = auto()
+    REORDER = auto()
     SET_PARALLEL = auto()
     SET_PARALLEL_PRIVATE = auto()
     SET_VECTOR = auto()
     SET_GUARD = auto()
+    SET_GUARD_PARAM = auto()
     LIMIT_PARAM = auto()
     SET_LOOP_OPT = auto()
 
