@@ -115,7 +115,9 @@ class TestCcScop(unittest.TestCase):
             [3, tadashi.TrEnum.SET_PARALLEL, 1],
         ]
         scop.transform_list(transformations)
-        self.assertFalse(app.legal)
+        # The dep S[j,i]->S[j+1,i] is carried by the outer j band, so
+        # the inner band stays parallel after the -22*j shift.
+        self.assertTrue(app.legal)
         mod_app = app.generate_code(ensure_legality=False)
         mod_app.compile()
 

@@ -66,6 +66,10 @@ def partial_shift_param(scop: Scop, pa_idx: int, param_idx: int, coeff: int):
     scop.ptr_ccscop.current_node = tadashi_partial_shift_param(scop.ptr_ccscop.current_node, pa_idx, param_idx, coeff)
 
 @cython.ccall
+def full_shift_band(scop: Scop, coeff: int):
+    scop.ptr_ccscop.current_node = tadashi_full_shift_band(scop.ptr_ccscop.current_node, coeff)
+
+@cython.ccall
 def set_parallel(scop: Scop, num_threads: int):
     scop.ptr_ccscop.current_node = tadashi_set_parallel(scop.ptr_ccscop.current_node, num_threads)
 

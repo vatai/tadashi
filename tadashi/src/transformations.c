@@ -627,6 +627,26 @@ tadashi_partial_shift_param(__isl_take isl_schedule_node *node, int pa_idx,
 }
 
 __isl_give isl_schedule_node *
+tadashi_full_shift_band(__isl_take isl_schedule_node *node, long coeff) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_multi_union_pw_aff *mupa, *shift;
+  isl_id *id = NULL;
+  node = isl_schedule_node_first_child(node);
+  shift = isl_schedule_node_band_get_partial_schedule(node);
+  node = isl_schedule_node_parent(node);
+  shift = isl_multi_union_pw_aff_scale_val(shift,
+                                           isl_val_int_from_si(ctx, coeff));
+  mupa = isl_schedule_node_band_get_partial_schedule(node);
+  if (isl_multi_union_pw_aff_has_tuple_id(mupa, isl_dim_out))
+    id = isl_multi_union_pw_aff_get_tuple_id(mupa, isl_dim_out);
+  mupa = isl_multi_union_pw_aff_free(mupa);
+  shift = isl_multi_union_pw_aff_reset_tuple_id(shift, isl_dim_out);
+  if (id)
+    shift = isl_multi_union_pw_aff_set_tuple_id(shift, isl_dim_out, id);
+  return isl_schedule_node_band_shift(node, shift);
+}
+
+__isl_give isl_schedule_node *
 tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads) {
   isl_ctx *ctx = isl_schedule_node_get_ctx(node);
   char pragma[LINE_MAX];

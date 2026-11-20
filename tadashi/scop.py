@@ -586,6 +586,27 @@ class FullShiftParamInfo(TransformInfo):
 
 
 @register
+class FullShiftBandInfo(TransformInfo):
+    arg_help = ["Coefficient"]
+
+    @classmethod
+    def valid(cls, node: Node) -> bool:
+        if node.node_type != NodeType.BAND:
+            return False
+        if len(node.children) != 1:
+            return False
+        if node.children[0].node_type != NodeType.BAND:
+            return False
+        if not cls._has_args(node):
+            return False
+        return True
+
+    @staticmethod
+    def available_args(node: Node):
+        return [LowerUpperBound()]
+
+
+@register
 class PartialShiftParamInfo(TransformInfo):
     arg_help = ["Statement index", "Parameter index", "Coefficient"]
 

@@ -26,6 +26,7 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_VAR = auto()
     FULL_SHIFT_PARAM = auto()
     PARTIAL_SHIFT_PARAM = auto()
+    FULL_SHIFT_BAND = auto()
     SET_PARALLEL = auto()
     SET_LOOP_OPT = auto()
 

@@ -24,6 +24,7 @@ isl_schedule_node *tadashi_full_shift_var(isl_schedule_node * node, long var_idx
 isl_schedule_node *tadashi_partial_shift_var(isl_schedule_node * node, int pa_idx, long id_idx, long coeff);
 isl_schedule_node *tadashi_full_shift_param(isl_schedule_node * node, long param_idx, long coeff);
 isl_schedule_node *tadashi_partial_shift_param(isl_schedule_node * node, int pa_idx, long param_idx, long coeff);
+isl_schedule_node *tadashi_full_shift_band(isl_schedule_node * node, long coeff);
 isl_schedule_node *tadashi_set_parallel(isl_schedule_node * node, int num_threads);
 isl_schedule_node *tadashi_set_loop_opt(isl_schedule_node * node, int pos, int opt);
 
