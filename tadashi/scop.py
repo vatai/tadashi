@@ -655,6 +655,11 @@ class SetVectorInfo(TransformInfo):
 
 
 @register
+class SetGuardInfo(TransformInfo):
+    pass
+
+
+@register
 class LimitParamInfo(TransformInfo):
     arg_help = ["Parameter index", "Upper limit"]
 

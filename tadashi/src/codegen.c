@@ -433,6 +433,52 @@ print_iterator_declarations(__isl_take isl_printer *p, int max_iter_idx) {
   return p;
 }
 
+static int
+op_arg_is_iterator(__isl_keep isl_ast_expr *expr, int pos) {
+  isl_ast_expr *arg = isl_ast_expr_get_op_arg(expr, pos);
+  int is_iter = 0;
+  if (isl_ast_expr_get_type(arg) == isl_ast_expr_id) {
+    isl_id *id = isl_ast_expr_id_get_id(arg);
+    is_iter = !strncmp(isl_id_get_name(id), "_tadashi_", 9);
+    isl_id_free(id);
+  }
+  isl_ast_expr_free(arg);
+  return is_iter;
+}
+
+static __isl_give isl_ast_expr *
+swap_op_args(__isl_take isl_ast_expr *expr) {
+  isl_ast_expr *arg0 = isl_ast_expr_get_op_arg(expr, 0);
+  isl_ast_expr *arg1 = isl_ast_expr_get_op_arg(expr, 1);
+  expr = isl_ast_expr_set_op_arg(expr, 0, arg1);
+  expr = isl_ast_expr_set_op_arg(expr, 1, arg0);
+  return expr;
+}
+
+/* Pluto (CLooG) prints a bare iterator first in min() and last in
+ * max(); isl does the opposite, and gcc compiles the two argument
+ * orders into different binaries. Parameter ids keep isl's order,
+ * which already matches Pluto (parameters and constants first). */
+static __isl_give isl_ast_expr *
+reorder_minmax_args(__isl_take isl_ast_expr *expr) {
+  if (isl_ast_expr_get_type(expr) != isl_ast_expr_op)
+    return expr;
+  isl_size n = isl_ast_expr_get_op_n_arg(expr);
+  for (isl_size i = 0; i < n; i++) {
+    isl_ast_expr *arg = reorder_minmax_args(isl_ast_expr_get_op_arg(expr, i));
+    expr = isl_ast_expr_set_op_arg(expr, i, arg);
+  }
+  enum isl_ast_expr_op_type op = isl_ast_expr_get_op_type(expr);
+  if ((op != isl_ast_op_min && op != isl_ast_op_max) || n != 2)
+    return expr;
+
+  if (op == isl_ast_op_min && op_arg_is_iterator(expr, 1))
+    return swap_op_args(expr);
+  if (op == isl_ast_op_max && op_arg_is_iterator(expr, 0))
+    return swap_op_args(expr);
+  return expr;
+}
+
 /* Return the bound of an "iter <= bound" condition, NULL otherwise. */
 static __isl_give isl_ast_expr *
 get_le_upper_bound(__isl_keep isl_ast_expr *cond) {
@@ -479,8 +525,8 @@ static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
           __isl_keep isl_ast_node *for_node, void *user) {
   isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
-  isl_ast_expr *init = isl_ast_node_for_get_init(for_node);
-  isl_ast_expr *cond = isl_ast_node_for_get_cond(for_node);
+  isl_ast_expr *init = reorder_minmax_args(isl_ast_node_for_get_init(for_node));
+  isl_ast_expr *cond = reorder_minmax_args(isl_ast_node_for_get_cond(for_node));
   isl_ast_expr *inc = isl_ast_node_for_get_inc(for_node);
   isl_ast_node *body = isl_ast_node_for_get_body(for_node);
 

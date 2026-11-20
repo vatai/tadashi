@@ -21,5 +21,6 @@ cdef extern from "transformations.h":
     cdef isl_schedule_node *tadashi_full_shift_band(isl_schedule_node * node, long coeff)
     cdef isl_schedule_node *tadashi_set_parallel(isl_schedule_node * node, int num_threads)
     cdef isl_schedule_node *tadashi_set_vector(isl_schedule_node * node)
+    cdef isl_schedule_node *tadashi_set_guard(isl_schedule_node * node)
     cdef isl_schedule_node *limit_param_with_context(isl_schedule_node * node, int param_idx, int limit)
     cdef isl_schedule_node *tadashi_set_loop_opt(isl_schedule_node * node, int pos, int opt)

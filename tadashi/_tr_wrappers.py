@@ -78,6 +78,10 @@ def set_vector(scop: Scop):
     scop.ptr_ccscop.current_node = tadashi_set_vector(scop.ptr_ccscop.current_node)
 
 @cython.ccall
+def set_guard(scop: Scop):
+    scop.ptr_ccscop.current_node = tadashi_set_guard(scop.ptr_ccscop.current_node)
+
+@cython.ccall
 def limit_param(scop: Scop, param_idx: int, limit: int):
     scop.ptr_ccscop.current_node = limit_param_with_context(scop.ptr_ccscop.current_node, param_idx, limit)
 
