@@ -242,6 +242,9 @@ _fuse_get_filter_and_mupa(__isl_take isl_schedule_node *node, int idx,
       isl_multi_union_pw_aff_reset_tuple_id(result->mupa, isl_dim_out);
   result->mupa =
       isl_multi_union_pw_aff_intersect_domain(result->mupa, result->filter);
+  // Delete the consumed band (like full_fuse does): leftover copies
+  // of the fused band break later tiling of the fused nest.
+  node = isl_schedule_node_delete(node);
   node = isl_schedule_node_parent(node);
   node = isl_schedule_node_parent(node);
   tmp = isl_union_set_copy(result->filter);
@@ -656,6 +659,15 @@ tadashi_set_guard(__isl_take isl_schedule_node *node) {
   guard = isl_set_add_dims(guard, isl_dim_set, depth);
   node = isl_schedule_node_insert_guard(node, guard);
   return isl_schedule_node_first_child(node);
+}
+
+__isl_give isl_schedule_node *
+tadashi_set_parallel_private(__isl_take isl_schedule_node *node,
+                             int num_threads, int private_count) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  char pragma[LINE_MAX];
+  sprintf(pragma, "pragma_parallel_%d_%d", num_threads, private_count);
+  return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
 }
 
 __isl_give isl_schedule_node *

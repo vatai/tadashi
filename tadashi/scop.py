@@ -650,6 +650,16 @@ class SetParallelInfo(TransformInfo):
 
 
 @register
+class SetParallelPrivateInfo(TransformInfo):
+    arg_help = ["omp num_threads", "Private iterator count"]
+
+    @staticmethod
+    def available_args(node: Node):
+        nproc = multiprocessing.cpu_count()
+        return [LowerUpperBound(0, nproc), LowerUpperBound(0, None)]
+
+
+@register
 class SetVectorInfo(TransformInfo):
     pass
 

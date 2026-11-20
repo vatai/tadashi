@@ -55,6 +55,8 @@
 #include <isl/id.h>
 #include <isl/id_to_id.h>
 #include <isl/printer.h>
+#include <isl/space.h>
+#include <isl/union_set.h>
 #include <isl/val.h>
 #include <pet.h>
 
@@ -379,16 +381,21 @@ print_user(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   return p;
 }
 
+/* Parse "pragma_parallel_<threads>[_<private_count>]"; returns the
+ * number of threads or -1, and sets *private_count (-1 = derive). */
 static int
-get_num_threads_from_pragma_parallel(__isl_take isl_id *id) {
+get_num_threads_from_pragma_parallel(__isl_take isl_id *id,
+                                     int *private_count) {
   const int failure = -1;
+  *private_count = -1;
   if (!id)
     return failure;
   const char *id_name = isl_id_get_name(id);
   int num_threads;
-  int rv = sscanf(id_name, "pragma_parallel_%d", &num_threads);
+  int rv = sscanf(id_name, "pragma_parallel_%d_%d", &num_threads,
+                  private_count);
   isl_id_free(id);
-  return rv == 1 ? num_threads : failure;
+  return rv >= 1 ? num_threads : failure;
 }
 
 static int
@@ -408,6 +415,11 @@ track_max_iterator_index(__isl_keep isl_ast_node *node, void *user) {
   if (isl_ast_node_get_type(node) != isl_ast_node_for)
     return isl_bool_true;
   int idx = get_iterator_index(node);
+  int private_count;
+  get_num_threads_from_pragma_parallel(isl_ast_node_get_annotation(node),
+                                       &private_count);
+  if (private_count > 0 && idx + private_count > *max_idx)
+    *max_idx = idx + private_count;
   if (idx > *max_idx)
     *max_idx = idx;
   return isl_bool_true;
@@ -505,15 +517,17 @@ print_bound_assignment(__isl_take isl_printer *p, const char *name,
  * the parallel loop's own, up to the last one used in the AST. */
 static __isl_give isl_printer *
 print_omp_pragma(__isl_take isl_printer *p, __isl_keep isl_ast_node *for_node,
-                 int num_threads, int max_iter_idx) {
+                 int num_threads, int private_count, int max_iter_idx) {
   char buffer[LINE_MAX];
+  int first = get_iterator_index(for_node) + 1;
+  int last = private_count < 0 ? max_iter_idx : first + private_count - 1;
   p = isl_printer_print_str(p, "#pragma omp parallel for");
   if (num_threads) {
     sprintf(buffer, " num_threads(%d)", num_threads);
     p = isl_printer_print_str(p, buffer);
   }
   p = isl_printer_print_str(p, " private(lbv,ubv");
-  for (int i = get_iterator_index(for_node) + 1; i <= max_iter_idx; i++) {
+  for (int i = first; i <= last; i++) {
     sprintf(buffer, ",_tadashi_%d", i);
     p = isl_printer_print_str(p, buffer);
   }
@@ -534,8 +548,11 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
   int is_vector =
       annotation && !strcmp(isl_id_get_name(annotation), "pragma_vector");
+  int private_count;
   int num_threads =
-      is_vector ? -1 : get_num_threads_from_pragma_parallel(annotation);
+      is_vector ? -1
+                : get_num_threads_from_pragma_parallel(annotation,
+                                                       &private_count);
   if (is_vector)
     isl_id_free(annotation);
   const char *lb = is_vector ? "lbv" : num_threads != -1 ? "lbp" : NULL;
@@ -554,7 +571,8 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
     p = isl_printer_print_str(p, "#pragma ivdep\n");
     p = isl_printer_print_str(p, "#pragma vector always\n");
   } else if (num_threads != -1) {
-    p = print_omp_pragma(p, for_node, num_threads, *(int *)user);
+    p = print_omp_pragma(p, for_node, num_threads, private_count,
+                         *(int *)user);
   }
 
   p = isl_printer_start_line(p);
