@@ -619,6 +619,26 @@ after_mark(__isl_take isl_ast_node *mark_node, __isl_keep isl_ast_build *build,
   return for_node;
 }
 
+static __isl_give isl_space *
+alphabetical_params(__isl_keep isl_schedule *schedule) {
+  isl_union_set *domain = isl_schedule_get_domain(schedule);
+  isl_space *space = isl_union_set_get_space(domain);
+  isl_union_set_free(domain);
+  isl_size n = isl_space_dim(space, isl_dim_param);
+  for (isl_size i = 1; i < n; i++)
+    for (isl_size j = i; j > 0; j--) {
+      const char *a = isl_space_get_dim_name(space, isl_dim_param, j - 1);
+      const char *b = isl_space_get_dim_name(space, isl_dim_param, j);
+      if (strcmp(a, b) <= 0)
+        break;
+      isl_id *id_a = isl_space_get_dim_id(space, isl_dim_param, j - 1);
+      isl_id *id_b = isl_space_get_dim_id(space, isl_dim_param, j);
+      space = isl_space_set_dim_id(space, isl_dim_param, j - 1, id_b);
+      space = isl_space_set_dim_id(space, isl_dim_param, j, id_a);
+    }
+  return space;
+}
+
 /* isl_union_map_foreach_map callback: track max output dim across all maps. */
 static isl_stat
 _max_map_out_dim(__isl_take isl_map *map, void *user) {
@@ -653,6 +673,9 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   isl_id_to_id *id2stmt;
   isl_ctx *ctx = isl_printer_get_ctx(p);
   id2stmt = set_up_id2stmt(scop);
+  // CLooG orders guard conjuncts alphabetically by parameter name;
+  // isl orders them by parameter position, so sort the positions.
+  schedule = isl_schedule_align_params(schedule, alphabetical_params(schedule));
   // Pluto always prints floord(); without this, isl prints provably
   // non-negative divisions as plain `/`, which compiles differently.
   isl_options_set_ast_build_prefer_pdiv(ctx, 0);

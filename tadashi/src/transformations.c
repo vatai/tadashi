@@ -651,6 +651,9 @@ __isl_give isl_schedule_node *
 tadashi_set_guard(__isl_take isl_schedule_node *node) {
   isl_union_set *domain = isl_schedule_node_get_domain(node);
   isl_set *guard = isl_set_from_params(isl_union_set_params(domain));
+  // The guard's set dims stand for the outer band dimensions.
+  isl_size depth = isl_schedule_node_get_schedule_depth(node);
+  guard = isl_set_add_dims(guard, isl_dim_set, depth);
   node = isl_schedule_node_insert_guard(node, guard);
   return isl_schedule_node_first_child(node);
 }
