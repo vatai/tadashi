@@ -8,7 +8,7 @@ set -e
 A="$1"
 B="$2"
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+REPO_ROOT="$(realpath "$SCRIPT_DIR/../../..")"
 POLYBENCH_ROOT="$REPO_ROOT/examples/polybench"
 SIZE=${SIZE:-EXTRALARGE}
 OFLAG=${OFLAG:-3}
