@@ -10,7 +10,7 @@
 ///   #define max(x,y)    ((x) > (y) ? (x) : (y))
 ///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
 ///   for(_tadashi_0 = 0; _tadashi_0 <= floord(N - 1, 13); _tadashi_0 += 1)
-///     for(_tadashi_1 = 0; _tadashi_1 <= (N - 1) / 25; _tadashi_1 += 1)
+///     for(_tadashi_1 = 0; _tadashi_1 <= floord(N - 1, 25); _tadashi_1 += 1)
 ///       for(_tadashi_2 = max(1, 13 * _tadashi_0); _tadashi_2 <= min(N - 1, 13 * _tadashi_0 + 12); _tadashi_2 += 1)
 ///         for(_tadashi_3 = 25 * _tadashi_1; _tadashi_3 <= min(N - 1, 25 * _tadashi_1 + 24); _tadashi_3 += 1)
 ///           {

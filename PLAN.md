@@ -54,5 +54,13 @@ Target: for every benchmark that Pluto (`polycc`) converts, Tadashi generates co
      - `lbv/ubv` hoisting: 116 diff lines — reproduced the same way on `pragma_vector` loops. Hoisted constructs are brace-wrapped (a braceless enclosing loop would otherwise swallow only the first assignment — bug found in first version's output).
      - **New `LIMIT_PARAM(param_idx, limit)` transformation** (wires up the previously dead, buggy `limit_param_with_context`): inserts a CONTEXT node `nj <= 2300` etc. so pet's array-extent domain constraints (`min(2299, nj-1)`, `min(71, …)`) become redundant and disappear (682 → 435 diff lines at that point). Two bugs fixed in it: context built over a set dim instead of a param (empty codegen output), and params-typed vs 0-dim-set-typed context set (isl's `build_ast_from_context` preimages the context: "spaces don't match", NULL AST).
    - **Remaining (unimplemented):** 8×8 unroll-jam with remainder loops — the only gap between gemm and *default* Pluto; CLooG-style separation for diamond-tiled stencils (see above).
-7. `[ ]` **Verify per benchmark.** Run the step 3 check on all 29. Tabulate: identical / differs, with the first differing construct. Pin identical ones as tests in the format of `tests/test_pluto_fig4.c` (*new files: needs explicit permission*).
+7. `[~]` **Verify per benchmark.** Classification of all 29 (vs `--nounrolljam` output; `ceild`/`mod2` = wavefront-or-skew / diamond markers ⇒ CLooG-separation risk):
+   - No blockers (gemm-class): covariance, gemm, gemver, gesummv, symm, syr2k, syrk, trmm, 3mm, atax, bicg, doitgen, mvt, durbin, ludcmp, deriche.
+   - `ceild` (and some `mod2`): correlation, 2mm, cholesky, gramschmidt, lu, trisolv, floyd-warshall, nussinov, fdtd-2d, heat-3d, jacobi-1d, jacobi-2d, seidel-2d.
+   - **isl `prefer_pdiv` fix** (`codegen.c`): isl prints provably non-negative divisions as plain `/`, Pluto always `floord()` — they compile differently; `isl_options_set_ast_build_prefer_pdiv(ctx, 0)` closed mvt's last 46 diff lines.
+   - Results so far (transform lists; `[scop, node, TR, args…]`):
+     - **mvt: IDENTICAL vs DEFAULT Pluto** — `[[0,1,FULL_FUSE],[0,2,FULL_FUSE],[0,1,LIMIT_PARAM,0,4000],[0,2,TILE_2D,32,32],[0,2,SET_PARALLEL,0]]`.
+     - **gemm: IDENTICAL vs `--nounrolljam` Pluto** (default blocked by unroll-jam) — `[[0,1,LIMIT_PARAM,0,2000],[0,2,LIMIT_PARAM,1,2600],[0,3,LIMIT_PARAM,2,2300],[0,5,FULL_SPLIT],[0,6,TILE_2D,32,32],[0,12,TILE_3D,32,32,32],[0,13,INTERCHANGE],[0,12,SET_PARALLEL,0],[0,6,SET_PARALLEL,0],[0,10,SET_VECTOR],[0,20,SET_VECTOR]]`.
+     - durbin/ludcmp: Pluto reorders statements and peels; untransformed Tadashi output differs (248/514 asm lines); schedules not yet reproduced.
+     - jacobi-1d/2d (and the `mod2` class): schedule reproduced exactly (diamond + wavefront) but CLooG separation makes binary equality unreachable.
 8. `[ ]` **Record results** here, including constructs that cannot be matched.

@@ -7,8 +7,9 @@
 ///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
+///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
 ///   for(_tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
-///     for(_tadashi_1 = 0; _tadashi_1 <= (N - 1) / 4; _tadashi_1 += 1)
+///     for(_tadashi_1 = 0; _tadashi_1 <= floord(N - 1, 4); _tadashi_1 += 1)
 ///       for(_tadashi_2 = 4 * _tadashi_1; _tadashi_2 <= min(N - 1, 4 * _tadashi_1 + 3); _tadashi_2 += 1)
 ///         {
 ///           for(_tadashi_3 = 0; _tadashi_3 < N; _tadashi_3 += 1)

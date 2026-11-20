@@ -607,6 +607,9 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   isl_id_to_id *id2stmt;
   isl_ctx *ctx = isl_printer_get_ctx(p);
   id2stmt = set_up_id2stmt(scop);
+  // Pluto always prints floord(); without this, isl prints provably
+  // non-negative divisions as plain `/`, which compiles differently.
+  isl_options_set_ast_build_prefer_pdiv(ctx, 0);
   build = isl_ast_build_alloc(ctx);
   build = isl_ast_build_set_at_each_domain(build, at_domain, id2stmt);
   build = isl_ast_build_set_after_each_mark(build, after_mark, NULL);

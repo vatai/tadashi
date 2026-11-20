@@ -8,6 +8,7 @@
 ///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   #define max(x,y)    ((x) > (y) ? (x) : (y))
+///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
 ///   for(_tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
 ///     {
 ///       for(_tadashi_1 = 0; _tadashi_1 < 2 * N - 1; _tadashi_1 += 1)
@@ -19,7 +20,7 @@
 ///             for(_tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
 ///               A[_tadashi_0][_tadashi_1 / 2] = ((A[_tadashi_0][_tadashi_1 / 2] + A[_tadashi_0 - 1][_tadashi_1 / 2]) + (_tadashi_2));
 ///         }
-///       for(_tadashi_1 = max(5 * _tadashi_0, -(_tadashi_0 % 2) + 2 * N); _tadashi_1 < 2 * N + 5 * _tadashi_0 - 1; _tadashi_1 += 2)
+///       for(_tadashi_1 = max(5 * _tadashi_0, 2 * N - _tadashi_0 + 2 * floord(_tadashi_0, 2)); _tadashi_1 < 2 * N + 5 * _tadashi_0 - 1; _tadashi_1 += 2)
 ///         for(_tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
 ///           A[_tadashi_0][(-5 * _tadashi_0 + _tadashi_1) / 2] = (A[_tadashi_0][(-5 * _tadashi_0 + _tadashi_1) / 2] + (A[_tadashi_0 - 1][(-5 * _tadashi_0 + _tadashi_1) / 2] * (_tadashi_2)));
 ///     }
