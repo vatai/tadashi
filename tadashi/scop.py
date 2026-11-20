@@ -655,6 +655,20 @@ class SetVectorInfo(TransformInfo):
 
 
 @register
+class LimitParamInfo(TransformInfo):
+    arg_help = ["Parameter index", "Upper limit"]
+
+    @staticmethod
+    def valid_args(node: Node, param_idx: int, limit: int):
+        return TransformInfo._valid_idx_all_stmt(node, param_idx, "params")
+
+    @staticmethod
+    def available_args(node: Node):
+        nps = [len(s["params"]) for s in node.loop_signature]
+        return [LowerUpperBound(lower=0, upper=min(nps)), LowerUpperBound()]
+
+
+@register
 class SetLoopOptInfo(TransformInfo):
     arg_help = ["Iterator index", "Option"]
 

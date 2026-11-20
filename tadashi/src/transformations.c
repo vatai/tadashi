@@ -32,23 +32,14 @@
  */
 isl_schedule_node *
 limit_param_with_context(isl_schedule_node *node, int param_idx, int limit) {
-  isl_id *param;
-  isl_multi_union_pw_aff *mupa;
   isl_space *space;
-  isl_multi_aff *ma;
-  isl_aff *var, *val;
-  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
-  mupa = isl_schedule_node_band_get_partial_schedule(node);
-  param = isl_multi_union_pw_aff_get_dim_id(mupa, isl_dim_param, param_idx);
-  mupa = isl_multi_union_pw_aff_free(mupa); // ???
-  space = isl_space_unit(ctx);
-  space = isl_space_add_dims(space, isl_dim_set, 1);
-  space = isl_space_set_dim_id(space, isl_dim_set, 0, param);
-  ma = isl_multi_aff_identity_on_domain_space(isl_space_copy(space));
-  var = isl_multi_aff_get_at(ma, 0);
-  ma = isl_multi_aff_free(ma);
-  val = isl_aff_val_on_domain_space(space, isl_val_int_from_si(ctx, limit));
-  isl_set *context = isl_aff_le_set(var, val);
+  isl_set *context;
+  space = isl_space_params(isl_schedule_node_band_get_space(node));
+  context = isl_set_universe(space);
+  context = isl_set_upper_bound_si(context, isl_dim_param, param_idx, limit);
+  // The AST generator preimages the context set, which requires a
+  // (zero-dimensional) set space, not a parameter space.
+  context = isl_set_from_params(context);
   node = isl_schedule_node_insert_context(node, context);
   return isl_schedule_node_first_child(node);
 }

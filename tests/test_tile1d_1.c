@@ -4,6 +4,7 @@
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   int _tadashi_0, _tadashi_1, _tadashi_2, _tadashi_3;
+///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   #define max(x,y)    ((x) > (y) ? (x) : (y))

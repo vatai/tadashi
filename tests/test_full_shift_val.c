@@ -4,6 +4,7 @@
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
 ///   int _tadashi_0, _tadashi_1, _tadashi_2;
+///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   for(_tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
 ///     for(_tadashi_1 = 42; _tadashi_1 <= N + 41; _tadashi_1 += 1)

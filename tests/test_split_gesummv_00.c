@@ -6,6 +6,7 @@
 ///   int i,j;
 /// #pragma scop
 ///   int _tadashi_0, _tadashi_1;
+///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   {
 ///     for(_tadashi_0 = 0; _tadashi_0 <= 9; _tadashi_0 += 1)

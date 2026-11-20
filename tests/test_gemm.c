@@ -11,6 +11,7 @@
 ///   int i, j, k;
 /// #pragma scop
 ///   int _tadashi_0, _tadashi_1, _tadashi_2, _tadashi_3, _tadashi_4, _tadashi_5;
+///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))

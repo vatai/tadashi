@@ -7,6 +7,7 @@
 /// void f(int N, int T, double a[N], double b[N]) {
 /// #pragma scop
 ///   int _tadashi_0, _tadashi_1;
+///   int lbp, ubp;
 ///   register int lbv, ubv;
 ///   double third;
 ///   {

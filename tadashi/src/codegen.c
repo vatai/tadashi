@@ -428,7 +428,30 @@ print_iterator_declarations(__isl_take isl_printer *p, int max_iter_idx) {
   }
   p = isl_printer_print_str(p, ";");
   p = isl_printer_end_line(p);
+  p = print_str_on_line(p, "int lbp, ubp;");
   p = print_str_on_line(p, "register int lbv, ubv;");
+  return p;
+}
+
+/* Return the bound of an "iter <= bound" condition, NULL otherwise. */
+static __isl_give isl_ast_expr *
+get_le_upper_bound(__isl_keep isl_ast_expr *cond) {
+  if (isl_ast_expr_get_type(cond) != isl_ast_expr_op)
+    return NULL;
+  if (isl_ast_expr_get_op_type(cond) != isl_ast_op_le)
+    return NULL;
+  return isl_ast_expr_get_op_arg(cond, 1);
+}
+
+static __isl_give isl_printer *
+print_bound_assignment(__isl_take isl_printer *p, const char *name,
+                       __isl_keep isl_ast_expr *expr) {
+  p = isl_printer_start_line(p);
+  p = isl_printer_print_str(p, name);
+  p = isl_printer_print_str(p, " = ");
+  p = isl_printer_print_ast_expr(p, expr);
+  p = isl_printer_print_str(p, ";");
+  p = isl_printer_end_line(p);
   return p;
 }
 
@@ -465,14 +488,27 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
   int is_vector =
       annotation && !strcmp(isl_id_get_name(annotation), "pragma_vector");
-  if (is_vector) {
+  int num_threads =
+      is_vector ? -1 : get_num_threads_from_pragma_parallel(annotation);
+  if (is_vector)
     isl_id_free(annotation);
+  const char *lb = is_vector ? "lbv" : num_threads != -1 ? "lbp" : NULL;
+  const char *ub = is_vector ? "ubv" : num_threads != -1 ? "ubp" : NULL;
+  isl_ast_expr *bound = lb ? get_le_upper_bound(cond) : NULL;
+
+  if (bound) {
+    // The assignments plus the loop must stay a single statement for
+    // the (possibly braceless) enclosing loop.
+    p = print_str_on_line(p, "{");
+    p = isl_printer_indent(p, 2);
+    p = print_bound_assignment(p, lb, init);
+    p = print_bound_assignment(p, ub, bound);
+  }
+  if (is_vector) {
     p = isl_printer_print_str(p, "#pragma ivdep\n");
     p = isl_printer_print_str(p, "#pragma vector always\n");
-  } else {
-    int num_threads = get_num_threads_from_pragma_parallel(annotation);
-    if (num_threads != -1)
-      p = print_omp_pragma(p, for_node, num_threads, *(int *)user);
+  } else if (num_threads != -1) {
+    p = print_omp_pragma(p, for_node, num_threads, *(int *)user);
   }
 
   p = isl_printer_start_line(p);
@@ -480,9 +516,18 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_print_str(p, "for(");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
-  p = isl_printer_print_ast_expr(p, init);
+  if (bound)
+    p = isl_printer_print_str(p, lb);
+  else
+    p = isl_printer_print_ast_expr(p, init);
   p = isl_printer_print_str(p, "; ");
-  p = isl_printer_print_ast_expr(p, cond);
+  if (bound) {
+    p = isl_printer_print_ast_expr(p, iter);
+    p = isl_printer_print_str(p, " <= ");
+    p = isl_printer_print_str(p, ub);
+  } else {
+    p = isl_printer_print_ast_expr(p, cond);
+  }
   p = isl_printer_print_str(p, "; ");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " += ");
@@ -491,7 +536,12 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
   p = isl_printer_end_line(p);
   p = isl_ast_node_print(body, p, options);
   p = isl_printer_indent(p, -2);
+  if (bound) {
+    p = isl_printer_indent(p, -2);
+    p = print_str_on_line(p, "}");
+  }
 
+  isl_ast_expr_free(bound);
   isl_ast_expr_free(iter);
   isl_ast_expr_free(init);
   isl_ast_expr_free(cond);
