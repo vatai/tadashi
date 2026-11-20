@@ -1,7 +1,8 @@
 #!/usr/bin/bash
-# Compare the compiled kernels of two polybench sources.
+# Compare two polybench sources: pragmas first, then the compiled
+# kernels (assembly) as confirmation.
 # USAGE: compare_asm.sh <a.c> <b.c>
-# Exit 0 if the normalized disassemblies match, 1 otherwise.
+# Exit 0 if pragmas and normalized disassemblies match, 1 otherwise.
 set -e
 
 A="$1"
@@ -33,8 +34,27 @@ disasm() {
 			-e '/^$/d' -e '/file format/d' -e '/Disassembly of section/d'
 }
 
+# Ordered pragma sequence; iterator names normalized to IT; the
+# scop/endscop markers are harness delimiters, not generated code.
+pragmas() {
+	grep -E '^[[:space:]]*#pragma' "$1" |
+		grep -v -E '#pragma (end)?scop' |
+		sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]\+/ /g' \
+			-e 's/\b_tadashi_[0-9]\+\b/IT/g' -e 's/\bt[0-9]\+\b/IT/g' ||
+		true
+}
+
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+
+pragmas "$A" > "$WORK/a.pragmas"
+pragmas "$B" > "$WORK/b.pragmas"
+if ! diff "$WORK/a.pragmas" "$WORK/b.pragmas" > "$WORK/pragma_diff.txt"; then
+	echo "DIFFERS (pragmas): $A vs $B"
+	head -40 "$WORK/pragma_diff.txt"
+	exit 1
+fi
+
 disasm "$A" "$WORK/a.o" > "$WORK/a.asm"
 disasm "$B" "$WORK/b.o" > "$WORK/b.asm"
 
