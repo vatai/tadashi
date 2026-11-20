@@ -391,6 +391,67 @@ get_num_threads_from_pragma_parallel(__isl_take isl_id *id) {
   return rv == 1 ? num_threads : failure;
 }
 
+static int
+get_iterator_index(__isl_keep isl_ast_node *for_node) {
+  isl_ast_expr *iter = isl_ast_node_for_get_iterator(for_node);
+  isl_id *id = isl_ast_expr_id_get_id(iter);
+  isl_ast_expr_free(iter);
+  int idx = -1;
+  sscanf(isl_id_get_name(id), "_tadashi_%d", &idx);
+  isl_id_free(id);
+  return idx;
+}
+
+static isl_bool
+track_max_iterator_index(__isl_keep isl_ast_node *node, void *user) {
+  int *max_idx = user;
+  if (isl_ast_node_get_type(node) != isl_ast_node_for)
+    return isl_bool_true;
+  int idx = get_iterator_index(node);
+  if (idx > *max_idx)
+    *max_idx = idx;
+  return isl_bool_true;
+}
+
+/* Iterators are declared up front (Pluto style) so omp private
+ * clauses can name them; the loops themselves print without `int`. */
+static __isl_give isl_printer *
+print_iterator_declarations(__isl_take isl_printer *p, int max_iter_idx) {
+  char buffer[32];
+  if (max_iter_idx < 0)
+    return p;
+  p = isl_printer_start_line(p);
+  p = isl_printer_print_str(p, "int _tadashi_0");
+  for (int i = 1; i <= max_iter_idx; i++) {
+    snprintf(buffer, sizeof(buffer), ", _tadashi_%d", i);
+    p = isl_printer_print_str(p, buffer);
+  }
+  p = isl_printer_print_str(p, ";");
+  p = isl_printer_end_line(p);
+  p = print_str_on_line(p, "register int lbv, ubv;");
+  return p;
+}
+
+/* Pluto's private list: lbv, ubv and every iterator numbered after
+ * the parallel loop's own, up to the last one used in the AST. */
+static __isl_give isl_printer *
+print_omp_pragma(__isl_take isl_printer *p, __isl_keep isl_ast_node *for_node,
+                 int num_threads, int max_iter_idx) {
+  char buffer[LINE_MAX];
+  p = isl_printer_print_str(p, "#pragma omp parallel for");
+  if (num_threads) {
+    sprintf(buffer, " num_threads(%d)", num_threads);
+    p = isl_printer_print_str(p, buffer);
+  }
+  p = isl_printer_print_str(p, " private(lbv,ubv");
+  for (int i = get_iterator_index(for_node) + 1; i <= max_iter_idx; i++) {
+    sprintf(buffer, ",_tadashi_%d", i);
+    p = isl_printer_print_str(p, buffer);
+  }
+  p = isl_printer_print_str(p, ")\n");
+  return p;
+}
+
 static __isl_give isl_printer *
 print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
           __isl_keep isl_ast_node *for_node, void *user) {
@@ -402,20 +463,21 @@ print_for(__isl_take isl_printer *p, __isl_take isl_ast_print_options *options,
 
   isl_id *annotation = isl_ast_node_get_annotation(for_node);
 
-  int num_threads = get_num_threads_from_pragma_parallel(annotation);
-  if (num_threads != -1) {
-    char pragma_line[LINE_MAX];
-    if (num_threads)
-      sprintf(pragma_line, "#pragma omp parallel for num_threads(%d)\n",
-              num_threads);
-    else
-      sprintf(pragma_line, "#pragma omp parallel for\n");
-    p = isl_printer_print_str(p, pragma_line);
+  int is_vector =
+      annotation && !strcmp(isl_id_get_name(annotation), "pragma_vector");
+  if (is_vector) {
+    isl_id_free(annotation);
+    p = isl_printer_print_str(p, "#pragma ivdep\n");
+    p = isl_printer_print_str(p, "#pragma vector always\n");
+  } else {
+    int num_threads = get_num_threads_from_pragma_parallel(annotation);
+    if (num_threads != -1)
+      p = print_omp_pragma(p, for_node, num_threads, *(int *)user);
   }
 
   p = isl_printer_start_line(p);
   p = isl_printer_indent(p, 2);
-  p = isl_printer_print_str(p, "for(int ");
+  p = isl_printer_print_str(p, "for(");
   p = isl_printer_print_ast_expr(p, iter);
   p = isl_printer_print_str(p, " = ");
   p = isl_printer_print_ast_expr(p, init);
@@ -508,17 +570,21 @@ codegen(__isl_take isl_printer *p, __isl_keep struct pet_scop *scop,
   }
   build = isl_ast_build_set_iterators(build, iterators);
   node = isl_ast_build_node_from_schedule(build, schedule);
+  int max_iter_idx = -1;
+  isl_ast_node_foreach_descendant_top_down(node, track_max_iterator_index,
+                                           &max_iter_idx);
   print_options = isl_ast_print_options_alloc(ctx);
   print_options =
       isl_ast_print_options_set_print_user(print_options, print_user, id2stmt);
-  print_options =
-      isl_ast_print_options_set_print_for(print_options, print_for, NULL);
+  print_options = isl_ast_print_options_set_print_for(print_options, print_for,
+                                                      &max_iter_idx);
 
   // this puts stuff to the beginning of the line
   p = isl_printer_set_indent_prefix(p, "");
 
   p = print_str_on_line(p, "#pragma scop");
   p = isl_printer_indent(p, 2);
+  p = print_iterator_declarations(p, max_iter_idx);
   p = print_declarations(p, build, scop, &indent);
   p = print_macros(p, node);
   p = isl_ast_node_print(node, p, print_options);

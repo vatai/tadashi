@@ -3,19 +3,21 @@
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
+///   int _tadashi_0, _tadashi_1, _tadashi_2, _tadashi_3, _tadashi_4, _tadashi_5, _tadashi_6;
+///   register int lbv, ubv;
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   #define max(x,y)    ((x) > (y) ? (x) : (y))
 ///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
-///   for(int _tadashi_0 = 0; _tadashi_0 <= floord(N - 1, 13); _tadashi_0 += 1)
-///     for(int _tadashi_1 = 0; _tadashi_1 <= (N - 1) / 17; _tadashi_1 += 1)
-///       for(int _tadashi_2 = 0; _tadashi_2 <= (N - 1) / 25; _tadashi_2 += 1)
-///         for(int _tadashi_3 = 13 * _tadashi_0; _tadashi_3 <= min(N - 1, 13 * _tadashi_0 + 12); _tadashi_3 += 1)
-///           for(int _tadashi_4 = max(1, 17 * _tadashi_1); _tadashi_4 <= min(N - 1, 17 * _tadashi_1 + 16); _tadashi_4 += 1)
-///             for(int _tadashi_5 = 25 * _tadashi_2; _tadashi_5 <= min(N - 1, 25 * _tadashi_2 + 24); _tadashi_5 += 1)
+///   for(_tadashi_0 = 0; _tadashi_0 <= floord(N - 1, 13); _tadashi_0 += 1)
+///     for(_tadashi_1 = 0; _tadashi_1 <= (N - 1) / 17; _tadashi_1 += 1)
+///       for(_tadashi_2 = 0; _tadashi_2 <= (N - 1) / 25; _tadashi_2 += 1)
+///         for(_tadashi_3 = 13 * _tadashi_0; _tadashi_3 <= min(N - 1, 13 * _tadashi_0 + 12); _tadashi_3 += 1)
+///           for(_tadashi_4 = max(1, 17 * _tadashi_1); _tadashi_4 <= min(N - 1, 17 * _tadashi_1 + 16); _tadashi_4 += 1)
+///             for(_tadashi_5 = 25 * _tadashi_2; _tadashi_5 <= min(N - 1, 25 * _tadashi_2 + 24); _tadashi_5 += 1)
 ///               {
-///                 for(int _tadashi_6 = 0; _tadashi_6 < N; _tadashi_6 += 1)
+///                 for(_tadashi_6 = 0; _tadashi_6 < N; _tadashi_6 += 1)
 ///                   A[_tadashi_4][_tadashi_5] = (A[_tadashi_4][_tadashi_5] + (A[_tadashi_4 - 1][_tadashi_5] * (_tadashi_6)));
-///                 for(int _tadashi_6 = 0; _tadashi_6 < N; _tadashi_6 += 1)
+///                 for(_tadashi_6 = 0; _tadashi_6 < N; _tadashi_6 += 1)
 ///                   A[_tadashi_4][_tadashi_5] = ((A[_tadashi_4][_tadashi_5] + A[_tadashi_4 - 1][_tadashi_5]) + (_tadashi_6));
 ///               }
 /// #pragma endscop

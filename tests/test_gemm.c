@@ -10,20 +10,22 @@
 ///        double C[Ni][Nj]) {
 ///   int i, j, k;
 /// #pragma scop
+///   int _tadashi_0, _tadashi_1, _tadashi_2, _tadashi_3, _tadashi_4, _tadashi_5;
+///   register int lbv, ubv;
 ///   #define min(x,y)    ((x) < (y) ? (x) : (y))
 ///   #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
 ///   {
-///     for(int _tadashi_0 = 0; _tadashi_0 <= floord(Ni - 1, 13); _tadashi_0 += 1)
-///       for(int _tadashi_1 = 0; _tadashi_1 <= floord(Nj - 1, 25); _tadashi_1 += 1)
-///         for(int _tadashi_2 = 13 * _tadashi_0; _tadashi_2 <= min(Ni - 1, 13 * _tadashi_0 + 12); _tadashi_2 += 1)
-///           for(int _tadashi_3 = 25 * _tadashi_1; _tadashi_3 <= min(Nj - 1, 25 * _tadashi_1 + 24); _tadashi_3 += 1)
+///     for(_tadashi_0 = 0; _tadashi_0 <= floord(Ni - 1, 13); _tadashi_0 += 1)
+///       for(_tadashi_1 = 0; _tadashi_1 <= floord(Nj - 1, 25); _tadashi_1 += 1)
+///         for(_tadashi_2 = 13 * _tadashi_0; _tadashi_2 <= min(Ni - 1, 13 * _tadashi_0 + 12); _tadashi_2 += 1)
+///           for(_tadashi_3 = 25 * _tadashi_1; _tadashi_3 <= min(Nj - 1, 25 * _tadashi_1 + 24); _tadashi_3 += 1)
 ///             C[_tadashi_2][_tadashi_3] *= beta;
-///     for(int _tadashi_0 = 0; _tadashi_0 <= floord(Ni - 1, 13); _tadashi_0 += 1)
-///       for(int _tadashi_1 = 0; _tadashi_1 <= floord(Nk - 1, 25); _tadashi_1 += 1)
-///         for(int _tadashi_2 = 0; _tadashi_2 <= floord(Nj - 1, 7); _tadashi_2 += 1)
-///           for(int _tadashi_3 = 13 * _tadashi_0; _tadashi_3 <= min(Ni - 1, 13 * _tadashi_0 + 12); _tadashi_3 += 1)
-///             for(int _tadashi_4 = 25 * _tadashi_1; _tadashi_4 <= min(Nk - 1, 25 * _tadashi_1 + 24); _tadashi_4 += 1)
-///               for(int _tadashi_5 = 7 * _tadashi_2; _tadashi_5 <= min(Nj - 1, 7 * _tadashi_2 + 6); _tadashi_5 += 1)
+///     for(_tadashi_0 = 0; _tadashi_0 <= floord(Ni - 1, 13); _tadashi_0 += 1)
+///       for(_tadashi_1 = 0; _tadashi_1 <= floord(Nk - 1, 25); _tadashi_1 += 1)
+///         for(_tadashi_2 = 0; _tadashi_2 <= floord(Nj - 1, 7); _tadashi_2 += 1)
+///           for(_tadashi_3 = 13 * _tadashi_0; _tadashi_3 <= min(Ni - 1, 13 * _tadashi_0 + 12); _tadashi_3 += 1)
+///             for(_tadashi_4 = 25 * _tadashi_1; _tadashi_4 <= min(Nk - 1, 25 * _tadashi_1 + 24); _tadashi_4 += 1)
+///               for(_tadashi_5 = 7 * _tadashi_2; _tadashi_5 <= min(Nj - 1, 7 * _tadashi_2 + 6); _tadashi_5 += 1)
 ///                 C[_tadashi_3][_tadashi_5] += ((alpha * A[_tadashi_3][_tadashi_4]) * B[_tadashi_4][_tadashi_5]);
 ///   }
 /// #pragma endscop

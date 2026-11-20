@@ -28,6 +28,7 @@ class TrEnum(StrEnum):
     PARTIAL_SHIFT_PARAM = auto()
     FULL_SHIFT_BAND = auto()
     SET_PARALLEL = auto()
+    SET_VECTOR = auto()
     SET_LOOP_OPT = auto()
 
     def __repr__(self):

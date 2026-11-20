@@ -3,9 +3,11 @@
 ///
 /// void f(size_t N, double A[N][N]) {
 /// #pragma scop
-///   for(int _tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
-///     for(int _tadashi_1 = 0; _tadashi_1 < N; _tadashi_1 += 1)
-///       for(int _tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
+///   int _tadashi_0, _tadashi_1, _tadashi_2;
+///   register int lbv, ubv;
+///   for(_tadashi_0 = 1; _tadashi_0 < N; _tadashi_0 += 1)
+///     for(_tadashi_1 = 0; _tadashi_1 < N; _tadashi_1 += 1)
+///       for(_tadashi_2 = 0; _tadashi_2 < N; _tadashi_2 += 1)
 ///         {
 ///           A[_tadashi_0][_tadashi_1] = (A[_tadashi_0][_tadashi_1] + (A[_tadashi_0 - 1][_tadashi_1] * (_tadashi_2)));
 ///           A[_tadashi_0][_tadashi_1] = ((A[_tadashi_0][_tadashi_1] + A[_tadashi_0 - 1][_tadashi_1]) + (_tadashi_2));

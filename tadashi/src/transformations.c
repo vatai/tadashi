@@ -653,6 +653,13 @@ tadashi_set_parallel(__isl_take isl_schedule_node *node, int num_threads) {
   sprintf(pragma, "pragma_parallel_%d", num_threads);
   return isl_schedule_node_insert_mark(node, isl_id_read_from_str(ctx, pragma));
 }
+
+__isl_give isl_schedule_node *
+tadashi_set_vector(__isl_take isl_schedule_node *node) {
+  isl_ctx *ctx = isl_schedule_node_get_ctx(node);
+  isl_id *id = isl_id_read_from_str(ctx, "pragma_vector");
+  return isl_schedule_node_insert_mark(node, id);
+}
 // sink & order?
 
 __isl_give isl_schedule_node *

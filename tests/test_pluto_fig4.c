@@ -6,14 +6,16 @@
 ///
 /// void f(int N, int T, double a[N], double b[N]) {
 /// #pragma scop
+///   int _tadashi_0, _tadashi_1;
+///   register int lbv, ubv;
 ///   double third;
 ///   {
 ///     third = (1. / 3.);
 ///     if (N >= 4)
-///       for(int _tadashi_0 = 0; _tadashi_0 < T; _tadashi_0 += 1)
+///       for(_tadashi_0 = 0; _tadashi_0 < T; _tadashi_0 += 1)
 ///         {
 ///           b[2] = (third * ((a[1] + a[2]) + a[3]));
-///           for(int _tadashi_1 = 2 * _tadashi_0 + 3; _tadashi_1 < N + 2 * _tadashi_0 - 1; _tadashi_1 += 1)
+///           for(_tadashi_1 = 2 * _tadashi_0 + 3; _tadashi_1 < N + 2 * _tadashi_0 - 1; _tadashi_1 += 1)
 ///             {
 ///               b[-2 * _tadashi_0 + _tadashi_1] = (third * ((a[-2 * _tadashi_0 + _tadashi_1 - 1] + a[-2 * _tadashi_0 + _tadashi_1]) + a[-2 * _tadashi_0 + _tadashi_1 + 1]));
 ///               a[-2 * _tadashi_0 + _tadashi_1 - 1] = b[-2 * _tadashi_0 + _tadashi_1 - 1];

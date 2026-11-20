@@ -74,6 +74,10 @@ def set_parallel(scop: Scop, num_threads: int):
     scop.ptr_ccscop.current_node = tadashi_set_parallel(scop.ptr_ccscop.current_node, num_threads)
 
 @cython.ccall
+def set_vector(scop: Scop):
+    scop.ptr_ccscop.current_node = tadashi_set_vector(scop.ptr_ccscop.current_node)
+
+@cython.ccall
 def set_loop_opt(scop: Scop, pos: int, opt: int):
     scop.ptr_ccscop.current_node = tadashi_set_loop_opt(scop.ptr_ccscop.current_node, pos, opt)
 

@@ -650,6 +650,11 @@ class SetParallelInfo(TransformInfo):
 
 
 @register
+class SetVectorInfo(TransformInfo):
+    pass
+
+
+@register
 class SetLoopOptInfo(TransformInfo):
     arg_help = ["Iterator index", "Option"]
 
