@@ -99,6 +99,10 @@ tile_Nd(__isl_take isl_schedule_node *node, int N, int *sizes,
   }
   mupa = isl_multi_union_pw_aff_from_union_pw_aff_list(space, upas);
   node = isl_schedule_node_insert_partial_schedule(node, mupa);
+  // Pluto-style tile loops: dense tile counters (floor(i/size)) and
+  // unshifted point loops, instead of isl's default strided form.
+  isl_options_set_tile_scale_tile_loops(ctx, 0);
+  isl_options_set_tile_shift_point_loops(ctx, 0);
   node = isl_schedule_node_band_tile(node, mv);
   return node;
 }
